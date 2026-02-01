@@ -1,0 +1,117 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Source\Applicatin">
+      <UniqueIdentifier>{8e3f989b-0bc1-43e6-bf7e-7c48ce34862c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Graphics">
+      <UniqueIdentifier>{328d4af4-4d33-4bdb-9d95-b22ac8bcf50f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\System">
+      <UniqueIdentifier>{65045921-48d8-459d-a1e3-6dec6c7c7502}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\System\Window">
+      <UniqueIdentifier>{d25021c1-e694-4f68-859b-aeaaf49392e4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\System\Utility">
+      <UniqueIdentifier>{b9b84290-6434-451e-bdcb-5ecae66214e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Graphics\RTVHeap">
+      <UniqueIdentifier>{18921276-50b5-46dd-9ff0-1ea971ee16aa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Graphics\Mesh">
+      <UniqueIdentifier>{bab69209-ef45-4004-8734-205bcb5a7744}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Asset">
+      <UniqueIdentifier>{5d82a1fb-9ed4-44b9-b50d-90a9879d4b63}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Asset\Shader">
+      <UniqueIdentifier>{4426f885-8b5d-47d2-8220-9853948c38d8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Graphics\Shader">
+      <UniqueIdentifier>{2c866097-1a2f-4113-9eb1-3e400af6ccad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Graphics\Shader\RootSignature">
+      <UniqueIdentifier>{a3b2bee8-eccb-4b2c-ad91-740bd16e85c3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Graphics\Shader\Pipeline">
+      <UniqueIdentifier>{8f2811fc-084e-49c3-8678-c32d64f9bc22}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Source\Application\Application.h">
+      <Filter>Source\Applicatin</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\System\Window\Window.h">
+      <Filter>Source\System\Window</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Pch.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\System\Utility\Utility.h">
+      <Filter>Source\System\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\System\System.h">
+      <Filter>Source\System</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Graphics\GraphicsDevice.h">
+      <Filter>Source\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Graphics\RTVHeap\RTVHeap.h">
+      <Filter>Source\Graphics\RTVHeap</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Graphics\Mesh\Mesh.h">
+      <Filter>Source\Graphics\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Graphics\Shader\RootSignature\RootSignature.h">
+      <Filter>Source\Graphics\Shader\RootSignature</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Graphics\Shader\Pipeline\Pipeline.h">
+      <Filter>Source\Graphics\Shader\Pipeline</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Source\System\Window\Window.cpp">
+      <Filter>Source\System\Window</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Application\Application.cpp">
+      <Filter>Source\Applicatin</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Pch.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\System\Utility\Utility.cpp">
+      <Filter>Source\System\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Graphics\GraphicsDevice.cpp">
+      <Filter>Source\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Graphics\RTVHeap\RTVHeap.cpp">
+      <Filter>Source\Graphics\RTVHeap</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Graphics\Mesh\Mesh.cpp">
+      <Filter>Source\Graphics\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Graphics\Shader\RootSignature\RootSignature.cpp">
+      <Filter>Source\Graphics\Shader\RootSignature</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Graphics\Shader\Pipeline\Pipeline.cpp">
+      <Filter>Source\Graphics\Shader\Pipeline</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Asset\Study_PS.hlsl">
+      <Filter>Asset\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="Asset\Study_VS.hlsl">
+      <Filter>Asset\Shader</Filter>
+    </FxCompile>
+  </ItemGroup>
+</Project>
