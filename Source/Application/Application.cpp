@@ -24,12 +24,30 @@ void Application::Execute()
 		return;
 	}
 
+	Mesh mesh;
+	mesh.Create(&GraphicsDevice::Instance());
+
+	RenderingSetting renderingSetting = {};
+	renderingSetting.InputLayouts = { InputLayout::POSITION };
+	renderingSetting.Formats = { DXGI_FORMAT_R8G8B8A8_UNORM };
+	renderingSetting.IsDepth = false;
+	renderingSetting.IsDepthMask = false;
+	renderingSetting.CullMode = CullMode::None;
+
+	Shader shader;
+	shader.Create(&GraphicsDevice::Instance(), L"Study", renderingSetting, {});
+
 	while (true)
 	{
 		if (!m_window.ProcessMessage())
 		{
 			break;
 		}
+		GraphicsDevice::Instance().Prepare();
+
+		shader.Begin(width, height);
+		shader.DrawMesh(mesh);
+
 		GraphicsDevice::Instance().ScreenFlip();
 	}
 	GraphicsDevice::Instance().Shutdown();

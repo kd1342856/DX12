@@ -46,24 +46,10 @@ bool GraphicsDevice::Init(HWND  hWnd, int w, int h)
 
 void GraphicsDevice::ScreenFlip()
 {
-	//	1.　リソースバリアのステートをレンダーターゲットに変更
 	auto bbIdx = m_pSwapChain->GetCurrentBackBufferIndex();
-	SetResourceBarrier(m_pSwapchainBuffers[bbIdx].Get(), D3D12_RESOURCE_STATE_PRESENT,
-		D3D12_RESOURCE_STATE_RENDER_TARGET);
+	SetResourceBarrier(m_pSwapchainBuffers[bbIdx].Get(),
+	D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
-	//	2. レンダーターゲットをセット
-	auto rtvH = m_pRTVHeap->GetRTVCPUHandle(bbIdx);
-	m_pCmdList->OMSetRenderTargets(1, &rtvH, false, nullptr);
-
-	//	3. セットしたレンダーターゲットの画面をクリア
-	float clearColor[] = { 1.0f, 0.0f, 1.0f, 1.0f };	//	紫
-	m_pCmdList->ClearRenderTargetView(rtvH, clearColor, 0, nullptr);
-
-	//	4. リソースバリアのステートをプレゼントに戻す
-	SetResourceBarrier(m_pSwapchainBuffers[bbIdx].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET,
-		D3D12_RESOURCE_STATE_PRESENT);
-
-	//	5.　コマンドリストを閉じて実行
 	m_pCmdList->Close();
 	ID3D12CommandList* cmdlists[] = { m_pCmdList.Get() };
 	m_pCmdQueue->ExecuteCommandLists(1, cmdlists);
@@ -77,6 +63,19 @@ void GraphicsDevice::ScreenFlip()
 
 	//	8. スワップチェインにプレゼント（送る）
 	m_pSwapChain->Present(1, 0);
+}
+
+void GraphicsDevice::Prepare()
+{
+	auto bbIdx = m_pSwapChain->GetCurrentBackBufferIndex();
+	SetResourceBarrier(m_pSwapchainBuffers[bbIdx].Get(),
+		D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+
+	auto rtvH = m_pRTVHeap->GetRTVCPUHandle(bbIdx);
+	m_pCmdList->OMSetRenderTargets(1, &rtvH, false, nullptr);
+
+	float clearColor[] = { 0.0f,0.0f,1.0f,1.0f };	//	青
+	m_pCmdList->ClearRenderTargetView(rtvH, clearColor, 0, nullptr);
 }
 
 void GraphicsDevice::WaitForCommandQueue()

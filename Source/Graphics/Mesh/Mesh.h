@@ -5,8 +5,7 @@ class Mesh
 public:
 	void Create(GraphicsDevice* pGraphicsDevice);
 
-	void DraInstanced();
-
+	void DrawInstanced()const;
 
 private:
 	GraphicsDevice* m_pDevice = nullptr;

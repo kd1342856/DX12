@@ -34,7 +34,7 @@ void RootSignature::Create(GraphicsDevice* pGraphicsDevice, const std::vector<Ra
 		case RangeType::CBV:
 			CreateRange(ranges[i], RangeType::CBV, cbvCount);
 			rootParams[i].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-			rootParams[i].DescriptorTable.pDescriptorRanges - &ranges[i];
+			rootParams[i].DescriptorTable.pDescriptorRanges = &ranges[i];
 			rootParams[i].DescriptorTable.NumDescriptorRanges = 1;
 			rootParams[i].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 			++cbvCount;
@@ -42,7 +42,7 @@ void RootSignature::Create(GraphicsDevice* pGraphicsDevice, const std::vector<Ra
 		case RangeType::SRV:
 			CreateRange(ranges[i], RangeType::SRV, cbvCount);
 			rootParams[i].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-			rootParams[i].DescriptorTable.pDescriptorRanges - &ranges[i];
+			rootParams[i].DescriptorTable.pDescriptorRanges = &ranges[i];
 			rootParams[i].DescriptorTable.NumDescriptorRanges = 1;
 			rootParams[i].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 			++samplerCount;
@@ -51,7 +51,7 @@ void RootSignature::Create(GraphicsDevice* pGraphicsDevice, const std::vector<Ra
 		case RangeType::UAV:
 			CreateRange(ranges[i], RangeType::UAV, cbvCount);
 			rootParams[i].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-			rootParams[i].DescriptorTable.pDescriptorRanges - &ranges[i];
+			rootParams[i].DescriptorTable.pDescriptorRanges = &ranges[i];
 			rootParams[i].DescriptorTable.NumDescriptorRanges = 1;
 			rootParams[i].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 			++uavCount;
@@ -67,8 +67,8 @@ void RootSignature::Create(GraphicsDevice* pGraphicsDevice, const std::vector<Ra
 	{
 		CreateStaticSampler(pStaticSmplerDesc[0], TextureAddressMode::Wrap, D3D12Filter::Point, 0);
 		CreateStaticSampler(pStaticSmplerDesc[1], TextureAddressMode::Clamp, D3D12Filter::Point, 1);
-		CreateStaticSampler(pStaticSmplerDesc[2], TextureAddressMode::Wrap, D3D12Filter::Point, 2);
-		CreateStaticSampler(pStaticSmplerDesc[3], TextureAddressMode::Clamp, D3D12Filter::Point, 3);
+		CreateStaticSampler(pStaticSmplerDesc[2], TextureAddressMode::Wrap, D3D12Filter::Linear, 2);
+		CreateStaticSampler(pStaticSmplerDesc[3], TextureAddressMode::Clamp, D3D12Filter::Linear, 3);
 	}
 	rootSignatureDesc.pStaticSamplers = bSampler ? pStaticSmplerDesc.data() : nullptr;
 	rootSignatureDesc.NumStaticSamplers = bSampler ? 4 : 0;
@@ -82,7 +82,7 @@ void RootSignature::Create(GraphicsDevice* pGraphicsDevice, const std::vector<Ra
 	{
 		assert(0 && "ルートシグネチャ初期化失敗");
 	}
-	auto hr = m_pDevice->GetDevice()->CreateRootSignature(0, m_pRootBlob->GetBufferPointer(), m_pRootBlob->GetBufferSize(), IID_PPV_ARGS(m_pRootSignature.GetAddressOf()));
+	hr = m_pDevice->GetDevice()->CreateRootSignature(0, m_pRootBlob->GetBufferPointer(), m_pRootBlob->GetBufferSize(), IID_PPV_ARGS(m_pRootSignature.GetAddressOf()));
 	if (FAILED(hr))
 	{
 		assert(0 && "ルートシグネチャ初期化失敗");
@@ -119,9 +119,11 @@ void RootSignature::CreateRange(D3D12_DESCRIPTOR_RANGE& pRange, RangeType type, 
 
 void RootSignature::CreateStaticSampler(D3D12_STATIC_SAMPLER_DESC& pSamplerDesc, TextureAddressMode mode, D3D12Filter filter, int count)
 {
-	D3D12_TEXTURE_ADDRESS_MODE addressMode = mode == TextureAddressMode::Wrap ? D3D12_TEXTURE_ADDRESS_MODE_WRAP : D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+	D3D12_TEXTURE_ADDRESS_MODE addressMode = mode == TextureAddressMode::Wrap ?
+		D3D12_TEXTURE_ADDRESS_MODE_WRAP : D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
 	
-	D3D12_FILTER samplingFilter = filter == D3D12Filter::Point ? D3D12_FILTER_MIN_MAG_MIP_POINT : D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+	D3D12_FILTER samplingFilter = filter == D3D12Filter::Point ? 
+		D3D12_FILTER_MIN_MAG_MIP_POINT : D3D12_FILTER_MIN_MAG_MIP_LINEAR;
 
 	pSamplerDesc = {};
 	pSamplerDesc.AddressU = addressMode;

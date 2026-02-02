@@ -64,14 +64,17 @@
     <ClInclude Include="Source\Graphics\RTVHeap\RTVHeap.h">
       <Filter>Source\Graphics\RTVHeap</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Graphics\Mesh\Mesh.h">
-      <Filter>Source\Graphics\Mesh</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Graphics\Shader\RootSignature\RootSignature.h">
       <Filter>Source\Graphics\Shader\RootSignature</Filter>
     </ClInclude>
     <ClInclude Include="Source\Graphics\Shader\Pipeline\Pipeline.h">
       <Filter>Source\Graphics\Shader\Pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Graphics\Shader\Shader.h">
+      <Filter>Source\Graphics\Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Graphics\Mesh\Mesh.h">
+      <Filter>Source\Graphics\Mesh</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -93,24 +96,27 @@
     <ClCompile Include="Source\Graphics\RTVHeap\RTVHeap.cpp">
       <Filter>Source\Graphics\RTVHeap</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Graphics\Mesh\Mesh.cpp">
-      <Filter>Source\Graphics\Mesh</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Graphics\Shader\RootSignature\RootSignature.cpp">
       <Filter>Source\Graphics\Shader\RootSignature</Filter>
     </ClCompile>
     <ClCompile Include="Source\Graphics\Shader\Pipeline\Pipeline.cpp">
       <Filter>Source\Graphics\Shader\Pipeline</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Graphics\Shader\Shader.cpp">
+      <Filter>Source\Graphics\Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Graphics\Mesh\Mesh.cpp">
+      <Filter>Source\Graphics\Mesh</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Asset\Study_PS.hlsl">
+    <FxCompile Include="Asset\Shader\Study_VS.hlsl">
       <Filter>Asset\Shader</Filter>
     </FxCompile>
-    <FxCompile Include="Asset\Study_VS.hlsl">
+    <FxCompile Include="Asset\Shader\Study_PS.hlsl">
       <Filter>Asset\Shader</Filter>
     </FxCompile>
   </ItemGroup>

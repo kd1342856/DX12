@@ -42,7 +42,7 @@ void Mesh::Create(GraphicsDevice* pGraphicsDevice)
 	}
 }
 
-void Mesh::DraInstanced()
+void Mesh::DrawInstanced()const
 {
 	m_pDevice->GetCmdList()->IASetVertexBuffers(0, 1, &m_vbView);
 	m_pDevice->GetCmdList()->DrawInstanced(3, 1, 0, 0);

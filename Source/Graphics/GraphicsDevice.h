@@ -12,8 +12,10 @@ public:
 	//	•`‰æ
 	void ScreenFlip();
 
-	void WaitForCommandQueue();
+	//	•`‰æ€”õ
+	void Prepare();
 
+	void WaitForCommandQueue();
 
 	//	Getter
 	ComPtr<ID3D12Device8> GetDevice()				{ return m_pDevice; }

@@ -12,3 +12,6 @@
 
 //	ƒƒbƒVƒ…
 #include "../Graphics/Mesh/Mesh.h"
+
+//	Shader
+#include "../Graphics/Shader/Shader.h"
