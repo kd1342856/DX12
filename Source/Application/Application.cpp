@@ -28,14 +28,16 @@ void Application::Execute()
 	mesh.Create(&GraphicsDevice::Instance());
 
 	RenderingSetting renderingSetting = {};
-	renderingSetting.InputLayouts = { InputLayout::POSITION };
+	renderingSetting.InputLayouts = { InputLayout::POSITION, InputLayout::TEXCOORD };
 	renderingSetting.Formats = { DXGI_FORMAT_R8G8B8A8_UNORM };
 	renderingSetting.IsDepth = false;
 	renderingSetting.IsDepthMask = false;
-	renderingSetting.CullMode = CullMode::None;
 
 	Shader shader;
-	shader.Create(&GraphicsDevice::Instance(), L"Study", renderingSetting, {});
+	shader.Create(&GraphicsDevice::Instance(), L"Study", renderingSetting, {RangeType::SRV});
+
+	Texture studyTex;
+	studyTex.Load(&GraphicsDevice::Instance(), "Asset/Texture/gurani.png");
 
 	while (true)
 	{
@@ -45,6 +47,7 @@ void Application::Execute()
 		}
 		GraphicsDevice::Instance().Prepare();
 
+		GraphicsDevice::Instance().GetCBVSRVUAVHeap()->SetHeap();
 		shader.Begin(width, height);
 		shader.DrawMesh(mesh);
 

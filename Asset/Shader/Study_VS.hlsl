@@ -1,16 +1,9 @@
-struct VSInput
-{
-    float3 pos : POSITION;
-};
+#include "inc_Study.hlsli"
 
-struct VSOutput
+VSOutput main(float4 pos: POSITION, float2 uv :TEXCOORD)
 {
-    float4 pos : SV_POSITION;
-};
-
-VSOutput main(VSInput v)
-{
-    VSOutput o;
-    o.pos = float4(v.pos, 1.0f); // ÅöwÇ1Ç…å≈íË
-    return o;
+    VSOutput Out;
+    Out.pos = pos;
+    Out.uv = uv;
+    return Out;
 }

@@ -51,6 +51,10 @@
 #include<dxgi1_6.h>
 
 #pragma comment(lib, "DirectXTK12.lib")
-#include <SimpleMath.h>
+#include<SimpleMath.h>
+
+//	DirectXTex
+#pragma comment(lib, "DirectXTex, lib")
+#include<DirectXTex.h>
 
 #include"System/System.h"

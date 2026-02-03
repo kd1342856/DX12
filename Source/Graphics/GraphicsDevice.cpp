@@ -26,9 +26,15 @@ bool GraphicsDevice::Init(HWND  hWnd, int w, int h)
 		return false;
 	}
 	m_pRTVHeap = std::make_unique<RTVHeap>();
-	if (!m_pRTVHeap->Create(m_pDevice.Get(), 100))
+	if (!m_pRTVHeap->Create(this, HeapType::RTV, 100))
 	{
 		assert(0 && "RTVƒq[ƒv‚Ìì¬¸”s");
+		return false;
+	}
+	m_upCBVSRVUAVHeap	= std::make_unique<CBVSRVUAVHeap>();
+	if (!m_upCBVSRVUAVHeap->Create(this, HeapType::CBVSRVUAV, Math::Vector3(100, 100, 100)))
+	{
+		assert(0 && "CBVSRVUAVƒq[ƒv‚Ìì¬¸”s");
 		return false;
 	}
 	if (!CreateSwapChainRTV())

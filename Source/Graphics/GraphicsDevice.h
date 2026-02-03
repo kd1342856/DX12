@@ -1,7 +1,5 @@
 #pragma once
 
-class RTVHeap;
-
 class GraphicsDevice
 {
 public:
@@ -18,8 +16,11 @@ public:
 	void WaitForCommandQueue();
 
 	//	Getter
-	ComPtr<ID3D12Device8> GetDevice()				{ return m_pDevice; }
-	ComPtr<ID3D12GraphicsCommandList6> GetCmdList() { return m_pCmdList; }
+	ID3D12Device8* GetDevice()const					{ return m_pDevice.Get(); }
+	ID3D12GraphicsCommandList6* GetCmdList()const	{ return m_pCmdList.Get(); }
+	CBVSRVUAVHeap* GetCBVSRVUAVHeap()const			{ return m_upCBVSRVUAVHeap.get(); }
+
+
 
 	// Release
 	void Shutdown();
@@ -69,6 +70,8 @@ private:
 
 	ComPtr<ID3D12Fence>						m_pFence = nullptr;
 	UINT64									m_fenceVal = 0;
+
+	std::unique_ptr<CBVSRVUAVHeap>			m_upCBVSRVUAVHeap = nullptr;
 
 	GraphicsDevice() {}
 	~GraphicsDevice() {}
