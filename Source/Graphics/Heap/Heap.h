@@ -37,14 +37,14 @@ public:
 		return true;
 	}
 
-	virtual const D3D12_CPU_DESCRIOTOR_HANDLE GetCPUHandle(int number)
+	virtual const D3D12_CPU_DESCRIPTOR_HANDLE GetCPUHandle(int number)
 	{
 		D3D12_CPU_DESCRIPTOR_HANDLE handle = m_pHeap->GetCPUDescriptorHandleForHeapStart();
 		handle.ptr += (UINT64)m_incrementSize * number;
 		return handle;
 	}
 
-	virtual const D3D12_GPU_DESCRIOTOR_HANDLE GetGPUHandle(int number)
+	virtual const D3D12_GPU_DESCRIPTOR_HANDLE GetGPUHandle(int number)
 	{
 		D3D12_GPU_DESCRIPTOR_HANDLE handle = m_pHeap->GetGPUDescriptorHandleForHeapStart();
 		handle.ptr += (UINT64)m_incrementSize * number;

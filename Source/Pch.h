@@ -54,7 +54,7 @@
 #include<SimpleMath.h>
 
 //	DirectXTex
-#pragma comment(lib, "DirectXTex, lib")
+#pragma comment(lib, "DirectXTex.lib")
 #include<DirectXTex.h>
 
 #include"System/System.h"

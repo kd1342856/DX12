@@ -7,7 +7,7 @@
 //描画関係デバイス
 #include "../Graphics/GraphicsDevice.h"
 
-//	RTVヒープ
+//	ヒープ
 #include "../Graphics/Heap/Heap.h"
 #include "../Graphics/Heap/RTVHeap/RTVHeap.h"
 #include "../Graphics/Heap/CBVSRVUAVHeap/CBVSRVUAVHeap.h"

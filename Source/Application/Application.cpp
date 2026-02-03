@@ -49,6 +49,8 @@ void Application::Execute()
 
 		GraphicsDevice::Instance().GetCBVSRVUAVHeap()->SetHeap();
 		shader.Begin(width, height);
+
+		studyTex.Set(studyTex.GetSRVNumber());
 		shader.DrawMesh(mesh);
 
 		GraphicsDevice::Instance().ScreenFlip();

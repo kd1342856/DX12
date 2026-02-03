@@ -1,16 +1,19 @@
 #pragma once
 
+class RTVHeap;
+class CBVSRVUAVHeap;
+
 class GraphicsDevice
 {
 public:
 
-	//	‰Šú‰»
+	//	åˆæœŸåŒ–
 	bool Init(HWND  hWnd, int w, int h);
 	
-	//	•`‰æ
+	//	æç”»
 	void ScreenFlip();
 
-	//	•`‰æ€”õ
+	//	æç”»æº–å‚™
 	void Prepare();
 
 	void WaitForCommandQueue();
@@ -19,8 +22,6 @@ public:
 	ID3D12Device8* GetDevice()const					{ return m_pDevice.Get(); }
 	ID3D12GraphicsCommandList6* GetCmdList()const	{ return m_pCmdList.Get(); }
 	CBVSRVUAVHeap* GetCBVSRVUAVHeap()const			{ return m_upCBVSRVUAVHeap.get(); }
-
-
 
 	// Release
 	void Shutdown();
@@ -53,16 +54,16 @@ private:
 		Kind,
 	};
 
-	//	ƒfƒoƒCƒX
+	//	ãƒ‡ãƒã‚¤ã‚¹
 	ComPtr<ID3D12Device8>					m_pDevice = nullptr;
 	ComPtr<IDXGIFactory6>					m_pDxgiFactory = nullptr;
 
-	// ƒRƒ}ƒ“ƒhƒŠƒXƒg
+	// ã‚³ãƒãƒ³ãƒ‰ãƒªã‚¹ãƒˆ
 	ComPtr<ID3D12CommandAllocator>			m_pCmdAllocator = nullptr;
 	ComPtr<ID3D12GraphicsCommandList6>		m_pCmdList = nullptr;
 	ComPtr<ID3D12CommandQueue>				m_pCmdQueue = nullptr;
 
-	//	ƒXƒƒbƒvƒ`ƒFƒCƒ“
+	//	ã‚¹ãƒ¯ãƒƒãƒ—ãƒã‚§ã‚¤ãƒ³
 	ComPtr<IDXGISwapChain4>					m_pSwapChain = nullptr;
 
 	std::array<ComPtr<ID3D12Resource>, 2>	m_pSwapchainBuffers;

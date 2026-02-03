@@ -3,6 +3,8 @@
 class CBVSRVUAVHeap : public Heap<Math::Vector3>
 {
 public:
+	CBVSRVUAVHeap(){}
+	~CBVSRVUAVHeap(){}
 
 	int CreateSRV(ID3D12Resource* pBuffer);
 

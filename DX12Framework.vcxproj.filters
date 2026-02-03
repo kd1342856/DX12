@@ -64,9 +64,6 @@
     <ClInclude Include="Source\System\Utility\Utility.h">
       <Filter>Source\System\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="Source\System\System.h">
-      <Filter>Source\System</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Graphics\GraphicsDevice.h">
       <Filter>Source\Graphics</Filter>
     </ClInclude>
@@ -82,6 +79,9 @@
     <ClInclude Include="Source\Graphics\Mesh\Mesh.h">
       <Filter>Source\Graphics\Mesh</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Graphics\Texture\Texture.h">
+      <Filter>Source\Graphics\Texture</Filter>
+    </ClInclude>
     <ClInclude Include="Source\Graphics\Heap\Heap.h">
       <Filter>Source\Graphics\Heap</Filter>
     </ClInclude>
@@ -91,8 +91,8 @@
     <ClInclude Include="Source\Graphics\Heap\CBVSRVUAVHeap\CBVSRVUAVHeap.h">
       <Filter>Source\Graphics\Heap\CBVSRVUAVHeap</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Graphics\Texture\Texture.h">
-      <Filter>Source\Graphics\Texture</Filter>
+    <ClInclude Include="Source\System\System.h">
+      <Filter>Source\System</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -123,14 +123,14 @@
     <ClCompile Include="Source\Graphics\Mesh\Mesh.cpp">
       <Filter>Source\Graphics\Mesh</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Graphics\Texture\Texture.cpp">
+      <Filter>Source\Graphics\Texture</Filter>
+    </ClCompile>
     <ClCompile Include="Source\Graphics\Heap\RTVHeap\RTVHeap.cpp">
       <Filter>Source\Graphics\Heap\RTVHeap</Filter>
     </ClCompile>
     <ClCompile Include="Source\Graphics\Heap\CBVSRVUAVHeap\CBVSRVUAVHeap.cpp">
       <Filter>Source\Graphics\Heap\CBVSRVUAVHeap</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Graphics\Texture\Texture.cpp">
-      <Filter>Source\Graphics\Texture</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
