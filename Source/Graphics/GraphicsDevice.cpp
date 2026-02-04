@@ -58,7 +58,7 @@ void GraphicsDevice::ScreenFlip()
 {
 	auto bbIdx = m_pSwapChain->GetCurrentBackBufferIndex();
 	SetResourceBarrier(m_pSwapchainBuffers[bbIdx].Get(),
-	D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+		D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
 
 	m_pCmdList->Close();
 	ID3D12CommandList* cmdlists[] = { m_pCmdList.Get() };

@@ -167,7 +167,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
     <None Include="Asset\Shader\inc_Study.hlsli">
       <Filter>Asset\Shader</Filter>
     </None>
@@ -180,5 +179,6 @@
     <None Include="Asset\Shader\Study_VS.hlsl">
       <Filter>Asset\Shader</Filter>
     </None>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>

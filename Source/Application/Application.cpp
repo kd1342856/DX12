@@ -11,6 +11,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 }
 void Application::Execute()
 {
+	SetDirectoryAndLoadDll();
+
 	static const int width = 1280;
 	static const int height = 720;
 	if (!m_window.Create(1280, 720, L"DX12Framework", L"Window"))
@@ -26,6 +28,8 @@ void Application::Execute()
 
 	ModelData modelData;
 	modelData.Load("Asset/Model/Cube/Cube.gltf");
+	Math::Matrix mWorld;
+
 
 	RenderingSetting renderingSetting = {};
 	renderingSetting.InputLayouts = 
@@ -36,7 +40,7 @@ void Application::Execute()
 
 	Shader shader;
 	shader.Create(&GraphicsDevice::Instance(), L"Study", 
-		renderingSetting, {RangeType::CBV, RangeType::SRV, RangeType::SRV , RangeType::SRV , RangeType::SRV });
+		renderingSetting, {RangeType::CBV, RangeType::CBV, RangeType::SRV, RangeType::SRV , RangeType::SRV , RangeType::SRV });
 
 	Math::Matrix mView = Math::Matrix::CreateTranslation(0, 0, 3);
 
@@ -60,10 +64,25 @@ void Application::Execute()
 		shader.Begin(width, height);
 
 		GraphicsDevice::Instance().GetCBufferAllocator()->BindAndAttachData(0, cbCamera);
+	
+
+		mWorld += Math::Matrix::CreateRotationY(0.5f);
+		GraphicsDevice::Instance().GetCBufferAllocator()->BindAndAttachData(1, mWorld);
 
 		shader.DrawModel(modelData);
 
 		GraphicsDevice::Instance().ScreenFlip();
 	}
 	GraphicsDevice::Instance().Shutdown();
+}
+
+void Application::SetDirectoryAndLoadDll()
+{
+#ifdef _DEBUG
+	SetDllDirectoryA("Library/assimp/build/lib/Debug");
+	LoadLibraryExA("assimp-vc143-mtd.dll", NULL, NULL);
+#else
+	SetDllDirectoryA("Library/assimp/build/lib/Release");
+	LoadLibraryExA("assimp-vc143-mt.dll", NULL, NULL);
+#endif
 }

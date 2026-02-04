@@ -7,6 +7,7 @@ public:
 
 	void Execute();
 private:
+	void SetDirectoryAndLoadDll();
 
 	Window m_window;
 	Application(){}

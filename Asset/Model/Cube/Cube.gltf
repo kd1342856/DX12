@@ -1,6 +1,6 @@
 {
 	"asset":{
-		"generator":"Khronos glTF Blender I/O v4.4.56",
+		"generator":"Khronos glTF Blender I/O v3.6.27",
 		"version":"2.0"
 	},
 	"scene":0,
@@ -18,25 +18,79 @@
 			"name":"Cube"
 		}
 	],
+	"animations":[
+		{
+			"channels":[
+				{
+					"sampler":0,
+					"target":{
+						"node":0,
+						"path":"translation"
+					}
+				},
+				{
+					"sampler":1,
+					"target":{
+						"node":0,
+						"path":"rotation"
+					}
+				},
+				{
+					"sampler":2,
+					"target":{
+						"node":0,
+						"path":"scale"
+					}
+				}
+			],
+			"name":"CubeAction",
+			"samplers":[
+				{
+					"input":4,
+					"interpolation":"LINEAR",
+					"output":5
+				},
+				{
+					"input":4,
+					"interpolation":"LINEAR",
+					"output":6
+				},
+				{
+					"input":7,
+					"interpolation":"STEP",
+					"output":8
+				}
+			]
+		}
+	],
 	"materials":[
 		{
 			"doubleSided":true,
-			"name":"Material",
+			"emissiveFactor":[
+				1,
+				1,
+				1
+			],
+			"emissiveTexture":{
+				"index":0
+			},
+			"name":"Material.003",
+			"normalTexture":{
+				"index":1
+			},
 			"pbrMetallicRoughness":{
-				"baseColorFactor":[
-					0.800000011920929,
-					0.800000011920929,
-					0.800000011920929,
-					1
-				],
-				"metallicFactor":0,
-				"roughnessFactor":0.5
+				"baseColorTexture":{
+					"index":2
+				},
+				"metallicRoughnessTexture":{
+					"index":3
+				}
 			}
 		}
 	],
 	"meshes":[
 		{
-			"name":"Cube",
+			"name":"Cube.002",
 			"primitives":[
 				{
 					"attributes":{
@@ -48,6 +102,46 @@
 					"material":0
 				}
 			]
+		}
+	],
+	"textures":[
+		{
+			"sampler":0,
+			"source":0
+		},
+		{
+			"sampler":0,
+			"source":1
+		},
+		{
+			"sampler":0,
+			"source":2
+		},
+		{
+			"sampler":0,
+			"source":3
+		}
+	],
+	"images":[
+		{
+			"mimeType":"image/png",
+			"name":"Cube_Emissive",
+			"uri":"Cube_Emissive.png"
+		},
+		{
+			"mimeType":"image/png",
+			"name":"Cube_Normal",
+			"uri":"Cube_Normal.png"
+		},
+		{
+			"mimeType":"image/jpeg",
+			"name":"Cube_Diffuse",
+			"uri": "Cube_Diffuse.png"
+		},
+		{
+			"mimeType":"image/png",
+			"name":"Cube_ORM",
+			"uri":"Cube_ORM.png"
 		}
 	],
 	"accessors":[
@@ -84,6 +178,48 @@
 			"componentType":5123,
 			"count":36,
 			"type":"SCALAR"
+		},
+		{
+			"bufferView":4,
+			"componentType":5126,
+			"count":121,
+			"max":[
+				5
+			],
+			"min":[
+				0
+			],
+			"type":"SCALAR"
+		},
+		{
+			"bufferView":5,
+			"componentType":5126,
+			"count":121,
+			"type":"VEC3"
+		},
+		{
+			"bufferView":6,
+			"componentType":5126,
+			"count":121,
+			"type":"VEC4"
+		},
+		{
+			"bufferView":7,
+			"componentType":5126,
+			"count":2,
+			"max":[
+				5
+			],
+			"min":[
+				0
+			],
+			"type":"SCALAR"
+		},
+		{
+			"bufferView":8,
+			"componentType":5126,
+			"count":2,
+			"type":"VEC3"
 		}
 	],
 	"bufferViews":[
@@ -110,11 +246,42 @@
 			"byteLength":72,
 			"byteOffset":768,
 			"target":34963
+		},
+		{
+			"buffer":0,
+			"byteLength":484,
+			"byteOffset":840
+		},
+		{
+			"buffer":0,
+			"byteLength":1452,
+			"byteOffset":1324
+		},
+		{
+			"buffer":0,
+			"byteLength":1936,
+			"byteOffset":2776
+		},
+		{
+			"buffer":0,
+			"byteLength":8,
+			"byteOffset":4712
+		},
+		{
+			"buffer":0,
+			"byteLength":24,
+			"byteOffset":4720
+		}
+	],
+	"samplers":[
+		{
+			"magFilter":9729,
+			"minFilter":9987
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":840,
+			"byteLength":4744,
 			"uri":"Cube.bin"
 		}
 	]

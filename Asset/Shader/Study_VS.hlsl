@@ -4,7 +4,8 @@ VSOutput main(float4 pos : POSITION, float2 uv : TEXCOORD, float3 normal: NORMAL
 {
     VSOutput Out;
     
-    Out.pos = mul(pos, c_mView);
+    Out.pos = mul(pos, c_mWorld);
+    Out.pos = mul(Out.pos, c_mView);
     Out.pos = mul(Out.pos, c_mProj);
     Out.uv = uv;
     
