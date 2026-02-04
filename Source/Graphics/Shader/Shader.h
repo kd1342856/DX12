@@ -27,8 +27,14 @@ public:
 
 	//	メッシュの描画
 	void DrawMesh(const Mesh& mesh);
+
+	void DrawModel(const ModelData& modelData);
+
+	UINT GetCBVCount()const { return m_cbvCount; }
 private:
 	void LoadShaderFile(const std::wstring& filePath);
+
+	void SetMaterial(const Material& material);
 
 	GraphicsDevice* m_pDevice = nullptr;
 
@@ -41,4 +47,6 @@ private:
 	ID3DBlob* m_pDSBlob = nullptr;		//	ドメインシェーダー
 	ID3DBlob* m_pGSBlob = nullptr;		//	ジオメトリシェーダー
 	ID3DBlob* m_pPSBlob = nullptr;		//	ピクセルシェーダー
+
+	UINT m_cbvCount = 0;
 };

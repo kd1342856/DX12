@@ -12,6 +12,10 @@ public:
 
 	void SetHeap();
 
+	ID3D12DescriptorHeap* GetHeap() { return m_pHeap.Get(); }
+
+	const Math::Vector3& GetUseCount() { return m_useCount; }
+
 private:
 
 };

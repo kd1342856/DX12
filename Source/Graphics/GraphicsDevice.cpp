@@ -4,7 +4,7 @@ bool GraphicsDevice::Init(HWND  hWnd, int w, int h)
 {
 	if (!CreateFactory())
 	{
-		assert(0 && "ãƒ•ã‚¡ã‚¯ãƒˆãƒªãƒ¼ä½œæˆå¤±æ•—");
+		assert(0 && "ƒtƒ@ƒNƒgƒŠ[ì¬¸”s");
 		return false;
 	}
 #ifdef _DEBUG
@@ -12,39 +12,43 @@ bool GraphicsDevice::Init(HWND  hWnd, int w, int h)
 #endif
 	if (!CreateDevice())
 	{
-		assert(0 && "D3D12ãƒ‡ãƒã‚¤ã‚¹ä½œæˆå¤±æ•—");
+		assert(0 && "D3D12ƒfƒoƒCƒXì¬¸”s");
 		return false;
 	}
 	if (!CreateCommandList())
 	{
-		assert(0 && "ã‚³ãƒãƒ³ãƒ‰ãƒªã‚¹ãƒˆã®ä½œæˆå¤±æ•—");
+		assert(0 && "ƒRƒ}ƒ“ƒhƒŠƒXƒg‚Ìì¬¸”s");
 		return false;
 	}
 	if (!CreateSwapChain(hWnd, w, h))
 	{
-		assert(0 && "ã‚¹ãƒ¯ãƒƒãƒ—ãƒã‚§ã‚¤ãƒ³ã®ä½œæˆå¤±æ•—");
+		assert(0 && "ƒXƒƒbƒvƒ`ƒFƒCƒ“‚Ìì¬¸”s");
 		return false;
 	}
 	m_pRTVHeap = std::make_unique<RTVHeap>();
 	if (!m_pRTVHeap->Create(this, HeapType::RTV, 100))
 	{
-		assert(0 && "RTVãƒ’ãƒ¼ãƒ—ã®ä½œæˆå¤±æ•—");
+		assert(0 && "RTVƒq[ƒv‚Ìì¬¸”s");
 		return false;
 	}
 	m_upCBVSRVUAVHeap	= std::make_unique<CBVSRVUAVHeap>();
 	if (!m_upCBVSRVUAVHeap->Create(this, HeapType::CBVSRVUAV, Math::Vector3(100, 100, 100)))
 	{
-		assert(0 && "CBVSRVUAVãƒ’ãƒ¼ãƒ—ã®ä½œæˆå¤±æ•—");
+		assert(0 && "CBVSRVUAVƒq[ƒv‚Ìì¬¸”s");
 		return false;
 	}
+
+	m_upCBufferAllocator = std::make_unique<CBufferAllocator>();
+	m_upCBufferAllocator->Create(this, m_upCBVSRVUAVHeap.get());
+
 	if (!CreateSwapChainRTV())
 	{
-		assert(0 && "ã‚¹ãƒ¯ãƒƒãƒ—ãƒã‚§ã‚¤ãƒ³RTVã®ä½œæˆå¤±æ•—");
+		assert(0 && "ƒXƒƒbƒvƒ`ƒFƒCƒ“RTV‚Ìì¬¸”s");
 		return false;
 	}
 	if (!CreateFence())
 	{
-		assert(0 && "ãƒ•ã‚§ãƒ³ã‚¹ã®ä½œæˆå¤±æ•—");
+		assert(0 && "ƒtƒFƒ“ƒX‚Ìì¬¸”s");
 		return false;
 	}
 	return true;
@@ -60,14 +64,14 @@ void GraphicsDevice::ScreenFlip()
 	ID3D12CommandList* cmdlists[] = { m_pCmdList.Get() };
 	m_pCmdQueue->ExecuteCommandLists(1, cmdlists);
 
-	//	6. ã‚³ãƒãƒ³ãƒ‰ãƒªã‚¹ãƒˆã®åŒæœŸã‚’å¾…ã¤
+	//	6. ƒRƒ}ƒ“ƒhƒŠƒXƒg‚Ì“¯Šú‚ğ‘Ò‚Â
 	WaitForCommandQueue();
 
-	//	7. ã‚³ãƒãƒ³ãƒ‰ã‚¢ãƒ­ã‚±ãƒ¼ã‚¿ãƒ¼ã¨ã‚³ãƒãƒ³ãƒ‰ãƒªã‚¹ãƒˆã‚’åˆæœŸåŒ–
+	//	7. ƒRƒ}ƒ“ƒhƒAƒƒP[ƒ^[‚ÆƒRƒ}ƒ“ƒhƒŠƒXƒg‚ğ‰Šú‰»
 	m_pCmdAllocator->Reset();
 	m_pCmdList->Reset(m_pCmdAllocator.Get(), nullptr);
 
-	//	8. ã‚¹ãƒ¯ãƒƒãƒ—ãƒã‚§ã‚¤ãƒ³ã«ãƒ—ãƒ¬ã‚¼ãƒ³ãƒˆï¼ˆé€ã‚‹ï¼‰
+	//	8. ƒXƒƒbƒvƒ`ƒFƒCƒ“‚ÉƒvƒŒƒ[ƒ“ƒgi‘—‚éj
 	m_pSwapChain->Present(1, 0);
 }
 
@@ -80,7 +84,7 @@ void GraphicsDevice::Prepare()
 	auto rtvH = m_pRTVHeap->GetCPUHandle(bbIdx);
 	m_pCmdList->OMSetRenderTargets(1, &rtvH, false, nullptr);
 
-	float clearColor[] = { 0.0f,0.0f,1.0f,1.0f };	//	é’
+	float clearColor[] = { 0.0f,0.0f,1.0f,1.0f };	//	Â
 	m_pCmdList->ClearRenderTargetView(rtvH, clearColor, 0, nullptr);
 }
 
@@ -92,7 +96,7 @@ void GraphicsDevice::WaitForCommandQueue()
 		auto event = CreateEvent(nullptr, false, false, nullptr);
 		if (!event)
 		{
-			assert(0 && "ã‚¤ãƒ™ãƒ³ãƒˆã‚¨ãƒ©ãƒ¼ã€ã‚¢ãƒ—ãƒªã‚±ãƒ¼ã‚·ãƒ§ãƒ³ã‚’çµ‚äº†ã—ã¾ã™");
+			assert(0 && "ƒCƒxƒ“ƒgƒGƒ‰[AƒAƒvƒŠƒP[ƒVƒ‡ƒ“‚ğI—¹‚µ‚Ü‚·");
 		}
 		m_pFence->SetEventOnCompletion(m_fenceVal, event);
 		WaitForSingleObject(event, INFINITE);
@@ -118,7 +122,7 @@ bool GraphicsDevice::CreateDevice()
 	std::vector<ComPtr<IDXGIAdapter>>	pAdapters;
 	std::vector<DXGI_ADAPTER_DESC>		descs;
 
-	//	ä½¿ç”¨ä¸­PCã«ã‚ã‚‹GOUãƒ‰ãƒ©ã‚¤ãƒãƒ¼ã‚’æ¤œç´¢ã—ã¦ã€ã‚ã‚Œã°æ ¼ç´
+	//	g—p’†PC‚É‚ ‚éGOUƒhƒ‰ƒCƒo[‚ğŒŸõ‚µ‚ÄA‚ ‚ê‚ÎŠi”[
 	for (UINT index = 0; 1; ++index)
 	{
 		pAdapters.push_back(nullptr);
@@ -181,14 +185,14 @@ bool GraphicsDevice::CreateDevice()
 		D3D_FEATURE_LEVEL_11_0,
 	};
 
-	//	Direct3Dãƒ‡ãƒã‚¤ã‚¹ã®åˆæœŸåŒ–
+	//	Direct3DƒfƒoƒCƒX‚Ì‰Šú‰»
 	D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_11_0;
 	for (auto lv : levels)
 	{
 		if (D3D12CreateDevice(pSelectAdapter.Get(), lv, IID_PPV_ARGS(&m_pDevice)) == S_OK)
 		{
 			featureLevel = lv;
-			break;	//ç”Ÿæˆå¯èƒ½ãªãƒãƒ¼ã‚¸ãƒ§ãƒ³ãŒè¦‹ã¤ã‹ã£ãŸã‚‰ãƒ«ãƒ¼ãƒ—æ‰“ã¡åˆ‡ã‚Š
+			break;	//¶¬‰Â”\‚Èƒo[ƒWƒ‡ƒ“‚ªŒ©‚Â‚©‚Á‚½‚çƒ‹[ƒv‘Å‚¿Ø‚è
 		}
 	}
 	return true;
@@ -212,7 +216,7 @@ bool GraphicsDevice::CreateCommandList()
 	cmdQueueDesc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL;
 	cmdQueueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
 
-	//	ã‚­ãƒ¥ãƒ¼ç”Ÿæˆ
+	//	ƒLƒ…[¶¬
 	hr = m_pDevice->CreateCommandQueue(&cmdQueueDesc, IID_PPV_ARGS(&m_pCmdQueue));
 	if (FAILED(hr))
 	{
@@ -233,7 +237,7 @@ bool GraphicsDevice::CreateSwapChain(HWND hWnd, int width, int height)
 	swapchainDesc.BufferCount = 2;
 	swapchainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 	swapchainDesc.Flags = 0;
-	// ã¾ãš SwapChain1 ã¨ã—ã¦å—ã‘ã‚‹
+	// ‚Ü‚¸ SwapChain1 ‚Æ‚µ‚Äó‚¯‚é
 	ComPtr<IDXGISwapChain1> swapChain1;
 	HRESULT hr = m_pDxgiFactory->CreateSwapChainForHwnd(m_pCmdQueue.Get(), hWnd, &swapchainDesc,
 		nullptr, nullptr, swapChain1.GetAddressOf()
@@ -244,7 +248,7 @@ bool GraphicsDevice::CreateSwapChain(HWND hWnd, int width, int height)
 		return false;
 	}
 
-	// SwapChain4 ã«æ˜‡æ ¼
+	// SwapChain4 ‚É¸Ši
 	hr = swapChain1.As(&m_pSwapChain);
 	if (FAILED(hr))
 	{
@@ -320,10 +324,10 @@ void GraphicsDevice::Shutdown()
 {
 	if (!m_pDevice || !m_pCmdQueue || !m_pFence) return;
 
-	// GPUå®Œäº†å¾…ã¡
+	// GPUŠ®—¹‘Ò‚¿
 	WaitForCommandQueue();
 
-	// ã“ã“ã‹ã‚‰å…ˆã§è§£æ”¾ï¼ˆComPtr/unique_ptrã‚’ç¢ºå®Ÿã«è½ã¨ã™ï¼‰
+	// ‚±‚±‚©‚çæ‚Å‰ğ•úiComPtr/unique_ptr‚ğŠmÀ‚É—‚Æ‚·j
 	m_pSwapchainBuffers.fill(nullptr);
 	m_pRTVHeap.reset();
 	m_pSwapChain.Reset();

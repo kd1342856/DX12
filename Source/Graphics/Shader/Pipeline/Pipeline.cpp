@@ -115,6 +115,7 @@ void Pipeline::Create(std::vector<ID3DBlob*> pBlobs, const std::vector<DXGI_FORM
 
 	if (FAILED(hr))
 	{
+		GraphicsDevice::Instance().EnableDebugLayer();
 		assert(0 && "パイプラインステートの作成に失敗しました");
 		return;
 	}

@@ -51,6 +51,7 @@ public:
 		return handle;
 	}
 
+
 protected:
 	GraphicsDevice* m_pDevice = nullptr;
 	ComPtr<ID3D12DescriptorHeap> m_pHeap = nullptr;

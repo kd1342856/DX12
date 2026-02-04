@@ -2,6 +2,7 @@
 
 class RTVHeap;
 class CBVSRVUAVHeap;
+class CBufferAllocator;
 
 class GraphicsDevice
 {
@@ -22,9 +23,12 @@ public:
 	ID3D12Device8* GetDevice()const					{ return m_pDevice.Get(); }
 	ID3D12GraphicsCommandList6* GetCmdList()const	{ return m_pCmdList.Get(); }
 	CBVSRVUAVHeap* GetCBVSRVUAVHeap()const			{ return m_upCBVSRVUAVHeap.get(); }
+	CBufferAllocator* GetCBufferAllocator()const	{ return m_upCBufferAllocator.get(); }
 
 	// Release
 	void Shutdown();
+	void EnableDebugLayer();
+
 private:
 
 	bool CreateFactory();
@@ -41,7 +45,6 @@ private:
 
 	void SetResourceBarrier(ID3D12Resource* pResource, D3D12_RESOURCE_STATES before, D3D12_RESOURCE_STATES after);
 
-	void EnableDebugLayer();
 
 
 	enum class GPUTier
@@ -73,6 +76,7 @@ private:
 	UINT64									m_fenceVal = 0;
 
 	std::unique_ptr<CBVSRVUAVHeap>			m_upCBVSRVUAVHeap = nullptr;
+	std::unique_ptr<CBufferAllocator>		m_upCBufferAllocator = nullptr;
 
 	GraphicsDevice() {}
 	~GraphicsDevice() {}

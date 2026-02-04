@@ -6,7 +6,8 @@ void Shader::Create(GraphicsDevice* pGraphicsDevice, const std::wstring& filePat
 	LoadShaderFile(filePath);
 
 	m_upRootSignature = std::make_unique<RootSignature>();
-	m_upRootSignature->Create(pGraphicsDevice, rangeTypes);
+	m_upRootSignature->Create(pGraphicsDevice, rangeTypes, m_cbvCount);
+
 
 	m_upPipeline = std::make_unique<Pipeline>();
 	m_upPipeline->SetRenderSettings(pGraphicsDevice, m_upRootSignature.get(), renderingSetting.InputLayouts,
@@ -55,7 +56,16 @@ void Shader::Begin(int w, int h)
 
 void Shader::DrawMesh(const Mesh& mesh)
 {
-	mesh.DrawInstanced();
+	SetMaterial(mesh.GetMaterial());
+	mesh.DrawInstanced(mesh.GetInstanceCount());
+}
+
+void Shader::DrawModel(const ModelData& modelData)
+{
+	for (auto& noe : modelData.GetNodes())
+	{
+		DrawMesh(*noe.spMesh);
+	}
 }
 
 void Shader::LoadShaderFile(const std::wstring& filePath)
@@ -112,4 +122,12 @@ void Shader::LoadShaderFile(const std::wstring& filePath)
 			return;
 		}
 	}
+}
+
+void Shader::SetMaterial(const Material& material)
+{
+	material.spBaseColorTex->Set(m_cbvCount);
+	material.spNormalTex->Set(m_cbvCount + 1);
+	material.spMetallicRoughnessTex->Set(m_cbvCount + 2);
+	material.spEmissiveTex->Set(m_cbvCount + 3);
 }

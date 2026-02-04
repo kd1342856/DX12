@@ -1,6 +1,6 @@
 #include "RootSignature.h"
 
-void RootSignature::Create(GraphicsDevice* pGraphicsDevice, const std::vector<RangeType>& rangeTypes)
+void RootSignature::Create(GraphicsDevice* pGraphicsDevice, const std::vector<RangeType>& rangeTypes, UINT& cbvCount)
 {
 	m_pDevice = pGraphicsDevice;
 
@@ -24,7 +24,6 @@ void RootSignature::Create(GraphicsDevice* pGraphicsDevice, const std::vector<Ra
 
 	samplerCount = 0;
 	bool bSampler = false;
-	int cbvCount = 0;
 	int uavCount = 0;
 
 	for (int i = 0; i < rangeCount; ++i)
@@ -40,7 +39,7 @@ void RootSignature::Create(GraphicsDevice* pGraphicsDevice, const std::vector<Ra
 			++cbvCount;
 			break;
 		case RangeType::SRV:
-			CreateRange(ranges[i], RangeType::SRV, cbvCount);
+			CreateRange(ranges[i], RangeType::SRV, samplerCount);
 			rootParams[i].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
 			rootParams[i].DescriptorTable.pDescriptorRanges = &ranges[i];
 			rootParams[i].DescriptorTable.NumDescriptorRanges = 1;
@@ -49,7 +48,7 @@ void RootSignature::Create(GraphicsDevice* pGraphicsDevice, const std::vector<Ra
 			bSampler = true;
 			break;
 		case RangeType::UAV:
-			CreateRange(ranges[i], RangeType::UAV, cbvCount);
+			CreateRange(ranges[i], RangeType::UAV, uavCount);
 			rootParams[i].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
 			rootParams[i].DescriptorTable.pDescriptorRanges = &ranges[i];
 			rootParams[i].DescriptorTable.NumDescriptorRanges = 1;

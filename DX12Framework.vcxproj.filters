@@ -50,6 +50,18 @@
     <Filter Include="Source\Graphics\Texture">
       <UniqueIdentifier>{1ff832aa-3c62-41bf-8762-4e9df86919f5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Graphics\CBufferAllocator">
+      <UniqueIdentifier>{d3194f17-6af1-4cc4-8f3e-74dff5248e8b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Graphics\CBufferAllocator\CBufferData">
+      <UniqueIdentifier>{157b789b-fcfd-4434-af6b-88ad3fafd724}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Graphics\Mesh\MeshData">
+      <UniqueIdentifier>{92c718fa-300a-4c6e-8b21-a57732305197}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Graphics\Model">
+      <UniqueIdentifier>{30a565b9-b691-43d0-98f0-7c11c1290da7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Application\Application.h">
@@ -94,6 +106,18 @@
     <ClInclude Include="Source\System\System.h">
       <Filter>Source\System</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Graphics\CBufferAllocator\CBufferData\CBufferData.h">
+      <Filter>Source\Graphics\CBufferAllocator\CBufferData</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Graphics\Mesh\MeshData\MeshData.h">
+      <Filter>Source\Graphics\Mesh\MeshData</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Graphics\Model\Model.h">
+      <Filter>Source\Graphics\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Graphics\Model\ModelLoader.h">
+      <Filter>Source\Graphics\Model</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\System\Window\Window.cpp">
@@ -132,18 +156,28 @@
     <ClCompile Include="Source\Graphics\Heap\CBVSRVUAVHeap\CBVSRVUAVHeap.cpp">
       <Filter>Source\Graphics\Heap\CBVSRVUAVHeap</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="Asset\Shader\Study_VS.hlsl">
-      <Filter>Asset\Shader</Filter>
-    </FxCompile>
-    <FxCompile Include="Asset\Shader\Study_PS.hlsl">
-      <Filter>Asset\Shader</Filter>
-    </FxCompile>
+    <ClCompile Include="Source\Graphics\Model\Model.cpp">
+      <Filter>Source\Graphics\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Graphics\Model\ModelLoader.cpp">
+      <Filter>Source\Graphics\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Graphics\CBufferAllocator\CBufferAllocator.cpp">
+      <Filter>Source\Graphics\CBufferAllocator</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="Asset\Shader\inc_Study.hlsli">
+      <Filter>Asset\Shader</Filter>
+    </None>
+    <None Include="Source\Graphics\CBufferAllocator\CBufferAllocator.h">
+      <Filter>Source\Graphics\CBufferAllocator</Filter>
+    </None>
+    <None Include="Asset\Shader\Study_PS.hlsl">
+      <Filter>Asset\Shader</Filter>
+    </None>
+    <None Include="Asset\Shader\Study_VS.hlsl">
       <Filter>Asset\Shader</Filter>
     </None>
   </ItemGroup>

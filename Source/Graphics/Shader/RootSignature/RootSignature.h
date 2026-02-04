@@ -22,7 +22,7 @@ enum class D3D12Filter
 class RootSignature
 {
 public:
-	void Create(GraphicsDevice* pGraphicsDevice, const std::vector<RangeType>& rangeTypes);
+	void Create(GraphicsDevice* pGraphicsDevice, const std::vector<RangeType>& rangeTypes, UINT& cbvCount);
 
 	ID3D12RootSignature* GetRootSignature() { return m_pRootSignature.Get(); }
 
