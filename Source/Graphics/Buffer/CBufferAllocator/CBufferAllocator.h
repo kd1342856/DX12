@@ -1,5 +1,5 @@
 #pragma once
-class CBufferAllocator
+class CBufferAllocator : public Buffer
 {
 public:
 	void Create(GraphicsDevice* pGraphicsDevice, CBVSRVUAVHeap* pHeap);
@@ -11,9 +11,7 @@ public:
 	void BindAndAttachData(int descIndex, const T& data);
 
 private:
-	GraphicsDevice* m_pGraphicsDevice = nullptr;
 	CBVSRVUAVHeap* m_pHeap = nullptr;
-	ComPtr<ID3D12Resource> m_pBuffer = nullptr;
 	struct { char buf[256]; }*m_pMappedBuffer = nullptr;
 	int m_currentUseNumber = 0;
 };

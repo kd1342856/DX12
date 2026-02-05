@@ -153,19 +153,14 @@
   <ItemGroup>
     <ClInclude Include="Source\Application\Application.h" />
     <None Include="packages.config" />
-    <None Include="Source\Graphics\CBufferAllocator\CBufferAllocator.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-      </ExcludedFromBuild>
-    </None>
-    <ClInclude Include="Source\Graphics\CBufferAllocator\CBufferData\CBufferData.h" />
+    <ClInclude Include="Source\Graphics\Buffer\Buffer.h" />
+    <ClInclude Include="Source\Graphics\Buffer\CBufferAllocator\CBufferAllocator.h" />
+    <ClInclude Include="Source\Graphics\Buffer\CBufferAllocator\CBufferData\CBufferData.h" />
+    <ClInclude Include="Source\Graphics\Buffer\DepthStencil\DepthStencil.h" />
+    <ClInclude Include="Source\Graphics\Buffer\Texture\Texture.h" />
     <ClInclude Include="Source\Graphics\GraphicsDevice.h" />
     <ClInclude Include="Source\Graphics\Heap\CBVSRVUAVHeap\CBVSRVUAVHeap.h" />
+    <ClInclude Include="Source\Graphics\Heap\DSVHeap\DSVHeap.h" />
     <ClInclude Include="Source\Graphics\Heap\Heap.h" />
     <ClInclude Include="Source\Graphics\Heap\RTVHeap\RTVHeap.h" />
     <ClInclude Include="Source\Graphics\Mesh\Mesh.h" />
@@ -175,7 +170,6 @@
     <ClInclude Include="Source\Graphics\Shader\Pipeline\Pipeline.h" />
     <ClInclude Include="Source\Graphics\Shader\RootSignature\RootSignature.h" />
     <ClInclude Include="Source\Graphics\Shader\Shader.h" />
-    <ClInclude Include="Source\Graphics\Texture\Texture.h" />
     <ClInclude Include="Source\Pch.h" />
     <ClInclude Include="Source\System\System.h" />
     <ClInclude Include="Source\System\Utility\Utility.h" />
@@ -183,9 +177,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Application\Application.cpp" />
-    <ClCompile Include="Source\Graphics\CBufferAllocator\CBufferAllocator.cpp" />
+    <ClCompile Include="Source\Graphics\Buffer\CBufferAllocator\CBufferAllocator.cpp" />
+    <ClCompile Include="Source\Graphics\Buffer\DepthStencil\DepthStencil.cpp" />
+    <ClCompile Include="Source\Graphics\Buffer\Texture\Texture.cpp" />
     <ClCompile Include="Source\Graphics\GraphicsDevice.cpp" />
     <ClCompile Include="Source\Graphics\Heap\CBVSRVUAVHeap\CBVSRVUAVHeap.cpp" />
+    <ClCompile Include="Source\Graphics\Heap\DSVHeap\DSVHeap.cpp" />
     <ClCompile Include="Source\Graphics\Heap\RTVHeap\RTVHeap.cpp" />
     <ClCompile Include="Source\Graphics\Mesh\Mesh.cpp" />
     <ClCompile Include="Source\Graphics\Model\Model.cpp" />
@@ -193,7 +190,6 @@
     <ClCompile Include="Source\Graphics\Shader\Pipeline\Pipeline.cpp" />
     <ClCompile Include="Source\Graphics\Shader\RootSignature\RootSignature.cpp" />
     <ClCompile Include="Source\Graphics\Shader\Shader.cpp" />
-    <ClCompile Include="Source\Graphics\Texture\Texture.cpp" />
     <ClCompile Include="Source\Pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>

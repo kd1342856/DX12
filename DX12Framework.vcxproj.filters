@@ -47,20 +47,29 @@
     <Filter Include="Source\Graphics\Heap\CBVSRVUAVHeap">
       <UniqueIdentifier>{102a4a6f-811a-4dc7-9961-379b4c188f41}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Graphics\Texture">
-      <UniqueIdentifier>{1ff832aa-3c62-41bf-8762-4e9df86919f5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Graphics\CBufferAllocator">
-      <UniqueIdentifier>{d3194f17-6af1-4cc4-8f3e-74dff5248e8b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Graphics\CBufferAllocator\CBufferData">
-      <UniqueIdentifier>{157b789b-fcfd-4434-af6b-88ad3fafd724}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Graphics\Mesh\MeshData">
       <UniqueIdentifier>{92c718fa-300a-4c6e-8b21-a57732305197}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Graphics\Model">
       <UniqueIdentifier>{30a565b9-b691-43d0-98f0-7c11c1290da7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Graphics\Heap\DSVHeap">
+      <UniqueIdentifier>{a4876edb-7ddd-4f21-8d68-a04f6bce8327}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Graphics\Buffer">
+      <UniqueIdentifier>{b1b2376f-cb45-41c0-a781-db42eae66a8d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Graphics\Buffer\CBufferAllocator">
+      <UniqueIdentifier>{d3194f17-6af1-4cc4-8f3e-74dff5248e8b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Graphics\Buffer\CBufferAllocator\CBufferData">
+      <UniqueIdentifier>{157b789b-fcfd-4434-af6b-88ad3fafd724}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Graphics\Buffer\Texture">
+      <UniqueIdentifier>{1ff832aa-3c62-41bf-8762-4e9df86919f5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Graphics\Buffer\DepthStencil">
+      <UniqueIdentifier>{f356e233-189c-453a-925f-2f1247b09f80}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -91,9 +100,6 @@
     <ClInclude Include="Source\Graphics\Mesh\Mesh.h">
       <Filter>Source\Graphics\Mesh</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Graphics\Texture\Texture.h">
-      <Filter>Source\Graphics\Texture</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Graphics\Heap\Heap.h">
       <Filter>Source\Graphics\Heap</Filter>
     </ClInclude>
@@ -103,12 +109,6 @@
     <ClInclude Include="Source\Graphics\Heap\CBVSRVUAVHeap\CBVSRVUAVHeap.h">
       <Filter>Source\Graphics\Heap\CBVSRVUAVHeap</Filter>
     </ClInclude>
-    <ClInclude Include="Source\System\System.h">
-      <Filter>Source\System</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Graphics\CBufferAllocator\CBufferData\CBufferData.h">
-      <Filter>Source\Graphics\CBufferAllocator\CBufferData</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Graphics\Mesh\MeshData\MeshData.h">
       <Filter>Source\Graphics\Mesh\MeshData</Filter>
     </ClInclude>
@@ -117,6 +117,27 @@
     </ClInclude>
     <ClInclude Include="Source\Graphics\Model\ModelLoader.h">
       <Filter>Source\Graphics\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Graphics\Heap\DSVHeap\DSVHeap.h">
+      <Filter>Source\Graphics\Heap\DSVHeap</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Graphics\Buffer\Buffer.h">
+      <Filter>Source\Graphics\Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Graphics\Buffer\Texture\Texture.h">
+      <Filter>Source\Graphics\Buffer\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Graphics\Buffer\CBufferAllocator\CBufferAllocator.h">
+      <Filter>Source\Graphics\Buffer\CBufferAllocator</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Graphics\Buffer\CBufferAllocator\CBufferData\CBufferData.h">
+      <Filter>Source\Graphics\Buffer\CBufferAllocator\CBufferData</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Graphics\Buffer\DepthStencil\DepthStencil.h">
+      <Filter>Source\Graphics\Buffer\DepthStencil</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\System\System.h">
+      <Filter>Source\System</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -147,9 +168,6 @@
     <ClCompile Include="Source\Graphics\Mesh\Mesh.cpp">
       <Filter>Source\Graphics\Mesh</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Graphics\Texture\Texture.cpp">
-      <Filter>Source\Graphics\Texture</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Graphics\Heap\RTVHeap\RTVHeap.cpp">
       <Filter>Source\Graphics\Heap\RTVHeap</Filter>
     </ClCompile>
@@ -162,16 +180,22 @@
     <ClCompile Include="Source\Graphics\Model\ModelLoader.cpp">
       <Filter>Source\Graphics\Model</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Graphics\CBufferAllocator\CBufferAllocator.cpp">
-      <Filter>Source\Graphics\CBufferAllocator</Filter>
+    <ClCompile Include="Source\Graphics\Heap\DSVHeap\DSVHeap.cpp">
+      <Filter>Source\Graphics\Heap\DSVHeap</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Graphics\Buffer\Texture\Texture.cpp">
+      <Filter>Source\Graphics\Buffer\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Graphics\Buffer\CBufferAllocator\CBufferAllocator.cpp">
+      <Filter>Source\Graphics\Buffer\CBufferAllocator</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Graphics\Buffer\DepthStencil\DepthStencil.cpp">
+      <Filter>Source\Graphics\Buffer\DepthStencil</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Asset\Shader\inc_Study.hlsli">
       <Filter>Asset\Shader</Filter>
-    </None>
-    <None Include="Source\Graphics\CBufferAllocator\CBufferAllocator.h">
-      <Filter>Source\Graphics\CBufferAllocator</Filter>
     </None>
     <None Include="Asset\Shader\Study_PS.hlsl">
       <Filter>Asset\Shader</Filter>

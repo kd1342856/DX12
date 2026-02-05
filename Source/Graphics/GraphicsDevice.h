@@ -3,6 +3,8 @@
 class RTVHeap;
 class CBVSRVUAVHeap;
 class CBufferAllocator;
+class DSVHeap;
+class DepthStencil;
 
 class GraphicsDevice
 {
@@ -24,7 +26,7 @@ public:
 	ID3D12GraphicsCommandList6* GetCmdList()const	{ return m_pCmdList.Get(); }
 	CBVSRVUAVHeap* GetCBVSRVUAVHeap()const			{ return m_upCBVSRVUAVHeap.get(); }
 	CBufferAllocator* GetCBufferAllocator()const	{ return m_upCBufferAllocator.get(); }
-
+	DSVHeap* GetDSVHeap()const { return m_upDSVHeap.get(); }
 	// Release
 	void Shutdown();
 	void EnableDebugLayer();
@@ -77,6 +79,9 @@ private:
 
 	std::unique_ptr<CBVSRVUAVHeap>			m_upCBVSRVUAVHeap = nullptr;
 	std::unique_ptr<CBufferAllocator>		m_upCBufferAllocator = nullptr;
+	std::unique_ptr<DSVHeap>				m_upDSVHeap = nullptr;
+	std::unique_ptr<DepthStencil>			m_upDepthStencil = nullptr;
+
 
 	GraphicsDevice() {}
 	~GraphicsDevice() {}

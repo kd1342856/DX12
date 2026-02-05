@@ -1,6 +1,8 @@
 #pragma once
 #include "MeshData/MeshData.h"
 
+class Texture;
+
 struct MeshFace
 {
 	UINT Idx[3];

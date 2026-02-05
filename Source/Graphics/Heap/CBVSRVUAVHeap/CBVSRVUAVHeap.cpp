@@ -2,7 +2,7 @@
 
 int CBVSRVUAVHeap::CreateSRV(ID3D12Resource* pBuffer)
 {
-	if (m_useCount.y < m_nextRegistNumber)
+	if (m_nextRegistNumber >= (int)m_useCount.y)
 	{
 		assert(0 && "Šm•ÛÏ‚İ‚Ìƒq[ƒv—Ìˆæ‚ğ’´‚¦‚Ü‚µ‚½");
 		return 0;

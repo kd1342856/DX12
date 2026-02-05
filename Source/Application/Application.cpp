@@ -2,7 +2,7 @@
 
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
-	CoInitializeEx(nullptr, COINIT_MULTITHREADED);	//	COM‰Šú‰»
+	CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);	//	COM‰Šú‰»
 
 	Application::Instance().Execute();
 
@@ -29,14 +29,12 @@ void Application::Execute()
 	ModelData modelData;
 	modelData.Load("Asset/Model/Cube/Cube.gltf");
 	Math::Matrix mWorld;
-
+	Math::Matrix mTempWorld = Math::Matrix::CreateTranslation(0, 0, 1);
 
 	RenderingSetting renderingSetting = {};
 	renderingSetting.InputLayouts = 
 	{ InputLayout::POSITION, InputLayout::TEXCOORD, InputLayout::COLOR, InputLayout::NORMAL, InputLayout::TANGENT };
 	renderingSetting.Formats = { DXGI_FORMAT_R8G8B8A8_UNORM };
-	renderingSetting.IsDepth = false;
-	renderingSetting.IsDepthMask = false;
 
 	Shader shader;
 	shader.Create(&GraphicsDevice::Instance(), L"Study", 
@@ -66,9 +64,12 @@ void Application::Execute()
 		GraphicsDevice::Instance().GetCBufferAllocator()->BindAndAttachData(0, cbCamera);
 	
 
-		mWorld += Math::Matrix::CreateRotationY(0.5f);
+		mWorld *= Math::Matrix::CreateRotationY(0.001f);
 		GraphicsDevice::Instance().GetCBufferAllocator()->BindAndAttachData(1, mWorld);
 
+		shader.DrawModel(modelData);
+
+		GraphicsDevice::Instance().GetCBufferAllocator()->BindAndAttachData(1, mTempWorld);
 		shader.DrawModel(modelData);
 
 		GraphicsDevice::Instance().ScreenFlip();

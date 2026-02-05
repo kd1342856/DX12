@@ -2,7 +2,7 @@
 
 int RTVHeap::CreateRTV(ID3D12Resource* pBuffer)
 {
-	if (m_useCount < m_nextRegistNumber)
+	if (m_nextRegistNumber >= (int)m_useCount)
 	{
 		assert(0 && "確保済みのヒープ領域を超えました。");
 		return 0;

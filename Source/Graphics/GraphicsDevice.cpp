@@ -41,6 +41,18 @@ bool GraphicsDevice::Init(HWND  hWnd, int w, int h)
 	m_upCBufferAllocator = std::make_unique<CBufferAllocator>();
 	m_upCBufferAllocator->Create(this, m_upCBVSRVUAVHeap.get());
 
+	m_upDSVHeap = std::make_unique<DSVHeap>();
+	if (!m_upDSVHeap->Create(this, HeapType::DSV, 100))
+	{
+		assert(0 && "DSVヒープの作成失敗");
+		return false;
+	}
+	m_upDepthStencil = std::make_unique<DepthStencil>();
+	if(!m_upDepthStencil->Create(this, Math::Vector2(w, h)))
+	{
+		assert(0 && "DepthStencilの作成失敗");
+		return false;
+	}
 	if (!CreateSwapChainRTV())
 	{
 		assert(0 && "スワップチェインRTVの作成失敗");
@@ -82,10 +94,15 @@ void GraphicsDevice::Prepare()
 		D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
 	auto rtvH = m_pRTVHeap->GetCPUHandle(bbIdx);
-	m_pCmdList->OMSetRenderTargets(1, &rtvH, false, nullptr);
+
+	auto dsvH = m_upDSVHeap->GetCPUHandle(m_upDepthStencil->GetDSVNumber());
+
+	m_pCmdList->OMSetRenderTargets(1, &rtvH, false, &dsvH);
 
 	float clearColor[] = { 0.0f,0.0f,1.0f,1.0f };	//	青
 	m_pCmdList->ClearRenderTargetView(rtvH, clearColor, 0, nullptr);
+
+	m_upDepthStencil->ClearBuffer();
 }
 
 void GraphicsDevice::WaitForCommandQueue()
