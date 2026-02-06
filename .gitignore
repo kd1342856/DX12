@@ -1,7 +1,6 @@
 #共通無視フォルダ
 [Rr]elease/
 packages/
-Library/
 .vs
 x64
 project

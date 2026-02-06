@@ -1,6 +1,4 @@
 #pragma once
-#include "System/System.h"
-
 //描画関係デバイス
 #include "Graphics/Device/GraphicsDevice.h"
 
