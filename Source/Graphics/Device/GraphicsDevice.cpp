@@ -63,10 +63,16 @@ bool GraphicsDevice::Init(HWND  hWnd, int w, int h)
 		assert(0 && "フェンスの作成失敗");
 		return false;
 	}
+	m_fenceEvent = CreateEvent(nullptr, false, false, nullptr);
+	if (!m_fenceEvent)
+	{
+		assert(0 && "イベントエラー、アプリケーションを終了します");
+		return false;
+	}
 	return true;
 }
 
-void GraphicsDevice::ScreenFlip()
+void GraphicsDevice::EndFrame()
 {
 	auto bbIdx = m_pSwapChain->GetCurrentBackBufferIndex();
 	SetResourceBarrier(m_pSwapchainBuffers[bbIdx].Get(),
@@ -76,19 +82,24 @@ void GraphicsDevice::ScreenFlip()
 	ID3D12CommandList* cmdlists[] = { m_pCmdList.Get() };
 	m_pCmdQueue->ExecuteCommandLists(1, cmdlists);
 
-	//	6. コマンドリストの同期を待つ
-	WaitForCommandQueue();
+	//	フレームの転出番号を記録
+	const int frameIdx = m_frameIndex % kFrameCount;
+	m_frames[frameIdx].fenceValue = SignalQueue();
 
-	//	7. コマンドアロケーターとコマンドリストを初期化
-	m_pCmdAllocator->Reset();
-	m_pCmdList->Reset(m_pCmdAllocator.Get(), nullptr);
-
-	//	8. スワップチェインにプレゼント（送る）
+	//	スワップチェインにプレゼント（送る）
 	m_pSwapChain->Present(1, 0);
+	++m_frameIndex;
 }
 
-void GraphicsDevice::Prepare()
+void GraphicsDevice::BeginFrame()
 {
+	//	Frame Begin
+	const int frameIdx = m_frameIndex % kFrameCount;
+	FrameContext& fr = m_frames[frameIdx];
+	WaitForFence(fr.fenceValue);
+	fr.allocator->Reset();
+	m_pCmdList->Reset(fr.allocator.Get(), nullptr);
+
 	auto bbIdx = m_pSwapChain->GetCurrentBackBufferIndex();
 	SetResourceBarrier(m_pSwapchainBuffers[bbIdx].Get(),
 		D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
@@ -107,18 +118,7 @@ void GraphicsDevice::Prepare()
 
 void GraphicsDevice::WaitForCommandQueue()
 {
-	m_pCmdQueue->Signal(m_pFence.Get(), ++m_fenceVal);
-	if (m_pFence->GetCompletedValue() != m_fenceVal)
-	{
-		auto event = CreateEvent(nullptr, false, false, nullptr);
-		if (!event)
-		{
-			assert(0 && "イベントエラー、アプリケーションを終了します");
-		}
-		m_pFence->SetEventOnCompletion(m_fenceVal, event);
-		WaitForSingleObject(event, INFINITE);
-		CloseHandle(event);
-	}
+	WaitForFence(SignalQueue());
 }
 
 bool GraphicsDevice::CreateFactory()
@@ -217,20 +217,23 @@ bool GraphicsDevice::CreateDevice()
 
 bool GraphicsDevice::CreateCommandList()
 {
-	auto hr = m_pDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_pCmdAllocator));
+	for (int i = 0; i < kFrameCount; ++i)
+	{
+		auto hr = m_pDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_frames[i].allocator));
+		if (FAILED(hr))
+		{
+			return false;
+		}
+		m_frames[i].fenceValue = 0;
+	}
+	auto hr = m_pDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_frames[0].allocator.Get(), nullptr, IID_PPV_ARGS(&m_pCmdList));
 	if (FAILED(hr))
 	{
 		return false;
 	}
-	hr = m_pDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_pCmdAllocator.Get(), nullptr, IID_PPV_ARGS(&m_pCmdList));
-	if (FAILED(hr))
-	{
-		return false;
-	}
+	m_pCmdList->Close();
+
 	D3D12_COMMAND_QUEUE_DESC cmdQueueDesc = {};
-	cmdQueueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-	cmdQueueDesc.NodeMask = 0;
-	cmdQueueDesc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL;
 	cmdQueueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
 
 	//	キュー生成
@@ -241,6 +244,25 @@ bool GraphicsDevice::CreateCommandList()
 	}
 
 	return true;
+}
+
+UINT64 GraphicsDevice::SignalQueue()
+{
+	auto hr = m_pCmdQueue->Signal(m_pFence.Get(), ++m_fenceVal);
+	if (FAILED(hr))
+	{
+		return false;
+	}
+	return m_fenceVal;
+}
+
+void GraphicsDevice::WaitForFence(UINT64 value)
+{
+	if (m_pFence->GetCompletedValue() < value)
+	{
+		m_pFence->SetEventOnCompletion(value, m_fenceEvent);
+		WaitForSingleObject(m_fenceEvent, INFINITE);
+	}
 }
 
 bool GraphicsDevice::CreateSwapChain(HWND hWnd, int width, int height)
@@ -344,13 +366,22 @@ void GraphicsDevice::Shutdown()
 	// GPU完了待ち
 	WaitForCommandQueue();
 
+	if (m_fenceEvent)
+	{
+		CloseHandle(m_fenceEvent);
+		m_fenceEvent = nullptr;
+	}
 	// ここから先で解放（ComPtr/unique_ptrを確実に落とす）
 	m_pSwapchainBuffers.fill(nullptr);
 	m_pRTVHeap.reset();
 	m_pSwapChain.Reset();
 
 	m_pCmdList.Reset();
-	m_pCmdAllocator.Reset();
+	for (int i = 0; i < kFrameCount; ++i)
+	{
+		m_frames[i].allocator.Reset();
+		m_frames[i].fenceValue = 0;
+	}
 	m_pCmdQueue.Reset();
 
 	m_pFence.Reset();

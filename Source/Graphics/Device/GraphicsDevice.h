@@ -6,6 +6,12 @@ class CBufferAllocator;
 class DSVHeap;
 class DepthStencil;
 
+struct FrameContext
+{
+	ComPtr<ID3D12CommandAllocator> allocator;
+	UINT64 fenceValue = 0;
+};
+
 class GraphicsDevice
 {
 public:
@@ -39,6 +45,10 @@ private:
 
 	bool CreateCommandList();
 
+	UINT64 SignalQueue();
+
+	void WaitForFence(UINT64 value);
+
 	bool CreateSwapChain(HWND  hWnd, int width, int height);
 
 	bool CreateSwapChainRTV();
@@ -64,9 +74,11 @@ private:
 	ComPtr<IDXGIFactory6>					m_pDxgiFactory = nullptr;
 
 	// コマンドリスト
-	ComPtr<ID3D12CommandAllocator>			m_pCmdAllocator = nullptr;
 	ComPtr<ID3D12GraphicsCommandList6>		m_pCmdList = nullptr;
 	ComPtr<ID3D12CommandQueue>				m_pCmdQueue = nullptr;
+	static constexpr int					kFrameCount = 2;
+	FrameContext							m_frames[kFrameCount];
+	UINT									m_frameIndex = 0;
 
 	//	スワップチェイン
 	ComPtr<IDXGISwapChain4>					m_pSwapChain = nullptr;
@@ -75,6 +87,7 @@ private:
 	std::unique_ptr<RTVHeap>				m_pRTVHeap = nullptr;
 
 	ComPtr<ID3D12Fence>						m_pFence = nullptr;
+	HANDLE									m_fenceEvent = nullptr;
 	UINT64									m_fenceVal = 0;
 
 	std::unique_ptr<CBVSRVUAVHeap>			m_upCBVSRVUAVHeap = nullptr;

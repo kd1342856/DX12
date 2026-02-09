@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -153,6 +153,11 @@
   <ItemGroup>
     <ClInclude Include="Source\Application\Application.h" />
     <None Include="packages.config" />
+    <ClInclude Include="Source\Graphics\Buffer\Buffer.h" />
+    <ClInclude Include="Source\Graphics\Buffer\CBufferAllocator\CBufferAllocator.h" />
+    <ClInclude Include="Source\Graphics\Buffer\CBufferAllocator\CBufferData\CBufferData.h" />
+    <ClInclude Include="Source\Graphics\Buffer\DepthStencil\DepthStencil.h" />
+    <ClInclude Include="Source\Graphics\Buffer\Texture\Texture.h" />
     <ClInclude Include="Source\Graphics\Descriptors\Heap\CBVSRVUAVHeap\CBVSRVUAVHeap.h" />
     <ClInclude Include="Source\Graphics\Descriptors\Heap\DSVHeap\DSVHeap.h" />
     <ClInclude Include="Source\Graphics\Descriptors\Heap\Heap.h" />
@@ -163,11 +168,6 @@
     <ClInclude Include="Source\Graphics\Geometry\Model\Model.h" />
     <ClInclude Include="Source\Graphics\Geometry\Model\ModelLoader.h" />
     <ClInclude Include="Source\Graphics\Graphics.h" />
-    <ClInclude Include="Source\Graphics\Resources\Buffer\Buffer.h" />
-    <ClInclude Include="Source\Graphics\Resources\Buffer\CBufferAllocator\CBufferAllocator.h" />
-    <ClInclude Include="Source\Graphics\Resources\Buffer\CBufferAllocator\CBufferData\CBufferData.h" />
-    <ClInclude Include="Source\Graphics\Resources\Buffer\DepthStencil\DepthStencil.h" />
-    <ClInclude Include="Source\Graphics\Resources\Buffer\Texture\Texture.h" />
     <ClInclude Include="Source\Graphics\Shader\Pipeline\Pipeline.h" />
     <ClInclude Include="Source\Graphics\Shader\RootSignature\RootSignature.h" />
     <ClInclude Include="Source\Graphics\Shader\Shader.h" />
@@ -178,6 +178,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Application\Application.cpp" />
+    <ClCompile Include="Source\Graphics\Buffer\CBufferAllocator\CBufferAllocator.cpp" />
+    <ClCompile Include="Source\Graphics\Buffer\DepthStencil\DepthStencil.cpp" />
+    <ClCompile Include="Source\Graphics\Buffer\Texture\Texture.cpp" />
     <ClCompile Include="Source\Graphics\Descriptors\Heap\CBVSRVUAVHeap\CBVSRVUAVHeap.cpp" />
     <ClCompile Include="Source\Graphics\Descriptors\Heap\DSVHeap\DSVHeap.cpp" />
     <ClCompile Include="Source\Graphics\Descriptors\Heap\RTVHeap\RTVHeap.cpp" />
@@ -185,9 +188,6 @@
     <ClCompile Include="Source\Graphics\Geometry\Mesh\Mesh.cpp" />
     <ClCompile Include="Source\Graphics\Geometry\Model\Model.cpp" />
     <ClCompile Include="Source\Graphics\Geometry\Model\ModelLoader.cpp" />
-    <ClCompile Include="Source\Graphics\Resources\Buffer\CBufferAllocator\CBufferAllocator.cpp" />
-    <ClCompile Include="Source\Graphics\Resources\Buffer\DepthStencil\DepthStencil.cpp" />
-    <ClCompile Include="Source\Graphics\Resources\Buffer\Texture\Texture.cpp" />
     <ClCompile Include="Source\Graphics\Shader\Pipeline\Pipeline.cpp" />
     <ClCompile Include="Source\Graphics\Shader\RootSignature\RootSignature.cpp" />
     <ClCompile Include="Source\Graphics\Shader\Shader.cpp" />
