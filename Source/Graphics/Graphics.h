@@ -30,5 +30,4 @@
 #include "Graphics/Geometry/Model/Model.h"
 
 //	Shader
-#include "Graphics/Shader/Shader.h"
-
+#include "Graphics/Shader/ShaderManager.h"

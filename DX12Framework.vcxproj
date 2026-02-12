@@ -152,7 +152,19 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Source\Application\Application.h" />
-    <None Include="packages.config" />
+    <ClInclude Include="Source\Application\Scene\GameScene\GameScene.h" />
+    <ClInclude Include="Source\Application\Scene\SceneBase.h" />
+    <ClInclude Include="Source\ECS\Component\Component.h" />
+    <ClInclude Include="Source\ECS\Component\Components\CameraComponent.h" />
+    <ClInclude Include="Source\ECS\Component\Components\ModelComponent.h" />
+    <ClInclude Include="Source\ECS\Component\Components\ShaderComponent.h" />
+    <ClInclude Include="Source\ECS\Component\Components\TransformComponent.h" />
+    <ClInclude Include="Source\ECS\CompSystem\System.h" />
+    <ClInclude Include="Source\ECS\CompSystem\Systems\RenderSystem.h" />
+    <ClInclude Include="Source\ECS\ECS.h" />
+    <ClInclude Include="Source\ECS\ECSCoordinator.h" />
+    <ClInclude Include="Source\ECS\Entity\Entity.h" />
+    <ClInclude Include="Source\ECS\Factory\EntityFactory.h" />
     <ClInclude Include="Source\Graphics\Buffer\Buffer.h" />
     <ClInclude Include="Source\Graphics\Buffer\CBufferAllocator\CBufferAllocator.h" />
     <ClInclude Include="Source\Graphics\Buffer\CBufferAllocator\CBufferData\CBufferData.h" />
@@ -170,14 +182,18 @@
     <ClInclude Include="Source\Graphics\Graphics.h" />
     <ClInclude Include="Source\Graphics\Shader\Pipeline\Pipeline.h" />
     <ClInclude Include="Source\Graphics\Shader\RootSignature\RootSignature.h" />
-    <ClInclude Include="Source\Graphics\Shader\Shader.h" />
+    <ClInclude Include="Source\Graphics\Shader\ShaderManager.h" />
+    <ClInclude Include="Source\Graphics\Shader\StandardShader\StandardShader.h" />
     <ClInclude Include="Source\Pch.h" />
+    <ClInclude Include="Source\System\GDF\GDF.h" />
     <ClInclude Include="Source\System\System.h" />
     <ClInclude Include="Source\System\Utility\Utility.h" />
     <ClInclude Include="Source\System\Window\Window.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Application\Application.cpp" />
+    <ClCompile Include="Source\Application\Scene\GameScene\GameScene.cpp" />
+    <ClCompile Include="Source\ECS\Factory\EntityFactory.cpp" />
     <ClCompile Include="Source\Graphics\Buffer\CBufferAllocator\CBufferAllocator.cpp" />
     <ClCompile Include="Source\Graphics\Buffer\DepthStencil\DepthStencil.cpp" />
     <ClCompile Include="Source\Graphics\Buffer\Texture\Texture.cpp" />
@@ -190,13 +206,15 @@
     <ClCompile Include="Source\Graphics\Geometry\Model\ModelLoader.cpp" />
     <ClCompile Include="Source\Graphics\Shader\Pipeline\Pipeline.cpp" />
     <ClCompile Include="Source\Graphics\Shader\RootSignature\RootSignature.cpp" />
-    <ClCompile Include="Source\Graphics\Shader\Shader.cpp" />
+    <ClCompile Include="Source\Graphics\Shader\ShaderManager.cpp" />
+    <ClCompile Include="Source\Graphics\Shader\StandardShader\StandardShader.cpp" />
     <ClCompile Include="Source\Pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Source\System\GDF\GDF.cpp" />
     <ClCompile Include="Source\System\Utility\Utility.cpp" />
     <ClCompile Include="Source\System\Window\Window.cpp" />
   </ItemGroup>

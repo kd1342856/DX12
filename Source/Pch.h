@@ -35,6 +35,9 @@
 #include<future>
 #include<filesystem>
 #include<chrono>
+#include<bitset>
+#include<set>
+#include<typeinfo>
 
 #define _USE_MATH_DEFINES
 #include<math.h>
@@ -58,3 +61,9 @@
 
 #include"System/System.h"
 #include"Graphics/Graphics.h"
+
+//	GDFファサード(GraphicsDeviceの後に配置)
+#include"System/GDF/GDF.h"
+
+//	ECS
+#include"ECS/ECS.h"

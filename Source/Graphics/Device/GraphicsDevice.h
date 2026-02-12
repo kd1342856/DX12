@@ -20,10 +20,10 @@ public:
 	bool Init(HWND  hWnd, int w, int h);
 	
 	//	描画
-	void ScreenFlip();
+	void EndFrame();
 
 	//	描画準備
-	void Prepare();
+	void BeginFrame();
 
 	void WaitForCommandQueue();
 
