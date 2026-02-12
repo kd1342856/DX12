@@ -245,6 +245,7 @@
       </ExcludedFromBuild>
       <FileType>Document</FileType>
     </None>
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Asset\Shader\inc_Study.hlsli">

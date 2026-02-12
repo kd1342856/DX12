@@ -80,6 +80,39 @@
     <Filter Include="Source\Graphics\Buffer\Texture">
       <UniqueIdentifier>{c3c3109a-5a63-4abc-805c-554d49376b90}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Graphics\Shader\StandardShader">
+      <UniqueIdentifier>{cd064d96-03ad-47b8-ab58-afd09de06604}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\System\GDF">
+      <UniqueIdentifier>{e994a3fe-873c-426e-bdd5-df11579c7acf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Applicatin\Scene">
+      <UniqueIdentifier>{82bee2af-612f-4c25-b753-450549ac4626}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Applicatin\Scene\GameScene">
+      <UniqueIdentifier>{9e8903f3-1b92-452f-8993-f3e842f9d0d6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\ECS">
+      <UniqueIdentifier>{cddbd63f-bc75-4008-9b52-3bac01adbf95}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\ECS\Component">
+      <UniqueIdentifier>{54a2c630-2f34-4701-bd4f-bb0a1821a9b5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\ECS\Component\Components">
+      <UniqueIdentifier>{c0184763-9c8f-4553-845b-46ade4734828}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\ECS\Entity">
+      <UniqueIdentifier>{5f812c4c-1df5-410f-ac4c-7b08c52c4fa3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\ECS\Factory">
+      <UniqueIdentifier>{b46e648d-d712-4004-9ad5-885b79609151}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\ECS\CompSystem">
+      <UniqueIdentifier>{f887aac5-255e-4e0f-86cf-86f38914dd21}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\ECS\CompSystem\Systems">
+      <UniqueIdentifier>{757ca48e-1d4f-45c8-9365-d6820bd77584}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Application\Application.h">
@@ -99,9 +132,6 @@
     </ClInclude>
     <ClInclude Include="Source\Graphics\Shader\Pipeline\Pipeline.h">
       <Filter>Source\Graphics\Shader\Pipeline</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Graphics\Shader\Shader.h">
-      <Filter>Source\Graphics\Shader</Filter>
     </ClInclude>
     <ClInclude Include="Source\System\System.h">
       <Filter>Source\System</Filter>
@@ -151,6 +181,54 @@
     <ClInclude Include="Source\Graphics\Buffer\Buffer.h">
       <Filter>Source\Graphics\Buffer</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Graphics\Shader\ShaderManager.h">
+      <Filter>Source\Graphics\Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Graphics\Shader\StandardShader\StandardShader.h">
+      <Filter>Source\Graphics\Shader\StandardShader</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\System\GDF\GDF.h">
+      <Filter>Source\System\GDF</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Application\Scene\SceneBase.h">
+      <Filter>Source\Applicatin\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Application\Scene\GameScene\GameScene.h">
+      <Filter>Source\Applicatin\Scene\GameScene</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\ECS.h">
+      <Filter>Source\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\ECSCoordinator.h">
+      <Filter>Source\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Factory\EntityFactory.h">
+      <Filter>Source\ECS\Factory</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Entity\Entity.h">
+      <Filter>Source\ECS\Entity</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\CompSystem\System.h">
+      <Filter>Source\ECS\CompSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\CompSystem\Systems\RenderSystem.h">
+      <Filter>Source\ECS\CompSystem\Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Component\Component.h">
+      <Filter>Source\ECS\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Component\Components\CameraComponent.h">
+      <Filter>Source\ECS\Component\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Component\Components\ModelComponent.h">
+      <Filter>Source\ECS\Component\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Component\Components\ShaderComponent.h">
+      <Filter>Source\ECS\Component\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Component\Components\TransformComponent.h">
+      <Filter>Source\ECS\Component\Components</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\System\Window\Window.cpp">
@@ -158,9 +236,6 @@
     </ClCompile>
     <ClCompile Include="Source\Application\Application.cpp">
       <Filter>Source\Applicatin</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Pch.cpp">
-      <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Source\System\Utility\Utility.cpp">
       <Filter>Source\System\Utility</Filter>
@@ -170,9 +245,6 @@
     </ClCompile>
     <ClCompile Include="Source\Graphics\Shader\Pipeline\Pipeline.cpp">
       <Filter>Source\Graphics\Shader\Pipeline</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Graphics\Shader\Shader.cpp">
-      <Filter>Source\Graphics\Shader</Filter>
     </ClCompile>
     <ClCompile Include="Source\Graphics\Device\GraphicsDevice.cpp">
       <Filter>Source\Graphics\Device</Filter>
@@ -203,6 +275,24 @@
     </ClCompile>
     <ClCompile Include="Source\Graphics\Buffer\Texture\Texture.cpp">
       <Filter>Source\Graphics\Buffer\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Pch.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Graphics\Shader\ShaderManager.cpp">
+      <Filter>Source\Graphics\Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Graphics\Shader\StandardShader\StandardShader.cpp">
+      <Filter>Source\Graphics\Shader\StandardShader</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\System\GDF\GDF.cpp">
+      <Filter>Source\System\GDF</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Application\Scene\GameScene\GameScene.cpp">
+      <Filter>Source\Applicatin\Scene\GameScene</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ECS\Factory\EntityFactory.cpp">
+      <Filter>Source\ECS\Factory</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
