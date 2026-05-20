@@ -1,0 +1,104 @@
+#include "GameObject.h"
+#include "../Manager/Scene.h"
+
+void GameObject::Serialize(nlohmann::json& out) const {
+    out["Name"] = m_name;
+    out["IsActive"] = m_isActive;
+    nlohmann::json comps = nlohmann::json::array();
+    for (auto& c : m_components) {
+        nlohmann::json cj;
+        cj["Type"] = c->GetComponentName();
+        c->Serialize(cj);
+        comps.push_back(cj);
+    }
+    out["Components"] = comps;
+
+    nlohmann::json children = nlohmann::json::array();
+    for (auto& child : m_children) {
+        nlohmann::json cj;
+        child->Serialize(cj);
+        children.push_back(cj);
+    }
+    out["Children"] = children;
+}
+
+void GameObject::Deserialize(const nlohmann::json& in) {
+    if (in.contains("Name")) m_name = in["Name"];
+    if (in.contains("IsActive")) m_isActive = in["IsActive"];
+    if (in.contains("Components")) {
+        for (const auto& cj : in["Components"]) {
+            std::string type = cj["Type"];
+            auto comp = GameManager::Instance().GetClassAssembly().Create(type);
+            if (comp) {
+                comp->SetGameObject(this);
+                m_components.push_back(comp);
+                comp->RegisterECSData();
+                comp->Awake();
+                comp->Deserialize(cj);
+            }
+        }
+    }
+    if (in.contains("Children")) {
+        for (const auto& cj : in["Children"]) {
+            auto child = std::make_shared<GameObject>();
+            child->SetScene(m_scene);
+            Entity id = GameManager::Instance().GetECS().CreateEntity();
+            child->SetEntityID(id);
+            child->m_pParent = this;
+            m_children.push_back(child);
+            child->Deserialize(cj);
+        }
+    }
+}
+
+void GameObject::Destroy() {
+    if (m_pParent) {
+        auto it = std::find(m_pParent->m_children.begin(), m_pParent->m_children.end(), shared_from_this());
+        if (it != m_pParent->m_children.end()) m_pParent->m_children.erase(it);
+    } else if (m_scene) {
+        m_scene->RemoveGameObject(shared_from_this());
+    }
+    m_pParent = nullptr;
+    m_scene = nullptr;
+}
+
+void GameObject::SetParent(std::shared_ptr<GameObject> parent) {
+    if (m_pParent) {
+        auto it = std::find(m_pParent->m_children.begin(), m_pParent->m_children.end(), shared_from_this());
+        if (it != m_pParent->m_children.end()) m_pParent->m_children.erase(it);
+    } else if (m_scene) {
+        m_scene->RemoveGameObject(shared_from_this());
+    }
+
+    m_pParent = parent ? parent.get() : nullptr;
+
+    if (parent) {
+        parent->m_children.push_back(shared_from_this());
+    } else if (m_scene) {
+        m_scene->AddGameObject(shared_from_this());
+    }
+}
+
+void GameObject::Update() {
+    if (!m_isActive) return;
+    for (auto& comp : m_components) {
+        if (comp->IsActive()) {
+            comp->Update();
+        }
+    }
+    for (auto& child : m_children) {
+        child->Update();
+    }
+}
+
+void GameObject::ImGuiUpdate() {
+    if (!m_isActive) return;
+    for (auto& comp : m_components) {
+        if (comp->IsActive()) {
+            comp->ImGuiUpdate();
+        }
+    }
+    for (auto& child : m_children) {
+        child->ImGuiUpdate();
+    }
+}

@@ -1,0 +1,223 @@
+#include "Pipeline.h"
+
+#include "../RootSignature/RootSignature.h"
+
+void Pipeline::SetRenderSettings(GraphicsDevice* pGraphicsDevice, RootSignature* pRootSignature, const std::vector<InputLayout>& inputLayouts, CullMode cullMode, BlendMode blendMode, PrimitiveTopologyType topologyType)
+{
+	m_pDevice = pGraphicsDevice;
+	m_pRootSignature = pRootSignature;
+	m_inputLayouts = inputLayouts;
+	m_cullMode = cullMode;
+	m_blendMode = blendMode;
+	m_topologyType = topologyType;
+}
+
+void Pipeline::Create(std::vector<ID3DBlob*> pBlobs, const std::vector<DXGI_FORMAT> formats, bool bDepth, bool bDepthMask, int rtvCount, bool bWireFrame)
+{
+	std::vector<D3D12_INPUT_ELEMENT_DESC> inputLayouts;
+	SetInputLayout(inputLayouts, m_inputLayouts);
+
+	// GraphicsPipelineState縺ｮ蜷・ｨｮ險ｭ螳・
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC graphicsPipelineState = {};
+
+	// 鬆らせ繧ｷ繧ｧ繝ｼ繝繝ｼ繧偵そ繝・ヨ
+	graphicsPipelineState.VS.pShaderBytecode = pBlobs[0]->GetBufferPointer();
+	graphicsPipelineState.VS.BytecodeLength = pBlobs[0]->GetBufferSize();
+
+	// 繝上Ν繧ｷ繧ｧ繝ｼ繝繝ｼ繧偵そ繝・ヨ
+	if (pBlobs[1])
+	{
+		graphicsPipelineState.HS.pShaderBytecode = pBlobs[1]->GetBufferPointer();
+		graphicsPipelineState.HS.BytecodeLength = pBlobs[1]->GetBufferSize();
+	}
+
+	// 繝峨Γ繧､繝ｳ繧ｷ繧ｧ繝ｼ繝繝ｼ繧偵そ繝・ヨ
+	if (pBlobs[2])
+	{
+		graphicsPipelineState.DS.pShaderBytecode = pBlobs[2]->GetBufferPointer();
+		graphicsPipelineState.DS.BytecodeLength = pBlobs[2]->GetBufferSize();
+	}
+
+	// 繧ｸ繧ｪ繝｡繝医Μ繧ｷ繧ｧ繝ｼ繝繝ｼ繧偵そ繝・ヨ
+	if (pBlobs[3])
+	{
+		graphicsPipelineState.GS.pShaderBytecode = pBlobs[3]->GetBufferPointer();
+		graphicsPipelineState.GS.BytecodeLength = pBlobs[3]->GetBufferSize();
+	}
+
+	// 繝斐け繧ｻ繝ｫ繧ｷ繧ｧ繝ｼ繝繝ｼ繧偵そ繝・ヨ
+	graphicsPipelineState.PS.pShaderBytecode = pBlobs[4]->GetBufferPointer();
+	graphicsPipelineState.PS.BytecodeLength = pBlobs[4]->GetBufferSize();
+
+	graphicsPipelineState.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;
+
+	// 繧ｫ繝ｪ繝ｳ繧ｰ繝｢繝ｼ繝峨ｒ繧ｻ繝・ヨ
+	graphicsPipelineState.RasterizerState.CullMode = static_cast<D3D12_CULL_MODE>(m_cullMode);
+
+	// 繝輔ぅ繝ｫ繧ｿ繝ｼ繝｢繝ｼ繝峨ｒ繧ｻ繝・ヨ
+	if (bWireFrame)
+	{
+		graphicsPipelineState.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;		// 荳ｭ霄ｫ繧貞｡励ｊ縺､縺ｶ縺輔↑縺・
+	}
+	else
+	{
+		graphicsPipelineState.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;			// 荳ｭ霄ｫ繧貞｡励ｊ縺､縺ｶ縺・
+	}
+
+	// 深度設定をセット
+	if (bDepth)
+	{
+		graphicsPipelineState.RasterizerState.DepthClipEnable = true;
+		graphicsPipelineState.DepthStencilState.DepthEnable = true;
+
+		if (bDepthMask)
+		{
+			graphicsPipelineState.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
+		}
+		else
+		{
+			graphicsPipelineState.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
+		}
+		graphicsPipelineState.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
+		graphicsPipelineState.DSVFormat = DXGI_FORMAT_D32_FLOAT;
+	}
+	else
+	{
+		graphicsPipelineState.RasterizerState.DepthClipEnable = false;
+		graphicsPipelineState.DepthStencilState.DepthEnable = false;
+
+		graphicsPipelineState.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_ALWAYS;
+	}
+	
+	graphicsPipelineState.DepthStencilState.StencilEnable = false;
+	graphicsPipelineState.DepthStencilState.FrontFace.StencilFailOp = D3D12_STENCIL_OP_KEEP;
+	graphicsPipelineState.DepthStencilState.FrontFace.StencilDepthFailOp = D3D12_STENCIL_OP_KEEP;
+	graphicsPipelineState.DepthStencilState.FrontFace.StencilPassOp = D3D12_STENCIL_OP_KEEP;
+	graphicsPipelineState.DepthStencilState.FrontFace.StencilFunc = D3D12_COMPARISON_FUNC_ALWAYS;
+	graphicsPipelineState.DepthStencilState.BackFace = graphicsPipelineState.DepthStencilState.FrontFace;
+	graphicsPipelineState.BlendState.AlphaToCoverageEnable = false;
+
+	graphicsPipelineState.BlendState.IndependentBlendEnable = false;
+
+
+	D3D12_RENDER_TARGET_BLEND_DESC blendDesc = {};
+	SetBlendMode(blendDesc, m_blendMode);
+
+	graphicsPipelineState.BlendState.RenderTarget[0] = blendDesc;
+
+	graphicsPipelineState.InputLayout.pInputElementDescs = inputLayouts.data();			// 繝ｬ繧､繧｢繧ｦ繝亥・鬆ｭ繧｢繝峨Ξ繧ｹ
+	graphicsPipelineState.InputLayout.NumElements = (int)m_inputLayouts.size();			// 繝ｬ繧､繧｢繧ｦ繝磯・蛻励・隕∫ｴ謨ｰ
+
+	graphicsPipelineState.PrimitiveTopologyType = (pBlobs[1] && pBlobs[2]) ?
+		D3D12_PRIMITIVE_TOPOLOGY_TYPE_PATCH : static_cast<D3D12_PRIMITIVE_TOPOLOGY_TYPE>(m_topologyType);
+
+	graphicsPipelineState.NumRenderTargets = rtvCount;
+
+	for (int i = 0; i < rtvCount; ++i)
+	{
+		graphicsPipelineState.RTVFormats[i] = formats[i];
+	}
+
+	graphicsPipelineState.SampleDesc.Count = 1;		
+	graphicsPipelineState.pRootSignature = m_pRootSignature->GetRootSignature();
+
+	auto hr = m_pDevice->GetDevice()->CreateGraphicsPipelineState(&graphicsPipelineState, IID_PPV_ARGS(&m_pPipelineState));
+
+	if (FAILED(hr))
+	{
+		assert(0 && "Failed to create pipeline state");
+		return;
+	}
+}
+
+void Pipeline::SetInputLayout(std::vector<D3D12_INPUT_ELEMENT_DESC>& inputElements, const std::vector<InputLayout>& inputLayouts)
+{
+	for (int i = 0; i < (int)inputLayouts.size(); ++i)
+	{
+		if (inputLayouts[i] == InputLayout::POSITION)
+		{
+			inputElements.emplace_back(D3D12_INPUT_ELEMENT_DESC{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,
+				D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 });
+		}
+		else if (inputLayouts[i] == InputLayout::TEXCOORD)
+		{
+			inputElements.emplace_back(D3D12_INPUT_ELEMENT_DESC{ "TEXCOORD",0,DXGI_FORMAT_R32G32_FLOAT,0,
+				D3D12_APPEND_ALIGNED_ELEMENT,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA ,0 });
+		}
+		else if (inputLayouts[i] == InputLayout::NORMAL)
+		{
+			inputElements.emplace_back(D3D12_INPUT_ELEMENT_DESC{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,
+				D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 });
+		}
+		else if (inputLayouts[i] == InputLayout::COLOR)
+		{
+			inputElements.emplace_back(D3D12_INPUT_ELEMENT_DESC{ "COLOR", 0, DXGI_FORMAT_R8G8B8A8_UNORM, 0,
+				D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 });
+		}
+		else if (inputLayouts[i] == InputLayout::TANGENT)
+		{
+			inputElements.emplace_back(D3D12_INPUT_ELEMENT_DESC{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,
+				D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 });
+		}
+		else if (inputLayouts[i] == InputLayout::SKININDEX)
+		{
+			inputElements.emplace_back(D3D12_INPUT_ELEMENT_DESC{ "SKININDEX", 0, DXGI_FORMAT_R16G16B16A16_UINT, 0,
+				D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 });
+		}
+		else if (inputLayouts[i] == InputLayout::SKINWEIGHT)
+		{
+			inputElements.emplace_back(D3D12_INPUT_ELEMENT_DESC{ "SKINWEIGHT", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0,
+				D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 });
+		}
+	}
+}
+
+void Pipeline::SetBlendMode(D3D12_RENDER_TARGET_BLEND_DESC& blendDesc, BlendMode blendMode)
+{
+	blendDesc.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+
+	blendDesc.BlendOp = D3D12_BLEND_OP_ADD;
+	blendDesc.BlendOpAlpha = D3D12_BLEND_OP_ADD;
+	blendDesc.SrcBlend = D3D12_BLEND_ONE;
+	blendDesc.DestBlend = D3D12_BLEND_ZERO;
+	blendDesc.SrcBlendAlpha = D3D12_BLEND_ONE;
+	blendDesc.DestBlendAlpha = D3D12_BLEND_ZERO;
+	blendDesc.LogicOp = D3D12_LOGIC_OP_NOOP;
+
+	// 不透明モードの場合はブレンド無効
+	if (blendMode == BlendMode::None)
+	{
+		blendDesc.BlendEnable = false;
+		return;
+	}
+
+	blendDesc.BlendEnable = true;
+
+	switch (blendMode)
+	{
+	case BlendMode::Add:
+		// 蜉邂怜粋謌・
+		blendDesc.BlendOp = D3D12_BLEND_OP_ADD;
+		blendDesc.SrcBlend = D3D12_BLEND_SRC_ALPHA;
+		blendDesc.DestBlend = D3D12_BLEND_ONE;
+
+		blendDesc.BlendOpAlpha = D3D12_BLEND_OP_ADD;
+		blendDesc.SrcBlendAlpha = D3D12_BLEND_ONE;
+		blendDesc.DestBlendAlpha = D3D12_BLEND_INV_SRC_ALPHA;
+		blendDesc.LogicOp = D3D12_LOGIC_OP_NOOP;
+		break;
+	case BlendMode::Alpha:
+		// 蜊企乗・
+		blendDesc.BlendOp = D3D12_BLEND_OP_ADD;
+		blendDesc.SrcBlend = D3D12_BLEND_SRC_ALPHA;
+		blendDesc.DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
+
+		blendDesc.BlendOpAlpha = D3D12_BLEND_OP_ADD;
+		blendDesc.SrcBlendAlpha = D3D12_BLEND_ONE;
+		blendDesc.DestBlendAlpha = D3D12_BLEND_INV_SRC_ALPHA;
+		blendDesc.LogicOp = D3D12_LOGIC_OP_NOOP;
+		break;
+	default:
+		break;
+	}
+}

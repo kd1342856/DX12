@@ -1,0 +1,87 @@
+{
+    "GameObjects": [
+        {
+            "Children": [],
+            "Components": [
+                {
+                    "PosX": 0.0,
+                    "PosY": 0.0,
+                    "PosZ": -5.0,
+                    "RotX": 0.0,
+                    "RotY": 0.0,
+                    "RotZ": 0.0,
+                    "ScaX": 1.0,
+                    "ScaY": 1.0,
+                    "ScaZ": 1.0,
+                    "Type": "TransformComponent"
+                },
+                {
+                    "FarZ": 1000.0,
+                    "Fov": 60.0,
+                    "NearZ": 0.009999999776482582,
+                    "Type": "CameraComponent"
+                },
+                {
+                    "Type": "PostProcessComponent"
+                }
+            ],
+            "IsActive": true,
+            "Name": "MainCamera"
+        },
+        {
+            "Children": [],
+            "Components": [
+                {
+                    "PosX": 0.0,
+                    "PosY": 0.0,
+                    "PosZ": 0.0,
+                    "RotX": 0.0,
+                    "RotY": 0.0,
+                    "RotZ": 0.0,
+                    "ScaX": 1.0,
+                    "ScaY": 1.0,
+                    "ScaZ": 1.0,
+                    "Type": "TransformComponent"
+                },
+                {
+                    "FilePath": "Asset/Model/StageMap/StageMap.gltf",
+                    "ModelType": 0,
+                    "Type": "ModelRendererComponent"
+                }
+            ],
+            "IsActive": true,
+            "Name": "Stage"
+        },
+        {
+            "Children": [],
+            "Components": [
+                {
+                    "PosX": 0.0,
+                    "PosY": 0.0,
+                    "PosZ": 0.0,
+                    "RotX": 0.0,
+                    "RotY": 0.0,
+                    "RotZ": 0.0,
+                    "ScaX": 1.0,
+                    "ScaY": 1.0,
+                    "ScaZ": 1.0,
+                    "Type": "TransformComponent"
+                },
+                {
+                    "FilePath": "Asset/Model/CesiumMan/CesiumMan3.gltf",
+                    "ModelType": 0,
+                    "Type": "ModelRendererComponent"
+                },
+                {
+                    "AnimIndex": 1,
+                    "IsLoop": true,
+                    "IsPlaying": false,
+                    "Speed": 1.0,
+                    "Type": "AnimationComponent"
+                }
+            ],
+            "IsActive": true,
+            "Name": "Player"
+        }
+    ]
+}

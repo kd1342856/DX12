@@ -1,0 +1,28 @@
+#pragma once
+#include "../Buffer.h"
+
+class RenderTarget : public Buffer
+{
+public:
+	RenderTarget() {}
+	~RenderTarget() {}
+
+	bool Create(int width, int height);
+
+	int GetRTVIndex() const			{ return m_rtvIndex; }
+	int GetSRVIndex() const			{ return m_srvIndex; }
+	int GetImGuiSRVIndex() const	{ return m_imGuiSrvIndex; }
+	int GetDSVIndex() const			{ return m_dsvIndex; }
+	ID3D12Resource* GetResource() const { return m_pBuffer.Get(); }
+
+	void Clear(float r = 0.0f, float g = 0.0f, float b = 1.0f, float a = 1.0f);
+
+private:
+	int m_rtvIndex		= -1;
+	int m_srvIndex		= -1;
+	int m_imGuiSrvIndex = -1;
+	int m_dsvIndex		= -1;
+
+	// Zバッファ用
+	ComPtr<ID3D12Resource> m_pDepthBuffer;
+};
