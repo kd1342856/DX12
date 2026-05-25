@@ -60,15 +60,17 @@ void RootSignature::Create(GraphicsDevice* pGraphicsDevice, const std::vector<Ra
 		}
 	}
 
-	std::array<D3D12_STATIC_SAMPLER_DESC, 5> pStaticSmplerDesc = {};
+	std::array<D3D12_STATIC_SAMPLER_DESC, 7> pStaticSmplerDesc = {};
 
 	if (bSampler)
 	{
-		CreateStaticSampler(pStaticSmplerDesc[0], TextureAddressMode::Wrap, D3D12Filter::Point, 0);
-		CreateStaticSampler(pStaticSmplerDesc[1], TextureAddressMode::Clamp, D3D12Filter::Point, 1);
+		CreateStaticSampler(pStaticSmplerDesc[0], TextureAddressMode::Wrap, D3D12Filter::Linear, 0); 
+		CreateStaticSampler(pStaticSmplerDesc[1], TextureAddressMode::Clamp, D3D12Filter::Linear, 1);
 		CreateStaticSampler(pStaticSmplerDesc[2], TextureAddressMode::Wrap, D3D12Filter::Linear, 2);
 		CreateStaticSampler(pStaticSmplerDesc[3], TextureAddressMode::Clamp, D3D12Filter::Linear, 3);
-	
+		CreateStaticSampler(pStaticSmplerDesc[4], TextureAddressMode::Wrap, D3D12Filter::Point, 4);
+		CreateStaticSampler(pStaticSmplerDesc[5], TextureAddressMode::Clamp, D3D12Filter::Point, 5);
+
 		D3D12_STATIC_SAMPLER_DESC cmpSampler = {};
 		cmpSampler.Filter = D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR; // 比較用フィルター
 		cmpSampler.AddressU = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
@@ -84,10 +86,10 @@ void RootSignature::Create(GraphicsDevice* pGraphicsDevice, const std::vector<Ra
 		cmpSampler.RegisterSpace = 0;
 		cmpSampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 
-		pStaticSmplerDesc[4] = cmpSampler;
+		pStaticSmplerDesc[6] = cmpSampler;
 	}
 	rootSignatureDesc.pStaticSamplers = bSampler ? pStaticSmplerDesc.data() : nullptr;
-	rootSignatureDesc.NumStaticSamplers = bSampler ? 5 : 0;
+	rootSignatureDesc.NumStaticSamplers = bSampler ? 7 : 0;
 	rootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 	rootSignatureDesc.pParameters = rootParams.data();
 	rootSignatureDesc.NumParameters = (int)rangeTypes.size();

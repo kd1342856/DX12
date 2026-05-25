@@ -25,11 +25,16 @@ void PostProcessShader::Create(GraphicsDevice* pGraphicsDevice)
 		setting.IsDepth, setting.IsDepthMask, setting.RTVCount, setting.IsWireFrame);
 }
 
-void PostProcessShader::Draw(RenderTarget* pRenderTarget)
+void PostProcessShader::Draw(RenderTarget* pRenderTarget, float exposure)
 {
 	m_pDevice->GetCmdList()->SetPipelineState(m_upPipeline->GetPipeline());
 	m_pDevice->GetCmdList()->SetGraphicsRootSignature(m_upRootSignature->GetRootSignature());
 	m_pDevice->GetCmdList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	// 定数バッファをバインド
+	CBufferData::PostProcess cPostProcess;
+	cPostProcess.Exposure = (exposure <= 0.0f) ? 1.0f : exposure;
+	GDF::Instance().BindCBuffer(0, cPostProcess);
 
 	D3D12_VIEWPORT viewport = {};
 	viewport.Width = 1280.0f;
@@ -51,11 +56,13 @@ void PostProcessShader::LoadShaderFile(const std::wstring& filePath)
 	UINT flag = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
 	ID3DBlob* pErrorBlob = nullptr;
 
-	std::wstring fullPath = L"Asset/Shader/PostProcessShader/" + filePath + L".hlsl";
+	std::wstring baseFullPath = L"Asset/Shader/PostProcessShader/" + filePath;
 
-	auto hr = D3DCompileFromFile(fullPath.c_str(), nullptr, include, "VS", "vs_5_0", flag, 0, &m_pVSBlob, &pErrorBlob);
-	if (FAILED(hr)) assert(0 && "VS Compile Failed");
+	std::wstring vsPath = baseFullPath + L"_VS.hlsl";
+	auto hResult = D3DCompileFromFile(vsPath.c_str(), nullptr, include, "VS", "vs_5_0", flag, 0, &m_pVSBlob, &pErrorBlob);
+	if (FAILED(hResult)) assert(0 && "VS Compile Failed");
 
-	hr = D3DCompileFromFile(fullPath.c_str(), nullptr, include, "PS", "ps_5_0", flag, 0, &m_pPSBlob, &pErrorBlob);
-	if (FAILED(hr)) assert(0 && "PS Compile Failed");
+	std::wstring psPath = baseFullPath + L"_PS.hlsl";
+	hResult = D3DCompileFromFile(psPath.c_str(), nullptr, include, "PS", "ps_5_0", flag, 0, &m_pPSBlob, &pErrorBlob);
+	if (FAILED(hResult)) assert(0 && "PS Compile Failed");
 }

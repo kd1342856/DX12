@@ -1,5 +1,7 @@
 #include "Editor.h"
 #include "../../Manager/Scene.h"
+#include "../../../Graphics/Buffer/RenderTarget/RenderTarget.h"
+#include "../../../Graphics/Device/GraphicsDevice.h"
 #include "../../Object/GameObject.h"
 #include "../../ECS/ComponentBase.h"
 #include "../../ECS/Components/ModelRendererComponent.h"
@@ -50,7 +52,7 @@ void Editor::DrawHierarchyAndInspector(Scene* scene) {
     // Hierarchy
     ImGui::Begin("Hierarchy");
     
-    // 背景での右クリックで空のオブジェクトを作成
+    // 閭梧勹縺ｧ縺ｮ蜿ｳ繧ｯ繝ｪ繝・け縺ｧ遨ｺ縺ｮ繧ｪ繝悶ず繧ｧ繧ｯ繝医ｒ菴懈・
     if (ImGui::BeginPopupContextWindow("HierarchyPopup", ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems)) {
         if (ImGui::MenuItem("Create Empty Object")) {
             scene->CreateGameObject("GameObject");
@@ -63,7 +65,7 @@ void Editor::DrawHierarchyAndInspector(Scene* scene) {
         DrawHierarchyNode(obj);
     }
     
-    // ウィンドウ全体へのドロップで親を解除（ルート階層へ移動）
+    // 繧ｦ繧｣繝ｳ繝峨え蜈ｨ菴薙∈縺ｮ繝峨Ο繝・・縺ｧ隕ｪ繧定ｧ｣髯､・医Ν繝ｼ繝磯嚴螻､縺ｸ遘ｻ蜍包ｼ・
     ImGui::Dummy(ImGui::GetContentRegionAvail());
     if (ImGui::BeginDragDropTarget()) {
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GAMEOBJECT")) {
@@ -272,7 +274,7 @@ void Editor::DrawAssetEditor()
     ImGui::Text("Model Type:");
     ImGui::RadioButton("Static", &s_selectedModelType, 0); ImGui::SameLine();
     ImGui::RadioButton("Dynamic", &s_selectedModelType, 1);
-    if (ImGui::Button("適用 (Apply to Selected Object)")) {
+    if (ImGui::Button("驕ｩ逕ｨ (Apply to Selected Object)")) {
         if (!s_selectedAssetPath.empty()) {
             auto& data = pModelComp->GetData();
             data.m_modelType = (ModelType)s_selectedModelType;
@@ -282,5 +284,48 @@ void Editor::DrawAssetEditor()
         }
     }
 
+    ImGui::End();
+}
+
+
+void Editor::DrawGameView(RenderTarget* pRenderTarget, bool fullscreen)
+{
+    if (!pRenderTarget) return;
+
+    // 背景を透過させず、黒い通常のウィンドウにする
+    ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoCollapse;
+    if (fullscreen)
+    {
+        ImGuiViewport* mainViewport = ImGui::GetMainViewport();
+        ImGui::SetNextWindowPos(mainViewport->WorkPos);
+        ImGui::SetNextWindowSize(mainViewport->WorkSize);
+        ImGui::SetNextWindowViewport(mainViewport->ID);
+        windowFlags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+    }
+
+    ImGui::Begin("Game View", nullptr, windowFlags);
+    {
+        // 16:9のアスペクト維持で表示サイズ計算
+        ImVec2 contentSize = ImGui::GetContentRegionAvail();
+        float targetAspect = 16.0f / 9.0f;
+        float actualAspect = contentSize.x / contentSize.y;
+
+        ImVec2 displaySize;
+        if (actualAspect > targetAspect) {
+            displaySize.y = contentSize.y;
+            displaySize.x = contentSize.y * targetAspect;
+        } else {
+            displaySize.x = contentSize.x;
+            displaySize.y = contentSize.x / targetAspect;
+        }
+
+        // 中央に寄せるためのカーソル位置調整
+        ImVec2 offset = ImVec2((contentSize.x - displaySize.x) * 0.5f, (contentSize.y - displaySize.y) * 0.5f);
+        ImGui::SetCursorPos(ImGui::GetCursorPos() + offset);
+
+        // 正しいImGui用SRVインデックスを使用する
+        auto srvHandle = GraphicsDevice::Instance().GetImGuiSRVGPUHandle(pRenderTarget->GetImGuiSRVIndex());
+        ImGui::Image((ImTextureID)srvHandle.ptr, displaySize);
+    }
     ImGui::End();
 }

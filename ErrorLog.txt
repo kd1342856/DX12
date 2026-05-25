@@ -1,6 +1,0 @@
-Pipeline State Creation Failed! HRESULT: 0x80070057
-[D3D12 Error] ID3D12GraphicsCommandList::*: This API cannot be called on a closed command list.
-[D3D12 Error] ID3D12GraphicsCommandList::*: This API cannot be called on a closed command list.
-[D3D12 Error] ID3D12GraphicsCommandList::*: This API cannot be called on a closed command list.
-[D3D12 Error] ID3D12Device::CreateGraphicsPipelineState: Root Signature doesn't match Pixel Shader: Shader sampler descriptor range (BaseShaderRegister=15, NumDescriptors=1, RegisterSpace=0) is not fully bound in root signature
-

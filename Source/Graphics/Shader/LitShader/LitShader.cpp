@@ -25,7 +25,7 @@ void LitShader::Create(GraphicsDevice* pGraphicsDevice)
 
 	RenderingSetting setting = {};
 	setting.InputLayouts = {
-		InputLayout::POSITION, InputLayout::TEXCOORD, InputLayout::TANGENT, InputLayout::NORMAL
+		InputLayout::POSITION, InputLayout::TEXCOORD, InputLayout::NORMAL, InputLayout::COLOR, InputLayout::TANGENT
 	};
 	setting.Formats = { DXGI_FORMAT_R8G8B8A8_UNORM };
 	setting.BlendMode = BlendMode::None; // Opaque default
@@ -79,6 +79,9 @@ void LitShader::Begin()
 	cbLight.DL_Color = Math::Vector3(1.0f, 1.0f, 1.0f);
 	cbLight.SL_Count = 0;
 	GDF::Instance().BindCBuffer(3, cbLight);
+
+	// カメラ定数バッファをバインド
+	ShaderManager::Instance().BindCameraMatrix(0);
 }
 
 void LitShader::DrawModel(const ModelData& modelData, const Math::Matrix& mWorld)
@@ -138,10 +141,10 @@ void LitShader::LoadShaderFile(const std::wstring& filePath)
 
 	// VS
 	{
-		std::wstring fullPath = currentPath + filePath + format;
-		auto hr = D3DCompileFromFile(fullPath.c_str(), nullptr, include, "VS",
+		std::wstring fullPath = currentPath + filePath + L"_VS" + format;
+		auto hResult = D3DCompileFromFile(fullPath.c_str(), nullptr, include, "VS",
 			"vs_5_0", flag, 0, &m_pVSBlob, &pErrorBlob);
-		if (FAILED(hr))
+		if (FAILED(hResult))
 		{
 			if (pErrorBlob)
 			{
@@ -153,10 +156,10 @@ void LitShader::LoadShaderFile(const std::wstring& filePath)
 	}
 	// PS
 	{
-		std::wstring fullPath = currentPath + filePath + format;
-		auto hr = D3DCompileFromFile(fullPath.c_str(), nullptr, include, "PS",
+		std::wstring fullPath = currentPath + filePath + L"_PS" + format;
+		auto hResult = D3DCompileFromFile(fullPath.c_str(), nullptr, include, "PS",
 			"ps_5_0", flag, 0, &m_pPSBlob, &pErrorBlob);
-		if (FAILED(hr))
+		if (FAILED(hResult))
 		{
 			if (pErrorBlob)
 			{

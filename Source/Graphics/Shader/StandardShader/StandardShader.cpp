@@ -60,6 +60,9 @@ void StandardShader::Begin()
 
 	GraphicsDevice::Instance().GetCmdList()->RSSetViewports(1, &viewport);
 	GraphicsDevice::Instance().GetCmdList()->RSSetScissorRects(1, &rect);
+
+	// カメラ定数バッファをバインド
+	ShaderManager::Instance().BindCameraMatrix(0);
 }
 
 void StandardShader::DrawModel(const ModelData& modelData, const Math::Matrix& mWorld)

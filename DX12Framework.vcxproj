@@ -312,24 +312,20 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Asset\Shader\LitShader\LitShader.hlsl">
+    <None Include="Asset\Shader\LitShader\LitShader.hlsli" />
+    <None Include="Asset\Shader\LitShader\LitShader_VS.hlsl">
       <FileType>Document</FileType>
     </None>
-    <None Include="Asset\Shader\PostProcessShader\PostProcessShader.hlsl">
+    <None Include="Asset\Shader\LitShader\LitShader_PS.hlsl">
       <FileType>Document</FileType>
     </None>
-    <FxCompile Include="Asset\Shader\PostProcessShader\PostProcess_PS.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="Asset\Shader\PostProcessShader\PostProcess_VS.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
-    </FxCompile>
+    <None Include="Asset\Shader\PostProcessShader\PostProcessShader.hlsli" />
+    <None Include="Asset\Shader\PostProcessShader\PostProcessShader_VS.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Asset\Shader\PostProcessShader\PostProcessShader_PS.hlsl">
+      <FileType>Document</FileType>
+    </None>
     <None Include="Asset\Shader\PP_ToneMapping\PP_ToneMapping.hlsl">
       <FileType>Document</FileType>
     </None>

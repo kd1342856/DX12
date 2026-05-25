@@ -23,6 +23,7 @@ class ShaderManager
 public:
 	void Init();
 	void SetCameraMatrix(const Math::Matrix& mView, const Math::Matrix& mProj);
+	void BindCameraMatrix(int slot = 0);
 
 	StandardShader m_standardShader;
 	LitShader m_litShader;
@@ -31,6 +32,10 @@ public:
 private:
 	ShaderManager() = default;
 	~ShaderManager() = default;
+
+	// カメラのビュー行列と射影行列を保持するメンバー変数
+	Math::Matrix m_mView;
+	Math::Matrix m_mProj;
 
 public:
 	static ShaderManager& Instance()

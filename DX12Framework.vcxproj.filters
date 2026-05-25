@@ -341,7 +341,7 @@
     <ClInclude Include="Source\Framework\ECS\Components\AnimationComponent.h">
       <Filter>Source\Framework\ECS\Components</Filter>
     </ClInclude>
-    <ClInclude Include="..\•×‹­\DX12\Source\Framework\ECS\Components\Data\AnimationData.h">
+    <ClInclude Include="..\??\DX12\Source\Framework\ECS\Components\Data\AnimationData.h">
       <Filter>Source\Framework\ECS\Components\Data</Filter>
     </ClInclude>
   </ItemGroup>
@@ -487,14 +487,26 @@
     <None Include="Asset\Shader\LitShader\temp_pbr.txt">
       <Filter>Asset\Shader\LitShader</Filter>
     </None>
-    <None Include="Asset\Shader\LitShader\LitShader.hlsl">
-      <Filter>Asset\Shader\LitShader</Filter>
-    </None>
-    <None Include="Asset\Shader\PostProcessShader\PostProcessShader.hlsl">
-      <Filter>Asset\Shader\PostProcessShader</Filter>
-    </None>
     <None Include="Asset\Shader\PP_ToneMapping\PP_ToneMapping.hlsl">
       <Filter>Asset\Shader\PP_ToneMapping</Filter>
+    </None>
+    <None Include="Asset\Shader\LitShader\LitShader.hlsli">
+      <Filter>Asset\Shader\LitShader</Filter>
+    </None>
+    <None Include="Asset\Shader\LitShader\LitShader_PS.hlsl">
+      <Filter>Asset\Shader\LitShader</Filter>
+    </None>
+    <None Include="Asset\Shader\LitShader\LitShader_VS.hlsl">
+      <Filter>Asset\Shader\LitShader</Filter>
+    </None>
+    <None Include="Asset\Shader\PostProcessShader\PostProcessShader_VS.hlsl">
+      <Filter>Asset\Shader\PostProcessShader</Filter>
+    </None>
+    <None Include="Asset\Shader\PostProcessShader\PostProcessShader_PS.hlsl">
+      <Filter>Asset\Shader\PostProcessShader</Filter>
+    </None>
+    <None Include="Asset\Shader\PostProcessShader\PostProcessShader.hlsli">
+      <Filter>Asset\Shader\PostProcessShader</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -503,12 +515,6 @@
     </FxCompile>
     <FxCompile Include="Asset\Shader\SkinningShader\SkinningShader_VS.hlsl">
       <Filter>Asset\Shader\SkinningShader</Filter>
-    </FxCompile>
-    <FxCompile Include="Asset\Shader\PostProcessShader\PostProcess_PS.hlsl">
-      <Filter>Asset\Shader\PostProcessShader</Filter>
-    </FxCompile>
-    <FxCompile Include="Asset\Shader\PostProcessShader\PostProcess_VS.hlsl">
-      <Filter>Asset\Shader\PostProcessShader</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

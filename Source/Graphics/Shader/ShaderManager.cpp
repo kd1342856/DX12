@@ -9,17 +9,21 @@ void ShaderManager::Init()
 
 void ShaderManager::SetCameraMatrix(const Math::Matrix& mView, const Math::Matrix& mProj)
 {
-	m_standardShader.Begin();
+	m_mView = mView;
+	m_mProj = mProj;
+}
 
-	CBufferData::Camera cbCamera;
-	cbCamera.mView = mView;
-	cbCamera.mInvV = mView.Invert();
-	cbCamera.mProj = mProj;
-	cbCamera.mInvP = mProj.Invert();
-	cbCamera.mVP = mView * mProj;
-	cbCamera.mInvVP = cbCamera.mVP.Invert();
-	cbCamera.CamPos = cbCamera.mInvV.Translation();
-	cbCamera.dummy = 0.0f;
-	
-	GDF::Instance().BindCBuffer(0, cbCamera);
+void ShaderManager::BindCameraMatrix(int slot)
+{
+	CBufferData::Camera cCamera;
+	cCamera.mView = m_mView;
+	cCamera.mInvV = m_mView.Invert();
+	cCamera.mProj = m_mProj;
+	cCamera.mInvP = m_mProj.Invert();
+	cCamera.mVP = m_mView * m_mProj;
+	cCamera.mInvVP = cCamera.mVP.Invert();
+	cCamera.CamPos = cCamera.mInvV.Translation();
+	cCamera.dummy = 0.0f;
+
+	GDF::Instance().BindCBuffer(slot, cCamera);
 }

@@ -7,7 +7,7 @@ class PostProcessShader
 {
 public:
 	void Create(GraphicsDevice* pGraphicsDevice);
-	void Draw(RenderTarget* pRenderTarget);
+	void Draw(RenderTarget* pRenderTarget, float exposure);
 
 private:
 	void LoadShaderFile(const std::wstring& filePath);
