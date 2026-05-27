@@ -9,11 +9,13 @@ enum class DepthStencilFormat
 class DepthStencil : Buffer
 {
 public:
-	bool Create(GraphicsDevice* pGraphicsDevice, const Math::Vector2& resolution, DepthStencilFormat format = DepthStencilFormat::DepthHighQuality);
+	bool Create(GraphicsDevice* pGraphicsDevice, const Math::Vector2& resolution, DepthStencilFormat format = DepthStencilFormat::DepthHighQuality, bool bCreateSRV = false);
 
 	void ClearBuffer();
 
-	UINT GetDSVNumber() { return m_dsvNumber; }
+	UINT GetDSVNumber() const { return m_dsvNumber; }
+	int GetSRVNumber() const { return m_srvNumber; }
 private:
 	UINT m_dsvNumber = 0;
+	int m_srvNumber = -1;
 };

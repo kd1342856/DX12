@@ -54,10 +54,15 @@ ID3D12GraphicsCommandList6* GDF::GetCmdList() const
 
 Texture* GDF::GetWhiteTex()
 {
-	return GraphicsDevice::Instance().GetWhiteTex();
+	return GetGraphicsDevice().GetWhiteTex();
 }
 
 Texture* GDF::GetBlackTex()
 {
-	return GraphicsDevice::Instance().GetBlackTex();
+	return GetGraphicsDevice().GetBlackTex();
+}
+
+Texture* GDF::GetNormalTex()
+{
+	return GetGraphicsDevice().GetNormalTex();
 }

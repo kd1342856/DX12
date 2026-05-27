@@ -8,46 +8,50 @@ class DepthStencil;
 class Texture;
 class RenderTarget;
 
-struct FrameContext
-{
+struct FrameContext {
 	ComPtr<ID3D12CommandAllocator> allocator;
 	UINT64 fenceValue = 0;
 };
 
-class GraphicsDevice
-{
-public:
+#include <GraphicsMemory.h>
 
-	//	åˆæœŸåŒ–
-	bool Init(HWND  hWnd, int w, int h);
+#include <GraphicsMemory.h>
+
+class GraphicsDevice {
+public:
+	// ‰Šú‰»
+	bool Init(HWND hWnd, int w, int h);
 	
-	//	æç”»çµ‚äº†
+	// •`‰æI—¹
 	void EndFrame();
 
-	//	æç”»æº–å‚™
+	// •`‰æŠJn
 	void BeginFrame();
 
 	void WaitForCommandQueue();
 
-	// ãƒ¬ãƒ³ãƒ€ãƒ¼ã‚¿ãƒ¼ã‚²ãƒƒãƒˆæ“ä½œ
+	// ƒŒƒ“ƒ_[ƒ^[ƒQƒbƒgİ’è
 	void SetRenderTarget(RenderTarget* pRT);
 	void SetBackBuffer();
 	void ClearBackBuffer(float r, float g, float b, float a);
 
-	// ImGuiæç”»ï¼ˆEndFrameç›´å‰ã«å‘¼ã¶ï¼‰
+	// ImGui•`‰æ(EndFrame‘O‚ÉŒÄ‚Ô)
 	void RenderImGui();
 
-	//	Getter
+	// Getter
 	ID3D12Device8* GetDevice()const						{ return m_pDevice.Get(); }
 	ID3D12GraphicsCommandList6* GetCmdList()const		{ return m_pCmdList.Get(); }
-	CBVSRVUAVHeap* GetCBVSRVUAVHeap()const				{ return m_upCBVSRVUAVHeap.get(); }
-	CBufferAllocator* GetCBufferAllocator()const		{ return m_upCBufferAllocator.get(); }
+	CBVSRVUAVHeap* GetCBVSRVUAVHeap()const { return m_upCBVSRVUAVHeap.get(); }
+	CBufferAllocator* GetCBufferAllocator()const { return m_upCBufferAllocator.get(); }
+	DepthStencil* GetDepthStencil()const { return m_upDepthStencil.get(); }
+	DepthStencil* GetShadowMap()const { return m_upShadowMap.get(); }
 	RTVHeap* GetRTVHeap()const { return m_pRTVHeap.get(); }
 	DSVHeap* GetDSVHeap()const { return m_upDSVHeap.get(); }
 	Texture* GetWhiteTex()const { return m_spWhiteTex.get(); }
 	Texture* GetBlackTex()const { return m_spBlackTex.get(); }
+	Texture* GetNormalTex()const { return m_spNormalTex.get(); }
 
-	// ãƒªãƒªãƒ¼ã‚¹
+	// I—¹ˆ—
 	void Shutdown();
 	void EnableDebugLayer();
 
@@ -56,30 +60,21 @@ public:
 public:
 	int m_imGuiSrvCount = 1;
 private:
-
 	bool CreateFactory();
-
 	bool CreateDevice();
-
 	bool CreateCommandList();
-
 	UINT64 SignalQueue();
-
 	void WaitForFence(UINT64 value);
-
-	bool CreateSwapChain(HWND  hWnd, int width, int height);
-
+	bool CreateSwapChain(HWND hWnd, int width, int height);
 	bool CreateSwapChainRTV();
-
 	bool CreateFence();
 	bool CreateDefaultTextures();
 
-	// ImGuiåˆæœŸåŒ–ãƒ»è§£æ”¾
+	// ImGui‰Šú‰»
 	bool InitImGui();
 	void ShutdownImGui();
 
 public:
-
 	int AllocateImGuiSRV(ID3D12Resource* pBuffer);
 	D3D12_GPU_DESCRIPTOR_HANDLE GetImGuiSRVGPUHandle(int index);
 
@@ -95,18 +90,18 @@ public:
 		Kind,
 	};
 
-	//	ãƒ‡ãƒã‚¤ã‚¹
+	// ƒfƒoƒCƒX
 	ComPtr<ID3D12Device8>					m_pDevice = nullptr;
 	ComPtr<IDXGIFactory6>					m_pDxgiFactory = nullptr;
 
-	// ã‚³ãƒãƒ³ãƒ‰ãƒªã‚¹ãƒˆ
+	// ƒRƒ}ƒ“ƒh
 	ComPtr<ID3D12GraphicsCommandList6>		m_pCmdList = nullptr;
 	ComPtr<ID3D12CommandQueue>				m_pCmdQueue = nullptr;
 	static constexpr int					kFrameCount = 2;
 	FrameContext							m_frames[kFrameCount];
 	UINT									m_frameIndex = 0;
 
-	//	ã‚¹ãƒ¯ãƒƒãƒ—ãƒã‚§ã‚¤ãƒ³
+	// ƒXƒƒbƒvƒ`ƒF[ƒ“
 	ComPtr<IDXGISwapChain4>					m_pSwapChain = nullptr;
 
 	std::array<ComPtr<ID3D12Resource>, 2>	m_pSwapchainBuffers;
@@ -120,11 +115,14 @@ public:
 	std::unique_ptr<CBufferAllocator>		m_upCBufferAllocator = nullptr;
 	std::unique_ptr<DSVHeap>				m_upDSVHeap = nullptr;
 	std::unique_ptr<DepthStencil>			m_upDepthStencil = nullptr;
+	std::unique_ptr<DepthStencil>			m_upShadowMap = nullptr;
 	std::unique_ptr<Texture> m_spWhiteTex = nullptr;
 	std::unique_ptr<Texture> m_spBlackTex = nullptr;
+	std::unique_ptr<Texture> m_spNormalTex = nullptr;
 
-	// ImGuiå°‚ç”¨SRVç”¨ãƒ’ãƒ¼ãƒ—ï¼ˆãƒ•ã‚©ãƒ³ãƒˆãƒ†ã‚¯ã‚¹ãƒãƒ£ç­‰ï¼‰
+	// ImGui—pSRV—pƒq[ƒv
 	ComPtr<ID3D12DescriptorHeap>			m_upImGuiSRVHeap = nullptr;
+	std::unique_ptr<DirectX::GraphicsMemory> m_graphicsMemory = nullptr;
 
 	GraphicsDevice() {}
 	~GraphicsDevice() {}
@@ -134,5 +132,4 @@ public:
 		static GraphicsDevice instance;
 		return instance;
 	}
-
 };

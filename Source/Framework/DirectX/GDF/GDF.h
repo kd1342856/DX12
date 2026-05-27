@@ -34,6 +34,7 @@ public:
 	ID3D12GraphicsCommandList6* GetCmdList() const;
 	Texture* GetWhiteTex();
 	Texture* GetBlackTex();
+	Texture* GetNormalTex();
 
 
 

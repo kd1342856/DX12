@@ -5,17 +5,14 @@
 
 // =============================================
 // CameraComponent
-// カメラのView/Proj行列を管理するコンポーネント
-// データはECS側のCameraDataに保持される
-// =============================================
+// 繧ｫ繝｡繝ｩ縺ｮView/Proj陦悟・繧堤ｮ｡逅・☆繧九さ繝ｳ繝昴・繝阪Φ繝・// 繝・・繧ｿ縺ｯECS蛛ｴ縺ｮCameraData縺ｫ菫晄戟縺輔ｌ繧・// =============================================
 class CameraComponent : public ComponentBase {
 public:
-    // AddComponent<T> の自動ECS登録に使われるデータ型
-    using DataType = CameraData;
+    // AddComponent<T> 縺ｮ閾ｪ蜍髭CS逋ｻ骭ｲ縺ｫ菴ｿ繧上ｌ繧九ョ繝ｼ繧ｿ蝙・    using DataType = CameraData;
 
     const char* GetComponentName() const override { return "CameraComponent"; }
 
-    // デシリアライズ経由(非テンプレートAddComponent)でのECS登録
+    // 繝・す繝ｪ繧｢繝ｩ繧､繧ｺ邨檎罰(髱槭ユ繝ｳ繝励Ξ繝ｼ繝・ddComponent)縺ｧ縺ｮECS逋ｻ骭ｲ
     void RegisterECSData() override {
         CameraData data{};
         GameManager::Instance().GetECS().AddComponent(GetGameObject()->GetEntityID(), data);
@@ -26,10 +23,21 @@ public:
         ImGui::DragFloat("FOV", &data.m_fov, 0.5f, 1.0f, 179.0f);
         ImGui::DragFloat("NearZ", &data.m_nearZ, 0.01f, 0.001f, 10.0f);
         ImGui::DragFloat("FarZ", &data.m_farZ, 1.0f, 10.0f, 10000.0f);
+        
+        // MainCamera縺ｮ蝣ｴ蜷医・縺ｿ縲∝句挨縺ｫ遘ｻ蜍暮溷ｺｦ繧定｡ｨ遉ｺ縺励※螟画峩蜿ｯ閭ｽ縺ｫ縺吶ｋ
+        if (GetGameObject()->GetName() == "MainCamera") {
+            ImGui::DragFloat("MoveSpeed", &data.m_moveSpeed, 0.01f, 0.001f, 10.0f);
+        }
+
+        const char* modeNames[] = { "EditorFree", "TPS", "FPS" };
+        int modeIdx = static_cast<int>(data.m_cameraMode);
+        if (ImGui::Combo("Camera Mode", &modeIdx, modeNames, 3)) {
+            data.m_cameraMode = static_cast<CameraMode>(modeIdx);
+        }
     }
 
-    // Awake では ECS 登録は AddComponent が自動でやる
-    // カメラエンティティとして RenderSystem に登録だけ行う
+    // Awake 縺ｧ縺ｯ ECS 逋ｻ骭ｲ縺ｯ AddComponent 縺瑚・蜍輔〒繧・ｋ
+    // 繧ｫ繝｡繝ｩ繧ｨ繝ｳ繝・ぅ繝・ぅ縺ｨ縺励※ RenderSystem 縺ｫ逋ｻ骭ｲ縺縺題｡後≧
     void Awake() override {
         GetGameObject()->GetScene()->GetRenderSystem()->SetCameraEntity(GetGameObject()->GetEntityID());
     }
@@ -38,15 +46,9 @@ public:
         auto& data = GetData();
         auto pSpTransform = GetGameObject()->GetComponent<TransformComponent>();
         if (pSpTransform) {
-            Math::Vector3 pos = pSpTransform->GetData().m_position;
-            Math::Vector3 rot = pSpTransform->GetData().m_rotation;
-
-            // カメラの回転行列を作成（Yaw, Pitch, Roll）
-            Math::Matrix mRot = Math::Matrix::CreateFromYawPitchRoll(rot.y, rot.x, rot.z);
-
-            // View行列 = 平行移動の逆 × 回転の逆（転置）
-            Math::Matrix mTrans = Math::Matrix::CreateTranslation(-pos);
-            data.m_viewMatrix = mTrans * mRot.Transpose();
+            // 隕ｪ蟄宣未菫ゅ′蜿肴丐縺輔ｌ縺溘Ρ繝ｼ繝ｫ繝芽｡悟・縺ｮ騾・｡悟・繧歎iew陦悟・縺ｨ縺吶ｋ
+            Math::Matrix worldMat = pSpTransform->GetData().m_worldMatrix;
+            data.m_viewMatrix = worldMat.Invert();
         }
 
         data.m_projMatrix = DirectX::XMMatrixPerspectiveFovLH(
@@ -62,6 +64,8 @@ public:
         out["Fov"] = data.m_fov;
         out["NearZ"] = data.m_nearZ;
         out["FarZ"] = data.m_farZ;
+        out["MoveSpeed"] = data.m_moveSpeed;
+        out["CameraMode"] = static_cast<int>(data.m_cameraMode);
     }
 
     void Deserialize(const nlohmann::json& in) override {
@@ -69,9 +73,11 @@ public:
         if (in.contains("Fov")) data.m_fov = in["Fov"];
         if (in.contains("NearZ")) data.m_nearZ = in["NearZ"];
         if (in.contains("FarZ")) data.m_farZ = in["FarZ"];
+        if (in.contains("MoveSpeed")) data.m_moveSpeed = in["MoveSpeed"];
+        if (in.contains("CameraMode")) data.m_cameraMode = static_cast<CameraMode>(in["CameraMode"]);
     }
 
-    // ECS側のCameraDataへの直接アクセサ（GameManager経由）
+    // Get CameraData from ECS
     CameraData& GetData() {
         return GameManager::Instance().GetECS().GetComponent<CameraData>(GetGameObject()->GetEntityID());
     }

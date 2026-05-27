@@ -9,7 +9,7 @@ bool ModelData::Load(const std::string& filepath)
 	Modeloader modelLoader;
 	if (!modelLoader.Load(filepath, this))
 	{
-		assert(0 && "モデルのロードに失敗");
+		assert(0 && "モデルのロードに失敗しました");
 		return false;
 	}
 	return true;

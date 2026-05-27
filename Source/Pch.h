@@ -71,6 +71,8 @@
 
 //	InputシステムのInclude
 #include"Framework/DirectX/Utility/Input.h"
+#include"Framework/DirectX/Utility/Time.h"
+#include"Framework/DirectX/Utility/Logger.h"
 
 //	GDFファサード(GraphicsDeviceの後に配置)
 #include"Framework/DirectX/GDF/GDF.h"

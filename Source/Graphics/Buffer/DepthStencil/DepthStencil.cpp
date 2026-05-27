@@ -1,6 +1,8 @@
 #include "DepthStencil.h"
 
-bool DepthStencil::Create(GraphicsDevice* pGraphicsDevice, const Math::Vector2& resolution, DepthStencilFormat format)
+#include "../../Device/GraphicsDevice.h"
+
+bool DepthStencil::Create(GraphicsDevice* pGraphicsDevice, const Math::Vector2& resolution, DepthStencilFormat format, bool bCreateSRV)
 {
 	m_pGraphicsDevice = pGraphicsDevice;
 
@@ -25,12 +27,15 @@ bool DepthStencil::Create(GraphicsDevice* pGraphicsDevice, const Math::Vector2& 
 	{
 	case DepthStencilFormat::DepthLowQuality:
 		depthClearValue.Format = DXGI_FORMAT_D16_UNORM;
+		resDesc.Format = bCreateSRV ? DXGI_FORMAT_R16_TYPELESS : DXGI_FORMAT_D16_UNORM;
 		break;
 	case DepthStencilFormat::DepthHighQuality:
 		depthClearValue.Format = DXGI_FORMAT_D32_FLOAT;
+		resDesc.Format = bCreateSRV ? DXGI_FORMAT_R32_TYPELESS : DXGI_FORMAT_D32_FLOAT;
 		break;
 	case DepthStencilFormat::DepthHighQualityAndStencil:
 		depthClearValue.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+		resDesc.Format = bCreateSRV ? DXGI_FORMAT_R24G8_TYPELESS : DXGI_FORMAT_D24_UNORM_S8_UINT;
 		break;
 	default:
 		break;
@@ -43,12 +48,17 @@ bool DepthStencil::Create(GraphicsDevice* pGraphicsDevice, const Math::Vector2& 
 
 	if (FAILED(hr))
 	{
-		assert(0 && "デプスステンシルバッファの作成失敗");
+		assert(0 && "深度ステンシルバッファの作成に失敗しました");
 		return false;
 	}
 
-	// DSV作成
+	// Create DSV
 	m_dsvNumber = m_pGraphicsDevice->GetDSVHeap()->CreateDSV(m_pBuffer.Get(), depthClearValue.Format);
+
+	if (bCreateSRV)
+	{
+		m_srvNumber = m_pGraphicsDevice->GetCBVSRVUAVHeap()->CreateSRV(m_pBuffer.Get());
+	}
 
 	return true;
 }

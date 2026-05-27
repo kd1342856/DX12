@@ -22,16 +22,7 @@ public:
 		int			nodeIndex = -1;
 	};
 
-	struct MeshVertex
-	{
-		Math::Vector3	Position;
-		Math::Vector2	UV;
-		Math::Vector3	Normal;
-		Math::Vector3	Tangent;
-		Math::Color		Color;
-		uint32_t SkinIndex[4] = { 0,0,0,0 };
-		float SkinWeight[4] = { 0.0f,0.0f, 0.0f, 0.0f };
-	};
+
 
 	bool Load(const std::string& filepath);
 

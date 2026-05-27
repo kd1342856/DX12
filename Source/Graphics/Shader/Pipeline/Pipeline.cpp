@@ -1,8 +1,7 @@
 #include "Pipeline.h"
 
-#include "../RootSignature/RootSignature.h"
-
-void Pipeline::SetRenderSettings(GraphicsDevice* pGraphicsDevice, RootSignature* pRootSignature, const std::vector<InputLayout>& inputLayouts, CullMode cullMode, BlendMode blendMode, PrimitiveTopologyType topologyType)
+void Pipeline::SetRenderSettings(GraphicsDevice* pGraphicsDevice, RootSignature* pRootSignature,
+	const std::vector<InputLayout>& inputLayouts, CullMode cullMode, BlendMode blendMode, PrimitiveTopologyType topologyType)
 {
 	m_pDevice = pGraphicsDevice;
 	m_pRootSignature = pRootSignature;
@@ -17,51 +16,54 @@ void Pipeline::Create(std::vector<ID3DBlob*> pBlobs, const std::vector<DXGI_FORM
 	std::vector<D3D12_INPUT_ELEMENT_DESC> inputLayouts;
 	SetInputLayout(inputLayouts, m_inputLayouts);
 
-	// GraphicsPipelineState縺ｮ蜷・ｨｮ險ｭ螳・
+	// GraphicsPipelineStateの初期設定
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC graphicsPipelineState = {};
 
-	// 鬆らせ繧ｷ繧ｧ繝ｼ繝繝ｼ繧偵そ繝・ヨ
+	// 頂点シェーダーをセット
 	graphicsPipelineState.VS.pShaderBytecode = pBlobs[0]->GetBufferPointer();
 	graphicsPipelineState.VS.BytecodeLength = pBlobs[0]->GetBufferSize();
 
-	// 繝上Ν繧ｷ繧ｧ繝ｼ繝繝ｼ繧偵そ繝・ヨ
+	// ハルシェーダーをセット
 	if (pBlobs[1])
 	{
 		graphicsPipelineState.HS.pShaderBytecode = pBlobs[1]->GetBufferPointer();
 		graphicsPipelineState.HS.BytecodeLength = pBlobs[1]->GetBufferSize();
 	}
 
-	// 繝峨Γ繧､繝ｳ繧ｷ繧ｧ繝ｼ繝繝ｼ繧偵そ繝・ヨ
+	// ドメインシェーダーをセット
 	if (pBlobs[2])
 	{
 		graphicsPipelineState.DS.pShaderBytecode = pBlobs[2]->GetBufferPointer();
 		graphicsPipelineState.DS.BytecodeLength = pBlobs[2]->GetBufferSize();
 	}
 
-	// 繧ｸ繧ｪ繝｡繝医Μ繧ｷ繧ｧ繝ｼ繝繝ｼ繧偵そ繝・ヨ
+	// ジオメトリシェーダーをセット
 	if (pBlobs[3])
 	{
 		graphicsPipelineState.GS.pShaderBytecode = pBlobs[3]->GetBufferPointer();
 		graphicsPipelineState.GS.BytecodeLength = pBlobs[3]->GetBufferSize();
 	}
 
-	// 繝斐け繧ｻ繝ｫ繧ｷ繧ｧ繝ｼ繝繝ｼ繧偵そ繝・ヨ
-	graphicsPipelineState.PS.pShaderBytecode = pBlobs[4]->GetBufferPointer();
-	graphicsPipelineState.PS.BytecodeLength = pBlobs[4]->GetBufferSize();
+	// ピクセルシェーダーをセット
+	if (pBlobs.size() > 4 && pBlobs[4])
+	{
+		graphicsPipelineState.PS.pShaderBytecode = pBlobs[4]->GetBufferPointer();
+		graphicsPipelineState.PS.BytecodeLength = pBlobs[4]->GetBufferSize();
+	}
 
 	graphicsPipelineState.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;
 
-	// 繧ｫ繝ｪ繝ｳ繧ｰ繝｢繝ｼ繝峨ｒ繧ｻ繝・ヨ
+	// カリングモードをセット
 	graphicsPipelineState.RasterizerState.CullMode = static_cast<D3D12_CULL_MODE>(m_cullMode);
 
-	// 繝輔ぅ繝ｫ繧ｿ繝ｼ繝｢繝ｼ繝峨ｒ繧ｻ繝・ヨ
+	// フィルモードをセット
 	if (bWireFrame)
 	{
-		graphicsPipelineState.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;		// 荳ｭ霄ｫ繧貞｡励ｊ縺､縺ｶ縺輔↑縺・
+		graphicsPipelineState.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;		// 中身を塗りつぶさない
 	}
 	else
 	{
-		graphicsPipelineState.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;			// 荳ｭ霄ｫ繧貞｡励ｊ縺､縺ｶ縺・
+		graphicsPipelineState.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;			// 中身を塗りつぶす
 	}
 
 	// 深度設定をセット
@@ -105,8 +107,8 @@ void Pipeline::Create(std::vector<ID3DBlob*> pBlobs, const std::vector<DXGI_FORM
 
 	graphicsPipelineState.BlendState.RenderTarget[0] = blendDesc;
 
-	graphicsPipelineState.InputLayout.pInputElementDescs = inputLayouts.data();			// 繝ｬ繧､繧｢繧ｦ繝亥・鬆ｭ繧｢繝峨Ξ繧ｹ
-	graphicsPipelineState.InputLayout.NumElements = (int)m_inputLayouts.size();			// 繝ｬ繧､繧｢繧ｦ繝磯・蛻励・隕∫ｴ謨ｰ
+	graphicsPipelineState.InputLayout.pInputElementDescs = inputLayouts.data();			// レイアウト先頭アドレス
+	graphicsPipelineState.InputLayout.NumElements = (int)m_inputLayouts.size();			// レイアウト配列要素数
 
 	graphicsPipelineState.PrimitiveTopologyType = (pBlobs[1] && pBlobs[2]) ?
 		D3D12_PRIMITIVE_TOPOLOGY_TYPE_PATCH : static_cast<D3D12_PRIMITIVE_TOPOLOGY_TYPE>(m_topologyType);
@@ -125,7 +127,7 @@ void Pipeline::Create(std::vector<ID3DBlob*> pBlobs, const std::vector<DXGI_FORM
 
 	if (FAILED(hr))
 	{
-		assert(0 && "Failed to create pipeline state");
+		assert(0 && "パイプラインステートの作成に失敗しました");
 		return;
 	}
 }
@@ -184,7 +186,7 @@ void Pipeline::SetBlendMode(D3D12_RENDER_TARGET_BLEND_DESC& blendDesc, BlendMode
 	blendDesc.DestBlendAlpha = D3D12_BLEND_ZERO;
 	blendDesc.LogicOp = D3D12_LOGIC_OP_NOOP;
 
-	// 不透明モードの場合はブレンド無効
+	// 不透明モードの場合ブレンド無効
 	if (blendMode == BlendMode::None)
 	{
 		blendDesc.BlendEnable = false;
@@ -196,7 +198,7 @@ void Pipeline::SetBlendMode(D3D12_RENDER_TARGET_BLEND_DESC& blendDesc, BlendMode
 	switch (blendMode)
 	{
 	case BlendMode::Add:
-		// 蜉邂怜粋謌・
+		// 加算合成
 		blendDesc.BlendOp = D3D12_BLEND_OP_ADD;
 		blendDesc.SrcBlend = D3D12_BLEND_SRC_ALPHA;
 		blendDesc.DestBlend = D3D12_BLEND_ONE;
@@ -207,7 +209,7 @@ void Pipeline::SetBlendMode(D3D12_RENDER_TARGET_BLEND_DESC& blendDesc, BlendMode
 		blendDesc.LogicOp = D3D12_LOGIC_OP_NOOP;
 		break;
 	case BlendMode::Alpha:
-		// 蜊企乗・
+		// 半透明
 		blendDesc.BlendOp = D3D12_BLEND_OP_ADD;
 		blendDesc.SrcBlend = D3D12_BLEND_SRC_ALPHA;
 		blendDesc.DestBlend = D3D12_BLEND_INV_SRC_ALPHA;

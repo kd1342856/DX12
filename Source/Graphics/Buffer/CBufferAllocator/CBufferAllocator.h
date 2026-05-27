@@ -30,7 +30,7 @@ inline void CBufferAllocator::BindAndAttachData(int descIndex, const T& data)
 	// 現在使い終わっている番号と今から使う容量がヒープの容量を超えている場合はリターン
 	if (m_currentUseNumber + useValue > (int)m_pHeap->GetUseCount().x)
 	{
-		assert(0 && "使用できるヒープ容量を超えました");
+		assert(0 && "使用可能なヒープ容量を超えています");
 		return;
 	}
 

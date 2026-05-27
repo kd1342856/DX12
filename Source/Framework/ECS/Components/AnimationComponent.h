@@ -6,7 +6,7 @@
 class AnimationComponent : public ComponentBase
 {
 public:
-	// ECS登録用のDataTypeエイリアス
+	// ECS登録用DataTypeエイリアス
 	using DataType = AnimationDataComponent;
 
 	AnimationComponent() {}
@@ -22,7 +22,8 @@ public:
 
 	void Awake() override {}
 
-	void Update(float deltaTime);
+	// GameTimerからDeltaTimeを取得して更新
+	void Update() override;
 	void ImGuiUpdate() override;
 
 	void Serialize(nlohmann::json& out) const override;

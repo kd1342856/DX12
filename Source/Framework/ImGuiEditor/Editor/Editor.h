@@ -6,6 +6,7 @@ class RenderTarget; // ‘O•ûéŒ¾
 
 class Editor {
 public:
+    static bool GetEditorMode() { return s_editorMode; }
     static void DrawHierarchyAndInspector(Scene* scene);
     static void DrawAssetEditor();
     static void DrawGameView(RenderTarget* pRenderTarget, bool fullscreen);
@@ -15,4 +16,5 @@ private:
     static std::string s_selectedAssetPath;
     static std::string s_currentAssetDir;
     static int s_selectedModelType;
+    static bool s_editorMode;
 };

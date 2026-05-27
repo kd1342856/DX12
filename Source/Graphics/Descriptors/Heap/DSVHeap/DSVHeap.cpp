@@ -4,7 +4,7 @@ int DSVHeap::CreateDSV(ID3D12Resource* pBuffer, DXGI_FORMAT format)
 {
 	if (m_useCount < m_nextRegistNumber)
 	{
-		assert(0 && "確保済みのヒープ領域を超えました");
+		assert(0 && "確保済みのヒープ領域を超えています");
 		return 0;
 	}
 

@@ -14,6 +14,11 @@ namespace CBufferData
 		float dummy;
 	};
 
+	struct Bones
+	{
+		Math::Matrix mBones[256];
+	};
+
 	struct PerDraw
 	{
 		Math::Matrix mWorld;
@@ -28,6 +33,20 @@ namespace CBufferData
 		float dummy[2];
 	};
 
+	struct SpotLight
+	{
+		Math::Vector3 Dir;
+		float Range;
+		Math::Vector3 Color;
+		float InnerCorn;
+		Math::Vector3 Pos;
+		float OuterCorn;
+		float EnableShadow;
+		float ShadowBias;
+		float padding[2];
+		Math::Matrix mLightVP;
+	};
+
 	struct Light
 	{
 		int SL_Count;
@@ -40,8 +59,7 @@ namespace CBufferData
 		float DL_ShadowPower;
 		Math::Matrix DL_mLightVP[3];
 		Math::Vector4 DL_CascadeSplits;
-		// Spotlights etc. omitted for simplicity, but padded to match 16-byte alignment
-		Math::Vector4 dummy3[10 * 6]; // SpotLight struct approx padding
+		SpotLight SL[10];
 		Math::Vector3 DistanceFogColor;
 		float DistanceFogDensity;
 	};

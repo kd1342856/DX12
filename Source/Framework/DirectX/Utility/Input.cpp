@@ -2,10 +2,8 @@
 
 void Input::Init(HWND hWnd)
 {
-	// マウスをウィンドウに紐付ける
 	m_mouse.SetWindow(hWnd);
 
-	// 前フレームの座標を初期化
 	m_prevMouseX  = 0;
 	m_prevMouseY  = 0;
 	m_mouseDeltaX = 0;
@@ -14,24 +12,28 @@ void Input::Init(HWND hWnd)
 
 void Input::Update()
 {
-	// キーボード状態の更新
 	m_keyboardState = m_keyboard.GetState();
 	m_keyboardTracker.Update(m_keyboardState);
 
-	// マウス状態の更新
 	m_mouseState = m_mouse.GetState();
 	m_mouseTracker.Update(m_mouseState);
 
-	// マウス移動量を計算（相対モードでなければ差分で算出）
-	m_mouseDeltaX = m_mouseState.x - m_prevMouseX;
-	m_mouseDeltaY = m_mouseState.y - m_prevMouseY;
-	m_prevMouseX  = m_mouseState.x;
-	m_prevMouseY  = m_mouseState.y;
+	if (m_mouseState.positionMode == DirectX::Mouse::MODE_RELATIVE)
+	{
+		m_mouseDeltaX = m_mouseState.x;
+		m_mouseDeltaY = m_mouseState.y;
+	}
+	else
+	{
+		m_mouseDeltaX = m_mouseState.x - m_prevMouseX;
+		m_mouseDeltaY = m_mouseState.y - m_prevMouseY;
+		m_prevMouseX  = m_mouseState.x;
+		m_prevMouseY  = m_mouseState.y;
+	}
 }
 
 void Input::ProcessMessage(UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	// マウスメッセージをDirectXTKへ横流し
 	switch (msg)
 	{
 	case WM_ACTIVATE:
@@ -54,7 +56,6 @@ void Input::ProcessMessage(UINT msg, WPARAM wParam, LPARAM lParam)
 		break;
 	}
 
-	// キーボードメッセージをDirectXTKへ横流し
 	switch (msg)
 	{
 	case WM_ACTIVATE:

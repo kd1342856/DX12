@@ -55,6 +55,8 @@ void StandardShader::Begin()
 	D3D12_RECT rect = {};
 	viewport.Width = 1280.0f;
 	viewport.Height = 720.0f;
+	viewport.MinDepth = 0.0f;
+	viewport.MaxDepth = 1.0f;
 	rect.right = 1280;
 	rect.bottom = 720;
 
@@ -97,7 +99,7 @@ void StandardShader::SetMaterial(const Material& material)
 	else GraphicsDevice::Instance().GetWhiteTex()->Set(m_cbvCount);
 
 	if (material.spNormalTex) material.spNormalTex->Set(m_cbvCount + 1);
-	else GraphicsDevice::Instance().GetWhiteTex()->Set(m_cbvCount + 1);
+	else GraphicsDevice::Instance().GetNormalTex()->Set(m_cbvCount + 1);
 
 	if (material.spMetallicRoughnessTex) material.spMetallicRoughnessTex->Set(m_cbvCount + 2);
 	else GraphicsDevice::Instance().GetWhiteTex()->Set(m_cbvCount + 2);
@@ -122,7 +124,7 @@ void StandardShader::LoadShaderFile(const std::wstring& filePath)
 			"vs_5_0", flag, 0, &m_pVSBlob, &pErrorBlob);
 		if (FAILED(hr))
 		{
-			assert(0 && "VS compile failed");
+			assert(0 && "頂点シェーダーのコンパイルに失敗しました");
 			return;
 		}
 	}
@@ -151,7 +153,7 @@ void StandardShader::LoadShaderFile(const std::wstring& filePath)
 			"ps_5_0", flag, 0, &m_pPSBlob, &pErrorBlob);
 		if (FAILED(hr))
 		{
-			assert(0 && "PS compile failed");
+			assert(0 && "ピクセルシェーダーのコンパイルに失敗しました");
 			return;
 		}
 	}

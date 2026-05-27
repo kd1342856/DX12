@@ -1,8 +1,9 @@
 #include "Application.h"
 #include "Framework/DirectX/Utility/Input.h"
+#include "Framework/DirectX/Utility/Time.h"
 #include "Scene/GameScene/GameScene.h"
 
-// ImGuiのWin32メッセージ処理（Windows.hより前にimgui.hが必要）
+// ImGuiのWin32メッセージハンドラ
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
@@ -23,13 +24,15 @@ void Application::Execute()
 		return;
 	}
 
+	Input::Instance().Init(m_window.GetWndHandle());
+
 	if (!GDF::Instance().Init(m_window.GetWndHandle(), SCREEN_WIDTH, SCREEN_HEIGHT))
 	{
 		assert(0 && "GDF init failed");
 		return;
 	}
 
-	// ImGuiのWin32バックエンド初期化（GDFのInit後=GraphicsDevice初期化後に行う）
+	// ImGuiのWin32バックエンド初期化
 	ImGui_ImplWin32_Init(m_window.GetWndHandle());
 
 	// ShaderManager初期化
@@ -46,6 +49,12 @@ void Application::Execute()
 		if (!m_window.ProcessMessage())
 			break;
 
+		// タイマー更新(DeltaTimeとFPS計測)
+		GameTimer::Instance().Update();
+
+		// ウィンドウタイトルにFPS表示
+		GameTimer::Instance().UpdateWindowTitle(m_window.GetWndHandle(), L"DX12Framework");
+
 		GDF::Instance().BeginFrame();
 
 		if (m_spScene)
@@ -53,7 +62,6 @@ void Application::Execute()
 
 		GDF::Instance().EndFrame();
 	}
-
 
 	GDF::Instance().Shutdown();
 }

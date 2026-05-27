@@ -20,7 +20,7 @@ void CBufferAllocator::Create(GraphicsDevice* pGraphicsDevice, CBVSRVUAVHeap* pH
 
 	if (FAILED(result))
 	{
-		assert(0 && "CBufferAllocater‚Ìì¬¸”s");
+		assert(0 && "CBufferAllocator‚Ìì¬‚É¸”s‚µ‚Ü‚µ‚½");
 		return;
 	}
 

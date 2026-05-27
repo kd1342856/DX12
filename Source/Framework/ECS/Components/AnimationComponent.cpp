@@ -1,9 +1,13 @@
 #include "Pch.h"
 #include "AnimationComponent.h"
 #include "ModelRendererComponent.h"
+#include "Framework/DirectX/Utility/Time.h"
 
-void AnimationComponent::Update(float deltaTime)
+void AnimationComponent::Update()
 {
+	// GameTimerからデルタタイムを取得
+	float deltaTime = GameTimer::Instance().DeltaTime();
+
 	auto& data = GetAnimData().currentAnim;
 	if (!data.IsPlaying || data.AnimationIndex < 0) return;
 
@@ -17,7 +21,7 @@ void AnimationComponent::Update(float deltaTime)
 
 	const auto& animInfo = anims[data.AnimationIndex];
 
-	// タイムラインを進める
+	// タイムを進める
 	data.ProgressTime += (animInfo.ticksPerSecond * deltaTime * data.Speed);
 
 	if (data.ProgressTime >= animInfo.duration)
@@ -27,11 +31,11 @@ void AnimationComponent::Update(float deltaTime)
 		}
 		else {
 			data.ProgressTime = animInfo.duration;
-			data.IsPlaying = false; // ループしない場合は末尾で停止
+			data.IsPlaying = false;
 		}
 	}
 
-	// ModelData側に行列の補間更新を指示する
+	// ModelDataに行列の補間更新を指示
 	pModelData->UpdateAnimation(data.AnimationIndex, data.ProgressTime);
 }
 
@@ -94,12 +98,10 @@ void AnimationComponent::ImGuiUpdate()
 
 	ImGui::SameLine();
 	ImGui::Checkbox("Loop", &data.IsLoop);
-	if (ImGui::IsItemHovered()) ImGui::SetTooltip("アニメーションの再生をループさせるか設定します");
 
 	// 3. 再生速度
 	ImGui::SetNextItemWidth(150.0f);
 	ImGui::DragFloat("Speed", &data.Speed, 0.01f, -3.0f, 3.0f, "%.2f");
-	if (ImGui::IsItemHovered()) ImGui::SetTooltip("マイナス値にすると逆再生になります");
 
 	// 4. タイムラインスライダー
 	ImGui::Spacing();
@@ -107,7 +109,6 @@ void AnimationComponent::ImGuiUpdate()
 
 	if (ImGui::SliderFloat("##Time", &data.ProgressTime, 0.0f, currentAnim.duration, "%.1f Ticks"))
 	{
-		// ユーザーが手動でスライダーを動かした時、モデル姿勢をリアルタイム更新する
 		pModelData->UpdateAnimation(data.AnimationIndex, data.ProgressTime);
 	}
 

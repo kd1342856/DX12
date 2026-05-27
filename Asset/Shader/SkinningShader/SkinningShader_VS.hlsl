@@ -4,7 +4,7 @@ VSOutput main(float4 pos : POSITION, float2 uv : TEXCOORD, float3 normal: NORMAL
 {
     VSOutput Out = (VSOutput)0;
     
-    // ƒXƒLƒjƒ“ƒO—p‚Ìs—ñ‚ðƒuƒŒƒ“ƒh
+    // ãƒœãƒ¼ãƒ³è¡Œåˆ—ã®åˆæˆ
     row_major matrix mBones = 0;
     [unroll]
     for (int i = 0; i < 4; ++i)
@@ -12,7 +12,7 @@ VSOutput main(float4 pos : POSITION, float2 uv : TEXCOORD, float3 normal: NORMAL
         mBones += c_mBones[skinIndex[i]] * skinWeight[i];
     }
     
-    // ƒ{[ƒ“s—ñ‚ð“K—p
+    // ãƒœãƒ¼ãƒ³è¡Œåˆ—ã‚’é©ç”¨
     pos = mul(mBones, pos); 
     normal = mul((float3x3) mBones, normal);
     tangent = mul((float3x3) mBones, tangent);

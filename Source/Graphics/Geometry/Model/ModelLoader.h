@@ -19,7 +19,7 @@ private:
 		ModelData* pModelData, const std::string& dirPath);
 	//	‰ğÍ
 	std::shared_ptr<Mesh> Parse(const aiScene* pScene, const aiMesh* pMesh,
-		const aiMaterial* pMaterial, const std::string& dirPath, const aiMatrix4x4& transform);
+		const aiMaterial* pMaterial, const std::string& dirPath, const aiMatrix4x4& transform, ModelData* pModelData);
 
 	//	ƒ}ƒeƒŠƒAƒ‹‚Ì‰ğÍ
 	const Material ParseMaterial(const aiMaterial* pMaterial, const std::string& dirPath);

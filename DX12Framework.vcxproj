@@ -162,6 +162,8 @@
     <ClInclude Include="Source\Framework\DirectX\GDF\GDF.h" />
     <ClInclude Include="Source\Framework\DirectX\Utility\ClassAssembly.h" />
     <ClInclude Include="Source\Framework\DirectX\Utility\Input.h" />
+    <ClInclude Include="Source\Framework\DirectX\Utility\Time.h" />
+    <ClInclude Include="Source\Framework\DirectX\Utility\Logger.h" />
     <ClInclude Include="Source\Framework\DirectX\Utility\Utility.h" />
     <ClInclude Include="Source\Framework\DirectX\Window\Window.h" />
     <ClInclude Include="Source\Framework\ECS\ComponentBase.h" />
@@ -213,6 +215,8 @@
     <ClInclude Include="Source\Graphics\Geometry\Model\ModelLoader.h" />
     <ClInclude Include="Source\Graphics\Graphics.h" />
     <ClInclude Include="Source\Graphics\Shader\LitShader\LitShader.h" />
+    <ClInclude Include="Source\Graphics\Shader\ShadowShader\ShadowShader.h" />
+    <ClInclude Include="Source\Graphics\Shader\SkinningShader\SkinningShader.h" />
     <ClInclude Include="Source\Graphics\Shader\Pipeline\Pipeline.h" />
     <ClInclude Include="Source\Graphics\Shader\PostProcessShader\PostProcessShader.h" />
     <ClInclude Include="Source\Graphics\Shader\RootSignature\RootSignature.h" />
@@ -226,6 +230,7 @@
     <ClCompile Include="Source\Application\Scene\GameScene\GameScene.cpp" />
     <ClCompile Include="Source\Framework\DirectX\GDF\GDF.cpp" />
     <ClCompile Include="Source\Framework\DirectX\Utility\Input.cpp" />
+    <ClCompile Include="Source\Framework\DirectX\Utility\Time.cpp" />
     <ClCompile Include="Source\Framework\DirectX\Utility\Utility.cpp" />
     <ClCompile Include="Source\Framework\DirectX\Window\Window.cpp" />
     <ClCompile Include="Source\Framework\ECS\Components\AnimationComponent.cpp" />
@@ -254,11 +259,15 @@
     <ClCompile Include="Source\Graphics\Geometry\Model\Model.cpp" />
     <ClCompile Include="Source\Graphics\Geometry\Model\ModelLoader.cpp" />
     <ClCompile Include="Source\Graphics\Shader\LitShader\LitShader.cpp" />
+    <ClCompile Include="Source\Graphics\Shader\ShadowShader\ShadowShader.cpp" />
+    <ClCompile Include="Source\Graphics\Shader\SkinningShader\SkinningShader.cpp" />
     <ClCompile Include="Source\Graphics\Shader\Pipeline\Pipeline.cpp" />
     <ClCompile Include="Source\Graphics\Shader\PostProcessShader\PostProcessShader.cpp" />
     <ClCompile Include="Source\Graphics\Shader\RootSignature\RootSignature.cpp" />
     <ClCompile Include="Source\Graphics\Shader\ShaderManager.cpp" />
     <ClCompile Include="Source\Graphics\Shader\StandardShader\StandardShader.cpp" />
+    <ClCompile Include="Source\Framework\ECS\Components\ColliderComponent.cpp" />
+    <ClCompile Include="Source\Framework\System\Collision\CollisionManager.cpp" />
     <ClCompile Include="Source\Pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>

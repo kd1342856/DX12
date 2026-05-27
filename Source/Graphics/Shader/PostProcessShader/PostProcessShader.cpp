@@ -60,9 +60,9 @@ void PostProcessShader::LoadShaderFile(const std::wstring& filePath)
 
 	std::wstring vsPath = baseFullPath + L"_VS.hlsl";
 	auto hResult = D3DCompileFromFile(vsPath.c_str(), nullptr, include, "VS", "vs_5_0", flag, 0, &m_pVSBlob, &pErrorBlob);
-	if (FAILED(hResult)) assert(0 && "VS Compile Failed");
+	if (FAILED(hResult)) assert(0 && "頂点シェーダーのコンパイルに失敗しました");
 
 	std::wstring psPath = baseFullPath + L"_PS.hlsl";
 	hResult = D3DCompileFromFile(psPath.c_str(), nullptr, include, "PS", "ps_5_0", flag, 0, &m_pPSBlob, &pErrorBlob);
-	if (FAILED(hResult)) assert(0 && "PS Compile Failed");
+	if (FAILED(hResult)) assert(0 && "ピクセルシェーダーのコンパイルに失敗しました");
 }

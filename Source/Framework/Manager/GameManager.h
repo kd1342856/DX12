@@ -1,5 +1,7 @@
 #pragma once
 #include "../ECS/ECS.h"
+#include "../ECS/Components/Data/ColliderData.h"
+#include "../System/Collision/CollisionManager.h"
 #include "../DirectX/Utility/ClassAssembly.h"
 
 // =============================================
@@ -30,6 +32,8 @@ public:
         m_ecs.RegisterComponent<ModelRenderData>();
         m_ecs.RegisterComponent<ShaderData>();
         m_ecs.RegisterComponent<AnimationDataComponent>();
+        m_ecs.RegisterComponent<ColliderData>();
+        CollisionManager::Instance().Init();
     }
 
     // ECSŽæ“¾

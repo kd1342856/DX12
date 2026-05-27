@@ -144,7 +144,7 @@ void Modeloader::InternalProcessNode(aiNode* pSrcNode, const aiScene* pScene, in
 		aiMaterial* pMaterial = pScene->mMaterials[pMesh->mMaterialIndex];
 
 		pModelData->GetNodesRef()[currentNodeIdx].meshes.push_back(
-			Parse(pScene, pMesh, pMaterial, dirPath, pSrcNode->mTransformation) // ← pSrcNode->mTransformation に変更
+			Parse(pScene, pMesh, pMaterial, dirPath, pSrcNode->mTransformation, pModelData) // ← pSrcNode->mTransformation に変更
 		);
 	}
 
@@ -154,7 +154,7 @@ void Modeloader::InternalProcessNode(aiNode* pSrcNode, const aiScene* pScene, in
 	}
 }
 
-std::shared_ptr<Mesh> Modeloader::Parse(const aiScene* pScene, const aiMesh* pMesh, const aiMaterial* pMaterial, const std::string& dirPath, const aiMatrix4x4& transform)
+std::shared_ptr<Mesh> Modeloader::Parse(const aiScene* pScene, const aiMesh* pMesh, const aiMaterial* pMaterial, const std::string& dirPath, const aiMatrix4x4& transform, ModelData* pModelData)
 {
 	std::vector<MeshVertex> vertices;
 	std::vector<MeshFace> faces;
@@ -213,6 +213,68 @@ std::shared_ptr<Mesh> Modeloader::Parse(const aiScene* pScene, const aiMesh* pMe
 
 
 
+		// ボーン情報の読み取りと頂点への割り当て
+	if (pMesh->HasBones())
+	{
+		for (unsigned int i = 0; i < pMesh->mNumBones; i++)
+		{
+			aiBone* pBone = pMesh->mBones[i];
+			std::string boneName = pBone->mName.C_Str();
+			
+			int boneIndex = 0;
+			auto it = pModelData->GetBoneMapRef().find(boneName);
+			if (it == pModelData->GetBoneMapRef().end())
+			{
+				boneIndex = (int)pModelData->GetBonesRef().size();
+				pModelData->GetBoneMapRef()[boneName] = boneIndex;
+				
+				ModelData::BoneInfo boneInfo;
+				aiMatrix4x4 aiMat = pBone->mOffsetMatrix;
+				aiMat.Transpose();
+				boneInfo.offsetMatrix = *(Math::Matrix*)&aiMat;
+				pModelData->GetBonesRef().push_back(boneInfo);
+			}
+			else
+			{
+				boneIndex = it->second;
+			}
+			
+			for (unsigned int w = 0; w < pBone->mNumWeights; w++)
+			{
+				UINT vertexID = pBone->mWeights[w].mVertexId;
+				float weight = pBone->mWeights[w].mWeight;
+				
+				for (int j = 0; j < 4; j++)
+				{
+					if (vertices[vertexID].SkinWeight[j] == 0.0f)
+					{
+						vertices[vertexID].SkinIndex[j] = boneIndex;
+						vertices[vertexID].SkinWeight[j] = weight;
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	// ウェイトの正規化とウェイトなし頂点の救済
+	for (UINT i = 0; i < pMesh->mNumVertices; i++)
+	{
+		float sum = vertices[i].SkinWeight[0] + vertices[i].SkinWeight[1] + vertices[i].SkinWeight[2] + vertices[i].SkinWeight[3];
+		if (sum > 0.0001f)
+		{
+			vertices[i].SkinWeight[0] /= sum;
+			vertices[i].SkinWeight[1] /= sum;
+			vertices[i].SkinWeight[2] /= sum;
+			vertices[i].SkinWeight[3] /= sum;
+		}
+		else
+		{
+			vertices[i].SkinIndex[0] = 0;
+			vertices[i].SkinWeight[0] = 1.0f;
+		}
+	}
+
 	faces.resize(pMesh->mNumFaces);
 
 	for (UINT i = 0; i < pMesh->mNumFaces; ++i)
@@ -254,7 +316,7 @@ const Material Modeloader::ParseMaterial(const aiMaterial* pMaterial, const std:
 
 			if (!material.spBaseColorTex->Load(&GraphicsDevice::Instance(), dirPath + filePath))
 			{
-				assert(0 && "Diffuseテクスチャのロードに失敗");
+				assert(0);
 				return Material();
 			}
 		}
@@ -286,7 +348,7 @@ const Material Modeloader::ParseMaterial(const aiMaterial* pMaterial, const std:
 
 			if (!material.spMetallicRoughnessTex->Load(&GraphicsDevice::Instance(), dirPath + filePath))
 			{
-				assert(0 && "MetallicRoughnessテクスチャのロードに失敗");
+				assert(0);
 				return Material();
 			}
 		}
@@ -324,7 +386,7 @@ const Material Modeloader::ParseMaterial(const aiMaterial* pMaterial, const std:
 
 			if (!material.spEmissiveTex->Load(&GraphicsDevice::Instance(), dirPath + filePath))
 			{
-				assert(0 && "Emissiveテクスチャのロードに失敗");
+				assert(0);
 				return Material();
 			}
 		}
@@ -354,7 +416,7 @@ const Material Modeloader::ParseMaterial(const aiMaterial* pMaterial, const std:
 
 			if (!material.spNormalTex->Load(&GraphicsDevice::Instance(), dirPath + filePath))
 			{
-				assert(0 && "Normalテクスチャのロードに失敗");
+				assert(0);
 				return Material();
 			}
 		}

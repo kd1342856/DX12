@@ -98,12 +98,12 @@ void RootSignature::Create(GraphicsDevice* pGraphicsDevice, const std::vector<Ra
 	auto hr = D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1_0, &m_pRootBlob, &pErrorBlob);
 	if(FAILED(hr))
 	{
-		assert(0 && "ルートシグネチャ初期化失敗");
+		assert(0 && "ルートシグネチャの作成に失敗しました");
 	}
 	hr = m_pDevice->GetDevice()->CreateRootSignature(0, m_pRootBlob->GetBufferPointer(), m_pRootBlob->GetBufferSize(), IID_PPV_ARGS(m_pRootSignature.GetAddressOf()));
 	if (FAILED(hr))
 	{
-		assert(0 && "ルートシグネチャ初期化失敗");
+		assert(0 && "ルートシグネチャの作成に失敗しました");
 	}
 }
 

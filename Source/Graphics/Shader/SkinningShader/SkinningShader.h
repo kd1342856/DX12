@@ -8,6 +8,8 @@ class SkinningShader
 public:
 	void Create(GraphicsDevice* pGraphicsDevice);
 	void DrawModel(const ModelData& modelData, const Math::Matrix& mWorld, const std::vector<Math::Matrix>& boneMatrices);
+	void BeginShadow();
+	void DrawShadowModel(const ModelData& modelData, const Math::Matrix& mWorld, const std::vector<Math::Matrix>& boneMatrices);
 
 	void Begin();
 	void DrawMesh(const Mesh& mesh);
@@ -17,6 +19,7 @@ private:
 
 	GraphicsDevice* m_pDevice = nullptr;
 	std::unique_ptr<Pipeline>		m_upPipeline = nullptr;
+	std::unique_ptr<Pipeline>		m_upShadowPipeline = nullptr;
 	std::unique_ptr<RootSignature>	m_upRootSignature = nullptr;
 
 	ID3DBlob* m_pVSBlob = nullptr;

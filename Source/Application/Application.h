@@ -10,6 +10,7 @@ public:
 
 	// シーンをセット
 	void SetScene(std::shared_ptr<SceneBase> spScene) { m_spScene = spScene; }
+	std::shared_ptr<SceneBase> GetScene() const { return m_spScene; }
 
 private:
 	// DLLの読み込みとディレクトリ設定

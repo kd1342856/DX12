@@ -35,7 +35,7 @@ void Mesh::Create(GraphicsDevice* pGraphicsDevice, const std::vector<MeshVertex>
 
 	if (FAILED(hr))
 	{
-		assert(0 && "頂点バッファー作成失敗");
+		assert(0 && "頂点バッファの作成に失敗しました");
 		return;
 	}
 
@@ -51,7 +51,7 @@ void Mesh::Create(GraphicsDevice* pGraphicsDevice, const std::vector<MeshVertex>
 
 	if (FAILED(hr))
 	{
-		assert(0 && "インデックスバッファー作成失敗");
+		assert(0 && "インデックスバッファの作成に失敗しました");
 		return;
 	}
 

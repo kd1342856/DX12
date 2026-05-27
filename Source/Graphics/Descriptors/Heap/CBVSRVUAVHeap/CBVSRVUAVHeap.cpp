@@ -4,7 +4,7 @@ int CBVSRVUAVHeap::CreateSRV(ID3D12Resource* pBuffer)
 {
 	if (m_nextRegistNumber >= (int)m_useCount.y)
 	{
-		assert(0 && "確保済みのヒープ領域を超えました");
+		assert(0 && "確保済みのヒープ領域を超えています");
 		return 0;
 	}
 

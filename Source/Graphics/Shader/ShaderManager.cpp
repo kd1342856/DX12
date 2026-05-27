@@ -4,7 +4,9 @@ void ShaderManager::Init()
 {
 	m_standardShader.Create(&GDF::Instance().GetGraphicsDevice());
 	m_litShader.Create(&GDF::Instance().GetGraphicsDevice());
+	m_shadowShader.Create(&GDF::Instance().GetGraphicsDevice());
 	m_postProcessShader.Create(&GDF::Instance().GetGraphicsDevice());
+	m_skinningShader.Create(&GDF::Instance().GetGraphicsDevice());
 }
 
 void ShaderManager::SetCameraMatrix(const Math::Matrix& mView, const Math::Matrix& mProj)

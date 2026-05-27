@@ -17,17 +17,29 @@ void SkinningShader::Create(GraphicsDevice* pGraphicsDevice)
 
 	RenderingSetting setting = {};
 	setting.InputLayouts = {
-		InputLayout::POSITION, InputLayout::TEXCOORD, InputLayout::COLOR,
-		InputLayout::NORMAL, InputLayout::TANGENT,
+		InputLayout::POSITION, InputLayout::TEXCOORD, InputLayout::NORMAL,
+		InputLayout::COLOR, InputLayout::TANGENT,
 		InputLayout::SKININDEX, InputLayout::SKINWEIGHT
 	};
-	setting.Formats = { DXGI_FORMAT_R8G8B8A8_UNORM };
+	setting.Formats = { DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_R8G8B8A8_UNORM };
+	setting.RTVCount = 3;
 
 	m_upPipeline = std::make_unique<Pipeline>();
 	m_upPipeline->SetRenderSettings(pGraphicsDevice, m_upRootSignature.get(), setting.InputLayouts,
 		setting.CullMode, setting.BlendMode, setting.PrimitiveTopologyType);
 	m_upPipeline->Create({ m_pVSBlob, m_pHSBlob, m_pDSBlob, m_pGSBlob, m_pPSBlob }, setting.Formats,
 		setting.IsDepth, setting.IsDepthMask, setting.RTVCount, setting.IsWireFrame);
+
+	// 繧ｷ繝｣繝峨え逕ｨ繝代う繝励Λ繧､繝ｳ縺ｮ菴懈・
+	RenderingSetting shadowSetting = setting;
+	shadowSetting.Formats = {};
+	shadowSetting.RTVCount = 0;
+	shadowSetting.CullMode = CullMode::None; // 荳｡髱｢謠冗判縺ｧ蠖ｱ繧定誠縺ｨ縺・
+	m_upShadowPipeline = std::make_unique<Pipeline>();
+	m_upShadowPipeline->SetRenderSettings(pGraphicsDevice, m_upRootSignature.get(), shadowSetting.InputLayouts,
+		shadowSetting.CullMode, shadowSetting.BlendMode, shadowSetting.PrimitiveTopologyType);
+	m_upShadowPipeline->Create({ m_pVSBlob, nullptr, nullptr, nullptr, nullptr }, shadowSetting.Formats,
+		shadowSetting.IsDepth, shadowSetting.IsDepthMask, shadowSetting.RTVCount, shadowSetting.IsWireFrame);
 }
 
 void SkinningShader::Begin()
@@ -58,18 +70,22 @@ void SkinningShader::Begin()
 	D3D12_RECT rect = {};
 	viewport.Width = 1280.0f;
 	viewport.Height = 720.0f;
+	viewport.MinDepth = 0.0f;
+	viewport.MaxDepth = 1.0f;
 	rect.right = 1280;
 	rect.bottom = 720;
 
 	m_pDevice->GetCmdList()->RSSetViewports(1, &viewport);
 	m_pDevice->GetCmdList()->RSSetScissorRects(1, &rect);
+
+	ShaderManager::Instance().BindCameraMatrix(0);
 }
 
 void SkinningShader::DrawModel(const ModelData& modelData, const Math::Matrix& mWorld, const std::vector<Math::Matrix>& boneMatrices)
 {
 	Begin();
 
-	// ボーン行列を定数バッファにセット
+	// 繝懊・繝ｳ陦悟・繧貞ｮ壽焚繝舌ャ繝輔ぃ縺ｫ繧ｻ繝・ヨ
 	CBufferData::Bones cbBones;
 	for (size_t i = 0; i < boneMatrices.size() && i < 256; ++i)
 	{
@@ -95,7 +111,7 @@ void SkinningShader::DrawModel(const ModelData& modelData, const Math::Matrix& m
 			nodeWorldMatrices[i] = matLocal * nodeWorldMatrices[node.parentIndex];
 		}
 
-		GDF::Instance().BindCBuffer(1, mWorld);
+		CBufferData::PerDraw cbDraw; cbDraw.mWorld = mWorld; GDF::Instance().BindCBuffer(1, cbDraw);
 
 		for (const auto& spMesh : node.meshes)
 		{
@@ -119,7 +135,7 @@ void SkinningShader::SetMaterial(const Material& material)
 	else GraphicsDevice::Instance().GetWhiteTex()->Set(m_cbvCount);
 
 	if (material.spNormalTex) material.spNormalTex->Set(m_cbvCount + 1);
-	else GraphicsDevice::Instance().GetWhiteTex()->Set(m_cbvCount + 1);
+	else GraphicsDevice::Instance().GetNormalTex()->Set(m_cbvCount + 1);
 
 	if (material.spMetallicRoughnessTex) material.spMetallicRoughnessTex->Set(m_cbvCount + 2);
 	else GraphicsDevice::Instance().GetWhiteTex()->Set(m_cbvCount + 2);
@@ -132,10 +148,10 @@ void SkinningShader::LoadShaderFile(const std::wstring& filePath)
 {
 	ID3DInclude* include = D3D_COMPILE_STANDARD_FILE_INCLUDE;
 	UINT flag = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
-	ID3DBlob* pErrorBlob = nullptr;
+	ComPtr<ID3DBlob> pErrorBlob = nullptr;
 
 	std::wstring format = L".hlsl";
-	std::wstring currentPath = L"Asset/Shader/";
+	std::wstring currentPath = L"Asset/Shader/" + filePath + L"/";
 
 	// VS
 	{
@@ -144,27 +160,13 @@ void SkinningShader::LoadShaderFile(const std::wstring& filePath)
 			"vs_5_0", flag, 0, &m_pVSBlob, &pErrorBlob);
 		if (FAILED(hr))
 		{
-			assert(0 && "VS compile failed");
+			if (pErrorBlob)
+			{
+				OutputDebugStringA((char*)pErrorBlob->GetBufferPointer());
+			}
+			assert(0 && "頂点シェーダーのコンパイルに失敗しました");
 			return;
 		}
-	}
-	// HS
-	{
-		std::wstring fullPath = currentPath + filePath + L"_HS" + format;
-		D3DCompileFromFile(fullPath.c_str(), nullptr, include, "main",
-			"hs_5_0", flag, 0, &m_pHSBlob, &pErrorBlob);
-	}
-	// DS
-	{
-		std::wstring fullPath = currentPath + filePath + L"_DS" + format;
-		D3DCompileFromFile(fullPath.c_str(), nullptr, include, "main",
-			"ds_5_0", flag, 0, &m_pDSBlob, &pErrorBlob);
-	}
-	// GS
-	{
-		std::wstring fullPath = currentPath + filePath + L"_GS" + format;
-		D3DCompileFromFile(fullPath.c_str(), nullptr, include, "main",
-			"gs_5_0", flag, 0, &m_pGSBlob, &pErrorBlob);
 	}
 	// PS
 	{
@@ -173,8 +175,72 @@ void SkinningShader::LoadShaderFile(const std::wstring& filePath)
 			"ps_5_0", flag, 0, &m_pPSBlob, &pErrorBlob);
 		if (FAILED(hr))
 		{
-			assert(0 && "PS compile failed");
+			if (pErrorBlob)
+			{
+				OutputDebugStringA((char*)pErrorBlob->GetBufferPointer());
+			}
+			assert(0 && "ピクセルシェーダーのコンパイルに失敗しました");
 			return;
+		}
+	}
+}
+
+void SkinningShader::BeginShadow()
+{
+	m_pDevice->GetCmdList()->SetPipelineState(m_upShadowPipeline->GetPipeline());
+	m_pDevice->GetCmdList()->SetGraphicsRootSignature(m_upRootSignature->GetRootSignature());
+	m_pDevice->GetCmdList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	D3D12_VIEWPORT viewport = {};
+	D3D12_RECT rect = {};
+	viewport.Width = 4096.0f; // ShadowMapの解像度
+	viewport.Height = 4096.0f;
+	viewport.MinDepth = 0.0f;
+	viewport.MaxDepth = 1.0f;
+	rect.right = 4096;
+	rect.bottom = 4096;
+
+	m_pDevice->GetCmdList()->RSSetViewports(1, &viewport);
+	m_pDevice->GetCmdList()->RSSetScissorRects(1, &rect);
+}
+
+void SkinningShader::DrawShadowModel(const ModelData& modelData, const Math::Matrix& mWorld, const std::vector<Math::Matrix>& boneMatrices)
+{
+	CBufferData::Bones cbBones;
+	for (size_t i = 0; i < boneMatrices.size() && i < 256; ++i)
+	{
+		cbBones.mBones[i] = boneMatrices[i];
+	}
+	GDF::Instance().BindCBuffer(2, cbBones);
+
+	const auto& nodes = modelData.GetNodes();
+	std::vector<Math::Matrix> nodeWorldMatrices(nodes.size());
+
+	for (int i = 0; i < (int)nodes.size(); ++i)
+	{
+		const auto& node = nodes[i];
+		aiMatrix4x4 aiMat = node.localTransform;
+		Math::Matrix matLocal = *(Math::Matrix*)&aiMat;
+
+		if (node.parentIndex == -1)
+		{
+			nodeWorldMatrices[i] = matLocal * mWorld;
+		}
+		else
+		{
+			nodeWorldMatrices[i] = matLocal * nodeWorldMatrices[node.parentIndex];
+		}
+
+		CBufferData::PerDraw cbDraw; 
+		cbDraw.mWorld = nodeWorldMatrices[i]; 
+		GDF::Instance().BindCBuffer(1, cbDraw);
+
+		for (const auto& spMesh : node.meshes)
+		{
+			if (spMesh)
+			{
+				spMesh->DrawInstanced(spMesh->GetInstanceCount());
+			}
 		}
 	}
 }

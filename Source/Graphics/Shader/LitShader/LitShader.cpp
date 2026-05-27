@@ -65,23 +65,24 @@ void LitShader::Begin()
 	D3D12_RECT rect = {};
 	viewport.Width = 1280.0f;
 	viewport.Height = 720.0f;
+	viewport.MinDepth = 0.0f;
+	viewport.MaxDepth = 1.0f;
 	rect.right = 1280;
 	rect.bottom = 720;
 
 	GraphicsDevice::Instance().GetCmdList()->RSSetViewports(1, &viewport);
 	GraphicsDevice::Instance().GetCmdList()->RSSetScissorRects(1, &rect);
 
-	// Light
-	CBufferData::Light cbLight = {};
-	cbLight.AmbientLight = Math::Vector3(0.3f, 0.3f, 0.3f);
-	cbLight.DL_Dir = Math::Vector3(0.5f, -1.0f, 0.5f);
-	cbLight.DL_Dir.Normalize();
-	cbLight.DL_Color = Math::Vector3(1.0f, 1.0f, 1.0f);
-	cbLight.SL_Count = 0;
-	GDF::Instance().BindCBuffer(3, cbLight);
+	// シャドウマップのバインド (t7 = m_cbvCount + 7)
+	auto* pShadowMap = GraphicsDevice::Instance().GetShadowMap();
+	if (pShadowMap && pShadowMap->GetSRVNumber() != -1)
+	{
+		auto handle = GraphicsDevice::Instance().GetCBVSRVUAVHeap()->GetGPUHandle(pShadowMap->GetSRVNumber());
+		GraphicsDevice::Instance().GetCmdList()->SetGraphicsRootDescriptorTable(m_cbvCount + 7, handle);
+	}
 
-	// カメラ定数バッファをバインド
 	ShaderManager::Instance().BindCameraMatrix(0);
+	ShaderManager::Instance().BindLightData(3);
 }
 
 void LitShader::DrawModel(const ModelData& modelData, const Math::Matrix& mWorld)
@@ -121,7 +122,7 @@ void LitShader::SetMaterial(const Material& material)
 	else GraphicsDevice::Instance().GetWhiteTex()->Set(m_cbvCount);
 
 	if (material.spNormalTex) material.spNormalTex->Set(m_cbvCount + 1);
-	else GraphicsDevice::Instance().GetWhiteTex()->Set(m_cbvCount + 1);
+	else GraphicsDevice::Instance().GetNormalTex()->Set(m_cbvCount + 1);
 
 	if (material.spMetallicRoughnessTex) material.spMetallicRoughnessTex->Set(m_cbvCount + 2);
 	else GraphicsDevice::Instance().GetWhiteTex()->Set(m_cbvCount + 2);
@@ -150,7 +151,7 @@ void LitShader::LoadShaderFile(const std::wstring& filePath)
 			{
 				OutputDebugStringA((char*)pErrorBlob->GetBufferPointer());
 			}
-			assert(0 && "VS compile failed");
+			assert(0 && "頂点シェーダーのコンパイルに失敗しました");
 			return;
 		}
 	}
@@ -165,7 +166,7 @@ void LitShader::LoadShaderFile(const std::wstring& filePath)
 			{
 				OutputDebugStringA((char*)pErrorBlob->GetBufferPointer());
 			}
-			assert(0 && "PS compile failed");
+			assert(0 && "ピクセルシェーダーのコンパイルに失敗しました");
 			return;
 		}
 	}

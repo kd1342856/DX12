@@ -14,7 +14,7 @@ bool Texture::Load(GraphicsDevice* pGraphicsDevice, const std::string& filePath)
 	auto hr = DirectX::LoadFromWICFile(wFilePath, DirectX::WIC_FLAGS_NONE, &metadata, scratchImage);
 	if (FAILED(hr))
 	{
-		assert("テクスチャの読み込み失敗");
+		assert(0 && "テクスチャの読み込みに失敗しました");
 		return false;
 	}
 
@@ -38,14 +38,14 @@ bool Texture::Load(GraphicsDevice* pGraphicsDevice, const std::string& filePath)
 
 	if (FAILED(hr))
 	{
-		assert(0 && "テクスチャバッファ作成失敗");
+		assert(0 && "テクスチャバッファの作成に失敗しました");
 		return false;
 	}
 
 	hr = m_pBuffer->WriteToSubresource(0, nullptr, pImage->pixels, (UINT)pImage->rowPitch, (UINT)pImage->slicePitch);
 	if (FAILED(hr))
 	{
-		assert(0 && "バッファにテクスチャデータの書き込み失敗");
+		assert(0 && "バッファにテクスチャデータを書き込めませんでした");
 		return false;
 	}
 

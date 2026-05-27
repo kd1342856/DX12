@@ -78,6 +78,12 @@ public:
     }
 
     template<typename T>
+    bool HasComponent(Entity entity)
+    {
+        return m_upEntityManager->GetSignature(entity).test(m_upComponentManager->GetComponentType<T>());
+    }
+
+    template<typename T>
     ComponentType GetComponentType()
     {
         return m_upComponentManager->GetComponentType<T>();

@@ -1,4 +1,5 @@
 #include "Scene.h"
+#include "../ECS/Components/TransformComponent.h"
 
 Scene::Scene() {}
 Scene::~Scene() {}
@@ -40,6 +41,8 @@ std::shared_ptr<GameObject> Scene::CreateGameObject(const std::string& name) {
     // ECS Entity ì¬‚Í GameManager Œo—R
     Entity id = GameManager::Instance().GetECS().CreateEntity();
     obj->SetEntityID(id);
+
+    obj->AddComponent<TransformComponent>();
 
     m_gameObjects.push_back(obj);
     return obj;
