@@ -2,29 +2,38 @@
 
 REGISTER_COMPONENT(Player);
 
-void Player::Awake() {
+void Player::Awake() 
+{
 }
 
-void Player::Start() {
+void Player::Start() 
+{
 }
 
-void Player::Update() {
+void Player::Update() 
+{
 }
 
-void Player::PostUpdate() {
+void Player::PostUpdate() 
+{
 }
 
-void Player::PreDraw() {
+void Player::PreDraw() 
+{
 }
 
-void Player::Draw() {
+void Player::Draw() 
+{
 }
 
-void Player::Serialize(nlohmann::json& out) const {
+void Player::Serialize(nlohmann::json& out) const
+{
 }
 
-void Player::Deserialize(const nlohmann::json& in) {
+void Player::Deserialize(const nlohmann::json& in) 
+{
 }
 
-void Player::ImGuiUpdate() {
+void Player::ImGuiUpdate() 
+{
 }
