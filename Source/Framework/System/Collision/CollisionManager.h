@@ -25,22 +25,19 @@ public:
     void Init();
     void Shutdown();
 
-    // Perform a raycast against all ColliderComponents in the scene
+    // シーン内の全ColliderComponentに対してレイキャストを行う
     RaycastHit Raycast(const DirectX::SimpleMath::Vector3& origin, const DirectX::SimpleMath::Vector3& direction, float maxDistance = 1000.0f);
 
-    // Debug Drawing
+    // デバッグ描画の有効/無効
     void SetDebugWireEnabled(bool enabled) { m_debugWireEnabled = enabled; }
     bool IsDebugWireEnabled() const { return m_debugWireEnabled; }
     
-    // Call this in the GameScene to draw the wireframes
-    void DrawDebugWires(RenderTarget* pRenderTarget = nullptr);
+    // ImGui ImDrawListを使ったワイヤーフレーム描画
+    void DrawDebugWires(float screenX = 0.0f, float screenY = 0.0f, float screenW = 0.0f, float screenH = 0.0f, Entity cameraEntity = INVALID_ENTITY);
 
 private:
     CollisionManager();
     ~CollisionManager();
 
     bool m_debugWireEnabled = true;
-
-    class DebugRendererImpl;
-    std::unique_ptr<DebugRendererImpl> m_pDebugRenderer;
 };

@@ -155,7 +155,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\??\DX12\Source\Framework\ECS\Components\Data\AnimationData.h" />
+        <ClInclude Include="Source\Application\Object\Script\Player\Player.h" />
+<ClInclude Include="..\??\DX12\Source\Framework\ECS\Components\Data\AnimationData.h" />
     <ClInclude Include="Source\Application\Application.h" />
     <ClInclude Include="Source\Application\Scene\GameScene\GameScene.h" />
     <ClInclude Include="Source\Application\Scene\SceneBase.h" />
@@ -226,7 +227,8 @@
     <ClInclude Include="Source\Graphics\Buffer\RenderTarget\RenderTarget.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Source\Application\Application.cpp" />
+        <ClCompile Include="Source\Application\Object\Script\Player\Player.cpp" />
+<ClCompile Include="Source\Application\Application.cpp" />
     <ClCompile Include="Source\Application\Scene\GameScene\GameScene.cpp" />
     <ClCompile Include="Source\Framework\DirectX\GDF\GDF.cpp" />
     <ClCompile Include="Source\Framework\DirectX\Utility\Input.cpp" />

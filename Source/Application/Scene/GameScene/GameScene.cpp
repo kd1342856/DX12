@@ -27,7 +27,7 @@ void GameScene::Init()
         nlohmann::json j;
         in >> j;
         m_spScene->Deserialize(j);
-        Logger::Instance().AddLog(Logger::LogLevel::Info, "シーンをロードしました");
+        Logger::Instance().AddLog(Logger::LogLevel::Info, "?V?[??????[?h???????");
     } else 
     {
         auto cameraObj = m_spScene->CreateGameObject("MainCamera");
@@ -205,13 +205,14 @@ void GameScene::Update()
         }
     }
 
+    m_spScene->PreDraw();
+
     if (m_fullscreenGame)
     {
         GraphicsDevice::Instance().SetBackBuffer();
         if (gameCameraEntity != INVALID_ENTITY)
         {
             m_spScene->GetRenderSystem()->Update(gameCameraEntity);
-            CollisionManager::Instance().DrawDebugWires();
         }
         else
         {
@@ -230,7 +231,6 @@ void GameScene::Update()
         {
             m_upRenderTarget->Clear(0.2f, 0.2f, 0.3f, 1.0f);
             m_spScene->GetRenderSystem()->Update(gameCameraEntity, m_upRenderTarget.get());
-            CollisionManager::Instance().DrawDebugWires();
         }
         else
         {
@@ -245,13 +245,14 @@ void GameScene::Update()
 
         GraphicsDevice::Instance().SetBackBuffer();
         m_spScene->GetRenderSystem()->Update(editorCameraEntity);
-        CollisionManager::Instance().DrawDebugWires();
-
+          CollisionManager::Instance().DrawDebugWires(0, 0, 0, 0, editorCameraEntity);
+        m_spScene->Draw();
         if (m_showEditor)
         {
-            Editor::DrawGameView(m_upRenderTarget.get(), false);
+            Editor::DrawGameView(m_upRenderTarget.get(), gameCameraEntity, false);
             Editor::DrawHierarchyAndInspector(m_spScene.get());
             Logger::Instance().DrawImGuiWindow();
         }
     }
 }
+

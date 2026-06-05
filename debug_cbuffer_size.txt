@@ -1,5 +1,0 @@
-sizeof(Light)=288
-sizeof(SpotLight)=112
-AmbientLight=(0.30,0.30,0.30)
-DL_Color=(1.00,1.00,1.00)
-DL_Dir=(0.41,-0.82,0.41)

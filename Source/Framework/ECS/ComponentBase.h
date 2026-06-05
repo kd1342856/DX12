@@ -6,7 +6,7 @@ class GameObject;
 
 // =============================================
 // ComponentBase
-// 全コンポーネントの基底クラス
+// ?S?R???|?[?l???g????N???X
 // =============================================
 class ComponentBase : public Object {
 public:
@@ -15,18 +15,21 @@ public:
 
     virtual const char* GetComponentName() const { return "Component"; }
 
-    // ライフサイクル
+    // ???C?t?T?C?N??
     virtual void Awake() {}
     virtual void Start() {}
     virtual void Update() {}
+    virtual void PostUpdate() {}
+    virtual void PreDraw() {}
+    virtual void Draw() {}
     virtual void ImGuiUpdate() {}
 
-    // シリアライズ
+    // ?V???A???C?Y
     virtual void Serialize(nlohmann::json& out) const {}
     virtual void Deserialize(const nlohmann::json& in) {}
 
-    // ECSデータ登録（DataTypeを持つコンポーネントがオーバーライドする）
-    // AddComponent(shared_ptr<ComponentBase>) 経由の場合に呼ばれる
+    // ECS?f?[?^?o?^?iDataType?????R???|?[?l???g???I?[?o?[???C?h????j
+    // AddComponent(shared_ptr<ComponentBase>) ?o?R?????????
     virtual void RegisterECSData() {}
 
     void SetGameObject(GameObject* owner) { m_owner = owner; }
@@ -35,3 +38,4 @@ public:
 protected:
     GameObject* m_owner = nullptr;
 };
+

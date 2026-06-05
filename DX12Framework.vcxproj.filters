@@ -1,11 +1,18 @@
 <?xml version="1.0" encoding="shift_jis"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <Filter Include="Source\Application" />
+
+    <Filter Include="Source\Application\Object" />
+
+    <Filter Include="Source\Application\Object\Script\Player" />
+
+
     <Filter Include="Source">
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="Source\Applicatin">
+    <Filter Include="Source\Application">
       <UniqueIdentifier>{8e3f989b-0bc1-43e6-bf7e-7c48ce34862c}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Graphics">
@@ -74,10 +81,10 @@
     <Filter Include="Source\Graphics\Shader\StandardShader">
       <UniqueIdentifier>{cd064d96-03ad-47b8-ab58-afd09de06604}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Applicatin\Scene">
+    <Filter Include="Source\Application\Scene">
       <UniqueIdentifier>{82bee2af-612f-4c25-b753-450549ac4626}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Applicatin\Scene\GameScene">
+    <Filter Include="Source\Application\Scene\GameScene">
       <UniqueIdentifier>{9e8903f3-1b92-452f-8993-f3e842f9d0d6}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Graphics\Buffer\RenderTarget">
@@ -149,10 +156,26 @@
     <Filter Include="Asset\Shader\SkinningShader">
       <UniqueIdentifier>{e3666cd6-a3a0-441c-9b12-babe062c883e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Graphics\Shader\Shadow">
+      <UniqueIdentifier>{3bd4e3d8-b24c-4695-b9a3-894d28e9c401}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Graphics\Shader\SkinningShader">
+      <UniqueIdentifier>{3bf3f97c-0e7a-41eb-80fe-c064dba46287}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Application\Object\Script" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Source\Application\Application.h">
-      <Filter>Source\Applicatin</Filter>
+            <ClInclude Include="Source\Application\Object\Script\Player\Player.h">
+      <Filter>Source\Application\Object\Script\Player</Filter>
+    </ClInclude>
+<ClInclude Include="Source\Application\Object\Script\Player\Player.h">
+      <Filter>Source\Application\Object\Script\Player</Filter>
+    </ClInclude>
+<ClInclude Include="Source\Application\Object\Script\Player\Player.h">
+      <Filter>Source\Application\Object\Script\Player</Filter>
+    </ClInclude>
+<ClInclude Include="Source\Application\Application.h">
+      <Filter>Source\Application</Filter>
     </ClInclude>
     <ClInclude Include="Source\Pch.h">
       <Filter>Source</Filter>
@@ -215,10 +238,10 @@
       <Filter>Source\Graphics\Shader\StandardShader</Filter>
     </ClInclude>
     <ClInclude Include="Source\Application\Scene\SceneBase.h">
-      <Filter>Source\Applicatin\Scene</Filter>
+      <Filter>Source\Application\Scene</Filter>
     </ClInclude>
     <ClInclude Include="Source\Application\Scene\GameScene\GameScene.h">
-      <Filter>Source\Applicatin\Scene\GameScene</Filter>
+      <Filter>Source\Application\Scene\GameScene</Filter>
     </ClInclude>
     <ClInclude Include="Source\Graphics\Buffer\RenderTarget\RenderTarget.h">
       <Filter>Source\Graphics\Buffer\RenderTarget</Filter>
@@ -344,10 +367,31 @@
     <ClInclude Include="..\??\DX12\Source\Framework\ECS\Components\Data\AnimationData.h">
       <Filter>Source\Framework\ECS\Components\Data</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Graphics\Shader\ShadowShader\ShadowShader.h">
+      <Filter>Source\Graphics\Shader\Shadow</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Graphics\Shader\SkinningShader\SkinningShader.h">
+      <Filter>Source\Graphics\Shader\SkinningShader</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\DirectX\Utility\Logger.h">
+      <Filter>Source\Framework\DirectX\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\DirectX\Utility\Time.h">
+      <Filter>Source\Framework\DirectX\Utility</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Source\Application\Application.cpp">
-      <Filter>Source\Applicatin</Filter>
+            <ClCompile Include="Source\Application\Object\Script\Player\Player.cpp">
+      <Filter>Source\Application\Object\Script\Player</Filter>
+    </ClCompile>
+<ClCompile Include="Source\Application\Object\Script\Player\Player.cpp">
+      <Filter>Source\Application\Object\Script\Player</Filter>
+    </ClCompile>
+<ClCompile Include="Source\Application\Object\Script\Player\Player.cpp">
+      <Filter>Source\Application\Object\Script\Player</Filter>
+    </ClCompile>
+<ClCompile Include="Source\Application\Application.cpp">
+      <Filter>Source\Application</Filter>
     </ClCompile>
     <ClCompile Include="Source\Graphics\Shader\RootSignature\RootSignature.cpp">
       <Filter>Source\Graphics\Shader\RootSignature</Filter>
@@ -395,7 +439,7 @@
       <Filter>Source\Graphics\Shader\StandardShader</Filter>
     </ClCompile>
     <ClCompile Include="Source\Application\Scene\GameScene\GameScene.cpp">
-      <Filter>Source\Applicatin\Scene\GameScene</Filter>
+      <Filter>Source\Application\Scene\GameScene</Filter>
     </ClCompile>
     <ClCompile Include="Source\Graphics\Buffer\RenderTarget\RenderTarget.cpp">
       <Filter>Source\Graphics\Buffer\RenderTarget</Filter>
@@ -463,6 +507,21 @@
     <ClCompile Include="Source\Framework\ECS\Components\AnimationComponent.cpp">
       <Filter>Source\Framework\ECS\Components</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Graphics\Shader\ShadowShader\ShadowShader.cpp">
+      <Filter>Source\Graphics\Shader\Shadow</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Graphics\Shader\SkinningShader\SkinningShader.cpp">
+      <Filter>Source\Graphics\Shader\SkinningShader</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Framework\DirectX\Utility\Time.cpp">
+      <Filter>Source\Framework\DirectX\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Framework\ECS\Components\ColliderComponent.cpp">
+      <Filter>Source\Framework\ECS\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Framework\System\Collision\CollisionManager.cpp">
+      <Filter>Source\Framework\ECS\Components</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Asset\Shader\inc_Study.hlsli">
@@ -518,3 +577,7 @@
     </FxCompile>
   </ItemGroup>
 </Project>
+
+
+
+

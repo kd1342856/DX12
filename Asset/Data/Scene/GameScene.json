@@ -4,11 +4,11 @@
             "Children": [],
             "Components": [
                 {
-                    "PosX": 0.7909420132637024,
-                    "PosY": 2.37607479095459,
-                    "PosZ": -4.933513164520264,
-                    "RotX": 0.5320051312446594,
-                    "RotY": -0.1440017819404602,
+                    "PosX": 0.2906869649887085,
+                    "PosY": 1.267837405204773,
+                    "PosZ": -1.5476270914077759,
+                    "RotX": 0.472004771232605,
+                    "RotY": 5.470001697540283,
                     "RotZ": 0.0,
                     "ScaX": 1.0,
                     "ScaY": 1.0,
@@ -55,6 +55,31 @@
                     ],
                     "IsActive": true,
                     "Name": "Model"
+                },
+                {
+                    "Children": [],
+                    "Components": [
+                        {
+                            "PosX": 0.0,
+                            "PosY": 0.0,
+                            "PosZ": 0.0,
+                            "RotX": 0.0,
+                            "RotY": 0.0,
+                            "RotZ": 0.0,
+                            "ScaX": 1.0,
+                            "ScaY": 1.0,
+                            "ScaZ": 1.0,
+                            "Type": "TransformComponent"
+                        },
+                        {
+                            "IsTrigger": false,
+                            "Shapes": [],
+                            "Type": "ColliderComponent",
+                            "UseModelBounds": true
+                        }
+                    ],
+                    "IsActive": true,
+                    "Name": "Collider"
                 }
             ],
             "Components": [
@@ -107,7 +132,7 @@
                             "PosX": 0.0,
                             "PosY": 1.5,
                             "PosZ": -4.0,
-                            "RotX": 0.20000000298023224,
+                            "RotX": 0.4059993624687195,
                             "RotY": 0.0,
                             "RotZ": 0.0,
                             "ScaX": 1.0,
@@ -143,20 +168,21 @@
                             "Type": "TransformComponent"
                         },
                         {
+                            "IsTrigger": false,
                             "Shapes": [
                                 {
-                                    "ExtentsX": 1.0,
-                                    "ExtentsY": 1.0,
-                                    "ExtentsZ": 1.0,
+                                    "ExtentsX": 0.0010000000474974513,
+                                    "ExtentsY": 0.6399999856948853,
+                                    "ExtentsZ": 0.2809999883174896,
                                     "OffsetX": 0.0,
-                                    "OffsetY": 0.0,
+                                    "OffsetY": 0.8100000023841858,
                                     "OffsetZ": 0.0,
-                                    "Radius": 0.5,
+                                    "Radius": 5.0,
                                     "Type": 0
                                 }
                             ],
                             "Type": "ColliderComponent",
-                            "UseModelBounds": false
+                            "UseModelBounds": true
                         }
                     ],
                     "IsActive": true,
@@ -165,11 +191,11 @@
             ],
             "Components": [
                 {
-                    "PosX": 0.0,
+                    "PosX": -1.8152176141738892,
                     "PosY": 0.0,
-                    "PosZ": 0.0,
+                    "PosZ": 0.2588905096054077,
                     "RotX": 0.0,
-                    "RotY": 0.0,
+                    "RotY": -0.6359995603561401,
                     "RotZ": 0.0,
                     "ScaX": 1.0,
                     "ScaY": 1.0,

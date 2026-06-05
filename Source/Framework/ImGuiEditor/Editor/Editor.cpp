@@ -7,12 +7,139 @@
 #include "../../ECS/Components/ModelRendererComponent.h"
 #include "../../DirectX/Utility/Input.h"
 #include "../../ECS/Components/AnimationComponent.h"
+#include <fstream>
+#include <filesystem>
+#include <regex>
+
+static void GenerateScriptFiles(const std::string& name, const std::string& path) {
+    std::filesystem::create_directories(path);
+    std::string hFile = path + name + ".h";
+    std::string cppFile = path + name + ".cpp";
+
+    std::string cleanPath = path;
+    for (char& c : cleanPath) {
+        if (c == '/') c = '\\';
+    }
+    if (!cleanPath.empty() && cleanPath.back() != '\\') {
+        cleanPath += '\\';
+    }
+
+    // Calculate relative path to Source directory
+    int slashCount = 0;
+    for (char c : cleanPath) {
+        if (c == '\\') slashCount++;
+    }
+    std::string relPath = "";
+    // If cleanPath starts with Source\, slashCount is depth. To get to Source, we need slashCount - 1 "../"
+    int upCount = slashCount > 0 ? slashCount - 1 : 0;
+    for (int i = 0; i < upCount; ++i) {
+        relPath += "../";
+    }
+
+    std::ofstream h(hFile);
+    if(h.is_open()) {
+        h << "#pragma once\n";
+        h << "#include \"" << relPath << "Framework/ECS/Components/ScriptComponent.h\"\n\n";
+        h << "class " << name << " : public ScriptComponent {\n";
+        h << "public:\n";
+        h << "    void Awake() override;\n";
+        h << "    void Start() override;\n";
+        h << "    void Update() override;\n";
+        h << "    void PostUpdate() override;\n";
+        h << "    void PreDraw() override;\n";
+        h << "    void Draw() override;\n";
+        h << "    void Serialize(nlohmann::json& out) const override;\n";
+        h << "    void Deserialize(const nlohmann::json& in) override;\n";
+        h << "    void ImGuiUpdate() override;\n";
+        h << "};\n";
+        h.close();
+    }
+
+    std::ofstream c(cppFile);
+    if(c.is_open()) {
+        c << "#include \"Pch.h\"\n";
+        c << "#include \"" << name << ".h\"\n\n";
+        c << "REGISTER_COMPONENT(" << name << ");\n\n";
+        c << "void " << name << "::Awake() {\n}\n\n";
+        c << "void " << name << "::Start() {\n}\n\n";
+        c << "void " << name << "::Update() {\n}\n\n";
+        c << "void " << name << "::PostUpdate() {\n}\n\n";
+        c << "void " << name << "::PreDraw() {\n}\n\n";
+        c << "void " << name << "::Draw() {\n}\n\n";
+        c << "void " << name << "::Serialize(nlohmann::json& out) const {\n}\n\n";
+        c << "void " << name << "::Deserialize(const nlohmann::json& in) {\n}\n\n";
+        c << "void " << name << "::ImGuiUpdate() {\n}\n";
+        c.close();
+    }
+
+    std::string vcxprojPath = "DX12Framework.vcxproj";
+    std::string filtersPath = "DX12Framework.vcxproj.filters";
+    
+    std::string filterName = cleanPath;
+    if (!filterName.empty() && filterName.back() == '\\') {
+        filterName.pop_back();
+    }
+
+    std::string hEntry = "    <ClInclude Include=\"" + cleanPath + name + ".h\" />\n";
+    std::string cppEntry = "    <ClCompile Include=\"" + cleanPath + name + ".cpp\" />\n";
+
+    std::ifstream v(vcxprojPath);
+    std::string vContent((std::istreambuf_iterator<char>(v)), std::istreambuf_iterator<char>());
+    v.close();
+    
+    size_t incPos = vContent.find("<ClInclude Include=");
+    if(incPos != std::string::npos) vContent.insert(incPos, hEntry);
+    
+    size_t compPos = vContent.find("<ClCompile Include=");
+    if(compPos != std::string::npos) vContent.insert(compPos, cppEntry);
+    
+    std::ofstream vOut(vcxprojPath);
+    vOut << vContent;
+    vOut.close();
+
+    std::ifstream f(filtersPath);
+    std::string fContent((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+    f.close();
+
+    std::string hFilter = "    <ClInclude Include=\"" + cleanPath + name + ".h\">\n      <Filter>" + filterName + "</Filter>\n    </ClInclude>\n";
+    std::string cppFilter = "    <ClCompile Include=\"" + cleanPath + name + ".cpp\">\n      <Filter>" + filterName + "</Filter>\n    </ClCompile>\n";
+
+    // Recursively add all missing parent filters
+    std::string currentFilter = filterName;
+    while (!currentFilter.empty()) {
+        std::string filterDef = "    <Filter Include=\"" + currentFilter + "\" />\n";
+        if(fContent.find("<Filter Include=\"" + currentFilter + "\"") == std::string::npos) {
+            size_t fTopPos = fContent.find("<ItemGroup>") + 11;
+            fContent.insert(fTopPos, "\n" + filterDef);
+        }
+        size_t slashPos = currentFilter.find_last_of('\\');
+        if (slashPos != std::string::npos) {
+            currentFilter = currentFilter.substr(0, slashPos);
+        } else {
+            break;
+        }
+    }
+
+    size_t fIncPos = fContent.find("<ClInclude Include=");
+    if(fIncPos != std::string::npos) fContent.insert(fIncPos, hFilter);
+    
+    size_t fCompPos = fContent.find("<ClCompile Include=");
+    if(fCompPos != std::string::npos) fContent.insert(fCompPos, cppFilter);
+    
+    std::ofstream fOut(filtersPath);
+    fOut << fContent;
+    fOut.close();
+}
 
 std::shared_ptr<GameObject> Editor::s_selectedObject = nullptr;
 std::string Editor::s_selectedAssetPath = "";
 std::string Editor::s_currentAssetDir = "Asset/Model";
 int Editor::s_selectedModelType = 0;
 bool Editor::s_editorMode = true;
+
+static bool s_showCreateScriptPopup = false;
+static char s_newScriptName[256] = "";
+static char s_newScriptPath[256] = "Source/Application/Object/Script/";
 
 void Editor::DrawHierarchyAndInspector(Scene* scene) {
     if (!scene) return;
@@ -35,7 +162,7 @@ void Editor::DrawHierarchyAndInspector(Scene* scene) {
                 scene->Serialize(j);
                 std::ofstream o("Asset/Data/Scene/GameScene.json");
                 o << std::setw(4) << j << std::endl;
-                Logger::Instance().AddLog(Logger::LogLevel::Info, "シーンを保存しました");
+                Logger::Instance().AddLog(Logger::LogLevel::Info, "?V?[?????????????");
             }
             ImGui::EndTabItem();
         }
@@ -49,7 +176,7 @@ void Editor::DrawHierarchyAndInspector(Scene* scene) {
         scene->Serialize(j);
         std::ofstream o("Asset/Data/Scene/GameScene.json");
         o << std::setw(4) << j << std::endl;
-                Logger::Instance().AddLog(Logger::LogLevel::Info, "シーンを保存しました");
+                Logger::Instance().AddLog(Logger::LogLevel::Info, "?V?[?????????????");
     }
 
     // Delete Key (Using Framework Input to bypass ImGui mapping issues)
@@ -64,7 +191,7 @@ void Editor::DrawHierarchyAndInspector(Scene* scene) {
     // Hierarchy
     ImGui::Begin("Hierarchy");
     
-    // 閭梧勹縺ｧ縺ｮ蜿ｳ繧ｯ繝ｪ繝・け縺ｧ遨ｺ縺ｮ繧ｪ繝悶ず繧ｧ繧ｯ繝医ｒ菴懈・
+    // 背景??E???E???E???E?リ??E????E???E???E???E?ブジ??E???E?ト??E?作??E
     if (ImGui::BeginPopupContextWindow("HierarchyPopup", ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems)) {
         if (ImGui::MenuItem("Create Empty Object")) {
             scene->CreateGameObject("GameObject");
@@ -77,7 +204,7 @@ void Editor::DrawHierarchyAndInspector(Scene* scene) {
         DrawHierarchyNode(obj);
     }
     
-    // 繧ｦ繧｣繝ｳ繝峨え蜈ｨ菴薙∈縺ｮ繝峨Ο繝・・縺ｧ隕ｪ繧定ｧ｣髯､・医Ν繝ｼ繝磯嚴螻､縺ｸ遘ｻ蜍包ｼ・
+    // ??E???E?ンドウ??E?体??E??E?ドロ??E?E??E?親を??E???E??E?ルート階??E???E?移動??E??E
     ImGui::Dummy(ImGui::GetContentRegionAvail());
     if (ImGui::BeginDragDropTarget()) {
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GAMEOBJECT")) {
@@ -125,6 +252,12 @@ void Editor::DrawHierarchyAndInspector(Scene* scene) {
             }
 
             if (ImGui::BeginPopup("AddComponentPopup")) {
+                if (ImGui::MenuItem("Create New Script...")) {
+                    s_showCreateScriptPopup = true;
+                    s_newScriptName[0] = '\0';
+                }
+                ImGui::Separator();
+
                 auto& factories = ClassAssembly::Instance().GetFactories();
                 for (auto& pair : factories) {
                     if (ImGui::MenuItem(pair.first.c_str())) {
@@ -140,6 +273,31 @@ void Editor::DrawHierarchyAndInspector(Scene* scene) {
                 if (ImGui::MenuItem("AnimationComponent", nullptr, false, !hasAnim))
                 {
                     s_selectedObject->AddComponent<AnimationComponent>();
+                }
+                ImGui::EndPopup();
+            }
+
+            if (s_showCreateScriptPopup) {
+                ImGui::OpenPopup("Create New Script Component");
+            }
+            if (ImGui::BeginPopupModal("Create New Script Component", &s_showCreateScriptPopup, ImGuiWindowFlags_AlwaysAutoResize)) {
+                ImGui::InputText("Script Name", s_newScriptName, IM_ARRAYSIZE(s_newScriptName));
+                ImGui::InputText("Save Path", s_newScriptPath, IM_ARRAYSIZE(s_newScriptPath));
+                
+                if (ImGui::Button("Create", ImVec2(120, 0))) {
+                    std::string name = s_newScriptName;
+                    std::string path = s_newScriptPath;
+                    if (!name.empty()) {
+                        GenerateScriptFiles(name, path);
+                    }
+                    s_showCreateScriptPopup = false;
+                    ImGui::CloseCurrentPopup();
+                }
+                ImGui::SetItemDefaultFocus();
+                ImGui::SameLine();
+                if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+                    s_showCreateScriptPopup = false;
+                    ImGui::CloseCurrentPopup();
                 }
                 ImGui::EndPopup();
             }
@@ -286,7 +444,7 @@ void Editor::DrawAssetEditor()
     ImGui::Text("Model Type:");
     ImGui::RadioButton("Static", &s_selectedModelType, 0); ImGui::SameLine();
     ImGui::RadioButton("Dynamic", &s_selectedModelType, 1);
-    if (ImGui::Button("驕ｩ逕ｨ (Apply to Selected Object)")) {
+    if (ImGui::Button("適用 (Apply to Selected Object)")) {
         if (!s_selectedAssetPath.empty()) {
             auto& data = pModelComp->GetData();
             data.m_modelType = (ModelType)s_selectedModelType;
@@ -300,11 +458,11 @@ void Editor::DrawAssetEditor()
 }
 
 
-void Editor::DrawGameView(RenderTarget* pRenderTarget, bool fullscreen)
+void Editor::DrawGameView(RenderTarget* pRenderTarget, uint32_t cameraEntity, bool fullscreen)
 {
     if (!pRenderTarget) return;
 
-    // 背景を透過させず、黒い通常のウィンドウにする
+    // ?w?i??????????AE????????E?B???h?E?????
     ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoCollapse;
     if (fullscreen)
     {
@@ -317,7 +475,7 @@ void Editor::DrawGameView(RenderTarget* pRenderTarget, bool fullscreen)
 
     ImGui::Begin("Game View", nullptr, windowFlags);
     {
-        // 16:9のアスペクト維持で表示サイズ計算
+        // 16:9??A?X?y?N?g?????\???T?C?Y?v?E
         ImVec2 contentSize = ImGui::GetContentRegionAvail();
         float targetAspect = 16.0f / 9.0f;
         float actualAspect = contentSize.x / contentSize.y;
@@ -331,13 +489,17 @@ void Editor::DrawGameView(RenderTarget* pRenderTarget, bool fullscreen)
             displaySize.y = contentSize.x / targetAspect;
         }
 
-        // 中央に寄せるためのカーソル位置調整
+        // ???????E???????E?J?[?\????u????
         ImVec2 offset = ImVec2((contentSize.x - displaySize.x) * 0.5f, (contentSize.y - displaySize.y) * 0.5f);
         ImGui::SetCursorPos(ImGui::GetCursorPos() + offset);
 
-        // 正しいImGui用SRVインデックスを使用する
+        // ??????ImGui?pSRV?C???`E???N?X??g?p????
         auto srvHandle = GraphicsDevice::Instance().GetImGuiSRVGPUHandle(pRenderTarget->GetImGuiSRVIndex());
         ImGui::Image((ImTextureID)srvHandle.ptr, displaySize);
     }
     ImGui::End();
 }
+
+
+
+

@@ -35,7 +35,11 @@ public:
         }
     }
 
+    void Start();
     void Update();
+    void PostUpdate();
+    void PreDraw();
+    void Draw();
     void ImGuiUpdate();
 
     void Serialize(nlohmann::json& out) const;
@@ -96,6 +100,9 @@ public:
 public:
     const std::vector<std::shared_ptr<ComponentBase>>& GetComponentsList() const { return m_components; }
 
+protected:
+    bool m_isStarted = false;
+
 private:
     std::vector<std::shared_ptr<ComponentBase>> m_components;
     std::vector<std::shared_ptr<GameObject>> m_children;
@@ -103,3 +110,4 @@ private:
     Scene* m_scene = nullptr;
     Entity m_entityId = INVALID_ENTITY;
 };
+

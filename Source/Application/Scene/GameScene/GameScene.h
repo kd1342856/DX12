@@ -9,6 +9,9 @@ public:
     void Init() override;
     void Update() override;
 
+public:
+    std::shared_ptr<Scene> GetScene() const { return m_spScene; }
+
 private:
     std::shared_ptr<Scene> m_spScene;
     std::unique_ptr<RenderTarget> m_upRenderTarget;

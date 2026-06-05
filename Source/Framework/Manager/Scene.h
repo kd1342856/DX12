@@ -6,8 +6,8 @@
 
 // =============================================
 // Scene
-// GameObjectのリストとRenderSystemを管理する
-// ECSのデータ管理はGameManagerに委譲済み
+// GameObject????X?g??RenderSystem????????
+// ECS??f?[?^?????GameManager???????
 // =============================================
 class Scene : public Object {
 public:
@@ -16,6 +16,8 @@ public:
 
     void Init();
     void Update();
+    void PreDraw();
+    void Draw();
     void ImGuiUpdate();
 
     const std::vector<std::shared_ptr<GameObject>>& GetGameObjects() const { return m_gameObjects; }
@@ -60,10 +62,11 @@ public:
         }
     }
 
-    // RenderSystem は Scene が管理
+    // RenderSystem ?? Scene ?????
     std::shared_ptr<class RenderSystem>& GetRenderSystem() { return m_spRenderSystem; }
 
 protected:
     std::vector<std::shared_ptr<GameObject>> m_gameObjects;
     std::shared_ptr<class RenderSystem> m_spRenderSystem;
 };
+

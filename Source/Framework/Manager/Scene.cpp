@@ -5,8 +5,8 @@ Scene::Scene() {}
 Scene::~Scene() {}
 
 void Scene::Init() {
-    // ECSの初期化とコンポーネント登録はGameManagerが担当
-    // SceneはRenderSystemのセットアップだけを行う
+    // ECS?????????R???|?[?l???g?o?^??GameManager???S??
+    // Scene??RenderSystem??Z?b?g?A?b?v??????s??
     auto& ecs = GameManager::Instance().GetECS();
 
     m_spRenderSystem = ecs.RegisterSystem<RenderSystem>();
@@ -19,9 +19,25 @@ void Scene::Init() {
 
 void Scene::Update() {
     for (auto& obj : m_gameObjects) {
-        if (obj->IsActive()) {
-            obj->Update();
-        }
+        if (obj->IsActive()) obj->Start();
+    }
+    for (auto& obj : m_gameObjects) {
+        if (obj->IsActive()) obj->Update();
+    }
+    for (auto& obj : m_gameObjects) {
+        if (obj->IsActive()) obj->PostUpdate();
+    }
+}
+
+void Scene::PreDraw() {
+    for (auto& obj : m_gameObjects) {
+        if (obj->IsActive()) obj->PreDraw();
+    }
+}
+
+void Scene::Draw() {
+    for (auto& obj : m_gameObjects) {
+        if (obj->IsActive()) obj->Draw();
     }
 }
 
@@ -38,7 +54,7 @@ std::shared_ptr<GameObject> Scene::CreateGameObject(const std::string& name) {
     obj->SetName(name);
     obj->SetScene(this);
 
-    // ECS Entity 作成は GameManager 経由
+    // ECS Entity ???? GameManager ?o?R
     Entity id = GameManager::Instance().GetECS().CreateEntity();
     obj->SetEntityID(id);
 
@@ -47,3 +63,5 @@ std::shared_ptr<GameObject> Scene::CreateGameObject(const std::string& name) {
     m_gameObjects.push_back(obj);
     return obj;
 }
+
+

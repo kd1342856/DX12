@@ -79,6 +79,17 @@ void GameObject::SetParent(std::shared_ptr<GameObject> parent) {
     }
 }
 
+void GameObject::Start() {
+    if (!m_isActive || m_isStarted) return;
+    for (auto& comp : m_components) {
+        if (comp->IsActive()) comp->Start();
+    }
+    for (auto& child : m_children) {
+        child->Start();
+    }
+    m_isStarted = true;
+}
+
 void GameObject::Update() {
     if (!m_isActive) return;
     for (auto& comp : m_components) {
@@ -88,6 +99,36 @@ void GameObject::Update() {
     }
     for (auto& child : m_children) {
         child->Update();
+    }
+}
+
+void GameObject::PostUpdate() {
+    if (!m_isActive) return;
+    for (auto& comp : m_components) {
+        if (comp->IsActive()) comp->PostUpdate();
+    }
+    for (auto& child : m_children) {
+        child->PostUpdate();
+    }
+}
+
+void GameObject::PreDraw() {
+    if (!m_isActive) return;
+    for (auto& comp : m_components) {
+        if (comp->IsActive()) comp->PreDraw();
+    }
+    for (auto& child : m_children) {
+        child->PreDraw();
+    }
+}
+
+void GameObject::Draw() {
+    if (!m_isActive) return;
+    for (auto& comp : m_components) {
+        if (comp->IsActive()) comp->Draw();
+    }
+    for (auto& child : m_children) {
+        child->Draw();
     }
 }
 
@@ -102,3 +143,4 @@ void GameObject::ImGuiUpdate() {
         child->ImGuiUpdate();
     }
 }
+
