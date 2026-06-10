@@ -6,10 +6,11 @@
 #include "../ECS/Entity/Entity.h"
 
 class Scene;
+class GameManager;
 
 // =============================================
-// ECSデータ型の自動検出用トレイト
-// ComponentにDataType定義があればECSへ自動登録
+// ECSデータ型の持出し判定トレイト
+// ComponentにDataTypeが定義されていたらECSへ自動登録
 // =============================================
 template<typename T, typename = void>
 struct HasDataType : std::false_type {};
@@ -19,21 +20,16 @@ struct HasDataType<T, std::void_t<typename T::DataType>> : std::true_type {};
 
 // =============================================
 // GameObject
-// ECSのEntityを内包するフレームワーク層クラス
+// ECS Entityをラップするゲームオブジェクトのルートクラス
 // ユーザーはECS EntityIDを意識しなくてよい
 // =============================================
 class GameObject : public Object, public std::enable_shared_from_this<GameObject> {
 public:
     GameObject() {}
 
-    // デストラクタでECS Entityを自動削除
-    // シャットダウン時に GameManager が先に破棄されていた場合は安全にスキップ
-    ~GameObject() {
-        if (m_entityId != INVALID_ENTITY && GameManager::IsInstanceAlive()) {
-            GameManager::Instance().GetECS().DestroyEntity(m_entityId);
-            m_entityId = INVALID_ENTITY;
-        }
-    }
+    // デストラクタ：ECS Entityを破棄
+    // シャットダウン時にGameManagerが先に死んでいる場合は安全にスキップ
+    ~GameObject();
 
     void Start();
     void Update();
@@ -54,21 +50,22 @@ public:
     void SetParent(std::shared_ptr<GameObject> parent);
 
     void Destroy();
+    
 
     GameObject* GetParent() const { return m_pParent; }
     const std::vector<std::shared_ptr<GameObject>>& GetChildren() const { return m_children; }
 
     // =============================================
     // AddComponent<T>
-    // コンポーネントを追加し Awake() を呼ぶ
-    // T::DataType が定義されていれば ECS に自動登録
+    // コンポーネント追加・Awake()を呼ぶ
+    // T::DataTypeが定義されていればECSにも自動登録
     // =============================================
     template<class T, class... Args>
     std::shared_ptr<T> AddComponent(Args&&... args) {
         std::shared_ptr<T> pSp = std::make_shared<T>(std::forward<Args>(args)...);
         pSp->SetGameObject(this);
         m_components.push_back(pSp);
-        // DataType があれば ECS に自動でデータ登録（if constexpr で分岐）
+        // DataTypeがあればECSにデータ登録（if constexprで分岐）
         if constexpr (HasDataType<T>::value) {
             typename T::DataType data{};
             GameManager::Instance().GetECS().AddComponent(m_entityId, data);
@@ -77,8 +74,8 @@ public:
         return pSp;
     }
 
-    // デシリアライズ等で ComponentBase のポインタから追加する場合
-    // RegisterECSData() を呼んでECS登録を行い、その後 Awake() を呼ぶ
+    // デシリアライズ時：ComponentBaseのポインタを追加する場合
+    // RegisterECSData()を呼んでECS登録後、Awake()を呼ぶ
     void AddComponent(std::shared_ptr<ComponentBase> comp) {
         if (comp) {
             comp->SetGameObject(this);
@@ -97,6 +94,18 @@ public:
         return nullptr;
     }
 
+    // =============================================
+    // コリジョンコールバック伝播ヘルパー
+    // CollisionManagerからこのGameObjectが持つ
+    // 全ScriptComponentのコールバックに通知する
+    // =============================================
+    void NotifyCollisionEnter(GameObject* other);
+    void NotifyCollisionStay(GameObject* other);
+    void NotifyCollisionExit(GameObject* other);
+    void NotifyTriggerEnter(GameObject* other);
+    void NotifyTriggerStay(GameObject* other);
+    void NotifyTriggerExit(GameObject* other);
+
 public:
     const std::vector<std::shared_ptr<ComponentBase>>& GetComponentsList() const { return m_components; }
 
@@ -110,4 +119,5 @@ private:
     Scene* m_scene = nullptr;
     Entity m_entityId = INVALID_ENTITY;
 };
+
 

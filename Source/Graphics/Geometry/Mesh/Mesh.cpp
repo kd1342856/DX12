@@ -5,6 +5,8 @@ void Mesh::Create(GraphicsDevice* pGraphicsDevice, const std::vector<MeshVertex>
 {
 	m_pDevice = pGraphicsDevice;
 	m_material = material;
+	m_vertices = vertices;
+	m_faces = faces;
 
 	if (static_cast<int>(vertices.size()) == 0)
 	{

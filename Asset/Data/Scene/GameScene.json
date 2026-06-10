@@ -4,11 +4,11 @@
             "Children": [],
             "Components": [
                 {
-                    "PosX": 0.2906869649887085,
-                    "PosY": 1.267837405204773,
-                    "PosZ": -1.5476270914077759,
-                    "RotX": 0.472004771232605,
-                    "RotY": 5.470001697540283,
+                    "PosX": -3.514986276626587,
+                    "PosY": 2.605433940887451,
+                    "PosZ": -8.576550483703613,
+                    "RotX": 0.3640032410621643,
+                    "RotY": 6.780019760131836,
                     "RotZ": 0.0,
                     "ScaX": 1.0,
                     "ScaY": 1.0,
@@ -72,8 +72,20 @@
                             "Type": "TransformComponent"
                         },
                         {
+                            "IsStatic": false,
                             "IsTrigger": false,
-                            "Shapes": [],
+                            "Shapes": [
+                                {
+                                    "ExtentsX": 100.0,
+                                    "ExtentsY": 0.5,
+                                    "ExtentsZ": 100.0,
+                                    "OffsetX": 0.0,
+                                    "OffsetY": -0.5,
+                                    "OffsetZ": 0.0,
+                                    "Radius": 5.0,
+                                    "Type": 0
+                                }
+                            ],
                             "Type": "ColliderComponent",
                             "UseModelBounds": true
                         }
@@ -130,9 +142,9 @@
                     "Components": [
                         {
                             "PosX": 0.0,
-                            "PosY": 1.5,
-                            "PosZ": -4.0,
-                            "RotX": 0.4059993624687195,
+                            "PosY": 2.5,
+                            "PosZ": -3.95306658744812,
+                            "RotX": 0.36599957942962646,
                             "RotY": 0.0,
                             "RotZ": 0.0,
                             "ScaX": 1.0,
@@ -141,7 +153,7 @@
                             "Type": "TransformComponent"
                         },
                         {
-                            "CameraMode": 0,
+                            "CameraMode": 1,
                             "FarZ": 1000.0,
                             "Fov": 60.0,
                             "MoveSpeed": 0.10000000149011612,
@@ -168,12 +180,13 @@
                             "Type": "TransformComponent"
                         },
                         {
+                            "IsStatic": false,
                             "IsTrigger": false,
                             "Shapes": [
                                 {
-                                    "ExtentsX": 0.0010000000474974513,
-                                    "ExtentsY": 0.6399999856948853,
-                                    "ExtentsZ": 0.2809999883174896,
+                                    "ExtentsX": 0.12099999934434891,
+                                    "ExtentsY": 0.550000011920929,
+                                    "ExtentsZ": 0.12999999523162842,
                                     "OffsetX": 0.0,
                                     "OffsetY": 0.8100000023841858,
                                     "OffsetZ": 0.0,
@@ -191,16 +204,22 @@
             ],
             "Components": [
                 {
-                    "PosX": -1.8152176141738892,
-                    "PosY": 0.0,
-                    "PosZ": 0.2588905096054077,
+                    "PosX": -3.6471188068389893,
+                    "PosY": -0.25999969244003296,
+                    "PosZ": -2.7088558673858643,
                     "RotX": 0.0,
-                    "RotY": -0.6359995603561401,
+                    "RotY": -0.03600115329027176,
                     "RotZ": 0.0,
                     "ScaX": 1.0,
                     "ScaY": 1.0,
                     "ScaZ": 1.0,
                     "Type": "TransformComponent"
+                },
+                {
+                    "Type": "Player",
+                    "gravityStrength": 9.800000190734863,
+                    "moveSpeed": 3.799999952316284,
+                    "useGravity": true
                 }
             ],
             "IsActive": true,

@@ -41,9 +41,14 @@ public:
                 Entity id = GameManager::Instance().GetECS().CreateEntity();
                 obj->SetEntityID(id);
                 m_gameObjects.push_back(obj);
+                RegisterGameObject(id, obj);
                 obj->Deserialize(oj);
             }
         }
+    }
+
+    void RegisterGameObject(Entity e, std::shared_ptr<GameObject> obj) {
+        m_entityToObject[e] = obj;
     }
 
     std::shared_ptr<GameObject> CreateGameObject(const std::string& name = "GameObject");
@@ -67,6 +72,16 @@ public:
 
 protected:
     std::vector<std::shared_ptr<GameObject>> m_gameObjects;
+
+public:
+    std::shared_ptr<GameObject> GetGameObject(Entity e) {
+        auto it = m_entityToObject.find(e);
+        if (it != m_entityToObject.end()) return it->second;
+        return nullptr;
+    }
+
+private:
+    std::unordered_map<Entity, std::shared_ptr<GameObject>> m_entityToObject;
     std::shared_ptr<class RenderSystem> m_spRenderSystem;
 };
 

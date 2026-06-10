@@ -1,0 +1,273 @@
+﻿#include <fstream>
+#include "CollisionManager.h"
+#include "../../../Graphics/Device/GraphicsDevice.h"
+#include "../../../Application/Application.h"
+#include "../../Manager/Scene.h"
+#include "../../../Application/Scene/GameScene/GameScene.h"
+#include "../../Manager/GameManager.h"
+#include "../../Object/GameObject.h"
+#include "../../ECS/Components/TransformComponent.h"
+#include "../../ECS/Components/ColliderComponent.h"
+#include "../../ECS/CompSystem/System.h"
+#include <DirectXColors.h>
+
+using namespace DirectX;
+using namespace DirectX::SimpleMath;
+
+class CollisionSystem : public SystemBase { public: void Update() override {} };
+
+static std::shared_ptr<CollisionSystem> s_collisionSystem;
+
+CollisionManager::CollisionManager() {}
+CollisionManager::~CollisionManager() {}
+
+void CollisionManager::Init() {
+    // ECS�V�X�e���o�^
+    auto& ecs = GameManager::Instance().GetECS();
+    s_collisionSystem = ecs.RegisterSystem<CollisionSystem>();
+    Signature sig;
+    sig.set(ecs.GetComponentType<ColliderData>());
+    sig.set(ecs.GetComponentType<TransformData>());
+    ecs.SetSystemSignature<CollisionSystem>(sig);
+}
+
+void CollisionManager::Shutdown() {
+    s_collisionSystem.reset();
+}
+
+// ============================================
+// ���C�L���X�g�i�ύX�Ȃ��j
+// ============================================
+RaycastHit CollisionManager::Raycast(const Vector3& origin, const Vector3& direction, float maxDistance) {
+    RaycastHit hitResult;
+    hitResult.distance = maxDistance;
+
+    if (!s_collisionSystem) return hitResult;
+
+    auto& ecs = GameManager::Instance().GetECS();
+    for (auto entity : s_collisionSystem->m_entities) {
+        auto& colData = ecs.GetComponent<ColliderData>(entity);
+        auto& transData = ecs.GetComponent<TransformData>(entity);
+
+        for (const auto& shape : colData.m_shapes) {
+            float dist = -1.0f;
+            if (shape.type == ColliderType::AABB) {
+                BoundingBox box(shape.offset, shape.extents);
+                box.Transform(box, transData.m_worldMatrix);
+                if (box.Intersects(origin, direction, dist) && dist < hitResult.distance) {
+                    hitResult.hit = true;
+                    hitResult.distance = dist;
+                    hitResult.point = origin + direction * dist;
+                    hitResult.normal = Vector3::Up; 
+                }
+            } else if (shape.type == ColliderType::OBB) {
+                BoundingOrientedBox box(shape.offset, shape.extents, Quaternion::Identity);
+                box.Transform(box, transData.m_worldMatrix);
+                if (box.Intersects(origin, direction, dist) && dist < hitResult.distance) {
+                    hitResult.hit = true;
+                    hitResult.distance = dist;
+                    hitResult.point = origin + direction * dist;
+                    hitResult.normal = Vector3::Up;
+                }
+            } else if (shape.type == ColliderType::Sphere) {
+                BoundingSphere sphere(shape.offset, shape.radius);
+                sphere.Transform(sphere, transData.m_worldMatrix);
+                if (sphere.Intersects(origin, direction, dist) && dist < hitResult.distance) {
+                    hitResult.hit = true;
+                    hitResult.distance = dist;
+                    hitResult.point = origin + direction * dist;
+                    hitResult.normal = hitResult.point - sphere.Center;
+                    hitResult.normal.Normalize();
+                }
+            }
+        }
+    }
+    return hitResult;
+}
+
+// ============================================
+// ImGui�`��w���p�[�i�t�@�C���X�R�[�vstatic�֐��j
+// ============================================
+
+// ���[���h���W���X�N���[�����W�ϊ�
+// ViewProjection�s���3D���W��NDC�ɕϊ����A�X�N���[���s�N�Z�����W�ɂ���
+// �J�����w��̒��_��false��Ԃ��ăN���b�s���O
+static bool WorldToScreen(const Vector3& worldPos,
+                           const Matrix& mViewProj,
+                           float screenX, float screenY, float screenW, float screenH,
+                           ImVec2& outScreen) {
+    // ���[���h���W��N���b�v��Ԃɕϊ�
+    Vector4 clipPos = Vector4::Transform(
+        Vector4(worldPos.x, worldPos.y, worldPos.z, 1.0f), mViewProj);
+
+    // �j�A�v���[����O�i�J�����w��j�Ȃ�N���b�s���O
+    if (clipPos.w <= 0.001f) return false;
+
+    // �������Z��NDC(-1?+1)�ɕϊ�
+    float invW = 1.0f / clipPos.w;
+    float ndcX = clipPos.x * invW;
+    float ndcY = clipPos.y * invW;
+
+    // NDC �� �X�N���[���s�N�Z�����W
+    // LH���W�n: NDC.x=-1�����[, +1���E�[ / NDC.y=+1����[, -1�����[
+    outScreen.x = screenX + (ndcX * 0.5f + 0.5f) * screenW;
+    outScreen.y = screenY + (1.0f - (ndcY * 0.5f + 0.5f)) * screenH;
+
+    return true;
+}
+
+// ���C���[�L���[�u�`��i8���_��12�Ӂj
+// BoundingBox��GetCorners�Ŏ擾����8���_��X�N���[�����e����12�{�̃G�b�W��`��
+static void DrawWireCube(ImDrawList* pDrawList,
+                          const Vector3* corners,
+                          ImU32 color,
+                          const Matrix& mViewProj,
+                          float screenX, float screenY, float screenW, float screenH) {
+    // 8���_��X�N���[�����W�ɕϊ�
+    ImVec2 screenPts[8];
+    bool visible[8];
+    for (int idx = 0; idx < 8; ++idx) {
+        visible[idx] = WorldToScreen(corners[idx], mViewProj, screenX, screenY, screenW, screenH, screenPts[idx]);
+    }
+
+    // �L���[�u��12�ӂ̐ڑ��e�[�u��
+    // DirectX��GetCorners�̒��_�����Ɋ�Â�
+    static const int edges[12][2] = {
+        // ��ʂ�4��
+        {0, 1}, {1, 2}, {2, 3}, {3, 0},
+        // ���ʂ�4��
+        {4, 5}, {5, 6}, {6, 7}, {7, 4},
+        // ��ʂƉ��ʂ�q��4��
+        {0, 4}, {1, 5}, {2, 6}, {3, 7}
+    };
+
+    float lineThickness = 2.0f;
+    for (int edgeIdx = 0; edgeIdx < 12; ++edgeIdx) {
+        int vertA = edges[edgeIdx][0];
+        int vertB = edges[edgeIdx][1];
+        // ���[�̒��_���J�����O���ɂ���ꍇ�̂ݕ`��
+        if (visible[vertA] && visible[vertB]) {
+            pDrawList->AddLine(screenPts[vertA], screenPts[vertB], color, lineThickness);
+        }
+    }
+}
+
+// ���C���[�X�t�B�A�`��i3�̉~�����O: XY/XZ/YZ���ʁj
+// �e���ʂɉ~��`�悵�ċ��̃��C���[�t���[����\��
+static void DrawWireSphere(ImDrawList* pDrawList,
+                            const BoundingSphere& sphere,
+                            ImU32 color,
+                            const Matrix& mViewProj,
+                            float screenX, float screenY, float screenW, float screenH) {
+    const int segments = 24;
+    float lineThickness = 2.0f;
+    Vector3 center(sphere.Center.x, sphere.Center.y, sphere.Center.z);
+    float rad = sphere.Radius;
+
+    // 3�̕��ʃ����O��`��
+    for (int ring = 0; ring < 3; ++ring) {
+        ImVec2 prevScreen;
+        bool prevVisible = false;
+
+        for (int seg = 0; seg <= segments; ++seg) {
+            float angle = XM_2PI * seg / segments;
+            float cosA = cosf(angle);
+            float sinA = sinf(angle);
+
+            Vector3 point;
+            if (ring == 0) {
+                // XY���ʃ����O
+                point = center + Vector3(cosA * rad, sinA * rad, 0.0f);
+            } else if (ring == 1) {
+                // XZ���ʃ����O
+                point = center + Vector3(cosA * rad, 0.0f, sinA * rad);
+            } else {
+                // YZ���ʃ����O
+                point = center + Vector3(0.0f, cosA * rad, sinA * rad);
+            }
+
+            ImVec2 curScreen;
+            bool curVisible = WorldToScreen(point, mViewProj, screenX, screenY, screenW, screenH, curScreen);
+
+            // �O�̒��_�ƌ��݂̒��_�������J�����O���Ȃ�������
+            if (seg > 0 && prevVisible && curVisible) {
+                pDrawList->AddLine(prevScreen, curScreen, color, lineThickness);
+            }
+
+            prevScreen = curScreen;
+            prevVisible = curVisible;
+        }
+    }
+}
+
+// ============================================
+// ���C���`��֐�: ImGui BackgroundDrawList�ŃI�[�o�[���C�`��
+// ============================================
+void CollisionManager::DrawDebugWires(float screenX, float screenY, float screenW, float screenH, Entity cameraEntity) {
+    if (!m_debugWireEnabled || !s_collisionSystem) return;
+
+    auto& ecs = GameManager::Instance().GetECS();
+
+    // �A�N�e�B�u��View/Projection��擾
+    if (cameraEntity == INVALID_ENTITY) {
+        auto spScene = Application::Instance().GetScene();
+        if (spScene) {
+            auto pGameScene = std::dynamic_pointer_cast<GameScene>(spScene);
+            if (pGameScene) {
+                auto pInnerScene = pGameScene->GetScene();
+                if (pInnerScene) {
+                    cameraEntity = pInnerScene->GetRenderSystem()->GetCameraEntity();
+                }
+            }
+        }
+    }
+
+    if (cameraEntity == INVALID_ENTITY) return;
+
+    auto& camData = ecs.GetComponent<CameraData>(cameraEntity);
+    Matrix mViewProj = camData.m_viewMatrix * camData.m_projMatrix;
+
+    // �X�N���[���T�C�Y�擾�iImGui�̃��C���r���[�|�[�g����j
+    ImGuiViewport* pViewport = ImGui::GetMainViewport();
+    if (screenW <= 0.0f) screenW = pViewport->Size.x;
+    if (screenH <= 0.0f) screenH = pViewport->Size.y;
+
+    // BackgroundDrawList��ImGui�E�B���h�E�Ɉˑ����Ȃ��I�[�o�[���C�`��
+    ImDrawList* pDrawList = ImGui::GetForegroundDrawList();
+    if (!pDrawList) return;
+
+    // �R���C�_�[�̐F�ݒ�i�������̗ΐF�Ŏ��F������j
+    ImU32 wireColor = IM_COL32(0, 255, 100, 200);
+
+    // �S�R���C�_�[Entity�𑖍����ĕ`��
+    for (auto entity : s_collisionSystem->m_entities) {
+        auto& colData = ecs.GetComponent<ColliderData>(entity);
+        auto& transData = ecs.GetComponent<TransformData>(entity);
+
+        for (const auto& shape : colData.m_shapes) {
+            if (shape.type == ColliderType::AABB) {
+                // AABB: �o�E���f�B���O�{�b�N�X����[���h�ϊ����ĕ`��
+                BoundingBox box(shape.offset, shape.extents);
+                box.Transform(box, transData.m_worldMatrix);
+                Vector3 corners[8];
+                box.GetCorners(corners);
+                DrawWireCube(pDrawList, corners, wireColor, mViewProj, screenX, screenY, screenW, screenH);
+
+            } else if (shape.type == ColliderType::OBB) {
+                // OBB: �����t���o�E���f�B���O�{�b�N�X����[���h�ϊ����ĕ`��
+                BoundingOrientedBox box(shape.offset, shape.extents, Quaternion::Identity);
+                box.Transform(box, transData.m_worldMatrix);
+                Vector3 corners[8];
+                box.GetCorners(corners);
+                DrawWireCube(pDrawList, corners, wireColor, mViewProj, screenX, screenY, screenW, screenH);
+
+            } else if (shape.type == ColliderType::Sphere) {
+                // Sphere: �o�E���f�B���O�X�t�B�A����[���h�ϊ����ĕ`��
+                BoundingSphere bSphere(shape.offset, shape.radius);
+                bSphere.Transform(bSphere, transData.m_worldMatrix);
+                DrawWireSphere(pDrawList, bSphere, wireColor, mViewProj, screenX, screenY, screenW, screenH);
+            }
+        }
+    }
+}
+

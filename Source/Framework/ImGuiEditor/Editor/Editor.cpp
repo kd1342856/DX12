@@ -162,7 +162,7 @@ void Editor::DrawHierarchyAndInspector(Scene* scene) {
                 scene->Serialize(j);
                 std::ofstream o("Asset/Data/Scene/GameScene.json");
                 o << std::setw(4) << j << std::endl;
-                Logger::Instance().AddLog(Logger::LogLevel::Info, "?V?[?????????????");
+                Logger::Instance().AddLog(Logger::LogLevel::Info, "シーンを保存しました");
             }
             ImGui::EndTabItem();
         }
@@ -176,11 +176,11 @@ void Editor::DrawHierarchyAndInspector(Scene* scene) {
         scene->Serialize(j);
         std::ofstream o("Asset/Data/Scene/GameScene.json");
         o << std::setw(4) << j << std::endl;
-                Logger::Instance().AddLog(Logger::LogLevel::Info, "?V?[?????????????");
+                Logger::Instance().AddLog(Logger::LogLevel::Info, "シーンを保存しました");
     }
 
     // Delete Key (Using Framework Input to bypass ImGui mapping issues)
-    if (Input::Instance().IsKeyTrigger(DirectX::Keyboard::Keys::Delete) && !ImGui::GetIO().WantTextInput) {
+    if (Input::Instance().IsKeyTrigger(VK_DELETE) && !ImGui::GetIO().WantTextInput) {
         if (s_selectedObject) 
         {
             s_selectedObject->Destroy();
@@ -191,7 +191,7 @@ void Editor::DrawHierarchyAndInspector(Scene* scene) {
     // Hierarchy
     ImGui::Begin("Hierarchy");
     
-    // 背景??E???E???E???E?リ??E????E???E???E???E?ブジ??E???E?ト??E?作??E
+    // ?w?i??E???E???E???E?????E????E???E???E???E??u?W??E???E??g??E?????E
     if (ImGui::BeginPopupContextWindow("HierarchyPopup", ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems)) {
         if (ImGui::MenuItem("Create Empty Object")) {
             scene->CreateGameObject("GameObject");
@@ -204,7 +204,7 @@ void Editor::DrawHierarchyAndInspector(Scene* scene) {
         DrawHierarchyNode(obj);
     }
     
-    // ??E???E?ンドウ??E?体??E??E?ドロ??E?E??E?親を??E???E??E?ルート階??E???E?移動??E??E
+    // ??E???E????h?E??E?????E??E??h????E?E??E??e????E???E??E????[?g?K??E???E??????E??E
     ImGui::Dummy(ImGui::GetContentRegionAvail());
     if (ImGui::BeginDragDropTarget()) {
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GAMEOBJECT")) {
@@ -444,7 +444,7 @@ void Editor::DrawAssetEditor()
     ImGui::Text("Model Type:");
     ImGui::RadioButton("Static", &s_selectedModelType, 0); ImGui::SameLine();
     ImGui::RadioButton("Dynamic", &s_selectedModelType, 1);
-    if (ImGui::Button("適用 (Apply to Selected Object)")) {
+    if (ImGui::Button("?K?p (Apply to Selected Object)")) {
         if (!s_selectedAssetPath.empty()) {
             auto& data = pModelComp->GetData();
             data.m_modelType = (ModelType)s_selectedModelType;
@@ -499,6 +499,8 @@ void Editor::DrawGameView(RenderTarget* pRenderTarget, uint32_t cameraEntity, bo
     }
     ImGui::End();
 }
+
+
 
 
 

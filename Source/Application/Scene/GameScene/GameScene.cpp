@@ -27,7 +27,7 @@ void GameScene::Init()
         nlohmann::json j;
         in >> j;
         m_spScene->Deserialize(j);
-        Logger::Instance().AddLog(Logger::LogLevel::Info, "?V?[??????[?h???????");
+        Logger::Instance().AddLog(Logger::LogLevel::Info, "シーンのロードが完了しました");
     } else 
     {
         auto cameraObj = m_spScene->CreateGameObject("MainCamera");
@@ -40,13 +40,20 @@ void GameScene::Init()
 
 void GameScene::Update()
 {
-    if (Input::Instance().IsKeyTrigger(DirectX::Keyboard::Keys::F1))
+    if (Input::Instance().IsKeyTrigger(DirectX::Keyboard::Keys::F1) || Input::Instance().IsKeyTrigger(VK_F1))
     {
         m_showEditor = !m_showEditor;
     }
-    if (Input::Instance().IsKeyTrigger(DirectX::Keyboard::Keys::F5))
+    if (Input::Instance().IsKeyTrigger(DirectX::Keyboard::Keys::F5) || Input::Instance().IsKeyTrigger(VK_F5))
     {
         m_fullscreenGame = !m_fullscreenGame;
+        if (m_fullscreenGame) {
+            Input::Instance().SetMouseModeRelative();
+            ShowCursor(FALSE);
+        } else {
+            Input::Instance().SetMouseModeAbsolute();
+            ShowCursor(TRUE);
+        }
     }
 
     if (!m_fullscreenGame)
@@ -92,17 +99,19 @@ void GameScene::Update()
     }
 
     // Relative Mouse Mode Toggle
-    if (Input::Instance().IsMouseRightTrigger()) {
+    if (Input::Instance().IsMouseRightTrigger() && !ImGui::GetIO().WantCaptureMouse) {
         Input::Instance().SetMouseModeRelative();
-    } else if (Input::Instance().IsMouseRightRelease()) {
+        m_isCameraDragging = true;
+    } else if (Input::Instance().IsMouseRightRelease() && m_isCameraDragging) {
         Input::Instance().SetMouseModeAbsolute();
+        m_isCameraDragging = false;
     }
 
     // Control Logic
     if (Editor::GetEditorMode() && !m_fullscreenGame)
     {
         // Editor Free Camera
-        if (editorCameraEntity != INVALID_ENTITY && pEditorCameraObj && Input::Instance().IsMouseRightHold())
+        if (editorCameraEntity != INVALID_ENTITY && pEditorCameraObj && m_isCameraDragging)
         {
             auto pTrans = pEditorCameraObj->GetComponent<TransformComponent>();
             auto pCamComp = pEditorCameraObj->GetComponent<CameraComponent>();
@@ -167,7 +176,7 @@ void GameScene::Update()
                 auto& cData = pCamTrans->GetData();
                 auto& camData = pCamComp->GetData();
 
-                if (Input::Instance().IsMouseRightHold() || m_fullscreenGame) {
+                if (m_isCameraDragging || m_fullscreenGame) {
                     float rotSpeed = 0.002f;
                     pData.m_rotation.y += Input::Instance().GetMouseDeltaX() * rotSpeed;
                     cData.m_rotation.x += Input::Instance().GetMouseDeltaY() * rotSpeed;
@@ -181,25 +190,14 @@ void GameScene::Update()
                 Math::Vector3 forward = Math::Vector3::TransformNormal(Math::Vector3(0, 0, 1), playerRot);
                 Math::Vector3 right = Math::Vector3::TransformNormal(Math::Vector3(1, 0, 0), playerRot);
 
-                Math::Vector3 moveVec = Math::Vector3(0, 0, 0);
-                if (Input::Instance().IsKeyHold(DirectX::Keyboard::Keys::W)) moveVec += forward;
-                if (Input::Instance().IsKeyHold(DirectX::Keyboard::Keys::S)) moveVec -= forward;
-                if (Input::Instance().IsKeyHold(DirectX::Keyboard::Keys::D)) moveVec += right;
-                if (Input::Instance().IsKeyHold(DirectX::Keyboard::Keys::A)) moveVec -= right;
-
-                if (moveVec.LengthSquared() > 0.0f) {
-                    moveVec.Normalize();
-                    pData.m_position += moveVec * camData.m_moveSpeed;
-                }
-
                 if (camData.m_cameraMode == CameraMode::FPS) {
-                    cData.m_position = pData.m_position + Math::Vector3(0, 1.5f, 0);
-                    cData.m_rotation.y = pData.m_rotation.y;
+                    cData.m_position = camData.m_fpsOffset; // Local
+                    cData.m_rotation.y = 0;
                 } else if (camData.m_cameraMode == CameraMode::TPS) {
-                    Math::Matrix camRot = Math::Matrix::CreateFromYawPitchRoll(pData.m_rotation.y, cData.m_rotation.x, 0.0f);
-                    Math::Vector3 offset = Math::Vector3::TransformNormal(Math::Vector3(0, 2.0f, -5.0f), camRot);
-                    cData.m_position = pData.m_position + offset;
-                    cData.m_rotation.y = pData.m_rotation.y;
+                    Math::Matrix localRot = Math::Matrix::CreateRotationX(cData.m_rotation.x);
+                    Math::Vector3 offset = Math::Vector3::TransformNormal(camData.m_targetOffset, localRot);
+                    cData.m_position = offset; // Local
+                    cData.m_rotation.y = 0;
                 }
             }
         }

@@ -18,4 +18,5 @@ private:
     float m_exposure = 1.0f;
     bool m_showEditor = true;
     bool m_fullscreenGame = false;
+    bool m_isCameraDragging = false;
 };

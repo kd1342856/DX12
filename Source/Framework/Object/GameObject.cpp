@@ -1,5 +1,14 @@
 #include "GameObject.h"
 #include "../Manager/Scene.h"
+#include "../Manager/GameManager.h"
+#include "../ECS/Components/ScriptComponent.h"
+
+GameObject::~GameObject() {
+    if (m_entityId != INVALID_ENTITY && GameManager::IsInstanceAlive()) {
+        GameManager::Instance().GetECS().DestroyEntity(m_entityId);
+        m_entityId = INVALID_ENTITY;
+    }
+}
 
 void GameObject::Serialize(nlohmann::json& out) const {
     out["Name"] = m_name;
@@ -46,6 +55,7 @@ void GameObject::Deserialize(const nlohmann::json& in) {
             child->SetEntityID(id);
             child->m_pParent = this;
             m_children.push_back(child);
+            if (m_scene) m_scene->RegisterGameObject(id, child);
             child->Deserialize(cj);
         }
     }
@@ -143,4 +153,57 @@ void GameObject::ImGuiUpdate() {
         child->ImGuiUpdate();
     }
 }
+
+// =============================================
+// コリジョンコールバック伝播実装
+// このGameObjectが持つ全ScriptComponentへ通知する
+// =============================================
+void GameObject::NotifyCollisionEnter(GameObject* other) {
+    for (auto& comp : m_components) {
+        if (auto script = std::dynamic_pointer_cast<ScriptComponent>(comp)) {
+            if (script->IsActive()) script->OnCollisionEnter(other);
+        }
+    }
+}
+
+void GameObject::NotifyCollisionStay(GameObject* other) {
+    for (auto& comp : m_components) {
+        if (auto script = std::dynamic_pointer_cast<ScriptComponent>(comp)) {
+            if (script->IsActive()) script->OnCollisionStay(other);
+        }
+    }
+}
+
+void GameObject::NotifyCollisionExit(GameObject* other) {
+    for (auto& comp : m_components) {
+        if (auto script = std::dynamic_pointer_cast<ScriptComponent>(comp)) {
+            if (script->IsActive()) script->OnCollisionExit(other);
+        }
+    }
+}
+
+void GameObject::NotifyTriggerEnter(GameObject* other) {
+    for (auto& comp : m_components) {
+        if (auto script = std::dynamic_pointer_cast<ScriptComponent>(comp)) {
+            if (script->IsActive()) script->OnTriggerEnter(other);
+        }
+    }
+}
+
+void GameObject::NotifyTriggerStay(GameObject* other) {
+    for (auto& comp : m_components) {
+        if (auto script = std::dynamic_pointer_cast<ScriptComponent>(comp)) {
+            if (script->IsActive()) script->OnTriggerStay(other);
+        }
+    }
+}
+
+void GameObject::NotifyTriggerExit(GameObject* other) {
+    for (auto& comp : m_components) {
+        if (auto script = std::dynamic_pointer_cast<ScriptComponent>(comp)) {
+            if (script->IsActive()) script->OnTriggerExit(other);
+        }
+    }
+}
+
 

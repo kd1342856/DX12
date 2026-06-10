@@ -77,9 +77,13 @@
 //	GDFファサード(GraphicsDeviceの後に配置)
 #include"Framework/DirectX/GDF/GDF.h"
 
-#include "Framework/ImGuiEditor/Editor/Editor.h"
-
-//	ECS
+//	ECS（Editor.hより前に定義してGameObjectを完全解決する）
 #include"Framework/ECS/ECS.h"
 #include"Framework/Manager/GameManager.h"
+#include"Framework/System/Collision/CollisionManager.h"
+
+
+
+#include "Framework/ImGuiEditor/Editor/Editor.h"
+
 

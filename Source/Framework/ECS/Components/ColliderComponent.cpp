@@ -6,6 +6,7 @@ void ColliderComponent::ImGuiUpdate() {
     
     ImGui::Checkbox("Use Model Bounds", &data.m_useModelBounds);
     ImGui::Checkbox("Is Trigger (No Physics Response)", &data.m_isTrigger);
+    ImGui::Checkbox("Is Static (Immovable Object)", &data.m_isStatic);
 
     if (true) {
         if (ImGui::Button("Add Shape")) {
@@ -47,6 +48,7 @@ void ColliderComponent::Serialize(nlohmann::json& out) const {
     auto& data = const_cast<ColliderComponent*>(this)->GetData();
     out["UseModelBounds"] = data.m_useModelBounds;
     out["IsTrigger"] = data.m_isTrigger;
+    out["IsStatic"] = data.m_isStatic;
     
     nlohmann::json shapesArray = nlohmann::json::array();
     for (const auto& s : data.m_shapes) {

@@ -20,4 +20,5 @@ struct ColliderData {
     std::vector<ColliderShape> m_shapes;
     bool m_useModelBounds = false;
     bool m_isTrigger = false;
+    bool m_isStatic = false;
 };

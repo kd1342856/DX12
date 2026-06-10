@@ -33,8 +33,14 @@ public:
 
 	const Material& GetMaterial()const { return m_material; }
 	UINT GetInstanceCount()const { return m_instanceCount; }
+
+	const std::vector<MeshVertex>& GetVertices() const { return m_vertices; }
+	const std::vector<MeshFace>& GetFaces() const { return m_faces; }
 private:
 	GraphicsDevice* m_pDevice = nullptr;
+
+	std::vector<MeshVertex> m_vertices;
+	std::vector<MeshFace> m_faces;
 
 	ComPtr<ID3D12Resource>		m_pVBuffer = nullptr;
 	ComPtr<ID3D12Resource>		m_pIBuffer = nullptr;

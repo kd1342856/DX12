@@ -5,6 +5,7 @@
 #include <vector>
 
 class GameObject;
+class Scene;
 class RenderTarget;
 
 struct RaycastHit {
@@ -13,6 +14,7 @@ struct RaycastHit {
     DirectX::SimpleMath::Vector3 point;
     DirectX::SimpleMath::Vector3 normal;
     std::shared_ptr<GameObject> hitObject = nullptr;
+    Entity hitEntity = INVALID_ENTITY;
 };
 
 class CollisionManager {
@@ -24,6 +26,8 @@ public:
 
     void Init();
     void Shutdown();
+
+    void Solve(Scene* scene);
 
     // シーン内の全ColliderComponentに対してレイキャストを行う
     RaycastHit Raycast(const DirectX::SimpleMath::Vector3& origin, const DirectX::SimpleMath::Vector3& direction, float maxDistance = 1000.0f);
@@ -40,4 +44,10 @@ private:
     ~CollisionManager();
 
     bool m_debugWireEnabled = true;
+
+    struct CollisionPair {
+        Entity a, b;
+        bool operator<(const CollisionPair& o) const { if (a != o.a) return a < o.a; return b < o.b; }
+    };
+    std::set<CollisionPair> m_prevCollisionPairs;
 };

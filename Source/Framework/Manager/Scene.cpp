@@ -1,12 +1,13 @@
 #include "Scene.h"
 #include "../ECS/Components/TransformComponent.h"
+#include "../../Framework/System/Collision/CollisionManager.h"
 
 Scene::Scene() {}
 Scene::~Scene() {}
 
 void Scene::Init() {
-    // ECS?????????R???|?[?l???g?o?^??GameManager???S??
-    // Scene??RenderSystem??Z?b?g?A?b?v??????s??
+    // ECS初期化とコンポーネント登録はGameManagerが担当
+    // SceneはRenderSystemのセットアップのみ行う
     auto& ecs = GameManager::Instance().GetECS();
 
     m_spRenderSystem = ecs.RegisterSystem<RenderSystem>();
@@ -19,13 +20,32 @@ void Scene::Init() {
 
 void Scene::Update() {
     for (auto& obj : m_gameObjects) {
-        if (obj->IsActive()) obj->Start();
+        if (obj->IsActive()) {
+            obj->Update();
+        }
     }
+
     for (auto& obj : m_gameObjects) {
-        if (obj->IsActive()) obj->Update();
+        if (obj->IsActive()) {
+            obj->PostUpdate();
+        }
     }
+
+    CollisionManager::Instance().Solve(this);
+
+    // コリジョン解決後にすべてのTransformを再計算（子供にも反映させるため）
+    std::function<void(const std::shared_ptr<GameObject>&)> updateTransforms = [&](const std::shared_ptr<GameObject>& obj) {
+        if (!obj->IsActive()) return;
+        if (auto pTrans = obj->GetComponent<TransformComponent>()) {
+            pTrans->UpdateMatrix();
+        }
+        for (const auto& child : obj->GetChildren()) {
+            updateTransforms(child);
+        }
+    };
+
     for (auto& obj : m_gameObjects) {
-        if (obj->IsActive()) obj->PostUpdate();
+        updateTransforms(obj);
     }
 }
 
@@ -54,14 +74,15 @@ std::shared_ptr<GameObject> Scene::CreateGameObject(const std::string& name) {
     obj->SetName(name);
     obj->SetScene(this);
 
-    // ECS Entity ???? GameManager ?o?R
+    // ECS EntityをGameManager経由で生成
     Entity id = GameManager::Instance().GetECS().CreateEntity();
     obj->SetEntityID(id);
 
     obj->AddComponent<TransformComponent>();
 
     m_gameObjects.push_back(obj);
+    // 逆引きマップに登録
+    m_entityToObject[id] = obj;
     return obj;
 }
-
 

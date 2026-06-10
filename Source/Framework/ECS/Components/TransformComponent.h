@@ -1,20 +1,22 @@
 #pragma once
 #include "../../DirectX/Utility/ClassAssembly.h"
 #include "../ComponentBase.h"
+#include "../../Manager/GameManager.h"
+#include "../../Object/GameObject.h"
 
 // =============================================
 // TransformComponent
-// 座標・回転・スケールを管理するコンポーネント
-// データはECS側のTransformDataに保持される
+// 蠎ｧ讓吶・蝗櫁ｻ｢繝ｻ繧ｹ繧ｱ繝ｼ繝ｫ繧堤ｮ｡逅・☆繧九さ繝ｳ繝昴・繝阪Φ繝・
+// 繝・・繧ｿ縺ｯECS蛛ｴ縺ｮTransformData縺ｫ菫晄戟縺輔ｌ繧・
 // =============================================
 class TransformComponent : public ComponentBase {
 public:
-    // AddComponent<T> の自動ECS登録に使われるデータ型
+    // AddComponent<T> 縺ｮ閾ｪ蜍髭CS逋ｻ骭ｲ縺ｫ菴ｿ繧上ｌ繧九ョ繝ｼ繧ｿ蝙・
     using DataType = TransformData;
 
     const char* GetComponentName() const override { return "TransformComponent"; }
 
-    // デシリアライズ経由(非テンプレートAddComponent)でのECS登録
+    // 繝・す繝ｪ繧｢繝ｩ繧､繧ｺ邨檎罰(髱槭ユ繝ｳ繝励Ξ繝ｼ繝・ddComponent)縺ｧ縺ｮECS逋ｻ骭ｲ
     void RegisterECSData() override {
         TransformData data{};
         GameManager::Instance().GetECS().AddComponent(GetGameObject()->GetEntityID(), data);
@@ -38,12 +40,15 @@ public:
         ImGui::DragFloat3("Scale", &data.m_scale.x, 0.05f);
     }
 
-    // Awake は不要（AddComponent が自動でECS登録済み）
+    // Awake 縺ｯ荳崎ｦ・ｼ・ddComponent 縺瑚・蜍輔〒ECS逋ｻ骭ｲ貂医∩・・
     void Awake() override {}
 
-    void Update() override {
+    void Update() override { UpdateMatrix(); }
+    void PostUpdate() override { UpdateMatrix(); }
+
+    void UpdateMatrix() {
         auto& data = GetData();
-        // ローカル行列の計算
+        // 繝ｭ繝ｼ繧ｫ繝ｫ陦悟・縺ｮ險育ｮ・
         Math::Matrix localMatrix =
             Math::Matrix::CreateScale(data.m_scale) *
             Math::Matrix::CreateFromYawPitchRoll(data.m_rotation.y, data.m_rotation.x, data.m_rotation.z) *
@@ -80,7 +85,7 @@ public:
         if (in.contains("ScaZ")) data.m_scale.z = in["ScaZ"];
     }
 
-    // ECS側のTransformDataへの直接アクセサ（GameManager経由）
+    // ECS蛛ｴ縺ｮTransformData縺ｸ縺ｮ逶ｴ謗･繧｢繧ｯ繧ｻ繧ｵ・・ameManager邨檎罰・・
     TransformData& GetData() {
         return GameManager::Instance().GetECS().GetComponent<TransformData>(GetGameObject()->GetEntityID());
     }

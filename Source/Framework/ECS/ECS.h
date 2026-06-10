@@ -16,4 +16,7 @@
 #include "../ECS/Components/Data/ShaderData.h"
 #include "../ECS/Components/Data/AnimationData.h"
 
+#include "../ECS/Components/TransformComponent.h"
+
+
 #include "CompSystem/Systems/RenderSystem.h"
