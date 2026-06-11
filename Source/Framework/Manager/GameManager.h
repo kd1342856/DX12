@@ -1,7 +1,7 @@
 #pragma once
 #include "../ECS/ECS.h"
 #include "../ECS/Components/Data/ColliderData.h"
-#include "../System/Collision/CollisionManager.h"
+#include "../Manager/CollisionManager.h"
 #include "../DirectX/Utility/ClassAssembly.h"
 
 // =============================================

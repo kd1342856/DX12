@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="us-ascii"?>
+﻿<?xml version="1.0" encoding="us-ascii"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -155,8 +155,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-        <ClInclude Include="Source\Application\Object\Script\Player\Player.h" />
-<ClInclude Include="..\??\DX12\Source\Framework\ECS\Components\Data\AnimationData.h" />
+    <ClInclude Include="Source\Application\Object\Script\Player\Player.h" />
+    <ClInclude Include="..\??\DX12\Source\Framework\ECS\Components\Data\AnimationData.h" />
     <ClInclude Include="Source\Application\Application.h" />
     <ClInclude Include="Source\Application\Scene\GameScene\GameScene.h" />
     <ClInclude Include="Source\Application\Scene\SceneBase.h" />
@@ -195,6 +195,9 @@
     <ClInclude Include="Source\Framework\ImGuiEditor\ImGui\imstb_rectpack.h" />
     <ClInclude Include="Source\Framework\ImGuiEditor\ImGui\imstb_textedit.h" />
     <ClInclude Include="Source\Framework\ImGuiEditor\ImGui\imstb_truetype.h" />
+    <ClInclude Include="Source\Framework\Manager\CollisionManager.h" />
+    <ClInclude Include="Source\Framework\Manager\CollisionShape.h" />
+    <ClInclude Include="Source\Framework\Manager\CollisionSolver.h" />
     <ClInclude Include="Source\Framework\Manager\GameManager.h" />
     <ClInclude Include="Source\Framework\Manager\Scene.h" />
     <ClInclude Include="Source\Framework\Object\GameObject.h" />
@@ -227,8 +230,8 @@
     <ClInclude Include="Source\Graphics\Buffer\RenderTarget\RenderTarget.h" />
   </ItemGroup>
   <ItemGroup>
-        <ClCompile Include="Source\Application\Object\Script\Player\Player.cpp" />
-<ClCompile Include="Source\Application\Application.cpp" />
+    <ClCompile Include="Source\Application\Object\Script\Player\Player.cpp" />
+    <ClCompile Include="Source\Application\Application.cpp" />
     <ClCompile Include="Source\Application\Scene\GameScene\GameScene.cpp" />
     <ClCompile Include="Source\Framework\DirectX\GDF\GDF.cpp" />
     <ClCompile Include="Source\Framework\DirectX\Utility\Input.cpp" />
@@ -247,6 +250,9 @@
     <ClCompile Include="Source\Framework\ImGuiEditor\ImGui\imgui_stdlib.cpp" />
     <ClCompile Include="Source\Framework\ImGuiEditor\ImGui\imgui_tables.cpp" />
     <ClCompile Include="Source\Framework\ImGuiEditor\ImGui\imgui_widgets.cpp" />
+    <ClCompile Include="Source\Framework\Manager\CollisionManager.cpp" />
+    <ClCompile Include="Source\Framework\Manager\CollisionShape.cpp" />
+    <ClCompile Include="Source\Framework\Manager\CollisionSolver.cpp" />
     <ClCompile Include="Source\Framework\Manager\GameManager.cpp" />
     <ClCompile Include="Source\Framework\Manager\Scene.cpp" />
     <ClCompile Include="Source\Framework\Object\GameObject.cpp" />
@@ -269,7 +275,6 @@
     <ClCompile Include="Source\Graphics\Shader\ShaderManager.cpp" />
     <ClCompile Include="Source\Graphics\Shader\StandardShader\StandardShader.cpp" />
     <ClCompile Include="Source\Framework\ECS\Components\ColliderComponent.cpp" />
-    <ClCompile Include="Source\Framework\System\Collision\CollisionManager.cpp" />
     <ClCompile Include="Source\Pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>

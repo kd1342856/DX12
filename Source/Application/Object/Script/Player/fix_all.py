@@ -1,20 +1,36 @@
-#include "Player.h"
-#include "../../../../Framework/Manager/GameManager.h"
-#include "../../../../Framework/DirectX/Utility/Input.h"
-#include "../../../../Framework/Object/GameObject.h"
-#include "../../../../Framework/Manager/CollisionManager.h"
+import codecs
+import re
 
-REGISTER_COMPONENT(Player);
+path = r'C:\GitHub\DX12\Source\Framework\Manager\CollisionManager.cpp'
+with codecs.open(path, 'r', encoding='shift_jis') as f:
+    text = f.read()
 
-void Player::Awake() 
-{
-}
+# Fix the incorrect replacement in DrawDebugWires
+bad_draw_loop = '''for (const auto& shape : colData.m_shapes) {
+            if ((shape->m_tags & rayInfo.collisionMask) == 0) continue;'''
+good_draw_loop = '''for (const auto& shape : colData.m_shapes) {'''
+text = text.replace(bad_draw_loop, good_draw_loop)
 
-void Player::Start() 
-{
-}
+# Fix Raycast hit logic properly
+bad_ray_loop = '''for (const auto& shape : colData.m_shapes) {
+            if ((shape->m_tags & rayInfo.collisionMask) == 0) continue;
+            RayResult out;
+            if (shape->RayCast(rayInfo, transData.m_worldMatrix, out)) {'''
+# Actually the replacement in Raycast is correct! 
+# Let's verify we didn't break Raycast itself. 
+# It should still have the check.
 
-void Player::Update() {
+with codecs.open(path, 'w', encoding='shift_jis') as f:
+    f.write(text)
+
+# Also fix Player.cpp correctly with the new collision manager raycast
+path_p = r'C:\GitHub\DX12\Source\Application\Object\Script\Player\Player.cpp'
+with codecs.open(path_p, 'r', encoding='shift_jis') as f:
+    text_p = f.read()
+
+pattern = re.compile(r'void Player::Update\(\).*?void Player::PreDraw\(\)', re.DOTALL)
+
+new_code = '''void Player::Update() {
     auto& input = Input::Instance();
     auto& ecs = GameManager::Instance().GetECS();
     auto& cTrans = ecs.GetComponent<TransformData>(GetGameObject()->GetEntityID());
@@ -49,14 +65,12 @@ void Player::PostUpdate()
     auto& ecs = GameManager::Instance().GetECS();
     auto& cTrans = ecs.GetComponent<TransformData>(GetGameObject()->GetEntityID());
 
-    // レイキャストの起点と方向
     Math::Vector3 origin = cTrans.m_position + Math::Vector3(0, 0.5f, 0);
     Math::Vector3 dir(0, -1, 0);
+    float maxDistance = 1000.0f;
 
-    // Stageメッシュに対して直接レイキャスト
-    RaycastHit hit = CollisionManager::Instance().RaycastAgainstMesh(origin, dir, 1000.0f, "Stage");
+    RaycastHit hit = CollisionManager::Instance().Raycast(origin, dir, maxDistance, CollisionTags::StageObject);
 
-    // 接地判定
     if (hit.hit && hit.distance <= 0.6f) {
         m_isGrounded = true;
         if (m_velocityY < 0.0f) {
@@ -68,41 +82,16 @@ void Player::PostUpdate()
         m_isGrounded = false;
     }
 
-    // デバッグ用レイ描画
     uint32_t lineColor = m_isGrounded ? IM_COL32(0, 255, 0, 255) : IM_COL32(255, 0, 0, 255);
     float drawDist = hit.hit ? std::min(hit.distance, 1.5f) : 1.5f;
     CollisionManager::Instance().AddDebugLine(origin, origin + dir * drawDist, lineColor);
 }
 
-void Player::PreDraw() 
-{
-}
+void Player::PreDraw()'''
 
-void Player::Draw() 
-{
-}
+text_p = pattern.sub(new_code, text_p)
 
-void Player::Serialize(nlohmann::json& out) const {
-    out["moveSpeed"] = m_moveSpeed;
-    out["useGravity"] = m_useGravity;
-    out["gravityStrength"] = m_gravityStrength;
-}
+with codecs.open(path_p, 'w', encoding='shift_jis') as f:
+    f.write(text_p)
 
-void Player::Deserialize(const nlohmann::json& in) {
-    if (in.contains("moveSpeed")) m_moveSpeed = in["moveSpeed"];
-    if (in.contains("useGravity")) m_useGravity = in["useGravity"];
-    if (in.contains("gravityStrength")) m_gravityStrength = in["gravityStrength"];
-}
-
-void Player::ImGuiUpdate() {
-    ImGui::DragFloat("Move Speed", &m_moveSpeed, 0.1f, 0.1f, 100.0f);
-    ImGui::Checkbox("Use Gravity", &m_useGravity);
-    if (m_useGravity) {
-        ImGui::DragFloat("Gravity Strength", &m_gravityStrength, 0.1f, 0.0f, 100.0f);
-    }
-}
-void Player::OnCollisionEnter(GameObject* other) {
-}
-
-void Player::OnCollisionStay(GameObject* other) {
-}
+print("Done Player and Collision")

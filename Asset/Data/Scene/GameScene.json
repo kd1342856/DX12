@@ -4,11 +4,11 @@
             "Children": [],
             "Components": [
                 {
-                    "PosX": -3.514986276626587,
-                    "PosY": 2.605433940887451,
-                    "PosZ": -8.576550483703613,
-                    "RotX": 0.3640032410621643,
-                    "RotY": 6.780019760131836,
+                    "PosX": -2.628685235977173,
+                    "PosY": 2.5714197158813477,
+                    "PosZ": -7.499643325805664,
+                    "RotX": 0.48000368475914,
+                    "RotY": 5.70600700378418,
                     "RotZ": 0.0,
                     "ScaX": 1.0,
                     "ScaY": 1.0,
@@ -19,8 +19,14 @@
                     "CameraMode": 0,
                     "FarZ": 1000.0,
                     "Fov": 60.0,
+                    "FpsOffsetX": 0.0,
+                    "FpsOffsetY": 1.5,
+                    "FpsOffsetZ": 0.0,
                     "MoveSpeed": 0.10000000149011612,
                     "NearZ": 0.009999999776482582,
+                    "TargetOffsetX": 0.0,
+                    "TargetOffsetY": 2.0,
+                    "TargetOffsetZ": -5.0,
                     "Type": "CameraComponent"
                 },
                 {
@@ -31,69 +37,7 @@
             "Name": "MainCamera"
         },
         {
-            "Children": [
-                {
-                    "Children": [],
-                    "Components": [
-                        {
-                            "PosX": 0.0,
-                            "PosY": 0.0,
-                            "PosZ": 0.0,
-                            "RotX": 0.0,
-                            "RotY": 0.0,
-                            "RotZ": 0.0,
-                            "ScaX": 1.0,
-                            "ScaY": 1.0,
-                            "ScaZ": 1.0,
-                            "Type": "TransformComponent"
-                        },
-                        {
-                            "FilePath": "Asset/Model/StageMap/StageMap.gltf",
-                            "ModelType": 0,
-                            "Type": "ModelRendererComponent"
-                        }
-                    ],
-                    "IsActive": true,
-                    "Name": "Model"
-                },
-                {
-                    "Children": [],
-                    "Components": [
-                        {
-                            "PosX": 0.0,
-                            "PosY": 0.0,
-                            "PosZ": 0.0,
-                            "RotX": 0.0,
-                            "RotY": 0.0,
-                            "RotZ": 0.0,
-                            "ScaX": 1.0,
-                            "ScaY": 1.0,
-                            "ScaZ": 1.0,
-                            "Type": "TransformComponent"
-                        },
-                        {
-                            "IsStatic": false,
-                            "IsTrigger": false,
-                            "Shapes": [
-                                {
-                                    "ExtentsX": 100.0,
-                                    "ExtentsY": 0.5,
-                                    "ExtentsZ": 100.0,
-                                    "OffsetX": 0.0,
-                                    "OffsetY": -0.5,
-                                    "OffsetZ": 0.0,
-                                    "Radius": 5.0,
-                                    "Type": 0
-                                }
-                            ],
-                            "Type": "ColliderComponent",
-                            "UseModelBounds": true
-                        }
-                    ],
-                    "IsActive": true,
-                    "Name": "Collider"
-                }
-            ],
+            "Children": [],
             "Components": [
                 {
                     "PosX": 0.0,
@@ -106,6 +50,23 @@
                     "ScaY": 1.0,
                     "ScaZ": 1.0,
                     "Type": "TransformComponent"
+                },
+                {
+                    "FilePath": "Asset/Model/StageMap/StageMap.gltf",
+                    "ModelType": 0,
+                    "Type": "ModelRendererComponent"
+                },
+                {
+                    "IsStatic": true,
+                    "Shapes": [
+                        {
+                            "ShapeId": 3,
+                            "IsTrigger": false,
+                            "Offset": [0.0, 0.0, 0.0],
+                            "Tags": 1
+                        }
+                    ],
+                    "Type": "ColliderComponent"
                 }
             ],
             "IsActive": true,
@@ -118,33 +79,9 @@
                     "Components": [
                         {
                             "PosX": 0.0,
-                            "PosY": 0.0,
-                            "PosZ": 0.0,
-                            "RotX": 0.0,
-                            "RotY": 0.0,
-                            "RotZ": 0.0,
-                            "ScaX": 1.0,
-                            "ScaY": 1.0,
-                            "ScaZ": 1.0,
-                            "Type": "TransformComponent"
-                        },
-                        {
-                            "FilePath": "Asset/Model/CesiumMan/CesiumMan3.gltf",
-                            "ModelType": 1,
-                            "Type": "ModelRendererComponent"
-                        }
-                    ],
-                    "IsActive": true,
-                    "Name": "Model"
-                },
-                {
-                    "Children": [],
-                    "Components": [
-                        {
-                            "PosX": 0.0,
-                            "PosY": 2.5,
-                            "PosZ": -3.95306658744812,
-                            "RotX": 0.36599957942962646,
+                            "PosY": 2.0829992294311523,
+                            "PosZ": -2.37930965423584,
+                            "RotX": 0.3973419666290283,
                             "RotY": 0.0,
                             "RotZ": 0.0,
                             "ScaX": 1.0,
@@ -156,59 +93,28 @@
                             "CameraMode": 1,
                             "FarZ": 1000.0,
                             "Fov": 60.0,
+                            "FpsOffsetX": 0.0,
+                            "FpsOffsetY": 1.399999976158142,
+                            "FpsOffsetZ": 0.0,
                             "MoveSpeed": 0.10000000149011612,
                             "NearZ": 0.009999999776482582,
+                            "TargetOffsetX": 0.0,
+                            "TargetOffsetY": 1.0,
+                            "TargetOffsetZ": -3.0,
                             "Type": "CameraComponent"
                         }
                     ],
                     "IsActive": true,
                     "Name": "Camera"
-                },
-                {
-                    "Children": [],
-                    "Components": [
-                        {
-                            "PosX": 0.0,
-                            "PosY": 0.0,
-                            "PosZ": 0.0,
-                            "RotX": 0.0,
-                            "RotY": 0.0,
-                            "RotZ": 0.0,
-                            "ScaX": 1.0,
-                            "ScaY": 1.0,
-                            "ScaZ": 1.0,
-                            "Type": "TransformComponent"
-                        },
-                        {
-                            "IsStatic": false,
-                            "IsTrigger": false,
-                            "Shapes": [
-                                {
-                                    "ExtentsX": 0.12099999934434891,
-                                    "ExtentsY": 0.550000011920929,
-                                    "ExtentsZ": 0.12999999523162842,
-                                    "OffsetX": 0.0,
-                                    "OffsetY": 0.8100000023841858,
-                                    "OffsetZ": 0.0,
-                                    "Radius": 5.0,
-                                    "Type": 0
-                                }
-                            ],
-                            "Type": "ColliderComponent",
-                            "UseModelBounds": true
-                        }
-                    ],
-                    "IsActive": true,
-                    "Name": "Collider"
                 }
             ],
             "Components": [
                 {
-                    "PosX": -3.6471188068389893,
-                    "PosY": -0.25999969244003296,
-                    "PosZ": -2.7088558673858643,
+                    "PosX": -3.9960317611694336,
+                    "PosY": 1.8297536373138428,
+                    "PosZ": -5.673669338226318,
                     "RotX": 0.0,
-                    "RotY": -0.03600115329027176,
+                    "RotY": -6.220012187957764,
                     "RotZ": 0.0,
                     "ScaX": 1.0,
                     "ScaY": 1.0,
@@ -216,10 +122,30 @@
                     "Type": "TransformComponent"
                 },
                 {
+                    "FilePath": "Asset/Model/CesiumMan/CesiumMan3.gltf",
+                    "ModelType": 1,
+                    "Type": "ModelRendererComponent"
+                },
+                {
                     "Type": "Player",
                     "gravityStrength": 9.800000190734863,
-                    "moveSpeed": 3.799999952316284,
+                    "moveSpeed": 2.0,
                     "useGravity": true
+                },
+                {
+                    "IsStatic": false,
+                    "Shapes": [
+                        {
+                            "ShapeId": 0,
+                            "IsTrigger": false,
+                            "Offset": [0.0, 0.8, 0.0],
+                            "Width": 0.8,
+                            "Height": 1.6,
+                            "Depth": 0.8,
+                            "Tags": 1
+                        }
+                    ],
+                    "Type": "ColliderComponent"
                 }
             ],
             "IsActive": true,

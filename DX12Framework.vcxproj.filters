@@ -1,13 +1,9 @@
-<?xml version="1.0" encoding="shift_jis"?>
+﻿<?xml version="1.0" encoding="shift_jis"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Source\Application" />
-
     <Filter Include="Source\Application\Object" />
-
     <Filter Include="Source\Application\Object\Script\Player" />
-
-
     <Filter Include="Source">
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
@@ -165,16 +161,16 @@
     <Filter Include="Source\Application\Object\Script" />
   </ItemGroup>
   <ItemGroup>
-            <ClInclude Include="Source\Application\Object\Script\Player\Player.h">
+    <ClInclude Include="Source\Application\Object\Script\Player\Player.h">
       <Filter>Source\Application\Object\Script\Player</Filter>
     </ClInclude>
-<ClInclude Include="Source\Application\Object\Script\Player\Player.h">
+    <ClInclude Include="Source\Application\Object\Script\Player\Player.h">
       <Filter>Source\Application\Object\Script\Player</Filter>
     </ClInclude>
-<ClInclude Include="Source\Application\Object\Script\Player\Player.h">
+    <ClInclude Include="Source\Application\Object\Script\Player\Player.h">
       <Filter>Source\Application\Object\Script\Player</Filter>
     </ClInclude>
-<ClInclude Include="Source\Application\Application.h">
+    <ClInclude Include="Source\Application\Application.h">
       <Filter>Source\Application</Filter>
     </ClInclude>
     <ClInclude Include="Source\Pch.h">
@@ -379,18 +375,27 @@
     <ClInclude Include="Source\Framework\DirectX\Utility\Time.h">
       <Filter>Source\Framework\DirectX\Utility</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Framework\Manager\CollisionManager.h">
+      <Filter>Source\Framework\Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\Manager\CollisionShape.h">
+      <Filter>Source\Framework\Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\Manager\CollisionSolver.h">
+      <Filter>Source\Framework\Manager</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-            <ClCompile Include="Source\Application\Object\Script\Player\Player.cpp">
+    <ClCompile Include="Source\Application\Object\Script\Player\Player.cpp">
       <Filter>Source\Application\Object\Script\Player</Filter>
     </ClCompile>
-<ClCompile Include="Source\Application\Object\Script\Player\Player.cpp">
+    <ClCompile Include="Source\Application\Object\Script\Player\Player.cpp">
       <Filter>Source\Application\Object\Script\Player</Filter>
     </ClCompile>
-<ClCompile Include="Source\Application\Object\Script\Player\Player.cpp">
+    <ClCompile Include="Source\Application\Object\Script\Player\Player.cpp">
       <Filter>Source\Application\Object\Script\Player</Filter>
     </ClCompile>
-<ClCompile Include="Source\Application\Application.cpp">
+    <ClCompile Include="Source\Application\Application.cpp">
       <Filter>Source\Application</Filter>
     </ClCompile>
     <ClCompile Include="Source\Graphics\Shader\RootSignature\RootSignature.cpp">
@@ -519,8 +524,14 @@
     <ClCompile Include="Source\Framework\ECS\Components\ColliderComponent.cpp">
       <Filter>Source\Framework\ECS\Components</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Framework\System\Collision\CollisionManager.cpp">
-      <Filter>Source\Framework\ECS\Components</Filter>
+    <ClCompile Include="Source\Framework\Manager\CollisionManager.cpp">
+      <Filter>Source\Framework\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Framework\Manager\CollisionShape.cpp">
+      <Filter>Source\Framework\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Framework\Manager\CollisionSolver.cpp">
+      <Filter>Source\Framework\Manager</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -577,7 +588,3 @@
     </FxCompile>
   </ItemGroup>
 </Project>
-
-
-
-

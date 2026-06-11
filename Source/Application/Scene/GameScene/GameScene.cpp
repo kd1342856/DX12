@@ -10,7 +10,7 @@
 #include "../../../Framework/ECS/Components/PostProcessComponent.h"
 #include "../../../Framework/ImGuiEditor/Editor/Editor.h"
 #include "../../../Framework/DirectX/Utility/Logger.h"
-#include "../../../Framework/System/Collision/CollisionManager.h"
+#include "../../../Framework/Manager/CollisionManager.h"
 
 void GameScene::Init()
 {
@@ -211,11 +211,13 @@ void GameScene::Update()
         if (gameCameraEntity != INVALID_ENTITY)
         {
             m_spScene->GetRenderSystem()->Update(gameCameraEntity);
+            // No wireframe in GameView
         }
         else
         {
             GraphicsDevice::Instance().ClearBackBuffer(0.0f, 0.0f, 0.0f, 1.0f);
         }
+        m_spScene->Draw();
     }
     else
     {
@@ -243,7 +245,7 @@ void GameScene::Update()
 
         GraphicsDevice::Instance().SetBackBuffer();
         m_spScene->GetRenderSystem()->Update(editorCameraEntity);
-          CollisionManager::Instance().DrawDebugWires(0, 0, 0, 0, editorCameraEntity);
+          CollisionManager::Instance().DrawDebugWires(0, 0, 1280.0f, 720.0f, editorCameraEntity);
         m_spScene->Draw();
         if (m_showEditor)
         {

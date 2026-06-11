@@ -1,6 +1,6 @@
 #include "Scene.h"
 #include "../ECS/Components/TransformComponent.h"
-#include "../../Framework/System/Collision/CollisionManager.h"
+#include "CollisionManager.h"
 
 Scene::Scene() {}
 Scene::~Scene() {}
@@ -19,6 +19,8 @@ void Scene::Init() {
 }
 
 void Scene::Update() {
+    CollisionManager::Instance().SetScene(this);
+    CollisionManager::Instance().ClearDebugLines();
     for (auto& obj : m_gameObjects) {
         if (obj->IsActive()) {
             obj->Update();
