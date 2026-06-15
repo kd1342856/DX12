@@ -2,6 +2,7 @@
 #include "../ECS/ECS.h"
 #include "../ECS/Components/Data/ColliderData.h"
 #include "../Manager/CollisionManager.h"
+#include "../System/JobSystem/JobSystem.h"
 #include "../DirectX/Utility/ClassAssembly.h"
 
 // =============================================
@@ -34,6 +35,7 @@ public:
         m_ecs.RegisterComponent<AnimationDataComponent>();
         m_ecs.RegisterComponent<ColliderData>();
         CollisionManager::Instance().Init();
+		JobSystem::Instance().Init();
     }
 
     // ECSŽæ“¾
@@ -44,7 +46,7 @@ public:
 
 private:
     GameManager() {}
-    ~GameManager() { s_alive = false; }
+    ~GameManager() { JobSystem::Instance().Shutdown(); s_alive = false; }
     GameManager(const GameManager&) = delete;
     GameManager& operator=(const GameManager&) = delete;
 

@@ -376,7 +376,6 @@ void GraphicsDevice::EnableDebugLayer()
 	debugLayer->Release();
 
 }
-
 void GraphicsDevice::Shutdown()
 {
 	if (!m_pDevice || !m_pCmdQueue || !m_pFence) return;
@@ -413,6 +412,10 @@ void GraphicsDevice::Shutdown()
 
 bool GraphicsDevice::CreateDefaultTextures()
 {
+	ComPtr<ID3D12Resource> uploadBufferWhite;
+	ComPtr<ID3D12Resource> uploadBufferBlack;
+	ComPtr<ID3D12Resource> uploadBufferNormal;
+
 	m_pCmdList->Reset(m_frames[0].allocator.Get(), nullptr);
 	// White Tex
 	m_spWhiteTex = std::make_unique<Texture>();
@@ -431,23 +434,21 @@ bool GraphicsDevice::CreateDefaultTextures()
 		m_pDevice->CreateCommittedResource(&heapProp, D3D12_HEAP_FLAG_NONE, &recDesc,
 			D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&m_spWhiteTex->m_pBuffer));
 		
-		// Upload buffer
-		ComPtr<ID3D12Resource> uploadBuffer;
 		heapProp.Type = D3D12_HEAP_TYPE_UPLOAD;
 		recDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
 		recDesc.Format = DXGI_FORMAT_UNKNOWN;
-		recDesc.Width = 256; // 256 bytes min alignment for texture upload
+		recDesc.Width = 256; 
 		recDesc.Height = 1;
 		recDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 		
 		m_pDevice->CreateCommittedResource(&heapProp, D3D12_HEAP_FLAG_NONE, &recDesc,
-			D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&uploadBuffer));
+			D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&uploadBufferWhite));
 		
 		uint32_t whitePixel = 0xFFFFFFFF;
 		uint32_t* pMapped = nullptr;
-		uploadBuffer->Map(0, nullptr, (void**)&pMapped);
+		uploadBufferWhite->Map(0, nullptr, (void**)&pMapped);
 		*pMapped = whitePixel;
-		uploadBuffer->Unmap(0, nullptr);
+		uploadBufferWhite->Unmap(0, nullptr);
 		
 		D3D12_TEXTURE_COPY_LOCATION dst = {};
 		dst.pResource = m_spWhiteTex->m_pBuffer.Get();
@@ -455,7 +456,7 @@ bool GraphicsDevice::CreateDefaultTextures()
 		dst.SubresourceIndex = 0;
 		
 		D3D12_TEXTURE_COPY_LOCATION src = {};
-		src.pResource = uploadBuffer.Get();
+		src.pResource = uploadBufferWhite.Get();
 		src.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
 		src.PlacedFootprint.Offset = 0;
 		src.PlacedFootprint.Footprint.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -470,14 +471,6 @@ bool GraphicsDevice::CreateDefaultTextures()
 		
 		m_spWhiteTex->m_srvNumber = m_upCBVSRVUAVHeap->CreateSRV(m_spWhiteTex->m_pBuffer.Get());
 		m_spWhiteTex->m_pGraphicsDevice = this;
-
-		// We execute the command list here and wait so uploadBuffer isn't destroyed too early
-		m_pCmdList->Close();
-		ID3D12CommandList* cmdlists[] = { m_pCmdList.Get() };
-		m_pCmdQueue->ExecuteCommandLists(1, cmdlists);
-		WaitForCommandQueue();
-		m_frames[0].allocator->Reset();
-		m_pCmdList->Reset(m_frames[0].allocator.Get(), nullptr);
 	}
 	
 	// Black Tex
@@ -497,7 +490,6 @@ bool GraphicsDevice::CreateDefaultTextures()
 		m_pDevice->CreateCommittedResource(&heapProp, D3D12_HEAP_FLAG_NONE, &recDesc,
 			D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&m_spBlackTex->m_pBuffer));
 		
-		ComPtr<ID3D12Resource> uploadBuffer;
 		heapProp.Type = D3D12_HEAP_TYPE_UPLOAD;
 		recDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
 		recDesc.Format = DXGI_FORMAT_UNKNOWN;
@@ -506,13 +498,13 @@ bool GraphicsDevice::CreateDefaultTextures()
 		recDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 		
 		m_pDevice->CreateCommittedResource(&heapProp, D3D12_HEAP_FLAG_NONE, &recDesc,
-			D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&uploadBuffer));
+			D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&uploadBufferBlack));
 		
 		uint32_t blackPixel = 0xFF000000;
 		uint32_t* pMapped = nullptr;
-		uploadBuffer->Map(0, nullptr, (void**)&pMapped);
+		uploadBufferBlack->Map(0, nullptr, (void**)&pMapped);
 		*pMapped = blackPixel;
-		uploadBuffer->Unmap(0, nullptr);
+		uploadBufferBlack->Unmap(0, nullptr);
 		
 		D3D12_TEXTURE_COPY_LOCATION dst = {};
 		dst.pResource = m_spBlackTex->m_pBuffer.Get();
@@ -520,7 +512,7 @@ bool GraphicsDevice::CreateDefaultTextures()
 		dst.SubresourceIndex = 0;
 		
 		D3D12_TEXTURE_COPY_LOCATION src = {};
-		src.pResource = uploadBuffer.Get();
+		src.pResource = uploadBufferBlack.Get();
 		src.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
 		src.PlacedFootprint.Offset = 0;
 		src.PlacedFootprint.Footprint.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -535,13 +527,6 @@ bool GraphicsDevice::CreateDefaultTextures()
 		
 		m_spBlackTex->m_srvNumber = m_upCBVSRVUAVHeap->CreateSRV(m_spBlackTex->m_pBuffer.Get());
 		m_spBlackTex->m_pGraphicsDevice = this;
-
-		m_pCmdList->Close();
-		ID3D12CommandList* cmdlists[] = { m_pCmdList.Get() };
-		m_pCmdQueue->ExecuteCommandLists(1, cmdlists);
-		WaitForCommandQueue();
-		m_frames[0].allocator->Reset();
-		m_pCmdList->Reset(m_frames[0].allocator.Get(), nullptr);
 	}
 
 	// Normal Tex (RGB=127,127,255)
@@ -561,7 +546,6 @@ bool GraphicsDevice::CreateDefaultTextures()
 		m_pDevice->CreateCommittedResource(&heapProp, D3D12_HEAP_FLAG_NONE, &recDesc,
 			D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&m_spNormalTex->m_pBuffer));
 		
-		ComPtr<ID3D12Resource> uploadBuffer;
 		heapProp.Type = D3D12_HEAP_TYPE_UPLOAD;
 		recDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
 		recDesc.Format = DXGI_FORMAT_UNKNOWN;
@@ -570,13 +554,13 @@ bool GraphicsDevice::CreateDefaultTextures()
 		recDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 		
 		m_pDevice->CreateCommittedResource(&heapProp, D3D12_HEAP_FLAG_NONE, &recDesc,
-			D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&uploadBuffer));
+			D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&uploadBufferNormal));
 		
 		uint32_t normalPixel = 0xFFFF7F7F; // A=255, B=255, G=127, R=127
 		uint32_t* pMapped = nullptr;
-		uploadBuffer->Map(0, nullptr, (void**)&pMapped);
+		uploadBufferNormal->Map(0, nullptr, (void**)&pMapped);
 		*pMapped = normalPixel;
-		uploadBuffer->Unmap(0, nullptr);
+		uploadBufferNormal->Unmap(0, nullptr);
 		
 		D3D12_TEXTURE_COPY_LOCATION dst = {};
 		dst.pResource = m_spNormalTex->m_pBuffer.Get();
@@ -584,7 +568,7 @@ bool GraphicsDevice::CreateDefaultTextures()
 		dst.SubresourceIndex = 0;
 		
 		D3D12_TEXTURE_COPY_LOCATION src = {};
-		src.pResource = uploadBuffer.Get();
+		src.pResource = uploadBufferNormal.Get();
 		src.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
 		src.PlacedFootprint.Offset = 0;
 		src.PlacedFootprint.Footprint.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -608,6 +592,7 @@ bool GraphicsDevice::CreateDefaultTextures()
 		m_pCmdList->Reset(m_frames[0].allocator.Get(), nullptr);
 	}
 
+	m_pCmdList->Close();
 	return true;
 }
 

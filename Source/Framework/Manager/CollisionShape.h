@@ -1,6 +1,6 @@
 #pragma once
 #include <DirectXCollision.h>
-#include "../../ECS/Entity/Entity.h"
+#include "../ECS/Entity/Entity.h"
 #include "../../../../Library/nlohmann/json.hpp"
 
 class ModelData;

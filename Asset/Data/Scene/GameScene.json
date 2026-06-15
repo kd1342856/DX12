@@ -4,11 +4,11 @@
             "Children": [],
             "Components": [
                 {
-                    "PosX": -2.628685235977173,
-                    "PosY": 2.5714197158813477,
-                    "PosZ": -7.499643325805664,
-                    "RotX": 0.48000368475914,
-                    "RotY": 5.70600700378418,
+                    "PosX": -7.017994403839111,
+                    "PosY": 0.7120279669761658,
+                    "PosZ": -3.941927433013916,
+                    "RotX": 0.34600400924682617,
+                    "RotY": 7.280007839202881,
                     "RotZ": 0.0,
                     "ScaX": 1.0,
                     "ScaY": 1.0,
@@ -60,9 +60,13 @@
                     "IsStatic": true,
                     "Shapes": [
                         {
-                            "ShapeId": 3,
                             "IsTrigger": false,
-                            "Offset": [0.0, 0.0, 0.0],
+                            "Offset": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "ShapeId": 3,
                             "Tags": 1
                         }
                     ],
@@ -79,9 +83,9 @@
                     "Components": [
                         {
                             "PosX": 0.0,
-                            "PosY": 2.0829992294311523,
-                            "PosZ": -2.37930965423584,
-                            "RotX": 0.3973419666290283,
+                            "PosY": 2.00091552734375,
+                            "PosZ": -2.448741912841797,
+                            "RotX": 0.3633424639701843,
                             "RotY": 0.0,
                             "RotZ": 0.0,
                             "ScaX": 1.0,
@@ -106,15 +110,77 @@
                     ],
                     "IsActive": true,
                     "Name": "Camera"
+                },
+                {
+                    "Children": [],
+                    "Components": [
+                        {
+                            "PosX": 0.0,
+                            "PosY": 0.0,
+                            "PosZ": 0.0,
+                            "RotX": 0.0,
+                            "RotY": 0.0,
+                            "RotZ": 0.0,
+                            "ScaX": 1.0,
+                            "ScaY": 1.0,
+                            "ScaZ": 1.0,
+                            "Type": "TransformComponent"
+                        },
+                        {
+                            "FilePath": "Asset/Model/CesiumMan/CesiumMan3.gltf",
+                            "ModelType": 1,
+                            "Type": "ModelRendererComponent"
+                        }
+                    ],
+                    "IsActive": true,
+                    "Name": "Model"
+                },
+                {
+                    "Children": [],
+                    "Components": [
+                        {
+                            "PosX": 0.0,
+                            "PosY": 0.0,
+                            "PosZ": 0.0,
+                            "RotX": 0.0,
+                            "RotY": 0.0,
+                            "RotZ": 0.0,
+                            "ScaX": 1.0,
+                            "ScaY": 1.0,
+                            "ScaZ": 1.0,
+                            "Type": "TransformComponent"
+                        },
+                        {
+                            "IsStatic": false,
+                            "Shapes": [
+                                {
+                                    "Depth": 0.5899999737739563,
+                                    "Height": 1.0499999523162842,
+                                    "IsTrigger": false,
+                                    "Offset": [
+                                        0.0,
+                                        0.800000011920929,
+                                        0.0
+                                    ],
+                                    "ShapeId": 0,
+                                    "Tags": 1,
+                                    "Width": 0.4300000071525574
+                                }
+                            ],
+                            "Type": "ColliderComponent"
+                        }
+                    ],
+                    "IsActive": true,
+                    "Name": "Collider"
                 }
             ],
             "Components": [
                 {
-                    "PosX": -3.9960317611694336,
-                    "PosY": 1.8297536373138428,
-                    "PosZ": -5.673669338226318,
+                    "PosX": -1.5746409893035889,
+                    "PosY": 0.0,
+                    "PosZ": 0.2561030387878418,
                     "RotX": 0.0,
-                    "RotY": -6.220012187957764,
+                    "RotY": -5.954006195068359,
                     "RotZ": 0.0,
                     "ScaX": 1.0,
                     "ScaY": 1.0,
@@ -122,30 +188,10 @@
                     "Type": "TransformComponent"
                 },
                 {
-                    "FilePath": "Asset/Model/CesiumMan/CesiumMan3.gltf",
-                    "ModelType": 1,
-                    "Type": "ModelRendererComponent"
-                },
-                {
                     "Type": "Player",
                     "gravityStrength": 9.800000190734863,
                     "moveSpeed": 2.0,
                     "useGravity": true
-                },
-                {
-                    "IsStatic": false,
-                    "Shapes": [
-                        {
-                            "ShapeId": 0,
-                            "IsTrigger": false,
-                            "Offset": [0.0, 0.8, 0.0],
-                            "Width": 0.8,
-                            "Height": 1.6,
-                            "Depth": 0.8,
-                            "Tags": 1
-                        }
-                    ],
-                    "Type": "ColliderComponent"
                 }
             ],
             "IsActive": true,

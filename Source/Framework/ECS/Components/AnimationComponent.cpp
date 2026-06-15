@@ -13,7 +13,7 @@ void AnimationComponent::Update()
 
 	// ModelRendererComponent‚©‚çModelData‚ðŽæ“¾
 	auto pModelComp = GetGameObject()->GetComponent<ModelRendererComponent>();
-	if (!pModelComp || !pModelComp->GetData().m_spModelData) return;
+	if (!pModelComp || !pModelComp->GetData().m_spModelData || !pModelComp->GetData().m_spModelData->IsLoaded()) return;
 
 	auto pModelData = pModelComp->GetData().m_spModelData;
 	const auto& anims = pModelData->GetAnimations();
@@ -44,7 +44,7 @@ void AnimationComponent::ImGuiUpdate()
 	auto& data = GetAnimData().currentAnim;
 
 	auto pModelComp = GetGameObject()->GetComponent<ModelRendererComponent>();
-	if (!pModelComp || !pModelComp->GetData().m_spModelData) {
+	if (!pModelComp || !pModelComp->GetData().m_spModelData || !pModelComp->GetData().m_spModelData->IsLoaded()) {
 		ImGui::TextColored(ImVec4(1, 0, 0, 1), "Required: ModelRendererComponent");
 		return;
 	}

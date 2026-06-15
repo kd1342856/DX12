@@ -196,6 +196,10 @@
     <ClInclude Include="Source\Framework\ImGuiEditor\ImGui\imstb_textedit.h" />
     <ClInclude Include="Source\Framework\ImGuiEditor\ImGui\imstb_truetype.h" />
     <ClInclude Include="Source\Framework\Manager\CollisionManager.h" />
+    <ClInclude Include="Source\Framework\Memory\LinearAllocator.h" />
+    <ClInclude Include="Source\Framework\Memory\PoolAllocator.h" />
+    <ClInclude Include="Source\Framework\System\JobSystem\JobSystem.h" />
+    <ClInclude Include="Source\Framework\Manager\ResourceManager.h" />
     <ClInclude Include="Source\Framework\Manager\CollisionShape.h" />
     <ClInclude Include="Source\Framework\Manager\CollisionSolver.h" />
     <ClInclude Include="Source\Framework\Manager\GameManager.h" />
@@ -251,6 +255,8 @@
     <ClCompile Include="Source\Framework\ImGuiEditor\ImGui\imgui_tables.cpp" />
     <ClCompile Include="Source\Framework\ImGuiEditor\ImGui\imgui_widgets.cpp" />
     <ClCompile Include="Source\Framework\Manager\CollisionManager.cpp" />
+    <ClCompile Include="Source\Framework\System\JobSystem\JobSystem.cpp" />
+    <ClCompile Include="Source\Framework\Manager\ResourceManager.cpp" />
     <ClCompile Include="Source\Framework\Manager\CollisionShape.cpp" />
     <ClCompile Include="Source\Framework\Manager\CollisionSolver.cpp" />
     <ClCompile Include="Source\Framework\Manager\GameManager.cpp" />

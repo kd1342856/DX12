@@ -236,8 +236,8 @@ void CollisionShapeBox::UpdateWorldAABB(const Math::Matrix& world) {
         std::abs(right.y) * extents.x + std::abs(up.y) * extents.y + std::abs(forward.y) * extents.z,
         std::abs(right.z) * extents.x + std::abs(up.z) * extents.y + std::abs(forward.z) * extents.z
     );
-    // Note: WorldAABB would be updated in the system if needed, or stored in shape if needed
-    // The previous architecture used to update m_worldAABB in KdCollider
+    m_worldAABB.Center = wOffset;
+    m_worldAABB.Extents = wExtents;
 }
 
 void CollisionShapeSphere::UpdateWorldAABB(const Math::Matrix& world) {

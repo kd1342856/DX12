@@ -9,6 +9,9 @@ class RenderSystem : public SystemBase
 {
 public:
 	// 繧?E?繝｡繝ｩEntity險?E?螳・
+	Math::Vector3 GetLightDirection() const { return m_lightDirection; }
+	void SetLightDirection(const Math::Vector3& dir) { m_lightDirection = dir; }
+
 	Entity GetCameraEntity() const { return m_cameraEntity; }
 	void SetCameraEntity(Entity cameraEntity)
 	{
@@ -41,7 +44,7 @@ public:
 			pCmdList->OMSetRenderTargets(0, nullptr, false, &dsvH);
 
 			// ライト?E行?E計?E
-			Math::Vector3 lightDir = Math::Vector3(0.5f, -1.0f, 0.5f);
+			Math::Vector3 lightDir = m_lightDirection;
 			lightDir.Normalize();
 			Math::Vector3 lightPos = Math::Vector3(0, 0, 0) - lightDir * 50.0f;
 			Math::Matrix mLightView = Math::Matrix::CreateLookAt(lightPos, Math::Vector3(0, 0, 0), Math::Vector3::Up);
@@ -61,7 +64,7 @@ public:
 			{
 				auto& cTransform = m_pCoordinator->GetComponent<TransformData>(entity);
 				auto& cModel = m_pCoordinator->GetComponent<ModelRenderData>(entity);
-				if (cModel.m_spModelData) {
+				if (cModel.m_spModelData && cModel.m_spModelData->IsLoaded()) {
 					if (cModel.m_modelType == ModelType::Dynamic)
 					{
 						if (!isSkinningShadowBegun)
@@ -122,7 +125,7 @@ public:
 			auto& cTransform = m_pCoordinator->GetComponent<TransformData>(entity);
 			auto& cModel = m_pCoordinator->GetComponent<ModelRenderData>(entity);
 
-			if (cModel.m_spModelData) {
+			if (cModel.m_spModelData && cModel.m_spModelData->IsLoaded()) {
 				if (cModel.m_modelType == ModelType::Dynamic) {
 					ShaderManager::Instance().m_skinningShader.DrawModel(*cModel.m_spModelData, cTransform.m_worldMatrix, cModel.m_spModelData->GetBoneMatrices());
 				}
@@ -135,4 +138,5 @@ public:
 
 private:
 	Entity m_cameraEntity = INVALID_ENTITY;
+	Math::Vector3 m_lightDirection = Math::Vector3(0.5f, -1.0f, 0.5f);
 };

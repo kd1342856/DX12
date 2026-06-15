@@ -1,6 +1,7 @@
 #include "Player.h"
 #include "../../../../Framework/Manager/GameManager.h"
 #include "../../../../Framework/DirectX/Utility/Input.h"
+#include "../../../../Framework/DirectX/Utility/Time.h"
 #include "../../../../Framework/Object/GameObject.h"
 #include "../../../../Framework/Manager/CollisionManager.h"
 
@@ -32,15 +33,15 @@ void Player::Update() {
     if (moveDir.LengthSquared() > 0.0f) {
         moveDir.Normalize();
     }
-    cTrans.m_position += moveDir * m_moveSpeed * 0.016f;
+    cTrans.m_position += moveDir * m_moveSpeed * GameTimer::Instance().DeltaTime();
 
     if (input.IsKeyTrigger(VK_SPACE) && m_isGrounded) {
         m_velocityY = 5.0f;
     }
 
     if (m_useGravity) {
-        m_velocityY -= m_gravityStrength * 0.016f;
-        cTrans.m_position.y += m_velocityY * 0.016f;
+        m_velocityY -= m_gravityStrength * GameTimer::Instance().DeltaTime();
+        cTrans.m_position.y += m_velocityY * GameTimer::Instance().DeltaTime();
     }
 }
 

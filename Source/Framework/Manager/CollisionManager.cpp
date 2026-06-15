@@ -26,6 +26,16 @@ void CollisionManager::Solve(Scene* scene) {
     if (!s_collisionSystem || !scene) return;
     auto& ecs = GameManager::Instance().GetECS();
 
+    auto getRootEntity = [&](Entity e) -> Entity {
+        auto obj = scene->GetGameObject(e);
+        if (!obj) return e;
+        GameObject* current = obj.get();
+        while (current->GetParent()) {
+            current = current->GetParent();
+        }
+        return current->GetEntityID();
+    };
+
     std::vector<Entity> entitiesWithCollider;
     for (Entity entity = 0; entity < MAX_ENTITIES; ++entity) {
         if (!ecs.IsAlive(entity)) continue;
@@ -50,15 +60,15 @@ void CollisionManager::Solve(Scene* scene) {
             auto& colDataB = ecs.GetComponent<ColliderData>(entityB);
             auto& transDataB = ecs.GetComponent<TransformData>(entityB);
 
+            // 片方が静的の場合は、動的な方だけを動かす
+            if (colDataA.m_isStatic && colDataB.m_isStatic) continue;
+
             for (auto& shapeB : colDataB.m_shapes) {
                 shapeB->UpdateWorldAABB(transDataB.m_worldMatrix);
             }
 
             for (auto& shapeA : colDataA.m_shapes) {
                 for (auto& shapeB : colDataB.m_shapes) {
-                    
-                    if ((shapeA->m_tags & shapeB->m_tags) == 0) continue;
-
                     if (!shapeA->m_worldAABB.Intersects(shapeB->m_worldAABB)) continue;
 
                     CollisionResult result;
@@ -68,31 +78,39 @@ void CollisionManager::Solve(Scene* scene) {
                     if (shapeA->GetShapeId() == CollisionShape::Mesh && shapeB->GetShapeId() != CollisionShape::Mesh) {
                         isHit = CollisionSolver::CheckCollisionShape(result, shapeB.get(), transDataB.m_worldMatrix, shapeA.get(), transDataA.m_worldMatrix);
                         swapped = true;
+                    } else if (shapeA->GetShapeId() != CollisionShape::Mesh && shapeB->GetShapeId() == CollisionShape::Mesh) {
+                        isHit = CollisionSolver::CheckCollisionShape(result, shapeA.get(), transDataA.m_worldMatrix, shapeB.get(), transDataB.m_worldMatrix);
+                        swapped = false;
                     } else {
                         isHit = CollisionSolver::CheckCollisionShape(result, shapeA.get(), transDataA.m_worldMatrix, shapeB.get(), transDataB.m_worldMatrix);
+                        swapped = false;
                     }
 
                     if (isHit) {
                         if (swapped) {
                             result.pushVector = -result.pushVector;
                         }
-                        
+
                         CollisionPair pair;
                         pair.a = entityA; pair.b = entityB;
                         currentCollisionPairs.insert(pair);
 
                         if (!shapeA->m_isTrigger && !shapeB->m_isTrigger) {
-                            if (!colDataA.m_isStatic && !colDataB.m_isStatic) {
-                                transDataA.m_position += result.pushVector * 0.5f;
-                                transDataB.m_position -= result.pushVector * 0.5f;
+                            Entity rootA = getRootEntity(entityA);
+                            Entity rootB = getRootEntity(entityB);
+                            
+                            if (ecs.HasComponent<TransformData>(rootA) && ecs.HasComponent<TransformData>(rootB)) {
+                                auto& rootTransA = ecs.GetComponent<TransformData>(rootA);
+                                auto& rootTransB = ecs.GetComponent<TransformData>(rootB);
                                 
-                                
-                            } else if (!colDataA.m_isStatic) {
-                                transDataA.m_position += result.pushVector;
-                                
-                            } else if (!colDataB.m_isStatic) {
-                                transDataB.m_position -= result.pushVector;
-                                
+                                if (!colDataA.m_isStatic && !colDataB.m_isStatic) {
+                                    rootTransA.m_position += result.pushVector * 0.5f;
+                                    rootTransB.m_position -= result.pushVector * 0.5f;
+                                } else if (!colDataA.m_isStatic) {
+                                    rootTransA.m_position += result.pushVector;
+                                } else if (!colDataB.m_isStatic) {
+                                    rootTransB.m_position -= result.pushVector;
+                                }
                             }
                         }
                     }
@@ -273,19 +291,21 @@ void CollisionManager::DrawDebugWires(float screenX, float screenY, float screen
                        ImU32 color = IM_COL32(0, 255, 0, 255); 
             if (shape->m_isTrigger) color = IM_COL32(255, 255, 0, 255);
 
-            // Draw AABB for all shapes
-            Math::Vector3 cornersAABB[8];
-            shape->m_worldAABB.GetCorners(cornersAABB);
-            int edgesAABB[12][2] = {
-                {0,1}, {1,2}, {2,3}, {3,0},
-                {4,5}, {5,6}, {6,7}, {7,4},
-                {0,4}, {1,5}, {2,6}, {3,7}
-            };
-            ImU32 colorAABB = IM_COL32(0, 255, 255, 128); // Cyan for AABB
-            for (int i = 0; i < 12; ++i) {
-                ImVec2 p1, p2;
-                if (WorldToScreen(cornersAABB[edgesAABB[i][0]], p1) && WorldToScreen(cornersAABB[edgesAABB[i][1]], p2)) {
-                    pDrawList->AddLine(p1, p2, colorAABB);
+            // Draw AABB for Mesh shapes (since they don't have a specific narrow-phase debug draw)
+            if (shape->GetShapeId() == CollisionShape::Mesh) {
+                Math::Vector3 cornersAABB[8];
+                shape->m_worldAABB.GetCorners(cornersAABB);
+                int edgesAABB[12][2] = {
+                    {0,1}, {1,2}, {2,3}, {3,0},
+                    {4,5}, {5,6}, {6,7}, {7,4},
+                    {0,4}, {1,5}, {2,6}, {3,7}
+                };
+                ImU32 colorAABB = IM_COL32(0, 255, 255, 128); // Cyan for AABB
+                for (int i = 0; i < 12; ++i) {
+                    ImVec2 p1, p2;
+                    if (WorldToScreen(cornersAABB[edgesAABB[i][0]], p1) && WorldToScreen(cornersAABB[edgesAABB[i][1]], p2)) {
+                        pDrawList->AddLine(p1, p2, colorAABB);
+                    }
                 }
             }
 

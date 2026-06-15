@@ -1,0 +1,32 @@
+#pragma once
+#include <string>
+#include <unordered_map>
+#include <memory>
+#include <mutex>
+#include "../System/JobSystem/JobSystem.h"
+#include "../../Graphics/Geometry/Model/Model.h"
+
+class ResourceManager {
+public:
+    static ResourceManager& Instance() {
+        static ResourceManager instance;
+        return instance;
+    }
+
+    // Load model asynchronously. Returns a shared pointer that will be populated once loaded.
+    // If already loaded or loading, returns the existing pointer.
+    std::shared_ptr<ModelData> LoadModelAsync(const std::string& filepath);
+    
+    // Get a model if it's already loaded or in progress. Returns nullptr if not known.
+    std::shared_ptr<ModelData> GetModel(const std::string& filepath);
+
+    // Clear all cached resources
+    void Clear();
+
+private:
+    ResourceManager() = default;
+    ~ResourceManager() = default;
+
+    std::unordered_map<std::string, std::shared_ptr<ModelData>> m_modelCache;
+    std::mutex m_mutex;
+};

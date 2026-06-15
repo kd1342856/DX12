@@ -32,7 +32,9 @@ namespace CollisionSolver {
         axes[3] = triNormal;
         int axisCount = 4;
 
-        // ボックスの各軸と三角形の各辺の外積軸
+        // ボックスの辺と三角形の辺の外積軸 (エッジ同士の衝突)
+        // キャラクター操作において、エッジ同士のクロス積軸は不要な斜めの押し出し（引っかかり）を生むためコメントアウト
+        /*
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 XMVECTOR axis = XMVector3Cross(boxAxes[i], triEdges[j]);
@@ -42,6 +44,7 @@ namespace CollisionSolver {
                 }
             }
         }
+        */
 
         float minOverlap = FLT_MAX;
         XMVECTOR bestAxis = XMVectorZero();
@@ -169,10 +172,7 @@ bool CheckCollisionShape(CollisionResult& result,
     std::vector<Math::Vector3> hitPushes;
 
     for (const auto &node : meshShape->m_model->GetNodes()) {
-      aiMatrix4x4 aiMat = node.localTransform;
-      aiMat.Transpose();
-      Math::Matrix nodeLocal = *(Math::Matrix*)&aiMat;
-      Math::Matrix nodeWorld = nodeLocal * worldB_withOffset;
+      Math::Matrix nodeWorld = worldB_withOffset; // The vertices are already in Model Space!
       DirectX::XMMATRIX mNodeWorld = DirectX::XMLoadFloat4x4(&nodeWorld);
 
       Math::Matrix nodeToBoxLocal;

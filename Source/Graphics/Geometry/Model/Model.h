@@ -1,5 +1,6 @@
 #pragma once
 #include <assimp/matrix4x4.h>
+#include <atomic>
 
 class Mesh;
 struct AnimationData;
@@ -25,6 +26,8 @@ public:
 
 
 	bool Load(const std::string& filepath);
+	bool IsLoaded() const { return m_isLoaded; }
+	void SetLoaded(bool loaded) { m_isLoaded = loaded; }
 
 	const std::vector<Node>& GetNodes() const { return m_nodes; }
 	const std::vector<BoneInfo>& GetBones() const { return m_bones; }
@@ -42,6 +45,7 @@ public:
 	std::vector<AnimationData>& GetAnimationsRef() { return m_animations; }
 
 private:
+	std::atomic<bool> m_isLoaded{false};
 	std::vector<Node> m_nodes;
 	std::vector<BoneInfo> m_bones;
 	std::unordered_map<std::string, int> m_boneNameToIndex;

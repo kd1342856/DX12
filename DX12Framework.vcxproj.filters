@@ -159,6 +159,15 @@
       <UniqueIdentifier>{3bf3f97c-0e7a-41eb-80fe-c064dba46287}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Application\Object\Script" />
+    <Filter Include="Source\Framework\Memory">
+      <UniqueIdentifier>{3f6e6c0c-eb45-4e7f-a157-12fa111ab922}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Framework\System">
+      <UniqueIdentifier>{4156fd06-4ca2-4915-ad73-e005f61e4232}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Framework\System\JobSystem">
+      <UniqueIdentifier>{d660a570-157f-4dd4-bff9-f39d92aae532}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Application\Object\Script\Player\Player.h">
@@ -375,6 +384,18 @@
     <ClInclude Include="Source\Framework\DirectX\Utility\Time.h">
       <Filter>Source\Framework\DirectX\Utility</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Framework\Memory\LinearAllocator.h">
+      <Filter>Source\Framework\Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\Memory\PoolAllocator.h">
+      <Filter>Source\Framework\Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\System\JobSystem\JobSystem.h">
+      <Filter>Source\Framework\System\JobSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\Manager\ResourceManager.h">
+      <Filter>Source\Framework\Manager</Filter>
+    </ClInclude>
     <ClInclude Include="Source\Framework\Manager\CollisionManager.h">
       <Filter>Source\Framework\Manager</Filter>
     </ClInclude>
@@ -523,6 +544,12 @@
     </ClCompile>
     <ClCompile Include="Source\Framework\ECS\Components\ColliderComponent.cpp">
       <Filter>Source\Framework\ECS\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Framework\System\JobSystem\JobSystem.cpp">
+      <Filter>Source\Framework\System\JobSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Framework\Manager\ResourceManager.cpp">
+      <Filter>Source\Framework\Manager</Filter>
     </ClCompile>
     <ClCompile Include="Source\Framework\Manager\CollisionManager.cpp">
       <Filter>Source\Framework\Manager</Filter>

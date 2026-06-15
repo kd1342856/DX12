@@ -12,6 +12,7 @@ bool ModelData::Load(const std::string& filepath)
 		assert(0 && "ƒ‚ƒfƒ‹‚Ìƒ[ƒh‚É¸”s‚µ‚Ü‚µ‚½");
 		return false;
 	}
+	SetLoaded(true);
 	return true;
 }
 

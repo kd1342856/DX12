@@ -1,6 +1,7 @@
 #pragma once
 #include "../../DirectX/Utility/ClassAssembly.h"
 #include "../ComponentBase.h"
+#include "../../Manager/ResourceManager.h"
 
 // =============================================
 // ModelRendererComponent
