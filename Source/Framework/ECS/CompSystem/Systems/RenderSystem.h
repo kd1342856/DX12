@@ -1,87 +1,88 @@
 #pragma once
 #include "../../../../Graphics/Shader/ShaderManager.h"
 
-// =============================================
-// RenderSystem
-// Transform + Model + Shader 繧呈戟縺?E?Entity繧呈緒逕ｻ
-// =============================================
+// RenderSystem: Draws entities with Transform + ModelRenderData components
 class RenderSystem : public SystemBase
 {
 public:
-	// 繧?E?繝｡繝ｩEntity險?E?螳・
 	Math::Vector3 GetLightDirection() const { return m_lightDirection; }
 	void SetLightDirection(const Math::Vector3& dir) { m_lightDirection = dir; }
 
 	Entity GetCameraEntity() const { return m_cameraEntity; }
-	void SetCameraEntity(Entity cameraEntity)
-	{
-		m_cameraEntity = cameraEntity;
-	}
+	void SetCameraEntity(Entity cameraEntity) { m_cameraEntity = cameraEntity; }
 
-	// 謠冗判譖ｴ譁E??
-	// 描画更新?E?デフォルトカメラを使用?E?E
 	void Update() override
 	{
 		Update(m_cameraEntity, nullptr);
 	}
 
-	// 描画更新?E?指定したカメラを使用?E?E
 	void Update(Entity cameraEntity, class RenderTarget* pRT = nullptr)
 	{
 		if (!m_pCoordinator) return;
 		if (cameraEntity == INVALID_ENTITY) return;
 		m_cameraEntity = cameraEntity;
 
-		// --- 1. シャドウパス (ShadowShader) ---
 		auto* pGraphicsDevice = &GDF::Instance().GetGraphicsDevice();
 		auto* pCmdList = pGraphicsDevice->GetCmdList();
-		auto* pShadowMap = pGraphicsDevice->GetShadowMap();
 
+		// Normalize light direction
+		Math::Vector3 lightDir = m_lightDirection;
+		lightDir.Normalize();
+
+		// Initialize light data (always set regardless of shadow pass)
+		CBufferData::Light cbLight = {};
+		cbLight.AmbientLight = Math::Vector3(0.3f, 0.3f, 0.3f);
+		cbLight.DL_Dir = lightDir;
+		cbLight.DL_Color = Math::Vector3(1.0f, 1.0f, 1.0f);
+		cbLight.SL_Count = 0;
+
+		// =============================================
+		// Pass 1: Shadow Pass
+		// =============================================
+		auto* pShadowMap = pGraphicsDevice->GetShadowMap();
 		if (pShadowMap && ShaderManager::Instance().m_shadowShader.IsCreated())
 		{
 			pShadowMap->ClearBuffer();
 			auto dsvH = pGraphicsDevice->GetDSVHeap()->GetCPUHandle(pShadowMap->GetDSVNumber());
 			pCmdList->OMSetRenderTargets(0, nullptr, false, &dsvH);
 
-			// ライト?E行?E計?E
-			Math::Vector3 lightDir = m_lightDirection;
-			lightDir.Normalize();
 			Math::Vector3 lightPos = Math::Vector3(0, 0, 0) - lightDir * 50.0f;
 			Math::Matrix mLightView = Math::Matrix::CreateLookAt(lightPos, Math::Vector3(0, 0, 0), Math::Vector3::Up);
 			Math::Matrix mLightProj = Math::Matrix::CreateOrthographic(100.0f, 100.0f, 0.1f, 100.0f);
 			Math::Matrix mLightVP = mLightView * mLightProj;
-
-			// シャドウシェーダーのセチE??アチE?E?E?EitShader用とSkinningShader用?E?E
-			bool isSkinningShadowBegun = false;
-			bool isLitShadowBegun = false;
 
 			CBufferData::Camera cbLightCam = {};
 			cbLightCam.mView = mLightView;
 			cbLightCam.mProj = mLightProj;
 			cbLightCam.mVP = mLightVP;
 
+			bool isSkinningShadowBegun = false;
+			bool isLitShadowBegun = false;
+
 			for (auto const& entity : m_entities)
 			{
 				auto& cTransform = m_pCoordinator->GetComponent<TransformData>(entity);
 				auto& cModel = m_pCoordinator->GetComponent<ModelRenderData>(entity);
-				if (cModel.m_spModelData && cModel.m_spModelData->IsLoaded()) {
+				if (cModel.m_spModelData && cModel.m_spModelData->IsLoaded())
+				{
 					if (cModel.m_modelType == ModelType::Dynamic)
 					{
 						if (!isSkinningShadowBegun)
 						{
 							ShaderManager::Instance().m_skinningShader.BeginShadow();
-							GDF::Instance().BindCBuffer(0, cbLightCam); // パイプライン?E??替えで再バインチE
+							GDF::Instance().BindCBuffer(0, cbLightCam);
 							isSkinningShadowBegun = true;
 							isLitShadowBegun = false;
 						}
-						ShaderManager::Instance().m_skinningShader.DrawShadowModel(*cModel.m_spModelData, cTransform.m_worldMatrix, cModel.m_spModelData->GetBoneMatrices());
+						ShaderManager::Instance().m_skinningShader.DrawShadowModel(
+							*cModel.m_spModelData, cTransform.m_worldMatrix, cModel.m_spModelData->GetBoneMatrices());
 					}
 					else
 					{
 						if (!isLitShadowBegun)
 						{
 							ShaderManager::Instance().m_shadowShader.Begin();
-							GDF::Instance().BindCBuffer(0, cbLightCam); // パイプライン?E??替えで再バインチE
+							GDF::Instance().BindCBuffer(0, cbLightCam);
 							isLitShadowBegun = true;
 							isSkinningShadowBegun = false;
 						}
@@ -90,46 +91,75 @@ public:
 				}
 			}
 
-			// ライト?E行?EをLitShaderに渡す準備 (メインパス用)
-			CBufferData::Light cbLight = {};
-			cbLight.AmbientLight = Math::Vector3(0.3f, 0.3f, 0.3f);
-			cbLight.DL_Dir = lightDir;
-			cbLight.DL_Color = Math::Vector3(1.0f, 1.0f, 1.0f);
-			cbLight.SL_Count = 0;
-			cbLight.DL_ShadowPower = 0.5f; // 影の濁E??
+			// Add shadow-specific light data
+			cbLight.DL_ShadowPower = 0.5f;
 			cbLight.DL_ShadowBias = 0.005f;
 			cbLight.DL_mLightVP[0] = mLightVP;
-			
-			// メインパス用にRenderTargetを?Eに戻ぁE
-			if (pRT)
-			{
-				pGraphicsDevice->SetRenderTarget(pRT);
-			}
-			else
-			{
-				pGraphicsDevice->SetBackBuffer();
-			}
-
-			// cbLightのセチE??にはLitShaderのルートシグネチャが?E??なので先にBeginを呼ぶ
-			ShaderManager::Instance().SetLightData(cbLight);
 		}
 
-		// --- 2. メインパス (LitShader) ---
-		// カメラの行?EをShaderManagerにセチE??
+		// Upload light data to ShaderManager
+		ShaderManager::Instance().SetLightData(cbLight);
+
+		// =============================================
+		// Pass 2: Set render target (always execute, independent of shadow pass)
+		// =============================================
+		if (pRT)
+		{
+			pGraphicsDevice->SetRenderTarget(pRT);
+		}
+		else
+		{
+			pGraphicsDevice->SetBackBuffer();
+		}
+
+		D3D12_VIEWPORT viewport = {};
+		viewport.Width = 1280.0f;
+		viewport.Height = 720.0f;
+		viewport.MinDepth = 0.0f;
+		viewport.MaxDepth = 1.0f;
+		D3D12_RECT scissorRect = { 0, 0, 1280, 720 };
+		pCmdList->RSSetViewports(1, &viewport);
+		pCmdList->RSSetScissorRects(1, &scissorRect);
+
+		// =============================================
+		// Pass 3: Main color pass (Lit / Skinning)
+		// =============================================
 		auto& cCamera = m_pCoordinator->GetComponent<CameraData>(cameraEntity);
 		ShaderManager::Instance().SetCameraMatrix(cCamera.m_viewMatrix, cCamera.m_projMatrix);
 
-		// 描画対象EntityルーチE
+		bool isLitBegun = false;
+		bool isSkinningBegun = false;
+
 		for (auto const& entity : m_entities)
 		{
 			auto& cTransform = m_pCoordinator->GetComponent<TransformData>(entity);
 			auto& cModel = m_pCoordinator->GetComponent<ModelRenderData>(entity);
 
-			if (cModel.m_spModelData && cModel.m_spModelData->IsLoaded()) {
-				if (cModel.m_modelType == ModelType::Dynamic) {
-					ShaderManager::Instance().m_skinningShader.DrawModel(*cModel.m_spModelData, cTransform.m_worldMatrix, cModel.m_spModelData->GetBoneMatrices());
+			if (cModel.m_spModelData && cModel.m_spModelData->IsLoaded())
+			{
+				if (cModel.m_modelType == ModelType::Dynamic)
+				{
+					if (!isSkinningBegun)
+					{
+						ShaderManager::Instance().m_skinningShader.Begin();
+						ShaderManager::Instance().BindCameraMatrix(0);
+						ShaderManager::Instance().BindLightData(1);
+						isSkinningBegun = true;
+						isLitBegun = false;
+					}
+					ShaderManager::Instance().m_skinningShader.DrawModel(
+						*cModel.m_spModelData, cTransform.m_worldMatrix, cModel.m_spModelData->GetBoneMatrices());
 				}
-				else {
+				else
+				{
+					if (!isLitBegun)
+					{
+						ShaderManager::Instance().m_litShader.Begin();
+						ShaderManager::Instance().BindCameraMatrix(0);
+						ShaderManager::Instance().BindLightData(1);
+						isLitBegun = true;
+						isSkinningBegun = false;
+					}
 					ShaderManager::Instance().m_litShader.DrawModel(*cModel.m_spModelData, cTransform.m_worldMatrix);
 				}
 			}

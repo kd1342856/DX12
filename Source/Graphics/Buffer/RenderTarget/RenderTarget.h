@@ -16,6 +16,8 @@ public:
 	ID3D12Resource* GetResource() const { return m_pBuffer.Get(); }
 
 	void Clear(float r = 0.0f, float g = 0.0f, float b = 1.0f, float a = 1.0f);
+	void TransitionToRenderTarget();
+	void TransitionToShaderResource();
 
 private:
 	int m_rtvIndex		= -1;

@@ -1,9 +1,9 @@
 #pragma once
-#include "../../../../Framework/ECS/Components/ScriptComponent.h"
+#include "../../../../Framework/ECS/Components/Data/NativeScript.h"
 
-class Player : public ScriptComponent {
+class Player : public NativeScript {
 public:
-    const char* GetComponentName() const override { return "Player"; }
+    
 
     void Awake() override;
     void Start() override;

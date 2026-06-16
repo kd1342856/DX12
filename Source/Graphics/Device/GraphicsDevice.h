@@ -76,6 +76,7 @@ private:
 
 public:
 	int AllocateImGuiSRV(ID3D12Resource* pBuffer);
+	int AllocateImGuiSRVIndex() { return m_imGuiSrvCount++; }
 	D3D12_GPU_DESCRIPTOR_HANDLE GetImGuiSRVGPUHandle(int index);
 
 	void SetResourceBarrier(ID3D12Resource* pResource, D3D12_RESOURCE_STATES before, D3D12_RESOURCE_STATES after);

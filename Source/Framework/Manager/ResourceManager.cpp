@@ -21,6 +21,7 @@ std::shared_ptr<ModelData> ResourceManager::LoadModelAsync(const std::string& fi
         if (!loader.Load(filepath, pModelData.get())) {
             Logger::Instance().AddLog(Logger::LogLevel::Error, "Failed to async load model: " + filepath);
         } else {
+            pModelData->SetLoaded(true);
             Logger::Instance().AddLog(Logger::LogLevel::Info, "Successfully async loaded model: " + filepath);
         }
     });

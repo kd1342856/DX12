@@ -1,14 +1,13 @@
 #pragma once
-#include "../Library/nlohmann/json.hpp"
+#include "../../../Library/nlohmann/json.hpp"
 #include "../Object/Object.h"
 #include "../Object/GameObject.h"
 #include "../ECS/CompSystem/Systems/RenderSystem.h"
+#include "../ECS/CompSystem/Systems/TransformSystem.h"
+#include "../ECS/CompSystem/Systems/CameraSystem.h"
+#include "../ECS/CompSystem/Systems/AnimationSystem.h"
+#include "../ECS/CompSystem/Systems/ScriptSystem.h"
 
-// =============================================
-// Scene
-// GameObject????X?g??RenderSystem????????
-// ECS??f?[?^?????GameManager???????
-// =============================================
 class Scene : public Object {
 public:
     Scene();
@@ -22,30 +21,9 @@ public:
 
     const std::vector<std::shared_ptr<GameObject>>& GetGameObjects() const { return m_gameObjects; }
 
-    void Serialize(nlohmann::json& out) const {
-        nlohmann::json objs = nlohmann::json::array();
-        for (auto& obj : m_gameObjects) {
-            nlohmann::json oj;
-            obj->Serialize(oj);
-            objs.push_back(oj);
-        }
-        out["GameObjects"] = objs;
-    }
-
-    void Deserialize(const nlohmann::json& in) {
-        m_gameObjects.clear();
-        if (in.contains("GameObjects")) {
-            for (const auto& oj : in["GameObjects"]) {
-                auto obj = std::make_shared<GameObject>();
-                obj->SetScene(this);
-                Entity id = GameManager::Instance().GetECS().CreateEntity();
-                obj->SetEntityID(id);
-                m_gameObjects.push_back(obj);
-                RegisterGameObject(id, obj);
-                obj->Deserialize(oj);
-            }
-        }
-    }
+    void Serialize(nlohmann::json& out) const;
+    void Deserialize(const nlohmann::json& in);
+    void DeserializeGameObject(const nlohmann::json& oj, std::shared_ptr<class GameObject> parent);
 
     void RegisterGameObject(Entity e, std::shared_ptr<GameObject> obj) {
         m_entityToObject[e] = obj;
@@ -67,7 +45,6 @@ public:
         }
     }
 
-    // RenderSystem ?? Scene ?????
     std::shared_ptr<class RenderSystem>& GetRenderSystem() { return m_spRenderSystem; }
 
 protected:
@@ -83,5 +60,8 @@ public:
 private:
     std::unordered_map<Entity, std::shared_ptr<GameObject>> m_entityToObject;
     std::shared_ptr<class RenderSystem> m_spRenderSystem;
+    std::shared_ptr<class TransformSystem> m_spTransformSystem;
+    std::shared_ptr<class CameraSystem> m_spCameraSystem;
+    std::shared_ptr<class AnimationSystem> m_spAnimationSystem;
+    std::shared_ptr<class ScriptSystem> m_spScriptSystem;
 };
-

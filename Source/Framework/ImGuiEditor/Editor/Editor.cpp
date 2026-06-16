@@ -3,10 +3,15 @@
 #include "../../../Graphics/Buffer/RenderTarget/RenderTarget.h"
 #include "../../../Graphics/Device/GraphicsDevice.h"
 #include "../../Object/GameObject.h"
-#include "../../ECS/ComponentBase.h"
-#include "../../ECS/Components/ModelRendererComponent.h"
+#include "../../ECS/Components/Data/TransformData.h"
+#include "../../ECS/Components/Data/ModelRenderData.h"
+#include "../../ECS/Components/Data/CameraData.h"
+#include "../../ECS/Components/Data/ColliderData.h"
+#include "../../ECS/Components/Data/NativeScriptData.h"
+#include "../../Manager/CollisionShape.h"
+#include "../../ECS/Components/Data/AnimationData.h"
 #include "../../DirectX/Utility/Input.h"
-#include "../../ECS/Components/AnimationComponent.h"
+
 #include <fstream>
 #include <filesystem>
 #include <regex>
@@ -39,8 +44,8 @@ static void GenerateScriptFiles(const std::string& name, const std::string& path
     std::ofstream h(hFile);
     if(h.is_open()) {
         h << "#pragma once\n";
-        h << "#include \"" << relPath << "Framework/ECS/Components/ScriptComponent.h\"\n\n";
-        h << "class " << name << " : public ScriptComponent {\n";
+        h << "#include \""<< relPath << "Framework/ECS/Components/Data/NativeScript.h\"\n\n";
+        h << "class " << name << " : public NativeScript {\n";
         h << "public:\n";
         h << "    void Awake() override;\n";
         h << "    void Start() override;\n";
@@ -144,6 +149,10 @@ static char s_newScriptPath[256] = "Source/Application/Object/Script/";
 void Editor::DrawHierarchyAndInspector(Scene* scene) {
     if (!scene) return;
 
+    if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_DockingEnable) {
+        ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
+    }
+
     Logger::Instance().DrawImGuiWindow();
 
     // Editor Control Window
@@ -157,13 +166,20 @@ void Editor::DrawHierarchyAndInspector(Scene* scene) {
                 CollisionManager::Instance().SetDebugWireEnabled(debugWire);
             }
             ImGui::Separator();
-            if (ImGui::Button("Save Scene (Ctrl+S)")) {
-                nlohmann::json j;
-                scene->Serialize(j);
-                std::ofstream o("Asset/Data/Scene/GameScene.json");
-                o << std::setw(4) << j << std::endl;
-                Logger::Instance().AddLog(Logger::LogLevel::Info, "シーンを保存しました");
-            }
+                          if (ImGui::Button("Save Scene (Ctrl+S)")) {
+                  nlohmann::json j;
+                  scene->Serialize(j);
+                  std::ofstream o("Asset/Data/Scene/GameScene.json");
+                  if (o.is_open()) {
+                      o << std::setw(4) << j << std::endl;
+                      char buf[512];
+                      _fullpath(buf, "Asset/Data/Scene/GameScene.json", 512);
+                      std::string msg = "Scene Saved: " + std::string(buf);
+                      Logger::Instance().AddLog(Logger::LogLevel::Info, msg.c_str());
+                  } else {
+                      Logger::Instance().AddLog(Logger::LogLevel::Error, "Failed to save Scene!");
+                  }
+              }
             ImGui::EndTabItem();
         }
         ImGui::EndTabBar();
@@ -171,12 +187,19 @@ void Editor::DrawHierarchyAndInspector(Scene* scene) {
     ImGui::End();
 
     // Ctrl+S
-    if (ImGui::IsKeyPressed(ImGuiKey_S, false) && ImGui::GetIO().KeyCtrl) {
+            if (ImGui::IsKeyPressed(ImGuiKey_S, false) && ImGui::GetIO().KeyCtrl) {
         nlohmann::json j;
         scene->Serialize(j);
         std::ofstream o("Asset/Data/Scene/GameScene.json");
-        o << std::setw(4) << j << std::endl;
-                Logger::Instance().AddLog(Logger::LogLevel::Info, "シーンを保存しました");
+        if (o.is_open()) {
+            o << std::setw(4) << j << std::endl;
+            char buf[512];
+            _fullpath(buf, "Asset/Data/Scene/GameScene.json", 512);
+            std::string msg = "Ctrl+S Saved: " + std::string(buf);
+            Logger::Instance().AddLog(Logger::LogLevel::Info, msg.c_str());
+        } else {
+            Logger::Instance().AddLog(Logger::LogLevel::Error, "Ctrl+S Failed to save!");
+        }
     }
 
     // Delete Key (Using Framework Input to bypass ImGui mapping issues)
@@ -237,15 +260,96 @@ void Editor::DrawHierarchyAndInspector(Scene* scene) {
         if (s_selectedObject) {
             ImGui::Separator();
 
-            // Components
-            for (auto& comp : s_selectedObject->GetComponentsList())
-            {
-                if (ImGui::CollapsingHeader(comp->GetComponentName(), ImGuiTreeNodeFlags_DefaultOpen))
-                {
-                    comp->ImGuiUpdate();
+                        // Components
+            auto entity = s_selectedObject->GetEntityID();
+            auto& ecs = GameManager::Instance().GetECS();
+
+            if (ecs.HasComponent<TransformData>(entity)) {
+                if (ImGui::CollapsingHeader("TransformData", ImGuiTreeNodeFlags_DefaultOpen)) {
+                    auto& t = ecs.GetComponent<TransformData>(entity);
+                    ImGui::DragFloat3("Position", &t.m_position.x, 0.1f);
+                    
+                    Math::Vector3 rotDeg = t.m_rotation;
+                    rotDeg.x = DirectX::XMConvertToDegrees(rotDeg.x);
+                    rotDeg.y = DirectX::XMConvertToDegrees(rotDeg.y);
+                    rotDeg.z = DirectX::XMConvertToDegrees(rotDeg.z);
+                    if (ImGui::DragFloat3("Rotation", &rotDeg.x, 0.5f)) {
+                        t.m_rotation.x = DirectX::XMConvertToRadians(rotDeg.x);
+                        t.m_rotation.y = DirectX::XMConvertToRadians(rotDeg.y);
+                        t.m_rotation.z = DirectX::XMConvertToRadians(rotDeg.z);
+                    }
+                    ImGui::DragFloat3("Scale", &t.m_scale.x, 0.1f);
                 }
             }
 
+            if (ecs.HasComponent<ModelRenderData>(entity)) {
+                if (ImGui::CollapsingHeader("ModelRenderData", ImGuiTreeNodeFlags_DefaultOpen)) {
+                    auto& m = ecs.GetComponent<ModelRenderData>(entity);
+                    ImGui::Text("File Path: %s", m.m_filePath.c_str());
+                    
+                    int modelType = static_cast<int>(m.m_modelType);
+                    ImGui::RadioButton("Static", &modelType, 0); ImGui::SameLine();
+                    ImGui::RadioButton("Dynamic", &modelType, 1);
+                    m.m_modelType = static_cast<ModelType>(modelType);
+                }
+            }
+
+            if (ecs.HasComponent<CameraData>(entity)) {
+                if (ImGui::CollapsingHeader("CameraData", ImGuiTreeNodeFlags_DefaultOpen)) {
+                    auto& c = ecs.GetComponent<CameraData>(entity);
+                    ImGui::DragFloat3("TPS Offset", &c.m_targetOffset.x, 0.1f);
+                    ImGui::DragFloat3("FPS Offset", &c.m_fpsOffset.x, 0.1f);
+                    ImGui::DragFloat("FOV", &c.m_fov, 0.5f, 1.0f, 179.0f);
+                    ImGui::DragFloat("Near Z", &c.m_nearZ, 0.1f);
+                    ImGui::DragFloat("Far Z", &c.m_farZ, 1.0f);
+                }
+            }
+
+            if (ecs.HasComponent<ColliderData>(entity)) {
+                if (ImGui::CollapsingHeader("ColliderData", ImGuiTreeNodeFlags_DefaultOpen)) {
+                    auto& col = ecs.GetComponent<ColliderData>(entity);
+                    ImGui::Checkbox("Is Static", &col.m_isStatic);
+
+                    ImGui::TextDisabled("Shapes");
+                    if (ImGui::Button("Add Box")) { col.m_shapes.push_back(std::make_shared<CollisionShapeBox>()); } ImGui::SameLine();
+                    if (ImGui::Button("Add Sphere")) { col.m_shapes.push_back(std::make_shared<CollisionShapeSphere>()); } ImGui::SameLine();
+                    if (ImGui::Button("Add Capsule")) { col.m_shapes.push_back(std::make_shared<CollisionShapeCapsule>()); }
+
+                    for (size_t i = 0; i < col.m_shapes.size(); ++i) {
+                        ImGui::PushID((int)i);
+                        auto& shape = col.m_shapes[i];
+                        if (ImGui::TreeNode(shape->m_name.c_str())) {
+                            shape->Editor_ImGui();
+                            ImGui::TreePop();
+                        }
+                        ImGui::SameLine();
+                        if (ImGui::Button("Remove")) {
+                            col.m_shapes.erase(col.m_shapes.begin() + i);
+                            --i;
+                        }
+                        ImGui::PopID();
+                    }
+                }
+            }
+            if (ecs.HasComponent<AnimationDataComponent>(entity)) {
+                if (ImGui::CollapsingHeader("AnimationDataComponent", ImGuiTreeNodeFlags_DefaultOpen)) {
+                    auto& animData = ecs.GetComponent<AnimationDataComponent>(entity);
+                    ImGui::InputInt("Animation Index", &animData.currentAnim.AnimationIndex);
+                    ImGui::DragFloat("Progress Time", &animData.currentAnim.ProgressTime, 0.01f);
+                    ImGui::DragFloat("Speed", &animData.currentAnim.Speed, 0.01f);
+                    ImGui::Checkbox("Is Playing", &animData.currentAnim.IsPlaying);
+                    ImGui::Checkbox("Is Loop", &animData.currentAnim.IsLoop);
+                }
+            }
+            if (ecs.HasComponent<NativeScriptData>(entity)) {
+                if (ImGui::CollapsingHeader("NativeScript", ImGuiTreeNodeFlags_DefaultOpen)) {
+                    auto& scriptData = ecs.GetComponent<NativeScriptData>(entity);
+                    ImGui::Text("Script: %s", scriptData.ScriptName.c_str());
+                    if (scriptData.Instance) {
+                        scriptData.Instance->ImGuiUpdate();
+                    }
+                }
+            }
             ImGui::Separator();
             if (ImGui::Button("Add Component", ImVec2(-1, 0))) {
                 ImGui::OpenPopup("AddComponentPopup");
@@ -258,22 +362,37 @@ void Editor::DrawHierarchyAndInspector(Scene* scene) {
                 }
                 ImGui::Separator();
 
-                auto& factories = ClassAssembly::Instance().GetFactories();
-                for (auto& pair : factories) {
-                    if (ImGui::MenuItem(pair.first.c_str())) {
-                        auto newComp = ClassAssembly::Instance().Create(pair.first);
+                ImGui::TextDisabled("--- Native Scripts ---");
+                for (const auto& name : ClassAssembly::Instance().GetRegisteredClasses()) {
+                    if (ImGui::MenuItem(name.c_str())) {
+                        auto newComp = ClassAssembly::Instance().Create(name);
                         if (newComp) {
-                            s_selectedObject->AddComponent(newComp);
+                            NativeScriptData data;
+                            data.ScriptName = name;
+                            data.Instance = std::dynamic_pointer_cast<NativeScript>(newComp);
+                            data.Instance->SetGameObject(s_selectedObject.get());
+                            GameManager::Instance().GetECS().AddComponent<NativeScriptData>(s_selectedObject->GetEntityID(), data);
                         }
                     }
                 }
                 ImGui::Separator();
+                
+                ImGui::TextDisabled("--- ECS Components ---");
+                bool hasTrans = ecs.HasComponent<TransformData>(entity);
+                if (ImGui::MenuItem("TransformData", nullptr, false, !hasTrans)) ecs.AddComponent<TransformData>(entity, TransformData{});
+                
+                bool hasModel = ecs.HasComponent<ModelRenderData>(entity);
+                if (ImGui::MenuItem("ModelRenderData", nullptr, false, !hasModel)) ecs.AddComponent<ModelRenderData>(entity, ModelRenderData{});
+                
+                bool hasCam = ecs.HasComponent<CameraData>(entity);
+                if (ImGui::MenuItem("CameraData", nullptr, false, !hasCam)) ecs.AddComponent<CameraData>(entity, CameraData{});
+                
+                bool hasCol = ecs.HasComponent<ColliderData>(entity);
+                if (ImGui::MenuItem("ColliderData", nullptr, false, !hasCol)) ecs.AddComponent<ColliderData>(entity, ColliderData{});
 
-                bool hasAnim = s_selectedObject->GetComponent<AnimationComponent>() != nullptr;
-                if (ImGui::MenuItem("AnimationComponent", nullptr, false, !hasAnim))
-                {
-                    s_selectedObject->AddComponent<AnimationComponent>();
-                }
+                bool hasAnim = ecs.HasComponent<AnimationDataComponent>(entity);
+                if (ImGui::MenuItem("AnimationDataComponent", nullptr, false, !hasAnim)) ecs.AddComponent<AnimationDataComponent>(entity, AnimationDataComponent{});
+                
                 ImGui::EndPopup();
             }
 
@@ -398,9 +517,9 @@ void Editor::DrawAssetEditor()
         return;
     }
 
-    auto pModelComp = s_selectedObject->GetComponent<ModelRendererComponent>();
-    if (!pModelComp) {
-        ImGui::TextDisabled("Selected object does not have a ModelRendererComponent.");
+    bool hasModel = GameManager::Instance().GetECS().HasComponent<ModelRenderData>(s_selectedObject->GetEntityID());
+    if (!hasModel) {
+        ImGui::TextDisabled("Selected object does not have a ModelRenderData.");
         ImGui::End();
         return;
     }
@@ -446,7 +565,7 @@ void Editor::DrawAssetEditor()
     ImGui::RadioButton("Dynamic", &s_selectedModelType, 1);
     if (ImGui::Button("?K?p (Apply to Selected Object)")) {
         if (!s_selectedAssetPath.empty()) {
-            auto& data = pModelComp->GetData();
+            auto& data = GameManager::Instance().GetECS().GetComponent<ModelRenderData>(s_selectedObject->GetEntityID());
             data.m_modelType = (ModelType)s_selectedModelType;
             data.m_spModelData = std::make_shared<ModelData>();
             data.m_spModelData->Load(s_selectedAssetPath);
@@ -499,6 +618,20 @@ void Editor::DrawGameView(RenderTarget* pRenderTarget, uint32_t cameraEntity, bo
     }
     ImGui::End();
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

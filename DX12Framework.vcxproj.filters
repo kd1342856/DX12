@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="shift_jis"?>
+<?xml version="1.0" encoding="shift_jis"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Source\Application" />
@@ -300,9 +300,6 @@
       <Filter>Source\Framework\ImGuiEditor\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="Source\Framework\System.h" />
-    <ClInclude Include="Source\Framework\ECS\ComponentBase.h">
-      <Filter>Source\Framework\ECS</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Framework\ECS\ComponentManager.h">
       <Filter>Source\Framework\ECS</Filter>
     </ClInclude>
@@ -333,18 +330,6 @@
     <ClInclude Include="Source\Framework\ECS\Components\Data\TransformData.h">
       <Filter>Source\Framework\ECS\Components\Data</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Framework\ECS\Components\CameraComponent.h">
-      <Filter>Source\Framework\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Framework\ECS\Components\ModelRendererComponent.h">
-      <Filter>Source\Framework\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Framework\ECS\Components\ScriptComponent.h">
-      <Filter>Source\Framework\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Framework\ECS\Components\TransformComponent.h">
-      <Filter>Source\Framework\ECS\Components</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Framework\Manager\GameManager.h">
       <Filter>Source\Framework\Manager</Filter>
     </ClInclude>
@@ -362,15 +347,6 @@
     </ClInclude>
     <ClInclude Include="Source\Graphics\Shader\PostProcessShader\PostProcessShader.h">
       <Filter>Source\Graphics\Shader\PostProcess</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Framework\ECS\Components\PostProcessComponent.h">
-      <Filter>Source\Framework\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Framework\ECS\Components\AnimationComponent.h">
-      <Filter>Source\Framework\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="..\??\DX12\Source\Framework\ECS\Components\Data\AnimationData.h">
-      <Filter>Source\Framework\ECS\Components\Data</Filter>
     </ClInclude>
     <ClInclude Include="Source\Graphics\Shader\ShadowShader\ShadowShader.h">
       <Filter>Source\Graphics\Shader\Shadow</Filter>
@@ -404,6 +380,24 @@
     </ClInclude>
     <ClInclude Include="Source\Framework\Manager\CollisionSolver.h">
       <Filter>Source\Framework\Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\ECS\Components\Data\AnimationData.h">
+      <Filter>Source\Framework\ECS\Components\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\ECS\Components\Data\ColliderData.h">
+      <Filter>Source\Framework\ECS\Components\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\ECS\Components\Data\NativeScriptData.h">
+      <Filter>Source\Framework\ECS\Components\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\ECS\Components\Data\NativeScript.h">
+      <Filter>Source\Framework\ECS\Components\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\ECS\CompSystem\Systems\TransformSystem.h">
+      <Filter>Source\Framework\ECS\CompSystem\Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\ECS\CompSystem\Systems\NativeScriptSystem.h">
+      <Filter>Source\Framework\ECS\CompSystem\Systems</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -527,12 +521,6 @@
     <ClCompile Include="Source\Graphics\Shader\PostProcessShader\PostProcessShader.cpp">
       <Filter>Source\Graphics\Shader\PostProcess</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Framework\ECS\Components\PostProcessComponent.cpp">
-      <Filter>Source\Framework\ECS\Components</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Framework\ECS\Components\AnimationComponent.cpp">
-      <Filter>Source\Framework\ECS\Components</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Graphics\Shader\ShadowShader\ShadowShader.cpp">
       <Filter>Source\Graphics\Shader\Shadow</Filter>
     </ClCompile>
@@ -541,9 +529,6 @@
     </ClCompile>
     <ClCompile Include="Source\Framework\DirectX\Utility\Time.cpp">
       <Filter>Source\Framework\DirectX\Utility</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Framework\ECS\Components\ColliderComponent.cpp">
-      <Filter>Source\Framework\ECS\Components</Filter>
     </ClCompile>
     <ClCompile Include="Source\Framework\System\JobSystem\JobSystem.cpp">
       <Filter>Source\Framework\System\JobSystem</Filter>

@@ -41,6 +41,18 @@ bool RenderTarget::Create(int width, int height)
 	m_srvIndex = m_pGraphicsDevice->GetCBVSRVUAVHeap()->CreateSRV(m_pBuffer.Get());
 	m_imGuiSrvIndex = m_pGraphicsDevice->AllocateImGuiSRV(m_pBuffer.Get());
 
+	// Actually create the SRV in the ImGui SRV Heap
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MipLevels = 1;
+	
+	auto handle = m_pGraphicsDevice->GetImGuiSRVGPUHandle(m_imGuiSrvIndex);
+	D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle = m_pGraphicsDevice->GetImGuiSRVHeap()->GetCPUDescriptorHandleForHeapStart();
+	cpuHandle.ptr += m_pGraphicsDevice->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * m_imGuiSrvIndex;
+	m_pGraphicsDevice->GetDevice()->CreateShaderResourceView(m_pBuffer.Get(), &srvDesc, cpuHandle);
+
 	// DepthStencilì¬
 	D3D12_RESOURCE_DESC depthResDesc = resDesc;
 	depthResDesc.Format = DXGI_FORMAT_D32_FLOAT;
@@ -70,4 +82,14 @@ void RenderTarget::Clear(float r, float g, float b, float a)
 	float clearColor[] = { r, g, b, a };
 	m_pGraphicsDevice->GetCmdList()->ClearRenderTargetView(rtvH, clearColor, 0, nullptr);
 	m_pGraphicsDevice->GetCmdList()->ClearDepthStencilView(dsvH, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+}
+
+void RenderTarget::TransitionToRenderTarget()
+{
+	m_pGraphicsDevice->SetResourceBarrier(m_pBuffer.Get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
+}
+
+void RenderTarget::TransitionToShaderResource()
+{
+	m_pGraphicsDevice->SetResourceBarrier(m_pBuffer.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 }

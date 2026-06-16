@@ -1,3 +1,4 @@
+#include "../../../Graphics/Descriptors/Heap/CBVSRVUAVHeap/CBVSRVUAVHeap.h"
 #include "Pch.h"
 #include "GameScene.h"
 #include "../../../Graphics/Device/GraphicsDevice.h"
@@ -8,12 +9,10 @@
 #include "../../../Framework/DirectX/Utility/Time.h"
 #include "../../../Framework/Manager/CollisionManager.h"
 #include <fstream>
-#include <functional>
-#include "../../../Framework/ECS/Components/TransformComponent.h"
-#include "../../../Framework/ECS/Components/CameraComponent.h"
-#include "../../../Framework/ECS/Components/ModelRendererComponent.h"
-#include "../../../Framework/ECS/Components/ScriptComponent.h"
-#include "../../../Framework/ECS/Components/PostProcessComponent.h"
+#include "../../../Framework/ECS/Components/Data/TransformData.h"
+#include "../../../Framework/ECS/Components/Data/CameraData.h"
+#include "../../../Framework/ECS/Components/Data/ModelRenderData.h"
+#include "../../../Framework/ECS/Components/Data/ShaderData.h"
 
 void GameScene::Init()
 {
@@ -31,60 +30,71 @@ void GameScene::Init()
         nlohmann::json j;
         in >> j;
         m_spScene->Deserialize(j);
-        Logger::Instance().AddLog(Logger::LogLevel::Info, "シーンのロード完了");
+        Logger::Instance().AddLog(Logger::LogLevel::Info, "Scene Loaded");
+
+        // TEST SERIALIZATION OF SHAPES
+        nlohmann::json testOut;
+        m_spScene->Serialize(testOut);
+        std::ofstream outTest("Asset/Data/Scene/TestSerialize.json");
+        outTest << std::setw(4) << testOut << std::endl;
+        Logger::Instance().AddLog(Logger::LogLevel::Info, "TestSerialize.json Written");
     } else 
+    { 
     {
         auto cameraObj = m_spScene->CreateGameObject("MainCamera");
-        auto pCamT = cameraObj->AddComponent<TransformComponent>();
-        pCamT->GetData().m_position = Math::Vector3(0, 0, -5.0f);
-        cameraObj->AddComponent<CameraComponent>();
-        cameraObj->AddComponent<PostProcessComponent>();
+        TransformData camTrans;
+        camTrans.m_position = Math::Vector3(0, 0, -5.0f);
+        cameraObj->AddComponent<TransformData>(camTrans);
+        cameraObj->AddComponent<CameraData>(CameraData{});
     }
 }
 
 void GameScene::Update()
 {
-    // Toggle game mode
-    if (Input::Instance().IsKeyTrigger(DirectX::Keyboard::Keys::F1) || Input::Instance().IsKeyTrigger(VK_F1))
-    {
-        m_fullscreenGame = !m_fullscreenGame;
-    }
-    if (Input::Instance().IsKeyTrigger(DirectX::Keyboard::Keys::F5) || Input::Instance().IsKeyTrigger(VK_F5))
-    {
-        m_fullscreenGame = true;
-    }
+    if (Input::Instance().IsKeyTrigger(DirectX::Keyboard::Keys::F1)) { m_showEditor = !m_showEditor; }
+    if (Input::Instance().IsKeyTrigger(DirectX::Keyboard::Keys::F5)) { m_fullscreenGame = !m_fullscreenGame; }
 
-    UpdateInput();
+    if (!Editor::GetEditorMode() || m_fullscreenGame)
+    {
+        UpdateInput();
+    }
     
+    UpdateCameras();
     m_spScene->Update();
 
-    UpdateCameras();
-    
     Render();
 }
 
 void GameScene::UpdateInput()
 {
-    // Relative Mouse Mode Toggle
-    if (Input::Instance().IsMouseRightTrigger() && !ImGui::GetIO().WantCaptureMouse) {
-        Input::Instance().SetMouseModeRelative();
-        m_isCameraDragging = true;
-    } else if (Input::Instance().IsMouseRightRelease() && m_isCameraDragging) {
-        Input::Instance().SetMouseModeAbsolute();
-        m_isCameraDragging = false;
+    if (Input::Instance().IsKeyTrigger(DirectX::Keyboard::Keys::Space))
+    {
+        Logger::Instance().AddLog(Logger::LogLevel::Info, "Space pressed!");
     }
+}
 
+void GameScene::UpdateCameras()
+{
+    auto& ecs = GameManager::Instance().GetECS();
     m_editorCameraEntity = INVALID_ENTITY;
     m_gameCameraEntity = INVALID_ENTITY;
     std::shared_ptr<GameObject> pEditorCameraObj = nullptr;
 
     std::function<void(const std::shared_ptr<GameObject>&)> findCameras = [&](const std::shared_ptr<GameObject>& obj) {
-        if (obj->GetComponent<CameraComponent>())
+        if (obj->HasComponent<CameraData>())
         {
             if (obj->GetName() == "MainCamera")
             {
                 m_editorCameraEntity = obj->GetEntityID();
                 pEditorCameraObj = obj;
+                
+                // 強制的にバグを取り除くための安全装置
+                if (ecs.HasComponent<NativeScriptData>(obj->GetEntityID())) {
+                    ecs.RemoveComponent<NativeScriptData>(obj->GetEntityID());
+                }
+                if (ecs.HasComponent<ColliderData>(obj->GetEntityID())) {
+                    ecs.RemoveComponent<ColliderData>(obj->GetEntityID());
+                }
             }
             else
             {
@@ -102,9 +112,17 @@ void GameScene::UpdateInput()
         findCameras(obj);
     }
 
-    // Fallback if no game camera
     if (m_gameCameraEntity == INVALID_ENTITY) {
         m_gameCameraEntity = m_editorCameraEntity;
+    }
+
+    // Relative Mouse Mode Toggle
+    if (Input::Instance().IsMouseRightTrigger() && !ImGui::GetIO().WantCaptureMouse) {
+        Input::Instance().SetMouseModeRelative();
+        m_isCameraDragging = true;
+    } else if (Input::Instance().IsMouseRightRelease() && m_isCameraDragging) {
+        Input::Instance().SetMouseModeAbsolute();
+        m_isCameraDragging = false;
     }
 
     // Control Logic
@@ -113,12 +131,10 @@ void GameScene::UpdateInput()
         // Editor Free Camera
         if (m_editorCameraEntity != INVALID_ENTITY && pEditorCameraObj && m_isCameraDragging)
         {
-            auto pTrans = pEditorCameraObj->GetComponent<TransformComponent>();
-            auto pCamComp = pEditorCameraObj->GetComponent<CameraComponent>();
-            if (pTrans && pCamComp)
+            if (pEditorCameraObj->HasComponent<TransformData>() && pEditorCameraObj->HasComponent<CameraData>())
             {
-                auto& data = pTrans->GetData();
-                auto& camData = pCamComp->GetData();
+                auto& data = pEditorCameraObj->GetComponent<TransformData>();
+                auto& camData = pEditorCameraObj->GetComponent<CameraData>();
 
                 float rotSpeed = 0.002f;
                 data.m_rotation.y += Input::Instance().GetMouseDeltaX() * rotSpeed;
@@ -136,12 +152,12 @@ void GameScene::UpdateInput()
                 Math::Vector3 moveVec = Math::Vector3(0, 0, 0);
                 float moveSpeed = camData.m_moveSpeed;
 
-                if (Input::Instance().IsKeyHold(DirectX::Keyboard::Keys::W)) moveVec += forward;
-                if (Input::Instance().IsKeyHold(DirectX::Keyboard::Keys::S)) moveVec -= forward;
-                if (Input::Instance().IsKeyHold(DirectX::Keyboard::Keys::D)) moveVec += right;
-                if (Input::Instance().IsKeyHold(DirectX::Keyboard::Keys::A)) moveVec -= right;
-                if (Input::Instance().IsKeyHold(DirectX::Keyboard::Keys::E)) moveVec += up;
-                if (Input::Instance().IsKeyHold(DirectX::Keyboard::Keys::Q)) moveVec -= up;
+                if (Input::Instance().IsKeyHold('W')) moveVec += forward;
+                if (Input::Instance().IsKeyHold('S')) moveVec -= forward;
+                if (Input::Instance().IsKeyHold('D')) moveVec += right;
+                if (Input::Instance().IsKeyHold('A')) moveVec -= right;
+                if (Input::Instance().IsKeyHold('E')) moveVec += up;
+                if (Input::Instance().IsKeyHold('Q')) moveVec -= up;
 
                 if (moveVec.LengthSquared() > 0.0f)
                 {
@@ -151,13 +167,9 @@ void GameScene::UpdateInput()
             }
         }
     }
-}
-
-void GameScene::UpdateCameras()
-{
-    // Player Control Mode
-    if (!Editor::GetEditorMode() || m_fullscreenGame)
+    else
     {
+        // Player Control Mode
         std::shared_ptr<GameObject> pPlayerObj = nullptr;
         std::shared_ptr<GameObject> pGameCamObj = nullptr;
 
@@ -171,14 +183,10 @@ void GameScene::UpdateCameras()
         }
 
         if (pPlayerObj && pGameCamObj) {
-            auto pPlayerTrans = pPlayerObj->GetComponent<TransformComponent>();
-            auto pCamTrans = pGameCamObj->GetComponent<TransformComponent>();
-            auto pCamComp = pGameCamObj->GetComponent<CameraComponent>();
-            
-            if (pPlayerTrans && pCamTrans && pCamComp) {
-                auto& pData = pPlayerTrans->GetData();
-                auto& cData = pCamTrans->GetData();
-                auto& camData = pCamComp->GetData();
+            if (pPlayerObj->HasComponent<TransformData>() && pGameCamObj->HasComponent<TransformData>() && pGameCamObj->HasComponent<CameraData>()) {
+                auto& pData = pPlayerObj->GetComponent<TransformData>();
+                auto& cData = pGameCamObj->GetComponent<TransformData>();
+                auto& camData = pGameCamObj->GetComponent<CameraData>();
 
                 if (m_isCameraDragging || m_fullscreenGame) {
                     float rotSpeed = 0.002f;
@@ -210,55 +218,98 @@ void GameScene::UpdateCameras()
 
 void GameScene::Render()
 {
-    m_spScene->PreDraw();
+    auto renderSystem = m_spScene->GetRenderSystem();
+    if (!renderSystem) return;
+
+    D3D12_VIEWPORT viewport = {};
+    viewport.Width = 1280.0f;
+    viewport.Height = 720.0f;
+    viewport.MinDepth = 0.0f;
+    viewport.MaxDepth = 1.0f;
+    D3D12_RECT scissorRect = { 0, 0, 1280, 720 };
+    GraphicsDevice::Instance().GetCmdList()->RSSetViewports(1, &viewport);
+    GraphicsDevice::Instance().GetCmdList()->RSSetScissorRects(1, &scissorRect);
 
     if (m_fullscreenGame)
     {
         GraphicsDevice::Instance().SetBackBuffer();
         if (m_gameCameraEntity != INVALID_ENTITY)
         {
-            m_spScene->GetRenderSystem()->Update(m_gameCameraEntity);
+            renderSystem->Update(m_gameCameraEntity, nullptr);
         }
         else
         {
             GraphicsDevice::Instance().ClearBackBuffer(0.0f, 0.0f, 0.0f, 1.0f);
         }
-        m_spScene->Draw();
     }
     else
     {
-        GraphicsDevice::Instance().SetResourceBarrier(
-            m_upRenderTarget->GetResource(),
-            D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
-            D3D12_RESOURCE_STATE_RENDER_TARGET
-        );
+        // 1. Render to GameView RenderTarget using Game Camera
+        m_upRenderTarget->TransitionToRenderTarget();
         GraphicsDevice::Instance().SetRenderTarget(m_upRenderTarget.get());
         if (m_gameCameraEntity != INVALID_ENTITY)
         {
-            m_upRenderTarget->Clear(0.2f, 0.2f, 0.3f, 1.0f);
-            m_spScene->GetRenderSystem()->Update(m_gameCameraEntity, m_upRenderTarget.get());
+            m_upRenderTarget->Clear();
+            renderSystem->Update(m_gameCameraEntity, m_upRenderTarget.get());
+            CollisionManager::Instance().DrawDebugWires(0, 0, 1280.0f, 720.0f, m_gameCameraEntity);
         }
         else
         {
-            m_upRenderTarget->Clear(0.0f, 0.0f, 0.0f, 1.0f);
+            m_upRenderTarget->Clear();
+        }
+        m_upRenderTarget->TransitionToShaderResource();
+
+        // 2. Render to BackBuffer using Editor Camera
+        GraphicsDevice::Instance().SetBackBuffer();
+        if (m_editorCameraEntity != INVALID_ENTITY)
+        {
+            renderSystem->Update(m_editorCameraEntity, nullptr);
+            CollisionManager::Instance().DrawDebugWires(0, 0, 1280.0f, 720.0f, m_editorCameraEntity);
         }
 
-        GraphicsDevice::Instance().SetResourceBarrier(
-            m_upRenderTarget->GetResource(),
-            D3D12_RESOURCE_STATE_RENDER_TARGET,
-            D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE
-        );
-
-        GraphicsDevice::Instance().SetBackBuffer();
-        m_spScene->GetRenderSystem()->Update(m_editorCameraEntity);
-        CollisionManager::Instance().DrawDebugWires(0, 0, 1280.0f, 720.0f, m_editorCameraEntity);
-        m_spScene->Draw();
-
-        if (m_showEditor)
-        {
-            Editor::DrawGameView(m_upRenderTarget.get(), m_gameCameraEntity, false);
+        // 3. Draw ImGui
+        if (Editor::GetEditorMode() && m_showEditor) { Editor::DrawGameView(m_upRenderTarget.get(), m_gameCameraEntity, false);
             Editor::DrawHierarchyAndInspector(m_spScene.get());
             Logger::Instance().DrawImGuiWindow();
         }
+        else
+        {
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+            ImGui::Begin("GameScene");
+
+            ImVec2 vMin = ImGui::GetWindowContentRegionMin();
+            ImVec2 vMax = ImGui::GetWindowContentRegionMax();
+            vMin.x += ImGui::GetWindowPos().x;
+            vMin.y += ImGui::GetWindowPos().y;
+            vMax.x += ImGui::GetWindowPos().x;
+            vMax.y += ImGui::GetWindowPos().y;
+            ImGui::Image((ImTextureID)GraphicsDevice::Instance().GetCBVSRVUAVHeap()->GetGPUHandle(m_upRenderTarget->GetImGuiSRVIndex()).ptr, ImVec2(vMax.x - vMin.x, vMax.y - vMin.y));
+
+            if (ImGui::IsItemClicked())
+            {
+                ImGui::SetWindowFocus("GameScene");
+            }
+            bool isWindowFocused = ImGui::IsWindowFocused();
+
+            ImGui::End();
+            ImGui::PopStyleVar();
+
+            if (isWindowFocused)
+            {
+                ImGui::GetIO().WantCaptureMouse = false;
+                ImGui::GetIO().WantCaptureKeyboard = false;
+            }
+            else
+            {
+                ImGui::GetIO().WantCaptureMouse = true;
+                ImGui::GetIO().WantCaptureKeyboard = true;
+            }
+        }
     }
 }
+
+
+
+
+
+

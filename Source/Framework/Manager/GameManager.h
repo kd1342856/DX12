@@ -1,6 +1,12 @@
 #pragma once
 #include "../ECS/ECS.h"
+#include "../ECS/Components/Data/TransformData.h"
+#include "../ECS/Components/Data/CameraData.h"
+#include "../ECS/Components/Data/ModelRenderData.h"
+#include "../ECS/Components/Data/ShaderData.h"
+#include "../ECS/Components/Data/AnimationData.h"
 #include "../ECS/Components/Data/ColliderData.h"
+#include "../ECS/Components/Data/NativeScriptData.h"
 #include "../Manager/CollisionManager.h"
 #include "../System/JobSystem/JobSystem.h"
 #include "../DirectX/Utility/ClassAssembly.h"
@@ -24,16 +30,18 @@ public:
     static bool IsInstanceAlive() { return s_alive; }
 
     // 初期化（アプリ起動時に一度だけ呼ぶ）
-    void Init()
+        void Init()
     {
         m_ecs.Init();
-        // ECSに全コンポーネント型を登録
+        // ECS?SR|[lg^o^
         m_ecs.RegisterComponent<TransformData>();
         m_ecs.RegisterComponent<CameraData>();
         m_ecs.RegisterComponent<ModelRenderData>();
         m_ecs.RegisterComponent<ShaderData>();
         m_ecs.RegisterComponent<AnimationDataComponent>();
         m_ecs.RegisterComponent<ColliderData>();
+        m_ecs.RegisterComponent<NativeScriptData>();
+        m_ecs.RegisterComponent<std::shared_ptr<NativeScript>>();
         CollisionManager::Instance().Init();
 		JobSystem::Instance().Init();
     }
@@ -55,3 +63,4 @@ private:
     // シャットダウン時の二重アクセス防止フラグ
     static bool s_alive;
 };
+

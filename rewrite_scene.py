@@ -1,103 +1,16 @@
-#include "Pch.h"
-#include "Scene.h"
-#include "../ECS/Components/Data/TransformData.h"
-#include "../ECS/Components/Data/CameraData.h"
-#include "../ECS/Components/Data/ModelRenderData.h"
-#include "../ECS/Components/Data/ShaderData.h"
-#include "../ECS/Components/Data/AnimationData.h"
-#include "../ECS/Components/Data/ColliderData.h"
-#include "../ECS/Components/Data/NativeScriptData.h"
-#include "CollisionManager.h"
-#include "ResourceManager.h"
-#include "../DirectX/Utility/ClassAssembly.h"
+﻿import re
 
-Scene::Scene() {}
-Scene::~Scene() {}
+with open('C:/GitHub/DX12/Source/Framework/Manager/Scene.cpp', 'r', encoding='shift_jis') as f:
+    content = f.read()
 
-std::shared_ptr<GameObject> Scene::CreateGameObject(const std::string& name) {
-    auto obj = std::make_shared<GameObject>();
-    obj->SetName(name);
-    obj->SetScene(this);
-    auto& ecs = GameManager::Instance().GetECS();
-    Entity id = ecs.CreateEntity();
-    obj->SetEntityID(id);
-    ecs.AddComponent(id, TransformData{});
-    m_gameObjects.push_back(obj);
-    RegisterGameObject(id, obj);
-    return obj;
-}
+# Fix 1: ecs.RegisterComponent<AnimationData>(); -> ecs.RegisterComponent<AnimationDataComponent>();
+content = content.replace('ecs.RegisterComponent<AnimationData>();', 'ecs.RegisterComponent<AnimationDataComponent>();')
 
-void Scene::Init() {
-    auto& ecs = GameManager::Instance().GetECS();
+# Fix 2: animSig.set(ecs.GetComponentType<AnimationData>()); -> animSig.set(ecs.GetComponentType<AnimationDataComponent>());
+content = content.replace('animSig.set(ecs.GetComponentType<AnimationData>());', 'animSig.set(ecs.GetComponentType<AnimationDataComponent>());')
 
-    m_spRenderSystem = ecs.RegisterSystem<RenderSystem>();
-    Signature renderSig;
-    renderSig.set(ecs.GetComponentType<TransformData>());
-    renderSig.set(ecs.GetComponentType<ModelRenderData>());
-    ecs.SetSystemSignature<RenderSystem>(renderSig);
-    m_spRenderSystem->m_pCoordinator = &ecs;
-
-    m_spTransformSystem = ecs.RegisterSystem<TransformSystem>();
-    Signature transformSig;
-    transformSig.set(ecs.GetComponentType<TransformData>());
-    ecs.SetSystemSignature<TransformSystem>(transformSig);
-    m_spTransformSystem->m_pCoordinator = &ecs;
-
-    m_spCameraSystem = ecs.RegisterSystem<CameraSystem>();
-    Signature cameraSig;
-    cameraSig.set(ecs.GetComponentType<TransformData>());
-    cameraSig.set(ecs.GetComponentType<CameraData>());
-    ecs.SetSystemSignature<CameraSystem>(cameraSig);
-    m_spCameraSystem->m_pCoordinator = &ecs;
-
-    m_spAnimationSystem = ecs.RegisterSystem<AnimationSystem>();
-    Signature animSig;
-    animSig.set(ecs.GetComponentType<AnimationDataComponent>());
-    animSig.set(ecs.GetComponentType<ModelRenderData>());
-    ecs.SetSystemSignature<AnimationSystem>(animSig);
-    m_spAnimationSystem->m_pCoordinator = &ecs;
-
-    m_spScriptSystem = ecs.RegisterSystem<ScriptSystem>();
-    Signature scriptSig;
-    scriptSig.set(ecs.GetComponentType<NativeScriptData>());
-    ecs.SetSystemSignature<ScriptSystem>(scriptSig);
-    m_spScriptSystem->m_pCoordinator = &ecs;
-}
-
-void Scene::Update() {
-    auto& ecs = GameManager::Instance().GetECS();
-    CollisionManager::Instance().SetScene(this);
-    CollisionManager::Instance().ClearDebugLines();
-
-    m_spScriptSystem->Update();
-
-    std::vector<std::shared_ptr<GameObject>> roots;
-    for (auto& obj : m_gameObjects) {
-        if (!obj->GetParent()) roots.push_back(obj);
-    }
-    m_spTransformSystem->Update(roots);
-
-    CollisionManager::Instance().Solve(this);
-
-    m_spTransformSystem->Update(roots);
-
-    m_spCameraSystem->Update();
-    m_spAnimationSystem->Update();
-    
-    m_spScriptSystem->PostUpdate();
-}
-
-void Scene::PreDraw() {
-}
-
-void Scene::Draw() {
-    m_spRenderSystem->Update();
-}
-
-void Scene::ImGuiUpdate() {
-}
-
-void Scene::Serialize(nlohmann::json& out) const {
+# Fix 3: Scene::Serialize
+serialize_code = '''void Scene::Serialize(nlohmann::json& out) const {
     auto& ecs = GameManager::Instance().GetECS();
     nlohmann::json objs = nlohmann::json::array();
 
@@ -184,7 +97,6 @@ void Scene::Serialize(nlohmann::json& out) const {
             children.push_back(serializeObj(child));
         }
         oj["Children"] = children;
-        
         return oj;
     };
 
@@ -194,9 +106,12 @@ void Scene::Serialize(nlohmann::json& out) const {
         }
     }
     out["GameObjects"] = objs;
-}
+}'''
 
-void Scene::DeserializeGameObject(const nlohmann::json& oj, std::shared_ptr<GameObject> parent) {
+content = re.sub(r'void Scene::Serialize\(nlohmann::json& out\) const \{.*?\n\}\n', serialize_code + '\n\n', content, flags=re.DOTALL)
+
+# Fix 4: Scene::DeserializeGameObject
+deserialize_code = '''void Scene::DeserializeGameObject(const nlohmann::json& oj, std::shared_ptr<GameObject> parent) {
     auto& ecs = GameManager::Instance().GetECS();
     auto obj = std::make_shared<GameObject>();
     obj->SetScene(this);
@@ -313,20 +228,15 @@ void Scene::DeserializeGameObject(const nlohmann::json& oj, std::shared_ptr<Game
         }
     }
 
+    // 親なし（ルートオブジェクト）だけm_gameObjectsに追加する
     if (!parent)
     {
         m_gameObjects.push_back(obj);
     }
     RegisterGameObject(id, obj);
-}
+}'''
 
-void Scene::Deserialize(const nlohmann::json& in) {
-    m_gameObjects.clear();
+content = re.sub(r'void Scene::DeserializeGameObject\(const nlohmann::json& oj, std::shared_ptr<GameObject> parent\) \{.*?\n\}\n', deserialize_code + '\n', content, flags=re.DOTALL)
 
-    if (in.contains("GameObjects")) {
-        for (const auto& oj : in["GameObjects"]) {
-            DeserializeGameObject(oj, nullptr);
-        }
-    }
-}
-
+with open('C:/GitHub/DX12/Source/Framework/Manager/Scene.cpp', 'w', encoding='shift_jis') as f:
+    f.write(content)

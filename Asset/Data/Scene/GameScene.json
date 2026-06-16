@@ -4,73 +4,116 @@
             "Children": [],
             "Components": [
                 {
-                    "PosX": -7.017994403839111,
-                    "PosY": 0.7120279669761658,
-                    "PosZ": -3.941927433013916,
-                    "RotX": 0.34600400924682617,
-                    "RotY": 7.280007839202881,
-                    "RotZ": 0.0,
-                    "ScaX": 1.0,
-                    "ScaY": 1.0,
-                    "ScaZ": 1.0,
-                    "Type": "TransformComponent"
+                    "Position": [
+                        -3.4920716285705566,
+                        0.9425103664398193,
+                        -0.6523759365081787
+                    ],
+                    "Rotation": [
+                        0.2580046057701111,
+                        14.130019187927246,
+                        0.0
+                    ],
+                    "Scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "Type": "TransformData"
                 },
                 {
                     "CameraMode": 0,
                     "FarZ": 1000.0,
                     "Fov": 60.0,
-                    "FpsOffsetX": 0.0,
-                    "FpsOffsetY": 1.5,
-                    "FpsOffsetZ": 0.0,
                     "MoveSpeed": 0.10000000149011612,
                     "NearZ": 0.009999999776482582,
-                    "TargetOffsetX": 0.0,
-                    "TargetOffsetY": 2.0,
-                    "TargetOffsetZ": -5.0,
-                    "Type": "CameraComponent"
-                },
-                {
-                    "Type": "PostProcessComponent"
+                    "Type": "CameraData"
                 }
             ],
             "IsActive": true,
             "Name": "MainCamera"
         },
         {
-            "Children": [],
-            "Components": [
+            "Children": [
                 {
-                    "PosX": 0.0,
-                    "PosY": 0.0,
-                    "PosZ": 0.0,
-                    "RotX": 0.0,
-                    "RotY": 0.0,
-                    "RotZ": 0.0,
-                    "ScaX": 1.0,
-                    "ScaY": 1.0,
-                    "ScaZ": 1.0,
-                    "Type": "TransformComponent"
-                },
-                {
-                    "FilePath": "Asset/Model/StageMap/StageMap.gltf",
-                    "ModelType": 0,
-                    "Type": "ModelRendererComponent"
-                },
-                {
-                    "IsStatic": true,
-                    "Shapes": [
+                    "Children": [],
+                    "Components": [
                         {
-                            "IsTrigger": false,
-                            "Offset": [
+                            "Position": [
                                 0.0,
                                 0.0,
                                 0.0
                             ],
-                            "ShapeId": 3,
-                            "Tags": 1
+                            "Rotation": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "Scale": [
+                                1.0,
+                                1.0,
+                                1.0
+                            ],
+                            "Type": "TransformData"
+                        },
+                        {
+                            "FilePath": "Asset/Model/StageMap/StageMap.gltf",
+                            "ModelType": 0,
+                            "Type": "ModelRenderData"
                         }
                     ],
-                    "Type": "ColliderComponent"
+                    "IsActive": true,
+                    "Name": "Model"
+                },
+                {
+                    "Children": [],
+                    "Components": [
+                        {
+                            "Position": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "Rotation": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "Scale": [
+                                1.0,
+                                1.0,
+                                1.0
+                            ],
+                            "Type": "TransformData"
+                        },
+                        {
+                            "IsStatic": true,
+                            "Shapes": [],
+                            "Type": "ColliderData"
+                        }
+                    ],
+                    "IsActive": true,
+                    "Name": "Collider"
+                }
+            ],
+            "Components": [
+                {
+                    "Position": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "Rotation": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "Scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "Type": "TransformData"
                 }
             ],
             "IsActive": true,
@@ -82,54 +125,27 @@
                     "Children": [],
                     "Components": [
                         {
-                            "PosX": 0.0,
-                            "PosY": 2.00091552734375,
-                            "PosZ": -2.448741912841797,
-                            "RotX": 0.3633424639701843,
-                            "RotY": 0.0,
-                            "RotZ": 0.0,
-                            "ScaX": 1.0,
-                            "ScaY": 1.0,
-                            "ScaZ": 1.0,
-                            "Type": "TransformComponent"
-                        },
-                        {
-                            "CameraMode": 1,
-                            "FarZ": 1000.0,
-                            "Fov": 60.0,
-                            "FpsOffsetX": 0.0,
-                            "FpsOffsetY": 1.399999976158142,
-                            "FpsOffsetZ": 0.0,
-                            "MoveSpeed": 0.10000000149011612,
-                            "NearZ": 0.009999999776482582,
-                            "TargetOffsetX": 0.0,
-                            "TargetOffsetY": 1.0,
-                            "TargetOffsetZ": -3.0,
-                            "Type": "CameraComponent"
-                        }
-                    ],
-                    "IsActive": true,
-                    "Name": "Camera"
-                },
-                {
-                    "Children": [],
-                    "Components": [
-                        {
-                            "PosX": 0.0,
-                            "PosY": 0.0,
-                            "PosZ": 0.0,
-                            "RotX": 0.0,
-                            "RotY": 0.0,
-                            "RotZ": 0.0,
-                            "ScaX": 1.0,
-                            "ScaY": 1.0,
-                            "ScaZ": 1.0,
-                            "Type": "TransformComponent"
+                            "Position": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "Rotation": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "Scale": [
+                                1.0,
+                                1.0,
+                                1.0
+                            ],
+                            "Type": "TransformData"
                         },
                         {
                             "FilePath": "Asset/Model/CesiumMan/CesiumMan3.gltf",
                             "ModelType": 1,
-                            "Type": "ModelRendererComponent"
+                            "Type": "ModelRenderData"
                         }
                     ],
                     "IsActive": true,
@@ -139,35 +155,60 @@
                     "Children": [],
                     "Components": [
                         {
-                            "PosX": 0.0,
-                            "PosY": 0.0,
-                            "PosZ": 0.0,
-                            "RotX": 0.0,
-                            "RotY": 0.0,
-                            "RotZ": 0.0,
-                            "ScaX": 1.0,
-                            "ScaY": 1.0,
-                            "ScaZ": 1.0,
-                            "Type": "TransformComponent"
+                            "Position": [
+                                0.0,
+                                1.7999999523162842,
+                                -1.600000023841858
+                            ],
+                            "Rotation": [
+                                0.5160003304481506,
+                                0.0,
+                                0.0
+                            ],
+                            "Scale": [
+                                1.0,
+                                1.0,
+                                1.0
+                            ],
+                            "Type": "TransformData"
+                        },
+                        {
+                            "CameraMode": 0,
+                            "FarZ": 1000.0,
+                            "Fov": 60.0,
+                            "MoveSpeed": 0.10000000149011612,
+                            "NearZ": 0.009999999776482582,
+                            "Type": "CameraData"
+                        }
+                    ],
+                    "IsActive": true,
+                    "Name": "Camera"
+                },
+                {
+                    "Children": [],
+                    "Components": [
+                        {
+                            "Position": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "Rotation": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "Scale": [
+                                1.0,
+                                1.0,
+                                1.0
+                            ],
+                            "Type": "TransformData"
                         },
                         {
                             "IsStatic": false,
-                            "Shapes": [
-                                {
-                                    "Depth": 0.5899999737739563,
-                                    "Height": 1.0499999523162842,
-                                    "IsTrigger": false,
-                                    "Offset": [
-                                        0.0,
-                                        0.800000011920929,
-                                        0.0
-                                    ],
-                                    "ShapeId": 0,
-                                    "Tags": 1,
-                                    "Width": 0.4300000071525574
-                                }
-                            ],
-                            "Type": "ColliderComponent"
+                            "Shapes": [],
+                            "Type": "ColliderData"
                         }
                     ],
                     "IsActive": true,
@@ -176,22 +217,29 @@
             ],
             "Components": [
                 {
-                    "PosX": -1.5746409893035889,
-                    "PosY": 0.0,
-                    "PosZ": 0.2561030387878418,
-                    "RotX": 0.0,
-                    "RotY": -5.954006195068359,
-                    "RotZ": 0.0,
-                    "ScaX": 1.0,
-                    "ScaY": 1.0,
-                    "ScaZ": 1.0,
-                    "Type": "TransformComponent"
+                    "Position": [
+                        -1.3357020616531372,
+                        0.0,
+                        -0.9046742916107178
+                    ],
+                    "Rotation": [
+                        0.0,
+                        -0.08199974149465561,
+                        0.0
+                    ],
+                    "Scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "Type": "TransformData"
                 },
                 {
-                    "Type": "Player",
+                    "ScriptName": "Player",
+                    "Type": "NativeScriptData",
                     "gravityStrength": 9.800000190734863,
-                    "moveSpeed": 2.0,
-                    "useGravity": true
+                    "moveSpeed": 10.0,
+                    "useGravity": false
                 }
             ],
             "IsActive": true,
@@ -199,3 +247,4 @@
         }
     ]
 }
+ 
