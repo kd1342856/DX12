@@ -38,6 +38,7 @@ public:
 
     // 現在のシーンを設定
     void SetScene(Scene* scene) { m_pCurrentScene = scene; }
+    Scene* GetCurrentScene() const { return m_pCurrentScene; }
 
     // デバッグ描画の有効/無効
     void SetDebugWireEnabled(bool enabled) { m_debugWireEnabled = enabled; }

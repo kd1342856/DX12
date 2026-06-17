@@ -260,14 +260,26 @@ void Scene::DeserializeGameObject(const nlohmann::json& oj, std::shared_ptr<Game
                 if (cj.contains("IsStatic")) d.m_isStatic = cj["IsStatic"];
                 if (cj.contains("Shapes")) {
                     for (const auto& sj : cj["Shapes"]) {
+                        int shapeId = -1;
                         if (sj.contains("ShapeId")) {
-                            int shapeId = sj["ShapeId"];
+                            shapeId = sj["ShapeId"];
+                        } else if (sj.contains("Type")) {
+                            std::string t = sj["Type"];
+                            if (t == "Box") shapeId = CollisionShape::Box;
+                            else if (t == "Sphere") shapeId = CollisionShape::Sphere;
+                            else if (t == "Capsule") shapeId = CollisionShape::Capsule;
+                            else if (t == "Mesh") shapeId = CollisionShape::Mesh;
+                        }
+
+                        if (shapeId != -1) {
                             std::shared_ptr<CollisionShape> shape;
                             if (shapeId == CollisionShape::Box) shape = std::make_shared<CollisionShapeBox>();
                             else if (shapeId == CollisionShape::Sphere) shape = std::make_shared<CollisionShapeSphere>();
                             else if (shapeId == CollisionShape::Capsule) shape = std::make_shared<CollisionShapeCapsule>();
                             else if (shapeId == CollisionShape::Mesh) shape = std::make_shared<CollisionShapeMesh>();
+                            
                             if (shape) {
+                                shape->m_entity = id;
                                 shape->Deserialize(sj);
                                 d.m_shapes.push_back(shape);
                             }
@@ -321,6 +333,7 @@ void Scene::DeserializeGameObject(const nlohmann::json& oj, std::shared_ptr<Game
 }
 
 void Scene::Deserialize(const nlohmann::json& in) {
+    // GameObjectをclearすることでデストラクタ経由でEntityも破棄される
     m_gameObjects.clear();
 
     if (in.contains("GameObjects")) {

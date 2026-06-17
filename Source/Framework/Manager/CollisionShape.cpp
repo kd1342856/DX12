@@ -1,5 +1,8 @@
 #include "CollisionShape.h"
 #include "../Manager/GameManager.h"
+#include "../Manager/CollisionManager.h"
+#include "../Manager/Scene.h"
+#include "../Object/GameObject.h"
 #include "../ECS/Components/Data/ModelRenderData.h"
 #include <algorithm>
 
@@ -175,6 +178,24 @@ bool CollisionShapeMesh::RayCast(const RayInfo& ray, const Math::Matrix& world, 
         auto& ecs = GameManager::Instance().GetECS();
         if (ecs.HasComponent<ModelRenderData>(m_entity)) {
             m_model = ecs.GetComponent<ModelRenderData>(m_entity).m_spModelData;
+        } else {
+            auto scene = CollisionManager::Instance().GetCurrentScene();
+            if (scene) {
+                auto obj = scene->GetGameObject(m_entity);
+                if (obj && obj->GetParent()) {
+                    auto parent = obj->GetParent();
+                    if (ecs.HasComponent<ModelRenderData>(parent->GetEntityID())) {
+                        m_model = ecs.GetComponent<ModelRenderData>(parent->GetEntityID()).m_spModelData;
+                    } else {
+                        for (auto& child : parent->GetChildren()) {
+                            if (ecs.HasComponent<ModelRenderData>(child->GetEntityID())) {
+                                m_model = ecs.GetComponent<ModelRenderData>(child->GetEntityID()).m_spModelData;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
     if (!m_model) return false;
@@ -251,6 +272,24 @@ void CollisionShapeMesh::UpdateWorldAABB(const Math::Matrix& world) {
         auto& ecs = GameManager::Instance().GetECS();
         if (ecs.HasComponent<ModelRenderData>(m_entity)) {
             m_model = ecs.GetComponent<ModelRenderData>(m_entity).m_spModelData;
+        } else {
+            auto scene = CollisionManager::Instance().GetCurrentScene();
+            if (scene) {
+                auto obj = scene->GetGameObject(m_entity);
+                if (obj && obj->GetParent()) {
+                    auto parent = obj->GetParent();
+                    if (ecs.HasComponent<ModelRenderData>(parent->GetEntityID())) {
+                        m_model = ecs.GetComponent<ModelRenderData>(parent->GetEntityID()).m_spModelData;
+                    } else {
+                        for (auto& child : parent->GetChildren()) {
+                            if (ecs.HasComponent<ModelRenderData>(child->GetEntityID())) {
+                                m_model = ecs.GetComponent<ModelRenderData>(child->GetEntityID()).m_spModelData;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 

@@ -222,10 +222,24 @@ bool CheckCollisionShape(CollisionResult& result,
             if (distSq <= sphere->radius * sphere->radius) {
               float dist = sqrt(distSq);
               hit = true;
+              Math::Vector3 push;
               if (dist > 0.0001f)
-                totalPush += (toSphere / dist) * (sphere->radius - dist);
+                push = (toSphere / dist) * (sphere->radius - dist);
               else
-                totalPush += Math::Vector3(0, 1, 0) * sphere->radius;
+                push = Math::Vector3(0, 1, 0) * sphere->radius;
+
+              // 複数ポリゴンからの過剰な押し出し（ガタつき）を防ぐ
+              if (totalPush.LengthSquared() == 0) {
+                  totalPush = push;
+              } else {
+                  if (totalPush.Dot(push) > 0.0f) {
+                      if (push.LengthSquared() > totalPush.LengthSquared()) {
+                          totalPush = push;
+                      }
+                  } else {
+                      totalPush += push;
+                  }
+              }
             }
           }
           else if (typeA == CollisionShape::ShapeId::Box) {
@@ -311,10 +325,24 @@ bool CheckCollisionShape(CollisionResult& result,
             if (distSq <= cap->radius * cap->radius) {
               float dist = sqrt(distSq);
               hit = true;
+              Math::Vector3 push;
               if (dist > 0.0001f)
-                totalPush += (toSeg / dist) * (cap->radius - dist);
+                push = (toSeg / dist) * (cap->radius - dist);
               else
-                totalPush += Math::Vector3(0, 1, 0) * cap->radius;
+                push = Math::Vector3(0, 1, 0) * cap->radius;
+
+              // 複数ポリゴンからの過剰な押し出し（ガタつき）を防ぐ
+              if (totalPush.LengthSquared() == 0) {
+                  totalPush = push;
+              } else {
+                  if (totalPush.Dot(push) > 0.0f) {
+                      if (push.LengthSquared() > totalPush.LengthSquared()) {
+                          totalPush = push;
+                      }
+                  } else {
+                      totalPush += push;
+                  }
+              }
             }
           }
         }
