@@ -1,6 +1,12 @@
 #include "../Buffer/RenderTarget/RenderTarget.h"
 #include "GraphicsDevice.h"
 
+GraphicsDevice& GraphicsDevice::Instance()
+{
+	static GraphicsDevice instance;
+	return instance;
+}
+
 bool GraphicsDevice::Init(HWND  hWnd, int w, int h)
 {
 	if (!CreateFactory())
@@ -731,3 +737,4 @@ D3D12_GPU_DESCRIPTOR_HANDLE GraphicsDevice::GetImGuiSRVGPUHandle(int index)
 	handle.ptr += static_cast<SIZE_T>(index) * incrementSize;
 	return handle;
 }
+

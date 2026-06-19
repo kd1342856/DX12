@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <functional>
 #include <thread>
 #include <vector>
@@ -9,10 +9,7 @@
 
 class JobSystem {
 public:
-    static JobSystem& Instance() {
-        static JobSystem instance;
-        return instance;
-    }
+    static JobSystem& Instance();
 
     void Init();
     void Shutdown();

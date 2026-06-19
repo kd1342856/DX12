@@ -51,16 +51,24 @@ void GameScene::Init()
         }
     }
 
-    // モデルなどの非同期ロードが完了するまで待機
-    // これを行わないと、初期フレームで当たり判定メッシュが未ロードとなり
-    // プレイヤーが重力によって床をすり抜けてしまいます
+    // 繝｢繝・Ν縺ｪ縺ｩ縺ｮ髱槫酔譛溘Ο繝ｼ繝峨′螳御ｺ・☆繧九∪縺ｧ蠕・ｩ・
+    // 縺薙ｌ繧定｡後ｏ縺ｪ縺・→縲∝・譛溘ヵ繝ｬ繝ｼ繝�縺ｧ蠖薙◆繧雁愛螳壹Γ繝・す繝･縺梧悴繝ｭ繝ｼ繝峨→縺ｪ繧・
+    // 繝励Ξ繧､繝､繝ｼ縺碁㍾蜉帙↓繧医▲縺ｦ蠎翫ｒ縺吶ｊ謚懊￠縺ｦ縺励∪縺・∪縺・
     JobSystem::Instance().Wait();
 }
 
 void GameScene::Update()
 {
     if (Input::Instance().IsKeyTrigger(DirectX::Keyboard::Keys::F1)) { m_showEditor = !m_showEditor; }
-    if (Input::Instance().IsKeyTrigger(DirectX::Keyboard::Keys::F5)) { m_fullscreenGame = !m_fullscreenGame; }
+    if (Input::Instance().IsKeyTrigger(DirectX::Keyboard::Keys::F5)) { 
+        m_fullscreenGame = !m_fullscreenGame; 
+        if (m_fullscreenGame) {
+            Input::Instance().SetMouseModeRelative();
+        } else {
+            Input::Instance().SetMouseModeAbsolute();
+            m_isCameraDragging = false;
+        }
+    }
 
     if (!Editor::GetEditorMode() || m_fullscreenGame)
     {
@@ -96,7 +104,7 @@ void GameScene::UpdateCameras()
                 m_editorCameraEntity = obj->GetEntityID();
                 pEditorCameraObj = obj;
                 
-                // 強制的にバグを取り除くための安全装置
+                // 蠑ｷ蛻ｶ逧・↓繝舌げ繧貞叙繧企勁縺上◆繧√・螳牙・陬・ｽｮ
                 if (ecs.HasComponent<NativeScriptData>(obj->GetEntityID())) {
                     ecs.RemoveComponent<NativeScriptData>(obj->GetEntityID());
                 }
@@ -124,13 +132,17 @@ void GameScene::UpdateCameras()
         m_gameCameraEntity = m_editorCameraEntity;
     }
 
-    // Relative Mouse Mode Toggle
-    if (Input::Instance().IsMouseRightTrigger() && !ImGui::GetIO().WantCaptureMouse) {
-        Input::Instance().SetMouseModeRelative();
-        m_isCameraDragging = true;
-    } else if (Input::Instance().IsMouseRightRelease() && m_isCameraDragging) {
-        Input::Instance().SetMouseModeAbsolute();
-        m_isCameraDragging = false;
+    // Relative Mouse Mode Toggle for Editor Free Cam
+    if (!m_fullscreenGame) {
+        if (Input::Instance().IsMouseRightTrigger() && !ImGui::GetIO().WantCaptureMouse) {
+            Input::Instance().SetMouseModeRelative();
+            m_isCameraDragging = true;
+        } else if (Input::Instance().IsMouseRightRelease() && m_isCameraDragging) {
+            Input::Instance().SetMouseModeAbsolute();
+            m_isCameraDragging = false;
+        }
+    } else {
+        m_isCameraDragging = true; // In game mode, camera is always controlled
     }
 
     // Control Logic
@@ -210,14 +222,29 @@ void GameScene::UpdateCameras()
                 Math::Vector3 forward = Math::Vector3::TransformNormal(Math::Vector3(0, 0, 1), playerRot);
                 Math::Vector3 right = Math::Vector3::TransformNormal(Math::Vector3(1, 0, 0), playerRot);
 
+                bool isChild = (pGameCamObj->GetParent() != nullptr);
+                Math::Vector3 pivotOffset(0, 1.0f, 0); // 繝励Ξ繧､繝､繝ｼ縺ｮ閭ｸ縺ゅ◆繧翫・鬮倥＆
+
                 if (camData.m_cameraMode == CameraMode::FPS) {
-                    cData.m_position = camData.m_fpsOffset; // Local
-                    cData.m_rotation.y = 0;
+                    if (isChild) {
+                        cData.m_position = camData.m_fpsOffset + pivotOffset;
+                        cData.m_rotation.y = 0;
+                    } else {
+                        Math::Vector3 offset = Math::Vector3::TransformNormal(camData.m_fpsOffset + pivotOffset, playerRot);
+                        cData.m_position = pData.m_position + offset;
+                        cData.m_rotation.y = pData.m_rotation.y;
+                    }
                 } else if (camData.m_cameraMode == CameraMode::TPS) {
                     Math::Matrix localRot = Math::Matrix::CreateRotationX(cData.m_rotation.x);
-                    Math::Vector3 offset = Math::Vector3::TransformNormal(camData.m_targetOffset, localRot);
-                    cData.m_position = offset; // Local
-                    cData.m_rotation.y = 0;
+                    if (isChild) {
+                        Math::Vector3 offset = Math::Vector3::TransformNormal(camData.m_targetOffset, localRot);
+                        cData.m_position = pivotOffset + offset; 
+                        cData.m_rotation.y = 0;
+                    } else {
+                        Math::Vector3 offset = Math::Vector3::TransformNormal(camData.m_targetOffset, localRot * playerRot);
+                        cData.m_position = pData.m_position + pivotOffset + offset;
+                        cData.m_rotation.y = pData.m_rotation.y;
+                    }
                 }
             }
         }
@@ -227,7 +254,8 @@ void GameScene::UpdateCameras()
 void GameScene::Render()
 {
     auto renderSystem = m_spScene->GetRenderSystem();
-    if (!renderSystem) return;
+    auto spriteRenderSystem = m_spScene->GetSpriteRenderSystem();
+    if (!renderSystem || !spriteRenderSystem) return;
 
     D3D12_VIEWPORT viewport = {};
     viewport.Width = 1280.0f;
@@ -244,6 +272,7 @@ void GameScene::Render()
         if (m_gameCameraEntity != INVALID_ENTITY)
         {
             renderSystem->Update(m_gameCameraEntity, nullptr);
+            spriteRenderSystem->Render();
         }
         else
         {
@@ -259,8 +288,9 @@ void GameScene::Render()
         {
             m_upRenderTarget->Clear();
             renderSystem->Update(m_gameCameraEntity, m_upRenderTarget.get());
-            // DrawDebugWiresはGetBackgroundDrawList（BackBuffer全体）に描くため
-            // GameViewのRenderTargetとは座標系が一致しない → エディタカメラ側のみで描画する
+            spriteRenderSystem->Render();
+            // DrawDebugWires縺ｯGetBackgroundDrawList・・ackBuffer蜈ｨ菴難ｼ峨↓謠上￥縺溘ａ
+            // GameView縺ｮRenderTarget縺ｨ縺ｯ蠎ｧ讓咏ｳｻ縺御ｸ€閾ｴ縺励↑縺・竊・繧ｨ繝・ぅ繧ｿ繧ｫ繝｡繝ｩ蛛ｴ縺ｮ縺ｿ縺ｧ謠冗判縺吶ｋ
         }
         else
         {
@@ -273,6 +303,7 @@ void GameScene::Render()
         if (m_editorCameraEntity != INVALID_ENTITY)
         {
             renderSystem->Update(m_editorCameraEntity, nullptr);
+            spriteRenderSystem->Render();
             CollisionManager::Instance().DrawDebugWires(0, 0, 1280.0f, 720.0f, m_editorCameraEntity);
         }
 

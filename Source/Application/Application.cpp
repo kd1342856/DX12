@@ -1,14 +1,24 @@
+
+#include "Framework/DirectX/Utility/ClassAssembly.h"
+#include "Framework/DirectX/Utility/Logger.h"
+
+ClassAssembly& ClassAssembly::Instance() { static ClassAssembly instance; return instance; }
+Logger& Logger::Instance() { static Logger instance; return instance; }
 #include "Application.h"
 #include "Framework/DirectX/Utility/Input.h"
 #include "Framework/DirectX/Utility/Time.h"
 #include "Scene/GameScene/GameScene.h"
+#include "Scene/TitleScene/TitleScene.h"
+#include "Framework/Manager/AudioManager.h"
+#include "Framework/Manager/SceneManager.h"
 
-// ImGuiのWin32メッセージハンドラ
+// ImGui縺ｮWin32繝｡繝・そ繝ｼ繧ｸ繝上Φ繝峨Λ
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
-	CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+	// XAudio2縺ｪ縺ｩ繝槭Ν繝√せ繝ｬ繝・ラ縺ｧ蜍穂ｽ懊☆繧九さ繝ｳ繝昴・繝阪Φ繝医・縺溘ａ縲｀ULTITHREADED縺ｧCOM繧貞・譛溷喧
+	CoInitializeEx(nullptr, COINIT_MULTITHREADED);
 	Application::Instance().Execute();
 	CoUninitialize();
 	return 0;
@@ -32,37 +42,48 @@ void Application::Execute()
 		return;
 	}
 
-	// ImGuiのWin32バックエンド初期化
+	// ImGui縺ｮWin32繝舌ャ繧ｯ繧ｨ繝ｳ繝牙・譛溷喧
 	ImGui_ImplWin32_Init(m_window.GetWndHandle());
 
-	// ShaderManager初期化
+	// ShaderManager縺ｮ蛻晄悄蛹・
 	ShaderManager::Instance().Init();
 
-	// シーン生成
-	auto spScene = std::make_shared<GameScene>();
-	SetScene(spScene);
-	m_spScene->Init();
+	// AudioManager縺ｮ蛻晄悄蛹・
+	AudioManager::Instance().Init();
 
-	// ゲームループ
+	// SceneManager縺ｮ蛻晄悄蛹・
+	SceneManager::Instance().Init();
+	SceneManager::Instance().SetCurrentSceneWithoutFade(std::make_shared<TitleScene>());
+	if (SceneManager::Instance().GetCurrentScene())
+	{
+		SceneManager::Instance().GetCurrentScene()->Init();
+	}
+
+	// 繧ｲ繝ｼ繝繝ｫ繝ｼ繝・
 	while (true)
 	{
 		if (!m_window.ProcessMessage())
 			break;
 
-		// タイマー更新(DeltaTimeとFPS計測)
+		// 繧ｿ繧､繝槭・譖ｴ譁ｰ(DeltaTime縺ｨFPS險域ｸｬ)
 		GameTimer::Instance().Update();
 
-		// ウィンドウタイトルにFPS表示
+		// AudioManager縺ｮ譖ｴ譁ｰ
+		AudioManager::Instance().Update();
+
+		// 繧ｦ繧｣繝ｳ繝峨え繧ｿ繧､繝医Ν縺ｫFPS陦ｨ遉ｺ
 		GameTimer::Instance().UpdateWindowTitle(m_window.GetWndHandle(), L"DX12Framework");
 
 		GDF::Instance().BeginFrame();
 
-		if (m_spScene)
-			m_spScene->Update();
+		SceneManager::Instance().Update();
+		SceneManager::Instance().DrawFade();
 
 		GDF::Instance().EndFrame();
 	}
 
+	// AudioManager縺ｮ邨ゆｺ・
+	AudioManager::Instance().Shutdown();
 	GDF::Instance().Shutdown();
 }
 
@@ -76,3 +97,9 @@ void Application::SetDirectoryAndLoadDll()
 	LoadLibraryExA("assimp-vc143-mt.dll", NULL, NULL);
 #endif
 }
+Application& Application::Instance()
+{
+    static Application instance;
+    return instance;
+}
+

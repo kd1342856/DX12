@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 class Logger
 {
@@ -9,17 +9,23 @@ public:
 		Error
 	};
 
-	static Logger& Instance()
-	{
-		static Logger instance;
-		return instance;
-	}
+	static Logger& Instance();
 
 	void AddLog(LogLevel level, const std::string& message)
 	{
 		std::lock_guard<std::mutex> lock(m_mutex);
 		m_logs.push_back({ level, message });
 		m_scrollToBottom = true;
+
+		std::string debugStr = "[LOG] " + message + "\n";
+		OutputDebugStringA(debugStr.c_str());
+
+		FILE* f;
+		fopen_s(&f, "debug_log.txt", "a");
+		if (f) {
+			fprintf(f, "%s", debugStr.c_str());
+			fclose(f);
+		}
 	}
 
 	void AddLog(LogLevel level, const char* format, ...)

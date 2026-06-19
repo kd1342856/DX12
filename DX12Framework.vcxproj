@@ -158,6 +158,8 @@
     <ClInclude Include="Source\Application\Object\Script\Player\Player.h" />
     <ClInclude Include="Source\Application\Application.h" />
     <ClInclude Include="Source\Application\Scene\GameScene\GameScene.h" />
+    <ClInclude Include="Source\Application\Scene\TitleScene\TitleScene.h" />
+    <ClInclude Include="Source\Framework\Manager\SceneManager.h" />
     <ClInclude Include="Source\Application\Scene\SceneBase.h" />
     <ClInclude Include="Source\Framework\DirectX\GDF\GDF.h" />
     <ClInclude Include="Source\Framework\DirectX\Utility\ClassAssembly.h" />
@@ -171,6 +173,8 @@
     <ClInclude Include="Source\Framework\ECS\Components\Data\ModelRenderData.h" />
     <ClInclude Include="Source\Framework\ECS\Components\Data\ShaderData.h" />
     <ClInclude Include="Source\Framework\ECS\Components\Data\TransformData.h" />
+    <ClInclude Include="Source\Framework\ECS\Components\Data\SpriteData.h" />
+    <ClInclude Include="Source\Framework\ECS\CompSystem\SpriteRenderSystem\SpriteRenderSystem.h" />
     <ClInclude Include="Source\Framework\ECS\CompSystem\System.h" />
     <ClInclude Include="Source\Framework\ECS\CompSystem\Systems\RenderSystem.h" />
     <ClInclude Include="Source\Framework\ECS\ECS.h" />
@@ -187,6 +191,8 @@
     <ClInclude Include="Source\Framework\ImGuiEditor\ImGui\imstb_rectpack.h" />
     <ClInclude Include="Source\Framework\ImGuiEditor\ImGui\imstb_textedit.h" />
     <ClInclude Include="Source\Framework\ImGuiEditor\ImGui\imstb_truetype.h" />
+    <ClInclude Include="Source\Framework\Manager\AudioManager.h" />
+    <ClInclude Include="Source\Framework\Manager\PrefabManager.h" />
     <ClInclude Include="Source\Framework\Manager\CollisionManager.h" />
     <ClInclude Include="Source\Framework\Memory\LinearAllocator.h" />
     <ClInclude Include="Source\Framework\Memory\PoolAllocator.h" />
@@ -235,6 +241,8 @@
     <ClCompile Include="Source\Application\Object\Script\Player\Player.cpp" />
     <ClCompile Include="Source\Application\Application.cpp" />
     <ClCompile Include="Source\Application\Scene\GameScene\GameScene.cpp" />
+    <ClCompile Include="Source\Application\Scene\TitleScene\TitleScene.cpp" />
+    <ClCompile Include="Source\Framework\Manager\SceneManager.cpp" />
     <ClCompile Include="Source\Framework\DirectX\GDF\GDF.cpp" />
     <ClCompile Include="Source\Framework\DirectX\Utility\Input.cpp" />
     <ClCompile Include="Source\Framework\DirectX\Utility\Time.cpp" />
@@ -250,6 +258,8 @@
     <ClCompile Include="Source\Framework\ImGuiEditor\ImGui\imgui_stdlib.cpp" />
     <ClCompile Include="Source\Framework\ImGuiEditor\ImGui\imgui_tables.cpp" />
     <ClCompile Include="Source\Framework\ImGuiEditor\ImGui\imgui_widgets.cpp" />
+    <ClCompile Include="Source\Framework\Manager\AudioManager.cpp" />
+    <ClCompile Include="Source\Framework\Manager\PrefabManager.cpp" />
     <ClCompile Include="Source\Framework\Manager\CollisionManager.cpp" />
     <ClCompile Include="Source\Framework\System\JobSystem\JobSystem.cpp" />
     <ClCompile Include="Source\Framework\Manager\ResourceManager.cpp" />
@@ -257,6 +267,7 @@
     <ClCompile Include="Source\Framework\Manager\CollisionSolver.cpp" />
     <ClCompile Include="Source\Framework\Manager\GameManager.cpp" />
     <ClCompile Include="Source\Framework\Manager\Scene.cpp" />
+    <ClCompile Include="Source\Framework\ECS\CompSystem\SpriteRenderSystem\SpriteRenderSystem.cpp" />
     <ClCompile Include="Source\Framework\Object\GameObject.cpp" />
     <ClCompile Include="Source\Graphics\Buffer\CBufferAllocator\CBufferAllocator.cpp" />
     <ClCompile Include="Source\Graphics\Buffer\DepthStencil\DepthStencil.cpp" />
@@ -388,3 +399,4 @@
     <Error Condition="!Exists('packages\directxtex_desktop_2019.2025.10.28.1\build\native\directxtex_desktop_2019.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\directxtex_desktop_2019.2025.10.28.1\build\native\directxtex_desktop_2019.targets'))" />
   </Target>
 </Project>
+

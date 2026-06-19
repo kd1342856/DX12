@@ -14,8 +14,12 @@ struct FrameContext {
 };
 
 #include <GraphicsMemory.h>
+#include <SpriteBatch.h>
+#include <SpriteBatch.h>
 
 #include <GraphicsMemory.h>
+#include <SpriteBatch.h>
+#include <SpriteBatch.h>
 
 class GraphicsDevice {
 public:
@@ -51,6 +55,9 @@ public:
 	Texture* GetBlackTex()const { return m_spBlackTex.get(); }
 	Texture* GetNormalTex()const { return m_spNormalTex.get(); }
 
+	// SpriteBatch
+	DirectX::SpriteBatch* GetSpriteBatch() const { return m_spSpriteBatch.get(); }
+
 	// èIóπèàóù
 	void Shutdown();
 	void EnableDebugLayer();
@@ -59,6 +66,8 @@ public:
 
 public:
 	int m_imGuiSrvCount = 1;
+
+	std::unique_ptr<DirectX::SpriteBatch> m_spSpriteBatch;
 private:
 	bool CreateFactory();
 	bool CreateDevice();
@@ -128,9 +137,7 @@ public:
 	GraphicsDevice() {}
 	~GraphicsDevice() {}
 public:
-	static GraphicsDevice& Instance()
-	{
-		static GraphicsDevice instance;
-		return instance;
-	}
+	static GraphicsDevice& Instance();
 };
+
+

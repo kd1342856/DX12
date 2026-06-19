@@ -168,6 +168,9 @@
     <Filter Include="Source\Framework\System\JobSystem">
       <UniqueIdentifier>{d660a570-157f-4dd4-bff9-f39d92aae532}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Framework\ECS\CompSystem\SpriteRenderSystem">
+      <UniqueIdentifier>{426dc5ae-7b63-455f-ba2d-d876a35798e5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Application\Object\Script\Player\Player.h">
@@ -244,6 +247,12 @@
     </ClInclude>
     <ClInclude Include="Source\Application\Scene\SceneBase.h">
       <Filter>Source\Application\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Application\Scene\TitleScene\TitleScene.h">
+      <Filter>Application\Scene\TitleScene</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\Manager\SceneManager.h">
+      <Filter>Framework\Manager</Filter>
     </ClInclude>
     <ClInclude Include="Source\Application\Scene\GameScene\GameScene.h">
       <Filter>Source\Application\Scene\GameScene</Filter>
@@ -330,6 +339,9 @@
     <ClInclude Include="Source\Framework\ECS\Components\Data\TransformData.h">
       <Filter>Source\Framework\ECS\Components\Data</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Framework\ECS\Components\Data\SpriteData.h">
+      <Filter>Source\Framework\ECS\Components\Data</Filter>
+    </ClInclude>
     <ClInclude Include="Source\Framework\Manager\GameManager.h">
       <Filter>Source\Framework\Manager</Filter>
     </ClInclude>
@@ -372,6 +384,12 @@
     <ClInclude Include="Source\Framework\Manager\ResourceManager.h">
       <Filter>Source\Framework\Manager</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Framework\Manager\AudioManager.h">
+      <Filter>Source\Framework\Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\Manager\PrefabManager.h">
+      <Filter>Source\Framework\Manager</Filter>
+    </ClInclude>
     <ClInclude Include="Source\Framework\Manager\CollisionManager.h">
       <Filter>Source\Framework\Manager</Filter>
     </ClInclude>
@@ -398,6 +416,9 @@
     </ClInclude>
     <ClInclude Include="Source\Framework\ECS\CompSystem\Systems\NativeScriptSystem.h">
       <Filter>Source\Framework\ECS\CompSystem\Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\ECS\CompSystem\SpriteRenderSystem\SpriteRenderSystem.h">
+      <Filter>Source\Framework\ECS\CompSystem\SpriteRenderSystem</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -457,6 +478,12 @@
     </ClCompile>
     <ClCompile Include="Source\Graphics\Shader\StandardShader\StandardShader.cpp">
       <Filter>Source\Graphics\Shader\StandardShader</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Application\Scene\TitleScene\TitleScene.cpp">
+      <Filter>Application\Scene\TitleScene</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Framework\Manager\SceneManager.cpp">
+      <Filter>Framework\Manager</Filter>
     </ClCompile>
     <ClCompile Include="Source\Application\Scene\GameScene\GameScene.cpp">
       <Filter>Source\Application\Scene\GameScene</Filter>
@@ -536,6 +563,12 @@
     <ClCompile Include="Source\Framework\Manager\ResourceManager.cpp">
       <Filter>Source\Framework\Manager</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Framework\Manager\AudioManager.cpp">
+      <Filter>Source\Framework\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Framework\Manager\PrefabManager.cpp">
+      <Filter>Source\Framework\Manager</Filter>
+    </ClCompile>
     <ClCompile Include="Source\Framework\Manager\CollisionManager.cpp">
       <Filter>Source\Framework\Manager</Filter>
     </ClCompile>
@@ -544,6 +577,9 @@
     </ClCompile>
     <ClCompile Include="Source\Framework\Manager\CollisionSolver.cpp">
       <Filter>Source\Framework\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Framework\ECS\CompSystem\SpriteRenderSystem\SpriteRenderSystem.cpp">
+      <Filter>Source\Framework\ECS\CompSystem\SpriteRenderSystem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -600,3 +636,4 @@
     </FxCompile>
   </ItemGroup>
 </Project>
+

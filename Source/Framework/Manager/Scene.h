@@ -3,6 +3,7 @@
 #include "../Object/Object.h"
 #include "../Object/GameObject.h"
 #include "../ECS/CompSystem/Systems/RenderSystem.h"
+#include "../ECS/CompSystem/SpriteRenderSystem/SpriteRenderSystem.h"
 #include "../ECS/CompSystem/Systems/TransformSystem.h"
 #include "../ECS/CompSystem/Systems/CameraSystem.h"
 #include "../ECS/CompSystem/Systems/AnimationSystem.h"
@@ -22,6 +23,7 @@ public:
     const std::vector<std::shared_ptr<GameObject>>& GetGameObjects() const { return m_gameObjects; }
 
     void Serialize(nlohmann::json& out) const;
+    nlohmann::json SerializeGameObject(std::shared_ptr<GameObject> obj) const;
     void Deserialize(const nlohmann::json& in);
     void DeserializeGameObject(const nlohmann::json& oj, std::shared_ptr<class GameObject> parent);
 
@@ -30,6 +32,12 @@ public:
     }
 
     std::shared_ptr<GameObject> CreateGameObject(const std::string& name = "GameObject");
+
+    // Prefab Instantiate
+    std::shared_ptr<GameObject> Instantiate(const std::string& filepath, const Math::Vector3& position = Math::Vector3::Zero);
+
+    // Destroy
+    void Destroy(std::shared_ptr<GameObject> obj);
 
     void AddGameObject(std::shared_ptr<GameObject> obj) {
         auto it = std::find(m_gameObjects.begin(), m_gameObjects.end(), obj);
@@ -46,6 +54,7 @@ public:
     }
 
     std::shared_ptr<class RenderSystem>& GetRenderSystem() { return m_spRenderSystem; }
+    std::shared_ptr<class SpriteRenderSystem>& GetSpriteRenderSystem() { return m_spSpriteRenderSystem; }
 
 protected:
     std::vector<std::shared_ptr<GameObject>> m_gameObjects;
@@ -60,6 +69,7 @@ public:
 private:
     std::unordered_map<Entity, std::shared_ptr<GameObject>> m_entityToObject;
     std::shared_ptr<class RenderSystem> m_spRenderSystem;
+    std::shared_ptr<class SpriteRenderSystem> m_spSpriteRenderSystem;
     std::shared_ptr<class TransformSystem> m_spTransformSystem;
     std::shared_ptr<class CameraSystem> m_spCameraSystem;
     std::shared_ptr<class AnimationSystem> m_spAnimationSystem;

@@ -66,3 +66,9 @@ Texture* GDF::GetNormalTex()
 {
 	return GetGraphicsDevice().GetNormalTex();
 }
+
+GDF& GDF::Instance()
+{
+    static GDF instance;
+    return instance;
+}

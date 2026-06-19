@@ -76,3 +76,8 @@ void JobSystem::WorkerThread() {
         }
     }
 }
+JobSystem& JobSystem::Instance()
+{
+    static JobSystem instance;
+    return instance;
+}

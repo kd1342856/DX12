@@ -15,6 +15,7 @@
 #include "../ECS/Components/Data/CameraData.h"
 #include "../ECS/Components/Data/ShaderData.h"
 #include "../ECS/Components/Data/AnimationData.h"
+#include "../ECS/Components/Data/SpriteData.h"
 
 
 

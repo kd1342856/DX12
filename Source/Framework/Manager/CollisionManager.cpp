@@ -342,3 +342,9 @@ void CollisionManager::DrawDebugWires(float screenX, float screenY, float screen
         }
     }
 }
+
+CollisionManager& CollisionManager::Instance()
+{
+    static CollisionManager instance;
+    return instance;
+}

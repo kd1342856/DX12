@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <string>
 #include <unordered_map>
 #include <functional>
@@ -7,10 +7,7 @@
 
 class ClassAssembly {
 public:
-    static ClassAssembly& Instance() {
-        static ClassAssembly instance;
-        return instance;
-    }
+    static ClassAssembly& Instance();
 
     void RegisterComponentType(const std::string& className, std::function<std::shared_ptr<NativeScript>()> factory) {
         m_factories[className] = factory;

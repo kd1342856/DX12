@@ -21,6 +21,9 @@ public:
     void SetEntityID(Entity id) { m_entityId = id; }
     Entity GetEntityID() const { return m_entityId; }
 
+    void SetDynamic(bool isDynamic) { m_isDynamic = isDynamic; }
+    bool IsDynamic() const { return m_isDynamic; }
+
     void SetParent(std::shared_ptr<GameObject> parent);
     void Destroy();
     
@@ -60,4 +63,5 @@ private:
     GameObject* m_pParent = nullptr;
     Scene* m_scene = nullptr;
     Entity m_entityId = INVALID_ENTITY;
+    bool m_isDynamic = false;
 };

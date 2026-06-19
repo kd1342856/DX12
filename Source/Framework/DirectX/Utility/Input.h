@@ -26,13 +26,19 @@ public:
 	int GetMouseDeltaY() const { return m_mouseDeltaY; }
 
 	void SetMouseModeRelative() { 
-        m_isRelative = true; 
+        if (!m_isRelative) {
+            ShowCursor(FALSE);
+            m_isRelative = true; 
+        }
     }
 	void SetMouseModeAbsolute() { 
-        m_isRelative = false; 
+        if (m_isRelative) {
+            ShowCursor(TRUE);
+            m_isRelative = false; 
+        }
     }
 
-	static Input& Instance() { static Input instance; return instance; }
+	static Input& Instance();
 
 private:
 	Input() {}

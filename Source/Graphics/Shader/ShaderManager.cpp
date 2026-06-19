@@ -29,3 +29,8 @@ void ShaderManager::BindCameraMatrix(int slot)
 
 	GDF::Instance().BindCBuffer(slot, cCamera);
 }
+ShaderManager& ShaderManager::Instance()
+{
+    static ShaderManager instance;
+    return instance;
+}

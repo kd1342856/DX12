@@ -1,5 +1,11 @@
 #include "Input.h"
 
+Input& Input::Instance()
+{
+	static Input instance;
+	return instance;
+}
+
 void Input::Init(HWND hWnd)
 {
 	m_hWnd = hWnd;

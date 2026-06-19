@@ -41,4 +41,42 @@ std::shared_ptr<ModelData> ResourceManager::GetModel(const std::string& filepath
 void ResourceManager::Clear() {
     std::lock_guard<std::mutex> lock(m_mutex);
     m_modelCache.clear();
+    m_textureCache.clear();
+}
+
+std::shared_ptr<Texture> ResourceManager::LoadTextureAsync(const std::string& filepath) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    
+    auto it = m_textureCache.find(filepath);
+    if (it != m_textureCache.end()) {
+        return it->second;
+    }
+
+    auto pTexture = std::make_shared<Texture>();
+    m_textureCache[filepath] = pTexture;
+
+    JobSystem::Instance().Execute([filepath, pTexture]() {
+        if (!pTexture->Load(&GraphicsDevice::Instance(), filepath)) {
+            Logger::Instance().AddLog(Logger::LogLevel::Error, "Failed to async load texture: " + filepath);
+        } else {
+            Logger::Instance().AddLog(Logger::LogLevel::Info, "Successfully async loaded texture: " + filepath);
+        }
+    });
+
+    return pTexture;
+}
+
+std::shared_ptr<Texture> ResourceManager::GetTexture(const std::string& filepath) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    auto it = m_textureCache.find(filepath);
+    if (it != m_textureCache.end()) {
+        return it->second;
+    }
+    return nullptr;
+}
+
+ResourceManager& ResourceManager::Instance()
+{
+    static ResourceManager instance;
+    return instance;
 }

@@ -5,6 +5,7 @@
 #include "../../Object/GameObject.h"
 #include "../../ECS/Components/Data/TransformData.h"
 #include "../../ECS/Components/Data/ModelRenderData.h"
+#include "../../ECS/Components/Data/SpriteData.h"
 #include "../../ECS/Components/Data/CameraData.h"
 #include "../../ECS/Components/Data/ColliderData.h"
 #include "../../ECS/Components/Data/NativeScriptData.h"
@@ -258,6 +259,33 @@ void Editor::DrawHierarchyAndInspector(Scene* scene) {
         }
 
         if (s_selectedObject) {
+            ImGui::SameLine();
+            if (ImGui::Button("Save as Prefab")) {
+                ImGui::OpenPopup("SavePrefabPopup");
+            }
+
+            if (ImGui::BeginPopup("SavePrefabPopup")) {
+                static char prefabName[256] = "";
+                if (prefabName[0] == '\0') {
+                    strcpy_s(prefabName, s_selectedObject->GetName().c_str());
+                }
+                ImGui::InputText("Filename", prefabName, 256);
+                ImGui::Text(".json will be appended");
+                if (ImGui::Button("Save")) {
+                    nlohmann::json pj = scene->SerializeGameObject(s_selectedObject);
+                    std::string path = "Asset/Data/Prefab/" + std::string(prefabName) + ".json";
+                    std::ofstream o(path);
+                    if (o.is_open()) {
+                        o << std::setw(4) << pj << std::endl;
+                        Logger::Instance().AddLog(Logger::LogLevel::Info, ("Prefab saved: " + path).c_str());
+                    } else {
+                        Logger::Instance().AddLog(Logger::LogLevel::Error, ("Failed to save Prefab: " + path).c_str());
+                    }
+                    ImGui::CloseCurrentPopup();
+                }
+                ImGui::EndPopup();
+            }
+
             ImGui::Separator();
 
                         // Components
@@ -294,9 +322,26 @@ void Editor::DrawHierarchyAndInspector(Scene* scene) {
                 }
             }
 
+            if (ecs.HasComponent<SpriteData>(entity)) {
+                if (ImGui::CollapsingHeader("SpriteData", ImGuiTreeNodeFlags_DefaultOpen)) {
+                    auto& s = ecs.GetComponent<SpriteData>(entity);
+                    ImGui::Text("Texture Path: %s", s.m_filePath.c_str());
+
+                    ImGui::DragFloat2("Size", &s.m_size.x, 1.0f);
+                    ImGui::DragFloat2("Pivot", &s.m_pivot.x, 0.01f, 0.0f, 1.0f);
+                    ImGui::ColorEdit4("Color", &s.m_color.x);
+                    ImGui::InputInt("Order In Layer", &s.m_orderInLayer);
+                }
+            }
+
             if (ecs.HasComponent<CameraData>(entity)) {
                 if (ImGui::CollapsingHeader("CameraData", ImGuiTreeNodeFlags_DefaultOpen)) {
                     auto& c = ecs.GetComponent<CameraData>(entity);
+                    const char* modes[] = { "EditorFree", "TPS", "FPS" };
+                    int modeInt = static_cast<int>(c.m_cameraMode);
+                    if (ImGui::Combo("Camera Mode", &modeInt, modes, IM_ARRAYSIZE(modes))) {
+                        c.m_cameraMode = static_cast<CameraMode>(modeInt);
+                    }
                     ImGui::DragFloat3("TPS Offset", &c.m_targetOffset.x, 0.1f);
                     ImGui::DragFloat3("FPS Offset", &c.m_fpsOffset.x, 0.1f);
                     ImGui::DragFloat("FOV", &c.m_fov, 0.5f, 1.0f, 179.0f);
@@ -383,6 +428,9 @@ void Editor::DrawHierarchyAndInspector(Scene* scene) {
                 
                 bool hasModel = ecs.HasComponent<ModelRenderData>(entity);
                 if (ImGui::MenuItem("ModelRenderData", nullptr, false, !hasModel)) ecs.AddComponent<ModelRenderData>(entity, ModelRenderData{});
+
+                bool hasSprite = ecs.HasComponent<SpriteData>(entity);
+                if (ImGui::MenuItem("SpriteData", nullptr, false, !hasSprite)) ecs.AddComponent<SpriteData>(entity, SpriteData{});
                 
                 bool hasCam = ecs.HasComponent<CameraData>(entity);
                 if (ImGui::MenuItem("CameraData", nullptr, false, !hasCam)) ecs.AddComponent<CameraData>(entity, CameraData{});
@@ -518,17 +566,23 @@ void Editor::DrawAssetEditor()
     }
 
     bool hasModel = GameManager::Instance().GetECS().HasComponent<ModelRenderData>(s_selectedObject->GetEntityID());
-    if (!hasModel) {
-        ImGui::TextDisabled("Selected object does not have a ModelRenderData.");
+    bool hasSprite = GameManager::Instance().GetECS().HasComponent<SpriteData>(s_selectedObject->GetEntityID());
+    if (!hasModel && !hasSprite) {
+        ImGui::TextDisabled("Selected object needs ModelRenderData or SpriteData.");
         ImGui::End();
         return;
     }
 
+    // Initialize root asset dir if empty
+    if (s_currentAssetDir.empty()) {
+        s_currentAssetDir = "Asset";
+    }
+
     // Back button
-    if (s_currentAssetDir != "Asset/Model" && s_currentAssetDir != "Asset\\\\Model") {
+    if (s_currentAssetDir != "Asset" && s_currentAssetDir != "Asset\\" && s_currentAssetDir != "Asset/") {
         if (ImGui::Button("Back (..)")) {
             s_currentAssetDir = std::filesystem::path(s_currentAssetDir).parent_path().string();
-            if (s_currentAssetDir.empty() || s_currentAssetDir == "." || s_currentAssetDir == "Asset") s_currentAssetDir = "Asset/Model";
+            if (s_currentAssetDir.empty() || s_currentAssetDir == ".") s_currentAssetDir = "Asset";
         }
         ImGui::Separator();
     }
@@ -560,16 +614,29 @@ void Editor::DrawAssetEditor()
     ImGui::Separator();
 
     ImGui::Text("Selected Asset: %s", s_selectedAssetPath.c_str());
-    ImGui::Text("Model Type:");
-    ImGui::RadioButton("Static", &s_selectedModelType, 0); ImGui::SameLine();
-    ImGui::RadioButton("Dynamic", &s_selectedModelType, 1);
-    if (ImGui::Button("?K?p (Apply to Selected Object)")) {
-        if (!s_selectedAssetPath.empty()) {
-            auto& data = GameManager::Instance().GetECS().GetComponent<ModelRenderData>(s_selectedObject->GetEntityID());
-            data.m_modelType = (ModelType)s_selectedModelType;
-            data.m_spModelData = std::make_shared<ModelData>();
-            data.m_spModelData->Load(s_selectedAssetPath);
-            data.m_filePath = s_selectedAssetPath;
+
+    if (hasModel) {
+        ImGui::Text("Model Type:");
+        ImGui::RadioButton("Static", &s_selectedModelType, 0); ImGui::SameLine();
+        ImGui::RadioButton("Dynamic", &s_selectedModelType, 1);
+        if (ImGui::Button("Apply to ModelRenderData")) {
+            if (!s_selectedAssetPath.empty()) {
+                auto& data = GameManager::Instance().GetECS().GetComponent<ModelRenderData>(s_selectedObject->GetEntityID());
+                data.m_modelType = (ModelType)s_selectedModelType;
+                data.m_spModelData = std::make_shared<ModelData>();
+                data.m_spModelData->Load(s_selectedAssetPath);
+                data.m_filePath = s_selectedAssetPath;
+            }
+        }
+    }
+
+    if (hasSprite) {
+        if (ImGui::Button("Apply to SpriteData")) {
+            if (!s_selectedAssetPath.empty()) {
+                auto& data = GameManager::Instance().GetECS().GetComponent<SpriteData>(s_selectedObject->GetEntityID());
+                data.m_filePath = s_selectedAssetPath;
+                data.m_spTexture = nullptr; // Force reload
+            }
         }
     }
 
@@ -618,6 +685,7 @@ void Editor::DrawGameView(RenderTarget* pRenderTarget, uint32_t cameraEntity, bo
     }
     ImGui::End();
 }
+
 
 
 
