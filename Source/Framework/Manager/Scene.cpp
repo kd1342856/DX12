@@ -12,6 +12,13 @@
 #include "ResourceManager.h"
 #include "PrefabManager.h"
 #include "../DirectX/Utility/ClassAssembly.h"
+// Scene.h‚Í‘O•ûéŒ¾‚Ì‚İ‚È‚Ì‚ÅAÀ‘•‚Í .cpp ‚Å include‚·‚é
+#include "../ECS/CompSystem/Systems/RenderSystem.h"
+#include "../ECS/CompSystem/SpriteRenderSystem/SpriteRenderSystem.h"
+#include "../ECS/CompSystem/Systems/TransformSystem.h"
+#include "../ECS/CompSystem/Systems/CameraSystem.h"
+#include "../ECS/CompSystem/Systems/AnimationSystem.h"
+#include "../ECS/CompSystem/Systems/ScriptSystem.h"
 
 Scene::Scene() {}
 Scene::~Scene() {}

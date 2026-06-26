@@ -2,6 +2,8 @@
 #include "TitleScene.h"
 #include "../../../Framework/DirectX/Utility/Input.h"
 #include "../../../Framework/Manager/SceneManager.h"
+#include "../../../Framework/ECS/CompSystem/Systems/RenderSystem.h"
+#include "../../../Framework/ECS/CompSystem/SpriteRenderSystem/SpriteRenderSystem.h"
 #include "../../../Framework/DirectX/Utility/Logger.h"
 #include "../GameScene/GameScene.h"
 #include "Framework/ImGuiEditor/ImGui/imgui.h"
@@ -12,7 +14,7 @@ void TitleScene::Init()
 
 void TitleScene::Update()
 {
-    // ã‚¨ãƒ³ã‚¿ãƒ¼ã‚­ãƒ¼ã€ã‚¹ãƒšãƒ¼ã‚¹ã‚­ãƒ¼ã€ã¾ãŸã¯ãƒžã‚¦ã‚¹ã‚¯ãƒªãƒƒã‚¯ã§é·ç§»
+    // ƒGƒ“ƒ^[ƒL[AƒXƒy[ƒXƒL[A‚Ü‚½‚Íƒ}ƒEƒXƒNƒŠƒbƒN‚Å‘JˆÚ
     if (Input::Instance().IsKeyTrigger(VK_RETURN) || 
         Input::Instance().IsKeyTrigger(VK_SPACE) || 
         Input::Instance().IsMouseLeftTrigger())
@@ -20,7 +22,7 @@ void TitleScene::Update()
         SceneManager::Instance().ChangeScene(std::make_shared<GameScene>(), 1.0f);
     }
 
-    // ãƒ‡ãƒãƒƒã‚°è¡¨ç¤ºç”¨
+    // ƒfƒoƒbƒO•\Ž¦—p
     ImGui::Begin("Title Scene");
     ImGui::Text("Press ENTER or SPACE to start the game!");
     if (ImGui::Button("Start Game", ImVec2(200, 50)))
@@ -29,6 +31,6 @@ void TitleScene::Update()
     }
     ImGui::End();
 
-    // ãƒ­ã‚°ã‚‚è¡¨ç¤ºã™ã‚‹
+    // ƒƒO‚à•\Ž¦‚·‚é
     Logger::Instance().DrawImGuiWindow();
 }

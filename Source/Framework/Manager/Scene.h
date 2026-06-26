@@ -2,12 +2,12 @@
 #include "../../../Library/nlohmann/json.hpp"
 #include "../Object/Object.h"
 #include "../Object/GameObject.h"
-#include "../ECS/CompSystem/Systems/RenderSystem.h"
-#include "../ECS/CompSystem/SpriteRenderSystem/SpriteRenderSystem.h"
-#include "../ECS/CompSystem/Systems/TransformSystem.h"
-#include "../ECS/CompSystem/Systems/CameraSystem.h"
-#include "../ECS/CompSystem/Systems/AnimationSystem.h"
-#include "../ECS/CompSystem/Systems/ScriptSystem.h"
+class RenderSystem;
+class SpriteRenderSystem;
+class TransformSystem;
+class CameraSystem;
+class AnimationSystem;
+class ScriptSystem;
 
 class Scene : public Object {
 public:

@@ -23,6 +23,7 @@ private:
     bool m_showEditor = true;
     bool m_fullscreenGame = false;
     bool m_isCameraDragging = false;
+    bool m_flashlightOn = false;
 
     Entity m_editorCameraEntity = INVALID_ENTITY;
     Entity m_gameCameraEntity = INVALID_ENTITY;

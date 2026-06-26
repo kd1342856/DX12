@@ -11,6 +11,7 @@
 #include "../../ECS/Components/Data/NativeScriptData.h"
 #include "../../Manager/CollisionShape.h"
 #include "../../ECS/Components/Data/AnimationData.h"
+#include "../../../Graphics/Geometry/Model/Model.h"
 #include "../../DirectX/Utility/Input.h"
 
 #include <fstream>
@@ -379,10 +380,48 @@ void Editor::DrawHierarchyAndInspector(Scene* scene) {
             if (ecs.HasComponent<AnimationDataComponent>(entity)) {
                 if (ImGui::CollapsingHeader("AnimationDataComponent", ImGuiTreeNodeFlags_DefaultOpen)) {
                     auto& animData = ecs.GetComponent<AnimationDataComponent>(entity);
-                    ImGui::InputInt("Animation Index", &animData.currentAnim.AnimationIndex);
+                    
+                    if (ecs.HasComponent<ModelRenderData>(entity)) {
+                        auto& modelData = ecs.GetComponent<ModelRenderData>(entity);
+                        if (modelData.m_spModelData) {
+                            const auto& animations = modelData.m_spModelData->GetAnimations();
+                            if (!animations.empty()) {
+                                std::vector<const char*> animNames;
+                                for (const auto& anim : animations) {
+                                    animNames.push_back(anim.name.c_str());
+                                }
+                                
+                                int currentIdx = animData.currentAnim.AnimationIndex;
+                                if (currentIdx < 0) currentIdx = 0;
+                                if (currentIdx >= (int)animNames.size()) currentIdx = (int)animNames.size() - 1;
+                                
+                                if (ImGui::Combo("Animation", &currentIdx, animNames.data(), (int)animNames.size())) {
+                                    animData.currentAnim.AnimationIndex = currentIdx;
+                                }
+                            } else {
+                                ImGui::Text("No animations in model.");
+                            }
+                        }
+                    } else {
+                        ImGui::InputInt("Animation Index", &animData.currentAnim.AnimationIndex);
+                    }
+
                     ImGui::DragFloat("Progress Time", &animData.currentAnim.ProgressTime, 0.01f);
                     ImGui::DragFloat("Speed", &animData.currentAnim.Speed, 0.01f);
-                    ImGui::Checkbox("Is Playing", &animData.currentAnim.IsPlaying);
+                    
+                    if (ImGui::Button("Play")) {
+                        animData.currentAnim.IsPlaying = true;
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::Button("Pause")) {
+                        animData.currentAnim.IsPlaying = false;
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::Button("Stop")) {
+                        animData.currentAnim.IsPlaying = false;
+                        animData.currentAnim.ProgressTime = 0.0f;
+                    }
+
                     ImGui::Checkbox("Is Loop", &animData.currentAnim.IsLoop);
                 }
             }

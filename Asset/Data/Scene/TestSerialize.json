@@ -5,13 +5,13 @@
             "Components": [
                 {
                     "Position": [
-                        -5.451007843017578,
-                        2.5928237438201904,
-                        -0.266669899225235
+                        -3.3320863246917725,
+                        3.16812801361084,
+                        -4.665595054626465
                     ],
                     "Rotation": [
-                        0.4500051736831665,
-                        14.416006088256836,
+                        0.286004900932312,
+                        19.22199249267578,
                         0.0
                     ],
                     "Scale": [
@@ -166,6 +166,14 @@
                             "FilePath": "Asset/Model/CesiumMan/CesiumMan3.gltf",
                             "ModelType": 1,
                             "Type": "ModelRenderData"
+                        },
+                        {
+                            "AnimationIndex": -1,
+                            "IsLoop": true,
+                            "IsPlaying": false,
+                            "ProgressTime": 0.0,
+                            "Speed": 1.0,
+                            "Type": "AnimationDataComponent"
                         }
                     ],
                     "IsActive": true,
@@ -177,11 +185,11 @@
                         {
                             "Position": [
                                 0.0,
-                                1.327375888824463,
-                                -2.982083797454834
+                                1.399999976158142,
+                                0.0
                             ],
                             "Rotation": [
-                                0.10934306681156158,
+                                0.15934276580810547,
                                 0.0,
                                 0.0
                             ],
@@ -193,12 +201,12 @@
                             "Type": "TransformData"
                         },
                         {
-                            "CameraMode": 1,
+                            "CameraMode": 2,
                             "FarZ": 1000.0,
                             "Fov": 60.0,
                             "FpsOffset": [
                                 0.0,
-                                1.5,
+                                0.4000000059604645,
                                 0.0
                             ],
                             "MoveSpeed": 0.10000000149011612,
@@ -260,13 +268,13 @@
             "Components": [
                 {
                     "Position": [
-                        -1.154407024383545,
-                        0.0003317892551422119,
-                        -0.1367076337337494
+                        -23.57676887512207,
+                        1.4603137969970703e-06,
+                        -20.120441436767578
                     ],
                     "Rotation": [
                         0.0,
-                        -1.6499990224838257,
+                        5.8000078201293945,
                         0.0
                     ],
                     "Scale": [
@@ -288,13 +296,94 @@
             "Name": "Player"
         },
         {
-            "Children": [],
+            "Children": [
+                {
+                    "Children": [],
+                    "Components": [
+                        {
+                            "Position": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "Rotation": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "Scale": [
+                                0.4000000059604645,
+                                0.4000000059604645,
+                                0.4000000059604645
+                            ],
+                            "Type": "TransformData"
+                        },
+                        {
+                            "FilePath": "Asset/Model/Character/Enemy/uploads_files_4301913_anim2.gltf",
+                            "ModelType": 1,
+                            "Type": "ModelRenderData"
+                        },
+                        {
+                            "AnimationIndex": 5,
+                            "IsLoop": true,
+                            "IsPlaying": false,
+                            "ProgressTime": 0.0,
+                            "Speed": 1.0,
+                            "Type": "AnimationDataComponent"
+                        }
+                    ],
+                    "IsActive": true,
+                    "Name": "Model"
+                },
+                {
+                    "Children": [],
+                    "Components": [
+                        {
+                            "Position": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "Rotation": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "Scale": [
+                                1.0,
+                                1.0,
+                                1.0
+                            ],
+                            "Type": "TransformData"
+                        },
+                        {
+                            "IsStatic": false,
+                            "Shapes": [
+                                {
+                                    "Height": 1.0,
+                                    "Offset": [
+                                        0.0,
+                                        0.0,
+                                        0.0
+                                    ],
+                                    "Radius": 1.0,
+                                    "ShapeId": 2,
+                                    "Tags": 4294967295
+                                }
+                            ],
+                            "Type": "ColliderData"
+                        }
+                    ],
+                    "IsActive": true,
+                    "Name": "Collider"
+                }
+            ],
             "Components": [
                 {
                     "Position": [
-                        720.0,
-                        360.0,
-                        0.0
+                        0.0,
+                        1.527029275894165,
+                        0.001937305205501616
                     ],
                     "Rotation": [
                         0.0,
@@ -302,34 +391,24 @@
                         0.0
                     ],
                     "Scale": [
-                        3.0,
-                        3.0,
-                        0.0
-                    ],
-                    "Type": "TransformData"
-                },
-                {
-                    "Color": [
-                        1.0,
                         1.0,
                         1.0,
                         1.0
                     ],
-                    "FilePath": "Asset/Texture/gurani.png",
-                    "OrderInLayer": 0,
-                    "Pivot": [
-                        0.5,
-                        0.5
-                    ],
-                    "Size": [
-                        100.0,
-                        100.0
-                    ],
-                    "Type": "SpriteData"
+                    "Type": "TransformData"
+                },
+                {
+                    "ScriptName": "GhostAI",
+                    "Type": "NativeScriptData",
+                    "animDead": 3,
+                    "animHunt": 2,
+                    "animIdle": 0,
+                    "animWander": 1,
+                    "moveSpeed": 1.0
                 }
             ],
             "IsActive": true,
-            "Name": "texture"
+            "Name": "Ghost"
         }
     ]
 }

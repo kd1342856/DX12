@@ -20,6 +20,10 @@ template<typename T>
 class ComponentArray : public IComponentArray
 {
 public:
+	ComponentArray() {
+		m_componentArray.resize(MAX_ENTITIES);
+	}
+
 	// コンポーネントを追加
 	void InsertData(Entity entity, T component)
 	{
@@ -68,7 +72,7 @@ public:
 	}
 
 private:
-	std::array<T, MAX_ENTITIES> m_componentArray{};
+	std::vector<T> m_componentArray;
 	std::unordered_map<Entity, size_t> m_entityToIndex;
 	std::unordered_map<size_t, Entity> m_indexToEntity;
 	size_t m_size = 0;

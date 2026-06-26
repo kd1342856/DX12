@@ -82,10 +82,10 @@
 #include"Framework/Manager/GameManager.h"
 #include "Framework/Manager/ResourceManager.h"
 
+
 //#include"Framework/Manager/CollisionManager.h"
 
-
-
 #include "Framework/ImGuiEditor/Editor/Editor.h"
+#include "Framework/ECS/Components/Data/NativeScript.h"
 
 
