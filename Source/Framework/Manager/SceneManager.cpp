@@ -1,5 +1,4 @@
 #include <SpriteBatch.h>
-#include "Pch.h"
 #include "SceneManager.h"
 #include "../DirectX/Utility/Time.h"
 #include "../../Graphics/Device/GraphicsDevice.h"

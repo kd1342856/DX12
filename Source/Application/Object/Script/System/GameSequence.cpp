@@ -1,8 +1,5 @@
 #include "GameSequence.h"
-#include "../../../../Framework/Manager/GameManager.h"
 #include "../../../../Framework/Object/GameObject.h"
-#include "../../../../Framework/DirectX/Utility/Time.h"
-#include "../../../../Framework/ImGuiEditor/ImGui/imgui.h"
 
 REGISTER_COMPONENT(GameSequence);
 

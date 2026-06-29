@@ -1,6 +1,6 @@
 #include "Model.h"
 #include "ModelLoader.h"
-#include "../../Framework/ECS/Components/Data/AnimationData.h"
+#include "../../../Framework/ECS/Components/Data/AnimationData.h"
 #include <assimp/scene.h>
 
 

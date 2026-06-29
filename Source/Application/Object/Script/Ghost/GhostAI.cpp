@@ -1,11 +1,6 @@
-﻿#include "Pch.h"
-#include "GhostAI.h"
-#include "../../../../Framework/Manager/GameManager.h"
+﻿#include "GhostAI.h"
 #include "../../../../Framework/Manager/AnimationManager.h"
 #include "../../../../Framework/Object/GameObject.h"
-#include "../../../../Framework/DirectX/Utility/Time.h"
-#include "../../../../Framework/DirectX/Utility/Random.h"
-#include "../../../../Framework/ImGuiEditor/ImGui/imgui.h"
 #include "../../../../Framework/ECS/Components/Data/ModelRenderData.h"
 #include "../../../../Graphics/Geometry/Model/Model.h"
 

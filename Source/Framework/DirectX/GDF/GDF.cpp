@@ -1,5 +1,4 @@
 #include "GDF.h"
-#include "Framework/DirectX/Utility/Input.h"
 
 
 // デバイス初期化

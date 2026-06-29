@@ -1,5 +1,4 @@
 #include "../../../Graphics/Descriptors/Heap/CBVSRVUAVHeap/CBVSRVUAVHeap.h"
-#include "Pch.h"
 #include "GameScene.h"
 #include "../../../Graphics/Device/GraphicsDevice.h"
 #include "../../../Framework/ECS/CompSystem/Systems/RenderSystem.h"

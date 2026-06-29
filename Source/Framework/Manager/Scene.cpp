@@ -1,4 +1,3 @@
-#include "Pch.h"
 #include "Scene.h"
 #include "../ECS/Components/Data/TransformData.h"
 #include "../ECS/Components/Data/SpriteData.h"

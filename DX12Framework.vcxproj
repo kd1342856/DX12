@@ -80,13 +80,14 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>Pch.h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>Pch.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
-      <AdditionalIncludeDirectories>Library/assimp/include;Library/recastnavigation/include/Recast;Library/recastnavigation/include/Detour;Source;Source\System\ImGui</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Library/assimp/include;Library/recastnavigation/include/Recast;Library/recastnavigation/include/Detour;Library/ImGui</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>Library/assimp/build/lib/$(Configuration);Library/recastnavigation/build/lib/$(Configuration)</AdditionalLibraryDirectories>
       <DelayLoadDLLs>assimp-vc143-mtd.dll</DelayLoadDLLs>
+      <AdditionalDependencies>Recast-d.lib;Detour-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -101,7 +102,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>Pch.h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>Pch.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
-      <AdditionalIncludeDirectories>Library/assimp/include;Library/recastnavigation/include;Source;Source\System\ImGui</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Library/assimp/include;Library/recastnavigation/include;Library/ImGui</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -110,6 +111,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>Library/assimp/build/lib/$(Configuration);Library/recastnavigation/build/Recast/$(Configuration);Library/recastnavigation/build/Detour/$(Configuration)</AdditionalLibraryDirectories>
       <DelayLoadDLLs>assimp-vc143-mt.dll</DelayLoadDLLs>
+      <AdditionalDependencies>Recast-d.lib;Detour-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -122,13 +124,14 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>Pch.h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>Pch.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
-      <AdditionalIncludeDirectories>Library/assimp/include;Library/recastnavigation/include/Recast;Library/recastnavigation/include/Detour;Source;Source\System\ImGui</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Library/assimp/include;Library/recastnavigation/include/Recast;Library/recastnavigation/include/Detour;Library/ImGui</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>Library/assimp/build/lib/$(Configuration);Library/recastnavigation/build/lib/$(Configuration)</AdditionalLibraryDirectories>
       <DelayLoadDLLs>assimp-vc143-mtd.dll</DelayLoadDLLs>
+      <AdditionalDependencies>Recast-d.lib;Detour-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -143,7 +146,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>Pch.h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>Pch.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
-      <AdditionalIncludeDirectories>Library/assimp/include;Library/recastnavigation/include;Source;Source\System\ImGui</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Library/assimp/include;Library/recastnavigation/include;Library/ImGui</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -152,6 +155,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>Library/assimp/build/lib/$(Configuration);Library/recastnavigation/build/Recast/$(Configuration);Library/recastnavigation/build/Detour/$(Configuration)</AdditionalLibraryDirectories>
       <DelayLoadDLLs>assimp-vc143-mt.dll</DelayLoadDLLs>
+      <AdditionalDependencies>Recast-d.lib;Detour-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -181,16 +185,6 @@
     <ClInclude Include="Source\Framework\ECS\ECSCoordinator.h" />
     <ClInclude Include="Source\Framework\ECS\Entity\Entity.h" />
     <ClInclude Include="Source\Framework\ImGuiEditor\Editor\Editor.h" />
-    <ClInclude Include="Source\Framework\ImGuiEditor\ImGui\imconfig.h" />
-    <ClInclude Include="Source\Framework\ImGuiEditor\ImGui\imgui.h" />
-    <ClInclude Include="Source\Framework\ImGuiEditor\ImGui\ImGuizmo.h" />
-    <ClInclude Include="Source\Framework\ImGuiEditor\ImGui\imgui_impl_dx12.h" />
-    <ClInclude Include="Source\Framework\ImGuiEditor\ImGui\imgui_impl_win32.h" />
-    <ClInclude Include="Source\Framework\ImGuiEditor\ImGui\imgui_internal.h" />
-    <ClInclude Include="Source\Framework\ImGuiEditor\ImGui\imgui_stdlib.h" />
-    <ClInclude Include="Source\Framework\ImGuiEditor\ImGui\imstb_rectpack.h" />
-    <ClInclude Include="Source\Framework\ImGuiEditor\ImGui\imstb_textedit.h" />
-    <ClInclude Include="Source\Framework\ImGuiEditor\ImGui\imstb_truetype.h" />
     <ClInclude Include="Source\Framework\Manager\AudioManager.h" />
     <ClInclude Include="Source\Framework\Manager\PrefabManager.h" />
     <ClInclude Include="Source\Framework\Manager\CollisionManager.h" />
@@ -242,6 +236,15 @@
     <ClInclude Include="Source\Framework\Manager\AnimationManager.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Library\ImGui\imgui.cpp" />
+    <ClCompile Include="Library\ImGui\ImGuizmo.cpp" />
+    <ClCompile Include="Library\ImGui\imgui_demo.cpp" />
+    <ClCompile Include="Library\ImGui\imgui_draw.cpp" />
+    <ClCompile Include="Library\ImGui\imgui_impl_dx12.cpp" />
+    <ClCompile Include="Library\ImGui\imgui_impl_win32.cpp" />
+    <ClCompile Include="Library\ImGui\imgui_stdlib.cpp" />
+    <ClCompile Include="Library\ImGui\imgui_tables.cpp" />
+    <ClCompile Include="Library\ImGui\imgui_widgets.cpp" />
     <ClCompile Include="Source\Application\Object\Script\Player\Player.cpp" />
     <ClCompile Include="Source\Application\Application.cpp" />
     <ClCompile Include="Source\Application\Scene\GameScene\GameScene.cpp" />
@@ -253,15 +256,6 @@
     <ClCompile Include="Source\Framework\DirectX\Utility\Utility.cpp" />
     <ClCompile Include="Source\Framework\DirectX\Window\Window.cpp" />
     <ClCompile Include="Source\Framework\ImGuiEditor\Editor\Editor.cpp" />
-    <ClCompile Include="Source\Framework\ImGuiEditor\ImGui\imgui.cpp" />
-    <ClCompile Include="Source\Framework\ImGuiEditor\ImGui\ImGuizmo.cpp" />
-    <ClCompile Include="Source\Framework\ImGuiEditor\ImGui\imgui_demo.cpp" />
-    <ClCompile Include="Source\Framework\ImGuiEditor\ImGui\imgui_draw.cpp" />
-    <ClCompile Include="Source\Framework\ImGuiEditor\ImGui\imgui_impl_dx12.cpp" />
-    <ClCompile Include="Source\Framework\ImGuiEditor\ImGui\imgui_impl_win32.cpp" />
-    <ClCompile Include="Source\Framework\ImGuiEditor\ImGui\imgui_stdlib.cpp" />
-    <ClCompile Include="Source\Framework\ImGuiEditor\ImGui\imgui_tables.cpp" />
-    <ClCompile Include="Source\Framework\ImGuiEditor\ImGui\imgui_widgets.cpp" />
     <ClCompile Include="Source\Framework\Manager\AudioManager.cpp" />
     <ClCompile Include="Source\Framework\Manager\PrefabManager.cpp" />
     <ClCompile Include="Source\Framework\Manager\CollisionManager.cpp" />

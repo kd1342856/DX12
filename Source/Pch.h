@@ -58,9 +58,9 @@
 #include<Keyboard.h>
 #include<Mouse.h>
 
-#include "Framework/ImGuiEditor/ImGui/imgui.h"
-#include "Framework/ImGuiEditor/ImGui/imgui_impl_dx12.h"
-#include "Framework/ImGuiEditor/ImGui/imgui_impl_win32.h"
+#include "../Library/ImGui/imgui.h"
+#include "../Library/ImGui/imgui_impl_dx12.h"
+#include "../Library/ImGui/imgui_impl_win32.h"
 
 //	DirectXTex
 #pragma comment(lib, "DirectXTex.lib")
@@ -73,6 +73,7 @@
 #include"Framework/DirectX/Utility/Input.h"
 #include"Framework/DirectX/Utility/Time.h"
 #include"Framework/DirectX/Utility/Logger.h"
+#include"Framework/DirectX/Utility/Random.h"
 
 //	GDFファサード(GraphicsDeviceの後に配置)
 #include"Framework/DirectX/GDF/GDF.h"

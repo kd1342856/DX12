@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf-8'?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
   <ItemGroup>
     <Filter Include="Source\Application" />
@@ -116,9 +116,6 @@
     <Filter Include="Source\Framework\ImGuiEditor">
       <UniqueIdentifier>{ef3403ec-e137-4e0a-8622-5bde17704038}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Framework\ImGuiEditor\ImGui">
-      <UniqueIdentifier>{568a0a62-aebb-4a9a-93bc-8d9876c4a7f5}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Framework\ImGuiEditor\Editor">
       <UniqueIdentifier>{7fc8b4f1-28a8-4e5c-80b5-e55c9850314f}</UniqueIdentifier>
     </Filter>
@@ -171,7 +168,16 @@
     <Filter Include="Source\Framework\ECS\CompSystem\SpriteRenderSystem">
       <UniqueIdentifier>{426dc5ae-7b63-455f-ba2d-d876a35798e5}</UniqueIdentifier>
     </Filter>
-  <Filter Include="Source\Application\Scene\TitleScene"><UniqueIdentifier>{a5ceca7d-0c2a-4b98-9835-94cf7805d8b8}</UniqueIdentifier></Filter><Filter Include="Source\Application\Object\Script\Ghost"><UniqueIdentifier>{0d4c4704-31ee-4dfc-ad73-9d189f474b5e}</UniqueIdentifier></Filter><Filter Include="Source\Application\Object\Script\System"><UniqueIdentifier>{d2c6c201-b652-4fdf-aaa0-350aefeca6bc}</UniqueIdentifier></Filter></ItemGroup>
+    <Filter Include="Source\Application\Scene\TitleScene">
+      <UniqueIdentifier>{a5ceca7d-0c2a-4b98-9835-94cf7805d8b8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Application\Object\Script\Ghost">
+      <UniqueIdentifier>{0d4c4704-31ee-4dfc-ad73-9d189f474b5e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Application\Object\Script\System">
+      <UniqueIdentifier>{d2c6c201-b652-4fdf-aaa0-350aefeca6bc}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Application\Object\Script\Player\Player.h">
       <Filter>Source\Application\Object\Script\Player</Filter>
@@ -277,36 +283,6 @@
     </ClInclude>
     <ClInclude Include="Source\Framework\ImGuiEditor\Editor\Editor.h">
       <Filter>Source\Framework\ImGuiEditor\Editor</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Framework\ImGuiEditor\ImGui\ImGuizmo.h">
-      <Filter>Source\Framework\ImGuiEditor\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Framework\ImGuiEditor\ImGui\imstb_rectpack.h">
-      <Filter>Source\Framework\ImGuiEditor\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Framework\ImGuiEditor\ImGui\imstb_textedit.h">
-      <Filter>Source\Framework\ImGuiEditor\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Framework\ImGuiEditor\ImGui\imstb_truetype.h">
-      <Filter>Source\Framework\ImGuiEditor\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Framework\ImGuiEditor\ImGui\imconfig.h">
-      <Filter>Source\Framework\ImGuiEditor\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Framework\ImGuiEditor\ImGui\imgui.h">
-      <Filter>Source\Framework\ImGuiEditor\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Framework\ImGuiEditor\ImGui\imgui_impl_dx12.h">
-      <Filter>Source\Framework\ImGuiEditor\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Framework\ImGuiEditor\ImGui\imgui_impl_win32.h">
-      <Filter>Source\Framework\ImGuiEditor\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Framework\ImGuiEditor\ImGui\imgui_internal.h">
-      <Filter>Source\Framework\ImGuiEditor\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Framework\ImGuiEditor\ImGui\imgui_stdlib.h">
-      <Filter>Source\Framework\ImGuiEditor\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="Source\Framework\System.h" />
     <ClInclude Include="Source\Framework\ECS\ComponentManager.h">
@@ -420,7 +396,19 @@
     <ClInclude Include="Source\Framework\ECS\CompSystem\SpriteRenderSystem\SpriteRenderSystem.h">
       <Filter>Source\Framework\ECS\CompSystem\SpriteRenderSystem</Filter>
     </ClInclude>
-  <ClInclude Include="Source\Application\Object\Script\Ghost\GhostAI.h"><Filter>Source\Application\Object\Script\Ghost</Filter></ClInclude><ClInclude Include="Source\Application\Object\Script\System\GameSequence.h"><Filter>Source\Application\Object\Script\System</Filter></ClInclude><ClInclude Include="Source\Framework\DirectX\Utility\Random.h"><Filter>Source\Framework\DirectX\Utility</Filter></ClInclude><ClInclude Include="Source\Framework\Manager\AnimationManager.h"><Filter>Source\Framework\Manager</Filter></ClInclude></ItemGroup>
+    <ClInclude Include="Source\Application\Object\Script\Ghost\GhostAI.h">
+      <Filter>Source\Application\Object\Script\Ghost</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Application\Object\Script\System\GameSequence.h">
+      <Filter>Source\Application\Object\Script\System</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\DirectX\Utility\Random.h">
+      <Filter>Source\Framework\DirectX\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\Manager\AnimationManager.h">
+      <Filter>Source\Framework\Manager</Filter>
+    </ClInclude>
+  </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Application\Object\Script\Player\Player.cpp">
       <Filter>Source\Application\Object\Script\Player</Filter>
@@ -506,33 +494,6 @@
     <ClCompile Include="Source\Framework\ImGuiEditor\Editor\Editor.cpp">
       <Filter>Source\Framework\ImGuiEditor\Editor</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Framework\ImGuiEditor\ImGui\imgui_widgets.cpp">
-      <Filter>Source\Framework\ImGuiEditor\ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Framework\ImGuiEditor\ImGui\ImGuizmo.cpp">
-      <Filter>Source\Framework\ImGuiEditor\ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Framework\ImGuiEditor\ImGui\imgui.cpp">
-      <Filter>Source\Framework\ImGuiEditor\ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Framework\ImGuiEditor\ImGui\imgui_demo.cpp">
-      <Filter>Source\Framework\ImGuiEditor\ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Framework\ImGuiEditor\ImGui\imgui_draw.cpp">
-      <Filter>Source\Framework\ImGuiEditor\ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Framework\ImGuiEditor\ImGui\imgui_impl_dx12.cpp">
-      <Filter>Source\Framework\ImGuiEditor\ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Framework\ImGuiEditor\ImGui\imgui_impl_win32.cpp">
-      <Filter>Source\Framework\ImGuiEditor\ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Framework\ImGuiEditor\ImGui\imgui_stdlib.cpp">
-      <Filter>Source\Framework\ImGuiEditor\ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Framework\ImGuiEditor\ImGui\imgui_tables.cpp">
-      <Filter>Source\Framework\ImGuiEditor\ImGui</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Framework\Manager\Scene.cpp">
       <Filter>Source\Framework\Manager</Filter>
     </ClCompile>
@@ -581,7 +542,43 @@
     <ClCompile Include="Source\Framework\ECS\CompSystem\SpriteRenderSystem\SpriteRenderSystem.cpp">
       <Filter>Source\Framework\ECS\CompSystem\SpriteRenderSystem</Filter>
     </ClCompile>
-  <ClCompile Include="Source\Application\Object\Script\Ghost\GhostAI.cpp"><Filter>Source\Application\Object\Script\Ghost</Filter></ClCompile><ClCompile Include="Source\Application\Object\Script\System\GameSequence.cpp"><Filter>Source\Application\Object\Script\System</Filter></ClCompile><ClCompile Include="Source\Framework\Manager\AnimationManager.cpp"><Filter>Source\Framework\Manager</Filter></ClCompile></ItemGroup>
+    <ClCompile Include="Source\Application\Object\Script\Ghost\GhostAI.cpp">
+      <Filter>Source\Application\Object\Script\Ghost</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Application\Object\Script\System\GameSequence.cpp">
+      <Filter>Source\Application\Object\Script\System</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Framework\Manager\AnimationManager.cpp">
+      <Filter>Source\Framework\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="Library\ImGui\imgui.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Library\ImGui\imgui_demo.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Library\ImGui\imgui_draw.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Library\ImGui\imgui_impl_dx12.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Library\ImGui\imgui_impl_win32.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Library\ImGui\imgui_stdlib.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Library\ImGui\imgui_tables.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Library\ImGui\imgui_widgets.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Library\ImGui\ImGuizmo.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+  </ItemGroup>
   <ItemGroup>
     <None Include="Asset\Shader\inc_Study.hlsli">
       <Filter>Asset\Shader</Filter>
