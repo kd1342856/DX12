@@ -1,7 +1,7 @@
 #pragma once
 #include "../Pipeline/Pipeline.h"
 #include "../RootSignature/RootSignature.h"
-#include "Buffer/CBufferAllocator/CBufferData/CBufferData.h"
+
 
 class LitShader
 {

@@ -1,6 +1,5 @@
 #pragma once
 #include "../Framework/DirectX/Window/Window.h"
-#include "Scene/SceneBase.h"
 
 class Application
 {

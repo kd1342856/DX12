@@ -1,12 +1,10 @@
 
 #include "../Framework/DirectX/Utility/ClassAssembly.h"
-#include "../Framework/DirectX/Utility/Logger.h"
 
 ClassAssembly& ClassAssembly::Instance() { static ClassAssembly instance; return instance; }
 Logger& Logger::Instance() { static Logger instance; return instance; }
+
 #include "Application.h"
-#include "../Framework/DirectX/Utility/Input.h"
-#include "../Framework/DirectX/Utility/Time.h"
 #include "Scene/GameScene/GameScene.h"
 #include "Scene/TitleScene/TitleScene.h"
 #include "../Framework/Manager/AudioManager.h"

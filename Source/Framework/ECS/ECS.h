@@ -17,9 +17,4 @@
 #include "../ECS/Components/Data/AnimationData.h"
 #include "../ECS/Components/Data/SpriteData.h"
 
-
-
-
-
-
 #include "CompSystem/Systems/RenderSystem.h"

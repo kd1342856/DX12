@@ -240,7 +240,7 @@ void CollisionManager::ClearDebugLines() {
     m_debugLines.clear();
 }
 
-void CollisionManager::AddDebugLine(const DirectX::SimpleMath::Vector3& start, const DirectX::SimpleMath::Vector3& end, ImU32 color) {
+void CollisionManager::AddDebugLine(const Math::Vector3& start, const Math::Vector3& end, ImU32 color) {
     if (!m_debugWireEnabled) return;
     m_debugLines.push_back({ start, end, color });
 }

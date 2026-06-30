@@ -1,4 +1,5 @@
 #include "PostProcessShader.h"
+#include "../../Buffer/RenderTarget/RenderTarget.h"
 
 void PostProcessShader::Create(GraphicsDevice* pGraphicsDevice)
 {
@@ -31,7 +32,7 @@ void PostProcessShader::Draw(RenderTarget* pRenderTarget, float exposure)
 	m_pDevice->GetCmdList()->SetGraphicsRootSignature(m_upRootSignature->GetRootSignature());
 	m_pDevice->GetCmdList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	// ’è”ƒoƒbƒtƒ@‚ğƒoƒCƒ“ƒh
+	// å®šæ•°ãƒãƒƒãƒ•ã‚¡ã‚’ãƒã‚¤ãƒ³ãƒ‰
 	CBufferData::PostProcess cPostProcess;
 	cPostProcess.Exposure = (exposure <= 0.0f) ? 1.0f : exposure;
 	GDF::Instance().BindCBuffer(0, cPostProcess);
@@ -60,9 +61,9 @@ void PostProcessShader::LoadShaderFile(const std::wstring& filePath)
 
 	std::wstring vsPath = baseFullPath + L"_VS.hlsl";
 	auto hResult = D3DCompileFromFile(vsPath.c_str(), nullptr, include, "VS", "vs_5_0", flag, 0, &m_pVSBlob, &pErrorBlob);
-	if (FAILED(hResult)) assert(0 && "’¸“_ƒVƒF[ƒ_[‚ÌƒRƒ“ƒpƒCƒ‹‚É¸”s‚µ‚Ü‚µ‚½");
+	if (FAILED(hResult)) assert(0 && "é ‚ç‚¹ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã®ã‚³ãƒ³ãƒ‘ã‚¤ãƒ«ã«å¤±æ•—ã—ã¾ã—ãŸ");
 
 	std::wstring psPath = baseFullPath + L"_PS.hlsl";
 	hResult = D3DCompileFromFile(psPath.c_str(), nullptr, include, "PS", "ps_5_0", flag, 0, &m_pPSBlob, &pErrorBlob);
-	if (FAILED(hResult)) assert(0 && "ƒsƒNƒZƒ‹ƒVƒF[ƒ_[‚ÌƒRƒ“ƒpƒCƒ‹‚É¸”s‚µ‚Ü‚µ‚½");
+	if (FAILED(hResult)) assert(0 && "ãƒ”ã‚¯ã‚»ãƒ«ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã®ã‚³ãƒ³ãƒ‘ã‚¤ãƒ«ã«å¤±æ•—ã—ã¾ã—ãŸ");
 }

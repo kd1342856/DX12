@@ -1,4 +1,4 @@
-﻿#include "GhostAI.h"
+#include "GhostAI.h"
 #include "../../../../Framework/Manager/AnimationManager.h"
 #include "../../../../Framework/Object/GameObject.h"
 #include "../../../../Framework/ECS/Components/Data/ModelRenderData.h"
@@ -47,7 +47,7 @@ void GhostAI::Update()
         if (m_changeDirTimer <= 0.0f) {
             float randX = Random::Instance().Range(-1.0f, 1.0f);
             float randZ = Random::Instance().Range(-1.0f, 1.0f);
-            m_moveDir = DirectX::SimpleMath::Vector3(randX, 0.0f, randZ);
+            m_moveDir = Math::Vector3(randX, 0.0f, randZ);
             if (m_moveDir.LengthSquared() > 0.0f) 
             {
                 m_moveDir.Normalize();

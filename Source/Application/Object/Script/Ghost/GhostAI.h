@@ -34,7 +34,7 @@ public:
 private:
     float m_moveSpeed = 1.0f;
     float m_changeDirTimer = 0.0f;
-    DirectX::SimpleMath::Vector3 m_moveDir = { 0, 0, 0 };
+    Math::Vector3 m_moveDir = { 0, 0, 0 };
     bool m_isExorcised = false;
     
     State m_currentState = State::Idle;

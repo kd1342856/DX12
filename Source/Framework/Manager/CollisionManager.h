@@ -10,8 +10,8 @@ class RenderTarget;
 struct RaycastHit {
     bool hit = false;
     float distance = 0.0f;
-    DirectX::SimpleMath::Vector3 point;
-    DirectX::SimpleMath::Vector3 normal;
+    Math::Vector3 point;
+    Math::Vector3 normal;
     Entity hitEntity = INVALID_ENTITY;
     std::weak_ptr<CollisionShape> hitShape;
 };
@@ -27,10 +27,10 @@ public:
     void Solve(Scene* scene);
 
     // ColliderComponentに対してレイキャスト
-    RaycastHit Raycast(const DirectX::SimpleMath::Vector3& origin, const DirectX::SimpleMath::Vector3& direction, float maxDistance = 1000.0f, uint32_t collisionMask = 0xFFFFFFFF);
+    RaycastHit Raycast(const Math::Vector3& origin, const Math::Vector3& direction, float maxDistance = 1000.0f, uint32_t collisionMask = 0xFFFFFFFF);
 
     // メッシュポリゴンに対して直接レイキャスト（ColliderComponent不要）
-    RaycastHit RaycastAgainstMesh(const DirectX::SimpleMath::Vector3& origin, const DirectX::SimpleMath::Vector3& direction, float maxDistance, const std::string& targetName = "");
+    RaycastHit RaycastAgainstMesh(const Math::Vector3& origin, const Math::Vector3& direction, float maxDistance, const std::string& targetName = "");
 
     // 現在のシーンを設定
     void SetScene(Scene* scene) { m_pCurrentScene = scene; }
@@ -41,7 +41,7 @@ public:
     bool IsDebugWireEnabled() const { return m_debugWireEnabled; }
 
     // デバッグラインの追加
-    void AddDebugLine(const DirectX::SimpleMath::Vector3& start, const DirectX::SimpleMath::Vector3& end, ImU32 color);
+    void AddDebugLine(const Math::Vector3& start, const Math::Vector3& end, ImU32 color);
     void ClearDebugLines();
 
     // ImGui ImDrawListを使ったワイヤーフレーム描画
@@ -49,8 +49,8 @@ public:
 
 private:
     struct DebugLine {
-        DirectX::SimpleMath::Vector3 start;
-        DirectX::SimpleMath::Vector3 end;
+        Math::Vector3 start;
+        Math::Vector3 end;
         ImU32 color;
     };
     std::vector<DebugLine> m_debugLines;

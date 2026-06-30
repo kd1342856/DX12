@@ -1,7 +1,9 @@
 #pragma once
 #include "../Pipeline/Pipeline.h"
 #include "../RootSignature/RootSignature.h"
-#include "Buffer/RenderTarget/RenderTarget.h"
+
+
+class RenderTarget;
 
 class PostProcessShader
 {

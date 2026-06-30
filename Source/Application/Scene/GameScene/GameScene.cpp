@@ -1,6 +1,4 @@
-#include "../../../Graphics/Descriptors/Heap/CBVSRVUAVHeap/CBVSRVUAVHeap.h"
 #include "GameScene.h"
-#include "../../../Graphics/Device/GraphicsDevice.h"
 #include "../../../Framework/ECS/CompSystem/Systems/RenderSystem.h"
 #include "../../../Framework/ECS/CompSystem/SpriteRenderSystem/SpriteRenderSystem.h"
 #include "../../../Framework/ECS/CompSystem/Systems/TransformSystem.h"
@@ -13,7 +11,6 @@
 #include "../../../Framework/DirectX/Utility/Time.h"
 #include "../../../Framework/Manager/CollisionManager.h"
 #include "../../../Framework/System/JobSystem/JobSystem.h"
-#include <fstream>
 #include "../../../Framework/ECS/Components/Data/TransformData.h"
 #include "../../../Framework/ECS/Components/Data/CameraData.h"
 #include "../../../Framework/ECS/Components/Data/ModelRenderData.h"

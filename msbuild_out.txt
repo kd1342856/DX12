@@ -1,0 +1,23 @@
+MSBuild のバージョン 18.5.4+cb4e32d21 (.NET Framework)
+2026/06/30 10:36:24 にビルドを開始しました。
+
+ノード 1 上のプロジェクト "C:\GitHub\DX12\DX12Framework.sln" (ClCompile ターゲット)。
+ValidateSolutionConfiguration:
+  ソリューション構成 "Debug|x64" をビルドしています。
+プロジェクト "C:\GitHub\DX12\DX12Framework.sln" (1) は、ノード 1 上に "C:\GitHub\DX12\DX12Framework.vcxproj" (2) をビルドしています (ClCompile ターゲット)。
+PrepareForBuild:
+  構造化出力が有効になっています。コンパイラ診断の書式設定にはエラー階層が反映されます。詳細については、https://aka.ms/cpp/structured-output を参照してください。
+InitializeBuildStatus:
+  "DX12Framework\x64\Debug\DX12Framework.tlog\unsuccessfulbuild" のタッチ タスクを実行しています。
+ClCompile:
+  すべての出力が最新のものです。
+  C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.42.34433\bin\HostX86\x64\CL.exe /c /IC:\GitHub\DX12\packages\directxtex_desktop_2019.2025.10.28.1\build\native\..\..\include /IC:\GitHub\DX12\packages\directxtk12_desktop_2019.2025.10.28.1\build\native\..\..\include /ILibrary/assimp/include /ILibrary/ImGui /ILibrary/recastnavigation/include /ZI /JMC /nologo /W3 /WX- /diagnostics:column /sdl /Od /D HAS_DIRECTXTEX /D HAS_DIRECTXTK12 /D IMGUI_DEFINE_MATH_OPERATORS /D _DEBUG /D _CONSOLE /D _UNICODE /D UNICODE /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /std:c++17 /permissive- /Yu"Pch.h" /Fp"DX12Framework\x64\Debug\DX12Framework.pch" /Fo"DX12Framework\x64\Debug\\" /Fd"DX12Framework\x64\Debug\vc143.pdb" /external:W3 /Gd /TP /FIPch.h /FC /errorReport:queue Source\Framework\Editor\Editor.cpp
+  Editor.cpp
+プロジェクト "C:\GitHub\DX12\DX12Framework.vcxproj" (ClCompile ターゲット) のビルドが完了しました。
+プロジェクト "C:\GitHub\DX12\DX12Framework.sln" (ClCompile ターゲット) のビルドが完了しました。
+
+ビルドに成功しました。
+    0 個の警告
+    0 エラー
+
+経過時間 00:00:01.39

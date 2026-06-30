@@ -38,8 +38,8 @@ void SpriteRenderSystem::Render() {
         }
 
         // Get 2D position and scale from TransformData
-        DirectX::SimpleMath::Vector3 pos = cTransform.m_position;
-        DirectX::SimpleMath::Vector3 scale = cTransform.m_scale;
+        Math::Vector3 pos = cTransform.m_position;
+        Math::Vector3 scale = cTransform.m_scale;
         
         float rotZ = 0.0f; 
 
