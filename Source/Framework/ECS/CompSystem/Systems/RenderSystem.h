@@ -47,6 +47,21 @@ public:
 		auto* pShadowMap = pGraphicsDevice->GetShadowMap();
 		if (pShadowMap && ShaderManager::Instance().m_shadowShader.IsCreated())
 		{
+			auto desc = pShadowMap->m_pBuffer->GetDesc();
+
+			D3D12_VIEWPORT shadowViewport = {};
+
+			shadowViewport.Width = (float)desc.Width;
+			shadowViewport.Height = (float)desc.Height;
+
+			shadowViewport.MinDepth = 0.0f;
+			shadowViewport.MaxDepth = 1.0f;
+
+			D3D12_RECT shadowScissor = { 0, 0, (LONG)desc.Width, (LONG)desc.Height };
+
+			pCmdList->RSSetViewports(1, &shadowViewport);
+			pCmdList->RSSetScissorRects(1, &shadowScissor);
+
 			pShadowMap->TransitionTo(pCmdList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 			pShadowMap->ClearBuffer();
 			auto dsvH = pGraphicsDevice->GetDSVHeap()->GetCPUHandle(pShadowMap->GetDSVNumber());

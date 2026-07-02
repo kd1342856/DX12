@@ -18,7 +18,8 @@ void LitShader::Create(GraphicsDevice* pGraphicsDevice)
 	std::vector<RangeType> rangeTypes = {
 		RangeType::CBV, RangeType::CBV, RangeType::CBV, RangeType::CBV, RangeType::CBV, // 5 CBVs
 		RangeType::SRV, RangeType::SRV, RangeType::SRV, RangeType::SRV,                 // t0-t3
-		RangeType::SRV, RangeType::SRV, RangeType::SRV, RangeType::SRV, RangeType::SRV  // t4-t8
+		RangeType::SRV, RangeType::SRV, RangeType::SRV, RangeType::SRV, RangeType::SRV,  // t4-t8
+		RangeType::SRV																	// t9
 	};
 
 	m_upRootSignature = std::make_unique<RootSignature>();
@@ -81,7 +82,13 @@ void LitShader::Begin()
 		auto handle = GraphicsDevice::Instance().GetCBVSRVUAVHeap()->GetGPUHandle(pShadowMap->GetSRVNumber());
 		GraphicsDevice::Instance().GetCmdList()->SetGraphicsRootDescriptorTable(m_cbvCount + 7, handle);
 	}
-
+	//	スポットライトシャドウマップのバインド(t9 = m_cbvCount + 9)
+	auto* pSpotShadowMap = GraphicsDevice::Instance().GetSpotShadowMap();
+	if (pSpotShadowMap && pSpotShadowMap->GetSRVNumber() != -1)
+	{
+		auto handle = GraphicsDevice::Instance().GetCBVSRVUAVHeap()->GetGPUHandle(pSpotShadowMap->GetSRVNumber());
+		GraphicsDevice::Instance().GetCmdList()->SetGraphicsRootDescriptorTable(m_cbvCount + 9, handle);
+	}
 	ShaderManager::Instance().BindCameraMatrix(0);
 	ShaderManager::Instance().BindLightData(3);
 }

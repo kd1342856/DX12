@@ -65,10 +65,15 @@ bool GraphicsDevice::Init(HWND  hWnd, int w, int h)
 	m_upShadowMap = std::make_unique<DepthStencil>();
 	if(!m_upShadowMap->Create(this, Math::Vector2(4096.0f, 4096.0f), DepthStencilFormat::DepthHighQuality, true))
 	{
-		assert(0 && "繧ｷ繝｣繝峨え繝槭ャ繝励・菴懈・縺ｫ螟ｱ謨励＠縺ｾ縺励◆");
+		assert(0 && "シャドウマップの作成に失敗しました");
 		return false;
 	}
-
+	m_upSpotShadowMap = std::make_unique<DepthStencil>();
+	if (!m_upSpotShadowMap->Create(this, Math::Vector2(2048.0f, 2048.0f), DepthStencilFormat::DepthHighQuality, true))
+	{
+		assert(0 && "スポットライトシャドウマップの作成に失敗しました");
+		return false;
+	}
 	if (!CreateSwapChainRTV())
 	{
 		assert(0 && "繧ｹ繝ｯ繝・・繝√ぉ繝ｼ繝ｳ縺ｮRTV菴懈・縺ｫ螟ｱ謨励＠縺ｾ縺励◆");

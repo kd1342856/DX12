@@ -15,11 +15,6 @@ struct FrameContext {
 
 #include <GraphicsMemory.h>
 #include <SpriteBatch.h>
-#include <SpriteBatch.h>
-
-#include <GraphicsMemory.h>
-#include <SpriteBatch.h>
-#include <SpriteBatch.h>
 
 class GraphicsDevice {
 public:
@@ -64,6 +59,8 @@ public:
 
 	ID3D12DescriptorHeap* GetImGuiSRVHeap() const { return m_upImGuiSRVHeap.Get(); }
 
+	DepthStencil* GetSpotShadowMap()const { return m_upSpotShadowMap.get(); }
+
 public:
 	int m_imGuiSrvCount = 1;
 
@@ -78,6 +75,8 @@ private:
 	bool CreateSwapChainRTV();
 	bool CreateFence();
 	bool CreateDefaultTextures();
+
+	std::unique_ptr<DepthStencil>			m_upSpotShadowMap = nullptr;
 
 	// ImGuièâä˙âª
 	bool InitImGui();
