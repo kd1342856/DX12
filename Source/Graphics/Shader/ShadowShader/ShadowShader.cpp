@@ -1,3 +1,4 @@
+#include "../../../Pch.h"
 #include "ShadowShader.h"
 
 void ShadowShader::Create(GraphicsDevice* pGraphicsDevice)
@@ -70,6 +71,10 @@ void ShadowShader::LoadShaderFile(const std::wstring& filePath)
 
 void ShadowShader::Begin()
 {
+	DepthStencil* pShadowMap = m_pDevice->GetShadowMap();
+
+	pShadowMap->TransitionTo(m_pDevice->GetCmdList(), D3D12_RESOURCE_STATE_DEPTH_WRITE);
+
 	m_pDevice->GetCmdList()->SetPipelineState(m_upPipeline->GetPipeline());
 	m_pDevice->GetCmdList()->SetGraphicsRootSignature(m_upRootSignature->GetRootSignature());
 	m_pDevice->GetCmdList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -85,6 +90,18 @@ void ShadowShader::Begin()
 
 	m_pDevice->GetCmdList()->RSSetViewports(1, &viewport);
 	m_pDevice->GetCmdList()->RSSetScissorRects(1, &rect);
+
+	auto dsvH = m_pDevice->GetDSVHeap()->GetCPUHandle(pShadowMap->GetDSVNumber());
+	m_pDevice->GetCmdList()->OMSetRenderTargets(0, nullptr, false, &dsvH);
+
+	pShadowMap->ClearBuffer();
+}
+
+void ShadowShader::End()
+{
+	DepthStencil* pShadowMap = m_pDevice->GetShadowMap();
+	pShadowMap->TransitionTo(m_pDevice->GetCmdList(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+
 }
 
 void ShadowShader::DrawModel(const ModelData& modelData, const Math::Matrix& mWorld)

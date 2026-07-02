@@ -1,3 +1,4 @@
+#include "../Pch.h"
 
 #include "../Framework/DirectX/Utility/ClassAssembly.h"
 
@@ -7,8 +8,8 @@ Logger& Logger::Instance() { static Logger instance; return instance; }
 #include "Application.h"
 #include "Scene/GameScene/GameScene.h"
 #include "Scene/TitleScene/TitleScene.h"
-#include "../Framework/Manager/AudioManager.h"
-#include "../Framework/Manager/SceneManager.h"
+#include "../Framework/Manager/Audio/AudioManager.h"
+#include "../Framework/Manager/Scene/SceneManager.h"
 
 // ImGuiのWin32メチE��ージハンドラ
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);

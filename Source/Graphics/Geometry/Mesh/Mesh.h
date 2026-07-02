@@ -42,8 +42,8 @@ private:
 	std::vector<MeshVertex> m_vertices;
 	std::vector<MeshFace> m_faces;
 
-	ComPtr<ID3D12Resource>		m_pVBuffer = nullptr;
-	ComPtr<ID3D12Resource>		m_pIBuffer = nullptr;
+	Microsoft::WRL::ComPtr<ID3D12Resource>		m_pVBuffer = nullptr;
+	Microsoft::WRL::ComPtr<ID3D12Resource>		m_pIBuffer = nullptr;
 	D3D12_VERTEX_BUFFER_VIEW	m_vbView;
 	D3D12_INDEX_BUFFER_VIEW		m_ibView;
 

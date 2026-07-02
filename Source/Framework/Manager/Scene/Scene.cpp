@@ -1,3 +1,4 @@
+#include "../../../Pch.h"
 #include "Scene.h"
 #include "../Collision/CollisionManager.h"
 #include "../Resource/PrefabManager.h"

@@ -1,6 +1,7 @@
+#include "../../../Pch.h"
 #include "TitleScene.h"
 #include "../../../Framework/DirectX/Utility/Input.h"
-#include "../../../Framework/Manager/SceneManager.h"
+#include "../../../Framework/Manager/Scene/SceneManager.h"
 #include "../../../Framework/ECS/CompSystem/Systems/RenderSystem.h"
 #include "../../../Framework/ECS/CompSystem/SpriteRenderSystem/SpriteRenderSystem.h"
 #include "../../../Framework/DirectX/Utility/Logger.h"

@@ -1,3 +1,4 @@
+#include "../../../Pch.h"
 #include "StandardShader.h"
 
 void StandardShader::Create(GraphicsDevice* pGraphicsDevice)

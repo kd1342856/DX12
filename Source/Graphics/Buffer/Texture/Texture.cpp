@@ -1,3 +1,4 @@
+#include "../../../Pch.h"
 #include "Texture.h"
 
 bool Texture::Load(GraphicsDevice* pGraphicsDevice, const std::string& filePath)

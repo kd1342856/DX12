@@ -81,7 +81,7 @@
 //	ECS（Editor.hより前に定義してGameObjectを完全解決する）
 #include"Framework/ECS/ECS.h"
 #include"Framework/Manager/GameManager.h"
-#include "Framework/Manager/ResourceManager.h"
+#include "Framework/Manager/Resource/ResourceManager.h"
 
 
 //#include"Framework/Manager/CollisionManager.h"

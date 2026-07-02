@@ -1,3 +1,4 @@
+#include "../../../Pch.h"
 #include "LitShader.h"
 
 void LitShader::Create(GraphicsDevice* pGraphicsDevice)

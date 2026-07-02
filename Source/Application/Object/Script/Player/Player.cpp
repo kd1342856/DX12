@@ -1,9 +1,10 @@
+#include "../../../../Pch.h"
 #include "Player.h"
 #include "../../../../Framework/Manager/GameManager.h"
 #include "../../../../Framework/DirectX/Utility/Input.h"
 #include "../../../../Framework/DirectX/Utility/Time.h"
 #include "../../../../Framework/Object/GameObject.h"
-#include "../../../../Framework/Manager/CollisionManager.h"
+#include "../../../../Framework/Manager/Collision/CollisionManager.h"
 
 REGISTER_COMPONENT(Player);
 

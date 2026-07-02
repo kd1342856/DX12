@@ -33,6 +33,6 @@ private:
 	void CreateStaticSampler(D3D12_STATIC_SAMPLER_DESC& pSamplerDesc, TextureAddressMode mode, D3D12Filter filter, int count);
 
 	GraphicsDevice*				m_pDevice = nullptr;
-	ComPtr<ID3DBlob>			m_pRootBlob = nullptr;
-	ComPtr<ID3D12RootSignature> m_pRootSignature = nullptr;
+	Microsoft::WRL::ComPtr<ID3DBlob>			m_pRootBlob = nullptr;
+	Microsoft::WRL::ComPtr<ID3D12RootSignature> m_pRootSignature = nullptr;
 };

@@ -8,5 +8,5 @@ public:
 
 public:
 	GraphicsDevice* m_pGraphicsDevice = nullptr;
-	ComPtr<ID3D12Resource> m_pBuffer = nullptr;
+	Microsoft::WRL::ComPtr<ID3D12Resource> m_pBuffer = nullptr;
 };

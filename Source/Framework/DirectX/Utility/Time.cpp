@@ -1,3 +1,4 @@
+#include "../../../Pch.h"
 #include "Time.h"
 
 GameTimer& GameTimer::Instance()

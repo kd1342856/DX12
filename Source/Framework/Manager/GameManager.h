@@ -1,14 +1,6 @@
 #pragma once
 #include "../ECS/ECS.h"
-#include "../ECS/Components/Data/TransformData.h"
-#include "../ECS/Components/Data/CameraData.h"
-#include "../ECS/Components/Data/ModelRenderData.h"
-#include "../ECS/Components/Data/ShaderData.h"
-#include "../ECS/Components/Data/AnimationData.h"
-#include "../ECS/Components/Data/ColliderData.h"
-#include "../ECS/Components/Data/NativeScriptData.h"
-#include "../ECS/Components/Data/SpriteData.h"
-#include "../Manager/CollisionManager.h"
+#include "../Manager/Collision/CollisionManager.h"
 #include "../System/JobSystem/JobSystem.h"
 #include "../DirectX/Utility/ClassAssembly.h"
 

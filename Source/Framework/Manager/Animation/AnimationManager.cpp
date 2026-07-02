@@ -1,3 +1,4 @@
+#include "../../../Pch.h"
 #include "AnimationManager.h"
 
 void AnimationManager::PlayAnimation(Entity entity, int animIndex, bool isLoop, float speed)

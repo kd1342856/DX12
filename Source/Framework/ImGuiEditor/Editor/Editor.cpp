@@ -1,20 +1,14 @@
+#include "../../../Pch.h"
 #include "Editor.h"
-#include "../../Manager/Scene.h"
+#include "../../Manager/Scene/Scene.h"
 #include "../../../Graphics/Buffer/RenderTarget/RenderTarget.h"
 #include "../../../Graphics/Device/GraphicsDevice.h"
 #include "../../Object/GameObject.h"
-#include "../../ECS/Components/Data/TransformData.h"
-#include "../../ECS/Components/Data/ModelRenderData.h"
-#include "../../ECS/Components/Data/SpriteData.h"
-#include "../../ECS/Components/Data/CameraData.h"
-#include "../../ECS/Components/Data/ColliderData.h"
-#include "../../ECS/Components/Data/NativeScriptData.h"
-#include "../../Manager/CollisionShape.h"
+#include "../../ECS/ECS.h"
+#include "../../Manager/Collision/CollisionShape.h"
 #include "../../ECS/Components/Data/AnimationData.h"
 #include "../../../Graphics/Geometry/Model/Model.h"
-#include "../../DirectX/Utility/Input.h"
 
-#include <fstream>
 #include <filesystem>
 #include <regex>
 

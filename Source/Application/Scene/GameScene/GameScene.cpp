@@ -1,3 +1,4 @@
+#include "../../../Pch.h"
 #include "GameScene.h"
 #include "../../../Framework/ECS/CompSystem/Systems/RenderSystem.h"
 #include "../../../Framework/ECS/CompSystem/SpriteRenderSystem/SpriteRenderSystem.h"
@@ -9,7 +10,7 @@
 #include "../../../Framework/Manager/GameManager.h"
 #include "../../../Framework/DirectX/Utility/Logger.h"
 #include "../../../Framework/DirectX/Utility/Time.h"
-#include "../../../Framework/Manager/CollisionManager.h"
+#include "../../../Framework/Manager/Collision/CollisionManager.h"
 #include "../../../Framework/System/JobSystem/JobSystem.h"
 #include "../../../Framework/ECS/Components/Data/TransformData.h"
 #include "../../../Framework/ECS/Components/Data/CameraData.h"

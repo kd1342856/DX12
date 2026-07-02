@@ -1,3 +1,4 @@
+#include "../../Pch.h"
 #include "../Buffer/RenderTarget/RenderTarget.h"
 #include "GraphicsDevice.h"
 
@@ -55,14 +56,14 @@ bool GraphicsDevice::Init(HWND  hWnd, int w, int h)
 		return false;
 	}
 	m_upDepthStencil = std::make_unique<DepthStencil>();
-	if(!m_upDepthStencil->Create(this, Math::Vector2(w, h)))
+	if(!m_upDepthStencil->Create(this, Math::Vector2(static_cast<float>(w), static_cast<float>(h))))
 	{
 		assert(0 && "豺ｱ蠎ｦ繧ｹ繝・Φ繧ｷ繝ｫ縺ｮ菴懈・縺ｫ螟ｱ謨励＠縺ｾ縺励◆");
 		return false;
 	}
 
 	m_upShadowMap = std::make_unique<DepthStencil>();
-	if(!m_upShadowMap->Create(this, Math::Vector2(4096, 4096), DepthStencilFormat::DepthHighQuality, true))
+	if(!m_upShadowMap->Create(this, Math::Vector2(4096.0f, 4096.0f), DepthStencilFormat::DepthHighQuality, true))
 	{
 		assert(0 && "繧ｷ繝｣繝峨え繝槭ャ繝励・菴懈・縺ｫ螟ｱ謨励＠縺ｾ縺励◆");
 		return false;

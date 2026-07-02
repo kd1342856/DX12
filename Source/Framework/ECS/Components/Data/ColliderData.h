@@ -1,5 +1,5 @@
 #pragma once
-#include "../../../Manager/CollisionShape.h"
+#include "../../../Manager/Collision/CollisionShape.h"
 
 struct ColliderData {
     std::vector<std::shared_ptr<CollisionShape>> m_shapes;

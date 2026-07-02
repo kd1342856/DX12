@@ -10,6 +10,7 @@ class ShadowShader
 public:
 	void Create(GraphicsDevice* pGraphicsDevice);
 	void Begin();
+	void End();
 	void DrawModel(const ModelData& modelData, const Math::Matrix& mWorld);
 	bool IsCreated() const { return m_upPipeline != nullptr; }
 
@@ -21,8 +22,8 @@ private:
 	std::unique_ptr<Pipeline>		m_upPipeline = nullptr;
 	std::unique_ptr<RootSignature>	m_upRootSignature = nullptr;
 
-	ComPtr<ID3DBlob> m_pVSBlob = nullptr;
-	ComPtr<ID3DBlob> m_pPSBlob = nullptr;
+	Microsoft::WRL::ComPtr<ID3DBlob> m_pVSBlob = nullptr;
+	Microsoft::WRL::ComPtr<ID3DBlob> m_pPSBlob = nullptr;
 
 	UINT m_cbvCount = 0;
 };

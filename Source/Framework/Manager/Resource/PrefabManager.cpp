@@ -1,3 +1,4 @@
+#include "../../../Pch.h"
 #include "PrefabManager.h"
 
 nlohmann::json PrefabManager::GetPrefab(const std::string& filepath) {

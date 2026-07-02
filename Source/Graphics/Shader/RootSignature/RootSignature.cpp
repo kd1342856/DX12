@@ -1,3 +1,4 @@
+#include "../../../Pch.h"
 #include "RootSignature.h"
 
 void RootSignature::Create(GraphicsDevice* pGraphicsDevice, const std::vector<RangeType>& rangeTypes, UINT& cbvCount)

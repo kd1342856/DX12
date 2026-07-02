@@ -1,3 +1,4 @@
+#include "../../../Pch.h"
 #include "DepthStencil.h"
 
 #include "../../Device/GraphicsDevice.h"
@@ -6,7 +7,7 @@ bool DepthStencil::Create(GraphicsDevice* pGraphicsDevice, const Math::Vector2& 
 {
 	m_pGraphicsDevice = pGraphicsDevice;
 
-	// デプスバッファ設定
+	// 深度バッファ設定
 	D3D12_HEAP_PROPERTIES heapProp = {};
 	heapProp.Type = D3D12_HEAP_TYPE_DEFAULT;
 
@@ -19,7 +20,7 @@ bool DepthStencil::Create(GraphicsDevice* pGraphicsDevice, const Math::Vector2& 
 	resDesc.SampleDesc.Count = 1;
 	resDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 
-	// デプスバッファのフォーマットと最大深度値を設定
+	// 深度バッファのフォーマットと最大深度値設定
 	D3D12_CLEAR_VALUE depthClearValue = {};
 	depthClearValue.DepthStencil.Depth = 1.0f;
 
@@ -41,7 +42,7 @@ bool DepthStencil::Create(GraphicsDevice* pGraphicsDevice, const Math::Vector2& 
 		break;
 	}
 
-	// 設定を元にデプスバッファを生成
+	// 設定に深度バッファを生成
 	auto hr = m_pGraphicsDevice->GetDevice()->CreateCommittedResource(
 		&heapProp, D3D12_HEAP_FLAG_NONE, &resDesc, D3D12_RESOURCE_STATE_DEPTH_WRITE,
 		&depthClearValue, IID_PPV_ARGS(&m_pBuffer));
@@ -52,13 +53,16 @@ bool DepthStencil::Create(GraphicsDevice* pGraphicsDevice, const Math::Vector2& 
 		return false;
 	}
 
-	// Create DSV
+	// DSV作成
 	m_dsvNumber = m_pGraphicsDevice->GetDSVHeap()->CreateDSV(m_pBuffer.Get(), depthClearValue.Format);
 
 	if (bCreateSRV)
 	{
 		m_srvNumber = m_pGraphicsDevice->GetCBVSRVUAVHeap()->CreateSRV(m_pBuffer.Get());
 	}
+
+	// 初期状態はDEPTH_WRITE
+	m_currentState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
 
 	return true;
 }
@@ -67,4 +71,22 @@ void DepthStencil::ClearBuffer()
 {
 	m_pGraphicsDevice->GetCmdList()->ClearDepthStencilView(
 		m_pGraphicsDevice->GetDSVHeap()->GetCPUHandle(m_dsvNumber), D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+}
+
+void DepthStencil::TransitionTo(ID3D12GraphicsCommandList* pCmdList, D3D12_RESOURCE_STATES newState)
+{
+	// 同じ状態への遷移は無視（不要なバリアを出さない）
+	if (m_currentState == newState) return;
+
+	D3D12_RESOURCE_BARRIER barrier = {};
+	barrier.Type                   = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	barrier.Flags                  = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	barrier.Transition.pResource   = m_pBuffer.Get();
+	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+	barrier.Transition.StateBefore = m_currentState;
+	barrier.Transition.StateAfter  = newState;
+
+	pCmdList->ResourceBarrier(1, &barrier);
+
+	m_currentState = newState;
 }

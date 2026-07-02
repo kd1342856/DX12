@@ -1,3 +1,4 @@
+#include "../../../Pch.h"
 #include "CollisionManager.h"
 #include <DirectXCollision.h>
 #include "../Scene/Scene.h"

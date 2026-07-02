@@ -1,3 +1,4 @@
+#include "../../../Pch.h"
 #include "CBufferAllocator.h"
 
 void CBufferAllocator::Create(GraphicsDevice* pGraphicsDevice, CBVSRVUAVHeap* pHeap)

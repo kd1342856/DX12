@@ -1,5 +1,6 @@
+#include "../../../../Pch.h"
 #include "GhostAI.h"
-#include "../../../../Framework/Manager/AnimationManager.h"
+#include "../../../../Framework/Manager/Animation/AnimationManager.h"
 #include "../../../../Framework/Object/GameObject.h"
 #include "../../../../Framework/ECS/Components/Data/ModelRenderData.h"
 #include "../../../../Graphics/Geometry/Model/Model.h"

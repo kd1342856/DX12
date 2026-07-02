@@ -187,6 +187,24 @@
     <Filter Include="Source\Graphics\Shader\StandardShader">
       <UniqueIdentifier>{C657EE89-D42F-4630-AB6E-A3E958EE63CB}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Framework\Manager\Animation">
+      <UniqueIdentifier>{21c279b6-16e5-48d4-bea3-20333f176008}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Framework\Manager\Audio">
+      <UniqueIdentifier>{e54cc0c7-3be0-4ddb-aabf-2bb0252b9f3d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Framework\Manager\Collision">
+      <UniqueIdentifier>{a2e9edae-9bff-4a21-8dc7-ca4bb6c72984}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Framework\Manager\NavMesh">
+      <UniqueIdentifier>{8ac913df-54e5-49a7-aba7-aa11ecdbeb6a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Framework\Manager\Resource">
+      <UniqueIdentifier>{7687e007-88ce-425c-a47e-c9cd43d918e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Framework\Manager\Scene">
+      <UniqueIdentifier>{67046f06-1e60-43fd-8098-dac859d150cd}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Library\ImGui\ImGuizmo.cpp">
@@ -255,34 +273,7 @@
     <ClCompile Include="Source\Framework\ImGuiEditor\Editor\Editor.cpp">
       <Filter>Source\Framework\ImGuiEditor\Editor</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Framework\Manager\AnimationManager.cpp">
-      <Filter>Source\Framework\Manager</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Framework\Manager\AudioManager.cpp">
-      <Filter>Source\Framework\Manager</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Framework\Manager\CollisionManager.cpp">
-      <Filter>Source\Framework\Manager</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Framework\Manager\CollisionShape.cpp">
-      <Filter>Source\Framework\Manager</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Framework\Manager\CollisionSolver.cpp">
-      <Filter>Source\Framework\Manager</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Framework\Manager\GameManager.cpp">
-      <Filter>Source\Framework\Manager</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Framework\Manager\PrefabManager.cpp">
-      <Filter>Source\Framework\Manager</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Framework\Manager\ResourceManager.cpp">
-      <Filter>Source\Framework\Manager</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Framework\Manager\Scene.cpp">
-      <Filter>Source\Framework\Manager</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Framework\Manager\SceneManager.cpp">
       <Filter>Source\Framework\Manager</Filter>
     </ClCompile>
     <ClCompile Include="Source\Framework\Object\GameObject.cpp">
@@ -453,34 +444,7 @@
     <ClInclude Include="Source\Framework\ImGuiEditor\Editor\Editor.h">
       <Filter>Source\Framework\ImGuiEditor\Editor</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Framework\Manager\AnimationManager.h">
-      <Filter>Source\Framework\Manager</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Framework\Manager\AudioManager.h">
-      <Filter>Source\Framework\Manager</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Framework\Manager\CollisionManager.h">
-      <Filter>Source\Framework\Manager</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Framework\Manager\CollisionShape.h">
-      <Filter>Source\Framework\Manager</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Framework\Manager\CollisionSolver.h">
-      <Filter>Source\Framework\Manager</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Framework\Manager\GameManager.h">
-      <Filter>Source\Framework\Manager</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Framework\Manager\PrefabManager.h">
-      <Filter>Source\Framework\Manager</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Framework\Manager\ResourceManager.h">
-      <Filter>Source\Framework\Manager</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Framework\Manager\Scene.h">
-      <Filter>Source\Framework\Manager</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Framework\Manager\SceneManager.h">
       <Filter>Source\Framework\Manager</Filter>
     </ClInclude>
     <ClInclude Include="Source\Framework\Memory\LinearAllocator.h">
@@ -625,5 +589,70 @@
       <Filter>Asset\Shader</Filter>
     </None>
     <None Include="packages.config" />
+    <ClCompile Include="Source\Framework\Manager\Scene\Scene.cpp">
+      <Filter>Source\Framework\Manager\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Framework\Manager\Scene\SceneManager.cpp">
+      <Filter>Source\Framework\Manager\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Framework\Manager\Resource\PrefabManager.cpp">
+      <Filter>Source\Framework\Manager\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Framework\Manager\Resource\ResourceManager.cpp">
+      <Filter>Source\Framework\Manager\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Framework\Manager\NavMesh\NavMeshManager.cpp">
+      <Filter>Source\Framework\Manager\NavMesh</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Framework\Manager\Collision\CollisionManager.cpp">
+      <Filter>Source\Framework\Manager\Collision</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Framework\Manager\Collision\CollisionShape.cpp">
+      <Filter>Source\Framework\Manager\Collision</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Framework\Manager\Collision\CollisionSolver.cpp">
+      <Filter>Source\Framework\Manager\Collision</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Framework\Manager\Audio\AudioManager.cpp">
+      <Filter>Source\Framework\Manager\Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Framework\Manager\Animation\AnimationManager.cpp">
+      <Filter>Source\Framework\Manager\Animation</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Source\Framework\Manager\Scene\Scene.h">
+      <Filter>Source\Framework\Manager\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\Manager\Scene\SceneBase.h">
+      <Filter>Source\Framework\Manager\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\Manager\Scene\SceneManager.h">
+      <Filter>Source\Framework\Manager\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\Manager\Resource\PrefabManager.h">
+      <Filter>Source\Framework\Manager\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\Manager\Resource\ResourceManager.h">
+      <Filter>Source\Framework\Manager\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\Manager\NavMesh\NavMeshManager.h">
+      <Filter>Source\Framework\Manager\NavMesh</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\Manager\Collision\CollisionManager.h">
+      <Filter>Source\Framework\Manager\Collision</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\Manager\Collision\CollisionShape.h">
+      <Filter>Source\Framework\Manager\Collision</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\Manager\Collision\CollisionSolver.h">
+      <Filter>Source\Framework\Manager\Collision</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\Manager\Audio\AudioManager.h">
+      <Filter>Source\Framework\Manager\Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\Manager\Animation\AnimationManager.h">
+      <Filter>Source\Framework\Manager\Animation</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

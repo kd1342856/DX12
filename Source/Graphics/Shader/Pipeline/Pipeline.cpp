@@ -1,3 +1,4 @@
+#include "../../../Pch.h"
 #include "Pipeline.h"
 
 void Pipeline::SetRenderSettings(GraphicsDevice* pGraphicsDevice, RootSignature* pRootSignature,

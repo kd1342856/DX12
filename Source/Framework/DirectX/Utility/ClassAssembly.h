@@ -1,10 +1,6 @@
 ﻿#pragma once
-#include <string>
-#include <unordered_map>
-#include <functional>
-#include <memory>
-#include "../ECS/Components/Data/NativeScript.h"
 
+class NativeScript;
 class ClassAssembly {
 public:
     static ClassAssembly& Instance();

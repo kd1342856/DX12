@@ -54,7 +54,7 @@ public:
 
 protected:
 	GraphicsDevice* m_pDevice = nullptr;
-	ComPtr<ID3D12DescriptorHeap> m_pHeap = nullptr;
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_pHeap = nullptr;
 	T m_useCount;
 	int m_incrementSize = 0;
 	int m_nextRegistNumber = 0;

@@ -26,5 +26,5 @@ private:
 	int m_dsvIndex		= -1;
 
 	// Zバッファ用
-	ComPtr<ID3D12Resource> m_pDepthBuffer;
+	Microsoft::WRL::ComPtr<ID3D12Resource> m_pDepthBuffer;
 };

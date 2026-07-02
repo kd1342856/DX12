@@ -1,3 +1,4 @@
+#include "../../../Pch.h"
 #include "NavMeshManager.h"
 #include "Recast/Recast.h"
 #include "Detour/DetourNavMesh.h"

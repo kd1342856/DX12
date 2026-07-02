@@ -10,11 +10,14 @@
 #include "CompSystem/System.h"
 #include "ECSCoordinator.h"
 
-#include "../ECS/Components/Data/TransformData.h"
-#include "../ECS/Components/Data/ModelRenderData.h"
-#include "../ECS/Components/Data/CameraData.h"
-#include "../ECS/Components/Data/ShaderData.h"
-#include "../ECS/Components/Data/AnimationData.h"
-#include "../ECS/Components/Data/SpriteData.h"
+// コンポーネントデータ定義（RenderSystem.hより前にインクルード）
+#include "Components/Data/TransformData.h"
+#include "Components/Data/ModelRenderData.h"
+#include "Components/Data/CameraData.h"
+#include "Components/Data/ShaderData.h"
+#include "Components/Data/AnimationData.h"
+#include "Components/Data/SpriteData.h"
+#include "Components/Data/ColliderData.h"
+#include "Components/Data/NativeScriptData.h"
 
 #include "CompSystem/Systems/RenderSystem.h"

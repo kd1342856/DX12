@@ -1,5 +1,6 @@
+#include "../../Pch.h"
 #include "GameObject.h"
-#include "../Manager/Scene.h"
+#include "../Manager/Scene/Scene.h"
 #include "../Manager/GameManager.h"
 #include "../ECS/Components/Data/NativeScriptData.h"
 

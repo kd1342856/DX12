@@ -1,3 +1,4 @@
+#include "../../../../Pch.h"
 #include "GhostAI.h"
 #include "../../../../Framework/Manager/NavMeshManager.h"
 #include "../../../../Framework/Manager/Scene/SceneManager.h"

@@ -1,3 +1,4 @@
+#include "../../../Pch.h"
 #include "../../../Graphics/Geometry/Model/ModelLoader.h"
 
 std::shared_ptr<ModelData> ResourceManager::LoadModelAsync(const std::string& filepath) {

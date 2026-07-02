@@ -1,5 +1,5 @@
 #pragma once
-#include "../../JobSystem/JobSystem.h"
+#include "../../System/JobSystem/JobSystem.h"
 
 class ResourceManager {
 public:

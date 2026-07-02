@@ -1,3 +1,4 @@
+#include "../../../Pch.h"
 #include "SkinningShader.h"
 #include "../../Buffer/CBufferAllocator/CBufferData/CBufferData.h"
 
@@ -30,11 +31,11 @@ void SkinningShader::Create(GraphicsDevice* pGraphicsDevice)
 	m_upPipeline->Create({ m_pVSBlob, m_pHSBlob, m_pDSBlob, m_pGSBlob, m_pPSBlob }, setting.Formats,
 		setting.IsDepth, setting.IsDepthMask, setting.RTVCount, setting.IsWireFrame);
 
-	// ç¹§E·ç¹ï½£ç¹å³¨ãˆé€•ï½¨ç¹ä»£ãE¹åŠ±Î›ç¹§E¤ç¹ï½³ç¸ºE®è´æ‡ˆãE
+	// ƒVƒƒƒhƒE—pƒpƒCƒvƒ‰ƒCƒ“ì¬
 	RenderingSetting shadowSetting = setting;
 	shadowSetting.Formats = {};
 	shadowSetting.RTVCount = 0;
-	shadowSetting.CullMode = CullMode::None; // è³E¡é«±E¢è¬ å†—åˆ¤ç¸ºE§è –ï½±ç¹§å®šèª ç¸ºE¨ç¸ºãƒ»
+	shadowSetting.CullMode = CullMode::None; // —¼–Ê•`‰æ‚Å‰e‚ğ—‚Æ‚·
 	m_upShadowPipeline = std::make_unique<Pipeline>();
 	m_upShadowPipeline->SetRenderSettings(pGraphicsDevice, m_upRootSignature.get(), shadowSetting.InputLayouts,
 		shadowSetting.CullMode, shadowSetting.BlendMode, shadowSetting.PrimitiveTopologyType);
@@ -85,7 +86,7 @@ void SkinningShader::DrawModel(const ModelData& modelData, const Math::Matrix& m
 {
 	Begin();
 
-	// ç¹æ‡Šãƒ»ç¹ï½³é™¦æ‚ŸãEç¹§è²ï½®å£½ç„šç¹èEãƒ£ç¹è¼”ãƒç¸ºE«ç¹§E»ç¹ãEãƒ¨
+	// ƒ{[ƒ“s—ñ‚ğ’è”ƒoƒbƒtƒ@‚ÉƒZƒbƒg
 	CBufferData::Bones cbBones;
 	for (size_t i = 0; i < boneMatrices.size() && i < 256; ++i)
 	{
@@ -164,7 +165,7 @@ void SkinningShader::LoadShaderFile(const std::wstring& filePath)
 			{
 				OutputDebugStringA((char*)pErrorBlob->GetBufferPointer());
 			}
-			assert(0 && "é ‚ç‚¹ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã®ã‚³ãƒ³ãƒ‘ã‚¤ãƒ«ã«å¤±æ•—ã—ã¾ã—ãŸ");
+				assert(0 && "’¸“_ƒVƒF[ƒ_[‚ÌƒRƒ“ƒpƒCƒ‹‚É¸”s‚µ‚Ü‚µ‚½");
 			return;
 		}
 	}
@@ -179,7 +180,7 @@ void SkinningShader::LoadShaderFile(const std::wstring& filePath)
 			{
 				OutputDebugStringA((char*)pErrorBlob->GetBufferPointer());
 			}
-			assert(0 && "ãƒ”ã‚¯ã‚»ãƒ«ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã®ã‚³ãƒ³ãƒ‘ã‚¤ãƒ«ã«å¤±æ•—ã—ã¾ã—ãŸ");
+				assert(0 && "ƒsƒNƒZƒ‹ƒVƒF[ƒ_[‚ÌƒRƒ“ƒpƒCƒ‹‚É¸”s‚µ‚Ü‚µ‚½");
 			return;
 		}
 	}
@@ -193,7 +194,7 @@ void SkinningShader::BeginShadow()
 
 	D3D12_VIEWPORT viewport = {};
 	D3D12_RECT rect = {};
-	viewport.Width = 4096.0f; // ShadowMapã®è§£åƒåº¦
+	viewport.Width = 4096.0f; // ShadowMap‚Ì‰ğ‘œ“x
 	viewport.Height = 4096.0f;
 	viewport.MinDepth = 0.0f;
 	viewport.MaxDepth = 1.0f;

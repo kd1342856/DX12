@@ -1,3 +1,4 @@
+#include "../../../Pch.h"
 #include "PostProcessShader.h"
 #include "../../Buffer/RenderTarget/RenderTarget.h"
 
@@ -32,7 +33,7 @@ void PostProcessShader::Draw(RenderTarget* pRenderTarget, float exposure)
 	m_pDevice->GetCmdList()->SetGraphicsRootSignature(m_upRootSignature->GetRootSignature());
 	m_pDevice->GetCmdList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	// 定数バッファをバインド
+	// 定数バッファをバインチE
 	CBufferData::PostProcess cPostProcess;
 	cPostProcess.Exposure = (exposure <= 0.0f) ? 1.0f : exposure;
 	GDF::Instance().BindCBuffer(0, cPostProcess);

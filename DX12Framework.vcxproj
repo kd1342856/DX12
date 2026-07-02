@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -80,7 +80,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>Pch.h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>Pch.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
-      <AdditionalIncludeDirectories>Library/assimp/include;Library/recastnavigation/include/Recast;Library/recastnavigation/include/Detour;Library/ImGui</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Library/assimp/include;Library/recastnavigation/include;Library/ImGui</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -124,7 +124,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>Pch.h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>Pch.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
-      <AdditionalIncludeDirectories>Library/assimp/include;Library/recastnavigation/include/Recast;Library/recastnavigation/include/Detour;Library/ImGui</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Library/assimp/include;Library/recastnavigation/include;Library/ImGui</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -163,7 +163,6 @@
     <ClInclude Include="Source\Application\Application.h" />
     <ClInclude Include="Source\Application\Scene\GameScene\GameScene.h" />
     <ClInclude Include="Source\Application\Scene\TitleScene\TitleScene.h" />
-    <ClInclude Include="Source\Framework\Manager\SceneManager.h" />
     <ClInclude Include="Source\Application\Scene\SceneBase.h" />
     <ClInclude Include="Source\Framework\DirectX\GDF\GDF.h" />
     <ClInclude Include="Source\Framework\DirectX\Utility\ClassAssembly.h" />
@@ -185,17 +184,21 @@
     <ClInclude Include="Source\Framework\ECS\ECSCoordinator.h" />
     <ClInclude Include="Source\Framework\ECS\Entity\Entity.h" />
     <ClInclude Include="Source\Framework\ImGuiEditor\Editor\Editor.h" />
-    <ClInclude Include="Source\Framework\Manager\AudioManager.h" />
-    <ClInclude Include="Source\Framework\Manager\PrefabManager.h" />
-    <ClInclude Include="Source\Framework\Manager\CollisionManager.h" />
+    <ClInclude Include="Source\Framework\Manager\Animation\AnimationManager.h" />
+    <ClInclude Include="Source\Framework\Manager\Audio\AudioManager.h" />
+    <ClInclude Include="Source\Framework\Manager\Collision\CollisionManager.h" />
+    <ClInclude Include="Source\Framework\Manager\Collision\CollisionShape.h" />
+    <ClInclude Include="Source\Framework\Manager\Collision\CollisionSolver.h" />
+    <ClInclude Include="Source\Framework\Manager\NavMesh\NavMeshManager.h" />
+    <ClInclude Include="Source\Framework\Manager\Resource\PrefabManager.h" />
+    <ClInclude Include="Source\Framework\Manager\Resource\ResourceManager.h" />
+    <ClInclude Include="Source\Framework\Manager\Scene\Scene.h" />
+    <ClInclude Include="Source\Framework\Manager\Scene\SceneBase.h" />
+    <ClInclude Include="Source\Framework\Manager\Scene\SceneManager.h" />
     <ClInclude Include="Source\Framework\Memory\LinearAllocator.h" />
     <ClInclude Include="Source\Framework\Memory\PoolAllocator.h" />
     <ClInclude Include="Source\Framework\System\JobSystem\JobSystem.h" />
-    <ClInclude Include="Source\Framework\Manager\ResourceManager.h" />
-    <ClInclude Include="Source\Framework\Manager\CollisionShape.h" />
-    <ClInclude Include="Source\Framework\Manager\CollisionSolver.h" />
     <ClInclude Include="Source\Framework\Manager\GameManager.h" />
-    <ClInclude Include="Source\Framework\Manager\Scene.h" />
     <ClInclude Include="Source\Framework\Object\GameObject.h" />
     <ClInclude Include="Source\Framework\Object\Object.h" />
     <ClInclude Include="Source\Framework\System.h" />
@@ -233,7 +236,6 @@
     <ClInclude Include="Source\Application\Object\Script\Ghost\GhostAI.h" />
     <ClInclude Include="Source\Application\Object\Script\System\GameSequence.h" />
     <ClInclude Include="Source\Framework\DirectX\Utility\Random.h" />
-    <ClInclude Include="Source\Framework\Manager\AnimationManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Library\ImGui\imgui.cpp" />
@@ -249,22 +251,24 @@
     <ClCompile Include="Source\Application\Application.cpp" />
     <ClCompile Include="Source\Application\Scene\GameScene\GameScene.cpp" />
     <ClCompile Include="Source\Application\Scene\TitleScene\TitleScene.cpp" />
-    <ClCompile Include="Source\Framework\Manager\SceneManager.cpp" />
     <ClCompile Include="Source\Framework\DirectX\GDF\GDF.cpp" />
     <ClCompile Include="Source\Framework\DirectX\Utility\Input.cpp" />
     <ClCompile Include="Source\Framework\DirectX\Utility\Time.cpp" />
     <ClCompile Include="Source\Framework\DirectX\Utility\Utility.cpp" />
     <ClCompile Include="Source\Framework\DirectX\Window\Window.cpp" />
     <ClCompile Include="Source\Framework\ImGuiEditor\Editor\Editor.cpp" />
-    <ClCompile Include="Source\Framework\Manager\AudioManager.cpp" />
-    <ClCompile Include="Source\Framework\Manager\PrefabManager.cpp" />
-    <ClCompile Include="Source\Framework\Manager\CollisionManager.cpp" />
+    <ClCompile Include="Source\Framework\Manager\Animation\AnimationManager.cpp" />
+    <ClCompile Include="Source\Framework\Manager\Audio\AudioManager.cpp" />
+    <ClCompile Include="Source\Framework\Manager\Collision\CollisionManager.cpp" />
+    <ClCompile Include="Source\Framework\Manager\Collision\CollisionShape.cpp" />
+    <ClCompile Include="Source\Framework\Manager\Collision\CollisionSolver.cpp" />
+    <ClCompile Include="Source\Framework\Manager\NavMesh\NavMeshManager.cpp" />
+    <ClCompile Include="Source\Framework\Manager\Resource\PrefabManager.cpp" />
+    <ClCompile Include="Source\Framework\Manager\Resource\ResourceManager.cpp" />
+    <ClCompile Include="Source\Framework\Manager\Scene\Scene.cpp" />
+    <ClCompile Include="Source\Framework\Manager\Scene\SceneManager.cpp" />
     <ClCompile Include="Source\Framework\System\JobSystem\JobSystem.cpp" />
-    <ClCompile Include="Source\Framework\Manager\ResourceManager.cpp" />
-    <ClCompile Include="Source\Framework\Manager\CollisionShape.cpp" />
-    <ClCompile Include="Source\Framework\Manager\CollisionSolver.cpp" />
     <ClCompile Include="Source\Framework\Manager\GameManager.cpp" />
-    <ClCompile Include="Source\Framework\Manager\Scene.cpp" />
     <ClCompile Include="Source\Framework\ECS\CompSystem\SpriteRenderSystem\SpriteRenderSystem.cpp" />
     <ClCompile Include="Source\Framework\Object\GameObject.cpp" />
     <ClCompile Include="Source\Graphics\Buffer\CBufferAllocator\CBufferAllocator.cpp" />
@@ -294,7 +298,6 @@
     <ClCompile Include="Source\Graphics\Buffer\RenderTarget\RenderTarget.cpp" />
     <ClCompile Include="Source\Application\Object\Script\Ghost\GhostAI.cpp" />
     <ClCompile Include="Source\Application\Object\Script\System\GameSequence.cpp" />
-    <ClCompile Include="Source\Framework\Manager\AnimationManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Asset\Shader\inc_ShaderCore.hlsli" />

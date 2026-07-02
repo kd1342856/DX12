@@ -192,7 +192,7 @@ PSOutput PS(VSOutput In) : SV_Target0
     //------------------------------------------
     // èoóÕ
     //------------------------------------------
-    Out.color = float4(color, baseColor.a);
+    Out.color = float4(shadow.xxx, 1);
     Out.normal = float4(wN * 0.5 + 0.5, 1);
     Out.metallicRoughness = float4(metallic, roughness, 0, 1);
     return Out;

@@ -1,3 +1,4 @@
+#include "../../../Pch.h"
 #include "Mesh.h"
 
 void Mesh::Create(GraphicsDevice* pGraphicsDevice, const std::vector<MeshVertex>& vertices,

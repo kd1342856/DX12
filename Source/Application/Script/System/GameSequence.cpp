@@ -1,3 +1,4 @@
+#include "../../../Pch.h"
 #include "GameSequence.h"
 #include "../../../Framework/Object/GameObject.h"
 

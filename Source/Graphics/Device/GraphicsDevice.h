@@ -9,7 +9,7 @@ class Texture;
 class RenderTarget;
 
 struct FrameContext {
-	ComPtr<ID3D12CommandAllocator> allocator;
+	Microsoft::WRL::ComPtr<ID3D12CommandAllocator> allocator;
 	UINT64 fenceValue = 0;
 };
 
@@ -101,23 +101,23 @@ public:
 	};
 
 	// デバイス
-	ComPtr<ID3D12Device8>					m_pDevice = nullptr;
-	ComPtr<IDXGIFactory6>					m_pDxgiFactory = nullptr;
+	Microsoft::WRL::ComPtr<ID3D12Device8>					m_pDevice = nullptr;
+	Microsoft::WRL::ComPtr<IDXGIFactory6>					m_pDxgiFactory = nullptr;
 
 	// コマンド
-	ComPtr<ID3D12GraphicsCommandList6>		m_pCmdList = nullptr;
-	ComPtr<ID3D12CommandQueue>				m_pCmdQueue = nullptr;
+	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList6>		m_pCmdList = nullptr;
+	Microsoft::WRL::ComPtr<ID3D12CommandQueue>				m_pCmdQueue = nullptr;
 	static constexpr int					kFrameCount = 2;
 	FrameContext							m_frames[kFrameCount];
 	UINT									m_frameIndex = 0;
 
 	// スワップチェーン
-	ComPtr<IDXGISwapChain4>					m_pSwapChain = nullptr;
+	Microsoft::WRL::ComPtr<IDXGISwapChain4>					m_pSwapChain = nullptr;
 
-	std::array<ComPtr<ID3D12Resource>, 2>	m_pSwapchainBuffers;
+	std::array<Microsoft::WRL::ComPtr<ID3D12Resource>, 2>	m_pSwapchainBuffers;
 	std::unique_ptr<RTVHeap>				m_pRTVHeap = nullptr;
 
-	ComPtr<ID3D12Fence>						m_pFence = nullptr;
+	Microsoft::WRL::ComPtr<ID3D12Fence>						m_pFence = nullptr;
 	HANDLE									m_fenceEvent = nullptr;
 	UINT64									m_fenceVal = 0;
 
@@ -131,7 +131,7 @@ public:
 	std::unique_ptr<Texture> m_spNormalTex = nullptr;
 
 	// ImGui用SRV用ヒープ
-	ComPtr<ID3D12DescriptorHeap>			m_upImGuiSRVHeap = nullptr;
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>			m_upImGuiSRVHeap = nullptr;
 	std::unique_ptr<DirectX::GraphicsMemory> m_graphicsMemory = nullptr;
 
 	GraphicsDevice() {}

@@ -64,5 +64,5 @@ private:
 	BlendMode					m_blendMode;
 	PrimitiveTopologyType		m_topologyType;
 
-	ComPtr<ID3D12PipelineState> m_pPipelineState = nullptr;
+	Microsoft::WRL::ComPtr<ID3D12PipelineState> m_pPipelineState = nullptr;
 };

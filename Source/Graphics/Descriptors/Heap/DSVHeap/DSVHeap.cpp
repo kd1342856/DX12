@@ -1,3 +1,4 @@
+#include "../../../../Pch.h"
 #include "DSVHeap.h"
 
 int DSVHeap::CreateDSV(ID3D12Resource* pBuffer, DXGI_FORMAT format)

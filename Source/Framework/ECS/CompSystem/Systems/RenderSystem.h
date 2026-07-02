@@ -47,6 +47,7 @@ public:
 		auto* pShadowMap = pGraphicsDevice->GetShadowMap();
 		if (pShadowMap && ShaderManager::Instance().m_shadowShader.IsCreated())
 		{
+			pShadowMap->TransitionTo(pCmdList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 			pShadowMap->ClearBuffer();
 			auto dsvH = pGraphicsDevice->GetDSVHeap()->GetCPUHandle(pShadowMap->GetDSVNumber());
 			pCmdList->OMSetRenderTargets(0, nullptr, false, &dsvH);
@@ -100,6 +101,8 @@ public:
 			cbLight.DL_ShadowPower = 0.5f;
 			cbLight.DL_ShadowBias = 0.005f;
 			cbLight.DL_mLightVP[0] = mLightVP;
+
+			pShadowMap->TransitionTo(pCmdList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 		}
 
 		// Upload light data to ShaderManager
