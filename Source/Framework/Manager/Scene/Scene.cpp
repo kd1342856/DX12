@@ -2,7 +2,6 @@
 #include "Scene.h"
 #include "../Collision/CollisionManager.h"
 #include "../Resource/PrefabManager.h"
-// Scene.h‚Í‘O•ûéŒ¾‚Ì‚İ‚È‚Ì‚ÅAÀ‘•‚Í .cpp ‚Å include‚·‚é
 #include "../../ECS/CompSystem/SpriteRenderSystem/SpriteRenderSystem.h"
 #include "../../ECS/CompSystem/Systems/TransformSystem.h"
 #include "../../ECS/CompSystem/Systems/CameraSystem.h"

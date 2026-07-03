@@ -9,6 +9,7 @@ Texture2D g_depthTex : register(t6);
 // 平行�EShadowMap
 Texture2D g_dirLightShadowMap : register(t7);
 
+Texture2D g_spotLightShadowMap : register(t9);
 
 // IBL
 TextureCube g_IBLTex : register(t8);

@@ -268,10 +268,10 @@ void GameScene::Render()
         sl.Pos = camTrans.m_worldMatrix.Translation();
         sl.Dir = Math::Vector3::TransformNormal(Math::Vector3(0, 0, 1), camTrans.m_worldMatrix);
         sl.Dir.Normalize();
-        sl.Range = 30.0f;
-        sl.Color = Math::Vector3(1.5f, 1.5f, 1.2f);
-        sl.InnerCorn = 0.95f;
-        sl.OuterCorn = 0.80f;
+        sl.Range = 12.0f;
+        sl.Color = Math::Vector3(1.0f, 1.0f, 0.9f);
+        sl.InnerCorn = 0.93f;
+        sl.OuterCorn = 0.78f;
         renderSystem->AddSpotLight(sl);
     }
 

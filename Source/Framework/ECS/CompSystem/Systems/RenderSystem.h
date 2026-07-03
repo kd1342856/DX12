@@ -31,9 +31,9 @@ public:
 
 		// Initialize light data (always set regardless of shadow pass)
 		CBufferData::Light cbLight = {};
-		cbLight.AmbientLight = Math::Vector3(0.05f, 0.05f, 0.05f); // Dark ambient for horror
+		cbLight.AmbientLight = Math::Vector3(0.35f, 0.35f, 0.35f); // Dark ambient for horror
 		cbLight.DL_Dir = lightDir;
-		cbLight.DL_Color = Math::Vector3(0.1f, 0.1f, 0.15f); // Dark directional (moonlight)
+		cbLight.DL_Color = Math::Vector3(0.6f, 0.6f, 0.65f); // Dark directional (moonlight)
 		cbLight.SL_Count = 0;
         
 		for (size_t i = 0; i < m_spotLights.size() && cbLight.SL_Count < 10; ++i) {
@@ -47,7 +47,7 @@ public:
 		auto* pShadowMap = pGraphicsDevice->GetShadowMap();
 		if (pShadowMap && ShaderManager::Instance().m_shadowShader.IsCreated())
 		{
-			auto desc = pShadowMap->m_pBuffer->GetDesc();
+			auto desc = pShadowMap->GetBuffer()->GetDesc();
 
 			D3D12_VIEWPORT shadowViewport = {};
 
@@ -113,11 +113,93 @@ public:
 			}
 
 			// Add shadow-specific light data
-			cbLight.DL_ShadowPower = 0.5f;
+			cbLight.DL_ShadowPower = 2.5f;
 			cbLight.DL_ShadowBias = 0.005f;
 			cbLight.DL_mLightVP[0] = mLightVP;
 
 			pShadowMap->TransitionTo(pCmdList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+		}
+
+		// =============================================
+		// Pass 1-B: Spot Light Shadow Pass (フラッシュライトのみ)
+		// =============================================
+		auto* pSpotShadowMap = pGraphicsDevice->GetSpotShadowMap();
+		if (pSpotShadowMap && cbLight.SL_Count > 0 && ShaderManager::Instance().m_shadowShader.IsCreated())
+		{
+			auto sdesc = pSpotShadowMap->GetBuffer()->GetDesc();
+
+			D3D12_VIEWPORT spotViewport = {};
+			spotViewport.Width = (float)sdesc.Width;
+			spotViewport.Height = (float)sdesc.Height;
+			spotViewport.MinDepth = 0.0f;
+			spotViewport.MaxDepth = 1.0f;
+			D3D12_RECT spotScissor = { 0, 0, (LONG)sdesc.Width, (LONG)sdesc.Height };
+			pCmdList->RSSetViewports(1, &spotViewport);
+			pCmdList->RSSetScissorRects(1, &spotScissor);
+
+			pSpotShadowMap->TransitionTo(pCmdList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+			pSpotShadowMap->ClearBuffer();
+			auto spotDsvH = pGraphicsDevice->GetDSVHeap()->GetCPUHandle(pSpotShadowMap->GetDSVNumber());
+			pCmdList->OMSetRenderTargets(0, nullptr, false, &spotDsvH);
+
+			// フラッシュライトの視点でView/Proj行列を作成
+			auto& sl = cbLight.SL[0];
+			Math::Vector3 upVec = Math::Vector3::Up;
+			if (fabsf(sl.Dir.Dot(upVec)) > 0.99f) upVec = Math::Vector3::Right;
+
+			float outerAngle = acosf(sl.OuterCorn);
+			float fov = std::min(outerAngle * 2.0f + DirectX::XMConvertToRadians(4.0f), DirectX::XMConvertToRadians(170.0f));
+
+			Math::Matrix mSpotView = Math::Matrix::CreateLookAt(sl.Pos, sl.Pos + sl.Dir, upVec);
+			Math::Matrix mSpotProj = Math::Matrix::CreatePerspectiveFieldOfView(fov, 1.0f, 0.1f, sl.Range);
+			Math::Matrix mSpotVP = mSpotView * mSpotProj;
+
+			CBufferData::Camera cbSpotCam = {};
+			cbSpotCam.mView = mSpotView;
+			cbSpotCam.mProj = mSpotProj;
+			cbSpotCam.mVP = mSpotVP;
+
+			bool isSkinningSpotBegun = false;
+			bool isLitSpotBegun = false;
+
+			for (auto const& entity : m_entities)
+			{
+				auto& cTransform = m_pCoordinator->GetComponent<TransformData>(entity);
+				auto& cModel = m_pCoordinator->GetComponent<ModelRenderData>(entity);
+				if (cModel.m_spModelData && cModel.m_spModelData->IsLoaded())
+				{
+					if (cModel.m_modelType == ModelType::Dynamic)
+					{
+						if (!isSkinningSpotBegun)
+						{
+							ShaderManager::Instance().m_skinningShader.BeginShadow();
+							GDF::Instance().BindCBuffer(0, cbSpotCam);
+							isSkinningSpotBegun = true;
+							isLitSpotBegun = false;
+						}
+						ShaderManager::Instance().m_skinningShader.DrawShadowModel(
+							*cModel.m_spModelData, cTransform.m_worldMatrix, cModel.m_spModelData->GetBoneMatrices());
+					}
+					else
+					{
+						if (!isLitSpotBegun)
+						{
+							ShaderManager::Instance().m_shadowShader.Begin();
+							GDF::Instance().BindCBuffer(0, cbSpotCam);
+							isLitSpotBegun = true;
+							isSkinningSpotBegun = false;
+						}
+						ShaderManager::Instance().m_shadowShader.DrawModel(*cModel.m_spModelData, cTransform.m_worldMatrix);
+					}
+				}
+			}
+
+			// 影用パラメータをSpotLightに書き戻す
+			cbLight.SL[0].EnableShadow = 1.0f;
+			cbLight.SL[0].ShadowBias = 0.0015f;
+			cbLight.SL[0].mLightVP = mSpotVP;
+
+			pSpotShadowMap->TransitionTo(pCmdList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 		}
 
 		// Upload light data to ShaderManager

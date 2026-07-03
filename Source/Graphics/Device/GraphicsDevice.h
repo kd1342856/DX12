@@ -8,7 +8,8 @@ class DepthStencil;
 class Texture;
 class RenderTarget;
 
-struct FrameContext {
+struct FrameContext
+{
 	Microsoft::WRL::ComPtr<ID3D12CommandAllocator> allocator;
 	UINT64 fenceValue = 0;
 };
@@ -76,7 +77,7 @@ private:
 	bool CreateFence();
 	bool CreateDefaultTextures();
 
-	std::unique_ptr<DepthStencil>			m_upSpotShadowMap = nullptr;
+	std::unique_ptr<DepthStencil>	m_upSpotShadowMap = nullptr;
 
 	// ImGuièâä˙âª
 	bool InitImGui();

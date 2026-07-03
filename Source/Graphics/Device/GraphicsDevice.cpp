@@ -130,6 +130,8 @@ void GraphicsDevice::BeginFrame()
 	fr.allocator->Reset();
 	m_pCmdList->Reset(fr.allocator.Get(), nullptr);
 
+	m_upCBufferAllocator->ResetCurrentUseNumber();
+
 	auto bbIdx = m_pSwapChain->GetCurrentBackBufferIndex();
 	SetResourceBarrier(m_pSwapchainBuffers[bbIdx].Get(),
 		D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
@@ -144,6 +146,7 @@ void GraphicsDevice::BeginFrame()
 	m_pCmdList->ClearRenderTargetView(rtvH, clearColor, 0, nullptr);
 
 	m_upDepthStencil->ClearBuffer();
+
 }
 
 void GraphicsDevice::WaitForCommandQueue()

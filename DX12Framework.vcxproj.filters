@@ -393,9 +393,6 @@
     <ClInclude Include="Source\Framework\ECS\CompSystem\System.h">
       <Filter>Source\Framework\ECS\CompSystem</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Framework\ECS\CompSystem\Systems\NativeScriptSystem.h">
-      <Filter>Source\Framework\ECS\CompSystem\Systems</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Framework\ECS\CompSystem\Systems\RenderSystem.h">
       <Filter>Source\Framework\ECS\CompSystem\Systems</Filter>
     </ClInclude>
@@ -653,6 +650,18 @@
     </ClInclude>
     <ClInclude Include="Source\Framework\Manager\Animation\AnimationManager.h">
       <Filter>Source\Framework\Manager\Animation</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\ECS\CompSystem\Systems\CameraSystem.h">
+      <Filter>Source\Framework\ECS\CompSystem\Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\ECS\CompSystem\Systems\LightSystem.h">
+      <Filter>Source\Framework\ECS\CompSystem\Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\ECS\CompSystem\Systems\AnimationSystem.h">
+      <Filter>Source\Framework\ECS\CompSystem\Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\ECS\CompSystem\Systems\ScriptSystem.h">
+      <Filter>Source\Framework\ECS\CompSystem\Systems</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

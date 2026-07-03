@@ -110,6 +110,7 @@ PSOutput PS(VSOutput In) : SV_Target0
                 
                 // ‰e‚Ì‹­“x
                 shadow = lerp(1.0, shadow, g_DL_ShadowPower);
+
             }
         }
         
@@ -125,7 +126,8 @@ PSOutput PS(VSOutput In) : SV_Target0
     //------------------
     // ŠÂ‹«Œõ
     //------------------
-        //------------------
+    
+    //------------------
     // Spot Lights
     //------------------
     for (int i = 0; i < g_SL_Count; i++)
@@ -140,6 +142,39 @@ PSOutput PS(VSOutput In) : SV_Target0
         // Spotlight cone
         float cosAngle = dot(-L, normalize(g_SL[i].Dir));
         float coneAtt = saturate((cosAngle - g_SL[i].OuterCorn) / (g_SL[i].InnerCorn - g_SL[i].OuterCorn));
+        float spotShadow = 1;
+        
+        if (g_SL[i].EnableShadow > 0)
+        {
+            float4 liPos = mul(float4(In.wPos, 1), g_SL[i].mLightVP);
+            liPos.xyz /= liPos.w;
+
+            if (abs(liPos.x) <= 1 && abs(liPos.y) <= 1 && liPos.z <= 1)
+            {
+                float2 uv = liPos.xy * float2(1, -1) * 0.5 + 0.5;
+                float bias = g_SL[i].ShadowBias;
+                float z = liPos.z - bias;
+
+                float2 pxSize;
+                float levels;
+                g_spotLightShadowMap.GetDimensions(0, pxSize.x, pxSize.y, levels);
+                pxSize.x = max(pxSize.x, 1.0);
+                pxSize.y = max(pxSize.y, 1.0);
+
+                float noise = InterleavedGradientNoise(In.Pos.xy);
+                float s = sin(noise * 6.28318530718);
+                float c = cos(noise * 6.28318530718);
+                float2x2 rot = float2x2(c, -s, s, c);
+
+                spotShadow = 0;
+                for (int k = 0; k < 16; k++)
+                {
+                    float2 offset = mul(g_poissonDisk16[k], rot) / pxSize;
+                    spotShadow += g_spotLightShadowMap.SampleCmpLevelZero(g_ss_comparison, uv + offset, z);
+                }
+                spotShadow /= 16.0;
+            }
+        }
         
         float NdotL_SL = saturate(dot(wN, L));
         float3 H_SL = normalize(L + vCam);
@@ -149,7 +184,7 @@ PSOutput PS(VSOutput In) : SV_Target0
         float3 diff_SL = Diffuse_Burley(baseDiffuse, NdotL_SL, NdotV, LdotH_SL, roughness);
         float3 spec_SL = Specular_BRDF(roughness2, baseSpecular, NdotV, NdotL_SL, LdotH_SL, NdotH_SL);
         
-        color += NdotL_SL * g_SL[i].Color * (diff_SL + spec_SL) * attenuation * coneAtt;
+        color += NdotL_SL * g_SL[i].Color * (diff_SL + spec_SL) * attenuation * coneAtt * spotShadow;
     }
 
     color += g_AmbientLight * baseColor.rgb * baseColor.a;

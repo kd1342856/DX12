@@ -179,7 +179,11 @@
     <ClInclude Include="Source\Framework\ECS\Components\Data\SpriteData.h" />
     <ClInclude Include="Source\Framework\ECS\CompSystem\SpriteRenderSystem\SpriteRenderSystem.h" />
     <ClInclude Include="Source\Framework\ECS\CompSystem\System.h" />
+    <ClInclude Include="Source\Framework\ECS\CompSystem\Systems\AnimationSystem.h" />
+    <ClInclude Include="Source\Framework\ECS\CompSystem\Systems\CameraSystem.h" />
+    <ClInclude Include="Source\Framework\ECS\CompSystem\Systems\LightSystem.h" />
     <ClInclude Include="Source\Framework\ECS\CompSystem\Systems\RenderSystem.h" />
+    <ClInclude Include="Source\Framework\ECS\CompSystem\Systems\ScriptSystem.h" />
     <ClInclude Include="Source\Framework\ECS\ECS.h" />
     <ClInclude Include="Source\Framework\ECS\ECSCoordinator.h" />
     <ClInclude Include="Source\Framework\ECS\Entity\Entity.h" />
@@ -232,7 +236,6 @@
     <ClInclude Include="Source\Framework\ECS\Components\Data\NativeScriptData.h" />
     <ClInclude Include="Source\Framework\ECS\Components\Data\NativeScript.h" />
     <ClInclude Include="Source\Framework\ECS\CompSystem\Systems\TransformSystem.h" />
-    <ClInclude Include="Source\Framework\ECS\CompSystem\Systems\NativeScriptSystem.h" />
     <ClInclude Include="Source\Application\Object\Script\Ghost\GhostAI.h" />
     <ClInclude Include="Source\Application\Object\Script\System\GameSequence.h" />
     <ClInclude Include="Source\Framework\DirectX\Utility\Random.h" />
