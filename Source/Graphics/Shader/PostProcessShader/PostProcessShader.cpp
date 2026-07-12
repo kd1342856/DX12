@@ -1,4 +1,5 @@
 #include "../../../Pch.h"
+#include "../../../Framework/DirectX/Utility/Profiler.h"
 #include "PostProcessShader.h"
 #include "../../Buffer/RenderTarget/RenderTarget.h"
 
@@ -49,13 +50,18 @@ void PostProcessShader::Draw(RenderTarget* pRenderTarget, float exposure)
 	m_pDevice->GetCmdList()->SetGraphicsRootDescriptorTable(1, srvHeap->GetGPUHandle(pRenderTarget->GetSRVIndex()));
 
 	// Draw full screen quad (3 vertices)
+	Profiler::Instance().AddDrawCall("PostProcess", 1);
 	m_pDevice->GetCmdList()->DrawInstanced(3, 1, 0, 0);
 }
 
 void PostProcessShader::LoadShaderFile(const std::wstring& filePath)
 {
 	ID3DInclude* include = D3D_COMPILE_STANDARD_FILE_INCLUDE;
-	UINT flag = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+#if _DEBUG
+	UINT flag = D3DCOMPILE_DEBUG;
+#else
+	UINT flag = 0;
+#endif
 	ID3DBlob* pErrorBlob = nullptr;
 
 	std::wstring baseFullPath = L"Asset/Shader/PostProcessShader/" + filePath;

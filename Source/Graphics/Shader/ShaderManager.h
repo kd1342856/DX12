@@ -6,6 +6,7 @@
 #include "ShadowShader/ShadowShader.h"
 #include "PostProcessShader/PostProcessShader.h"
 #include "SkinningShader/SkinningShader.h"
+#include "../../Framework/DirectX/GDF/GDF.h"
 
 struct RenderingSetting
 {

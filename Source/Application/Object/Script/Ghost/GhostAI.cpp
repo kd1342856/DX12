@@ -2,8 +2,6 @@
 #include "GhostAI.h"
 #include "../../../../Framework/Manager/Animation/AnimationManager.h"
 #include "../../../../Framework/Object/GameObject.h"
-#include "../../../../Framework/ECS/Components/Data/ModelRenderData.h"
-#include "../../../../Graphics/Geometry/Model/Model.h"
 
 REGISTER_COMPONENT(GhostAI);
 
@@ -36,7 +34,7 @@ void GhostAI::SetState(GhostAI::State state)
     }
 }
 
-void GhostAI::Update()
+void GhostAI::Update(float deltaTime)
 {
     if (m_isExorcised) return;
 
@@ -108,10 +106,9 @@ void GhostAI::ImGuiUpdate()
     auto& ecs = GameManager::Instance().GetECS();
     auto entity = GetGameObject()->GetEntityID();
     
-    if (ecs.HasComponent<ModelRenderData>(entity)) {
-        auto& modelData = ecs.GetComponent<ModelRenderData>(entity);
-        if (modelData.m_spModelData) {
-            const auto& animations = modelData.m_spModelData->GetAnimations();
+    if (auto* pModelData = ecs.TryGetComponent<ModelRenderData>(entity)) {
+        if (pModelData->m_spModelData) {
+            const auto& animations = pModelData->m_spModelData->GetAnimations();
             if (!animations.empty()) {
                 std::vector<const char*> animNames;
                 for (const auto& anim : animations) {

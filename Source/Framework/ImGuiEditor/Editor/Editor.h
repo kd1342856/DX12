@@ -3,19 +3,40 @@
 
 class Scene;
 class GameObject;
-class RenderTarget; // ëOï˚êÈåæ
+class RenderTarget;
 
-class Editor {
+class Editor
+{
 public:
+    static void Init();
+    static void Draw();
     static bool GetEditorMode() { return s_editorMode; }
-    static void DrawHierarchyAndInspector(Scene* scene);
-    static void DrawAssetEditor();
-    static void DrawGameView(RenderTarget* pRenderTarget, uint32_t cameraEntity, bool fullscreen);
+
+    static std::shared_ptr<Scene> GetScene() { return s_scene; }
+
 private:
+    // Core
+    static void DrawDockSpace();
+    static void DrawMenuBar();
+    static void DrawToolbar();
+
+    // Windows
+    static void DrawHierarchy();
+    static void DrawInspector();
+    static void DrawAssetBrowser();
+    static void DrawStatistics();
+    static void DrawConsole();
+
+    // Helper
     static void DrawHierarchyNode(std::shared_ptr<GameObject> obj);
+
+private:
     static std::shared_ptr<GameObject> s_selectedObject;
     static std::string s_selectedAssetPath;
     static std::string s_currentAssetDir;
-    static int s_selectedModelType;
+
     static bool s_editorMode;
+    static bool s_showEditor;
+
+    static std::shared_ptr<Scene> s_scene;
 };

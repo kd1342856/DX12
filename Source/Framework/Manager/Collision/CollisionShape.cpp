@@ -1,4 +1,4 @@
-#include "../../../Pch.h"
+﻿#include "../../../Pch.h"
 #include "CollisionShape.h"
 #include "../Collision/CollisionManager.h"
 #include "../Scene/Scene.h"
@@ -172,20 +172,23 @@ bool CollisionShapeCapsule::RayCast(const RayInfo& ray, const Math::Matrix& worl
 bool CollisionShapeMesh::RayCast(const RayInfo& ray, const Math::Matrix& world, RayResult& out) {
     if (!m_model && m_entity != INVALID_ENTITY) {
         auto& ecs = GameManager::Instance().GetECS();
-        if (ecs.HasComponent<ModelRenderData>(m_entity)) {
-            m_model = ecs.GetComponent<ModelRenderData>(m_entity).m_spModelData;
+        if (auto* pM = ecs.TryGetComponent<ModelRenderData>(m_entity)) {
+            auto& m = *pM;
+            m_model = m.m_spModelData;
         } else {
             auto scene = CollisionManager::Instance().GetCurrentScene();
             if (scene) {
                 auto obj = scene->GetGameObject(m_entity);
                 if (obj && obj->GetParent()) {
                     auto parent = obj->GetParent();
-                    if (ecs.HasComponent<ModelRenderData>(parent->GetEntityID())) {
-                        m_model = ecs.GetComponent<ModelRenderData>(parent->GetEntityID()).m_spModelData;
+                    if (auto* pM = ecs.TryGetComponent<ModelRenderData>(parent->GetEntityID())) {
+                        auto& m = *pM;
+                        m_model = m.m_spModelData;
                     } else {
                         for (auto& child : parent->GetChildren()) {
-                            if (ecs.HasComponent<ModelRenderData>(child->GetEntityID())) {
-                                m_model = ecs.GetComponent<ModelRenderData>(child->GetEntityID()).m_spModelData;
+                            if (auto* pM = ecs.TryGetComponent<ModelRenderData>(child->GetEntityID())) {
+                                auto& m = *pM;
+                                m_model = m.m_spModelData;
                                 break;
                             }
                         }
@@ -266,20 +269,23 @@ void CollisionShapeCapsule::UpdateWorldAABB(const Math::Matrix& world) {
 void CollisionShapeMesh::UpdateWorldAABB(const Math::Matrix& world) {
     if (!m_model && m_entity != INVALID_ENTITY) {
         auto& ecs = GameManager::Instance().GetECS();
-        if (ecs.HasComponent<ModelRenderData>(m_entity)) {
-            m_model = ecs.GetComponent<ModelRenderData>(m_entity).m_spModelData;
+        if (auto* pM = ecs.TryGetComponent<ModelRenderData>(m_entity)) {
+            auto& m = *pM;
+            m_model = m.m_spModelData;
         } else {
             auto scene = CollisionManager::Instance().GetCurrentScene();
             if (scene) {
                 auto obj = scene->GetGameObject(m_entity);
                 if (obj && obj->GetParent()) {
                     auto parent = obj->GetParent();
-                    if (ecs.HasComponent<ModelRenderData>(parent->GetEntityID())) {
-                        m_model = ecs.GetComponent<ModelRenderData>(parent->GetEntityID()).m_spModelData;
+                    if (auto* pM = ecs.TryGetComponent<ModelRenderData>(parent->GetEntityID())) {
+                        auto& m = *pM;
+                        m_model = m.m_spModelData;
                     } else {
                         for (auto& child : parent->GetChildren()) {
-                            if (ecs.HasComponent<ModelRenderData>(child->GetEntityID())) {
-                                m_model = ecs.GetComponent<ModelRenderData>(child->GetEntityID()).m_spModelData;
+                            if (auto* pM = ecs.TryGetComponent<ModelRenderData>(child->GetEntityID())) {
+                                auto& m = *pM;
+                                m_model = m.m_spModelData;
                                 break;
                             }
                         }
@@ -318,3 +324,98 @@ void CollisionShapeMesh::UpdateWorldAABB(const Math::Matrix& world) {
         m_worldAABB.Extents = Math::Vector3(0, 0, 0);
     }
 }
+
+void CollisionShapeBox::DrawDebug(const Math::Matrix& worldMatrix, uint32_t color) {
+    Math::Vector3 pos = Math::Vector3::Transform(m_offset, worldMatrix);
+    Math::Vector3 right = Math::Vector3(worldMatrix._11, worldMatrix._12, worldMatrix._13);
+    Math::Vector3 up = Math::Vector3(worldMatrix._21, worldMatrix._22, worldMatrix._23);
+    Math::Vector3 forward = Math::Vector3(worldMatrix._31, worldMatrix._32, worldMatrix._33);
+    right.Normalize(); up.Normalize(); forward.Normalize();
+    
+    right *= m_width * 0.5f;
+    up *= m_height * 0.5f;
+    forward *= m_depth * 0.5f;
+    
+    Math::Vector3 corners[8] = {
+        pos - right - up - forward, pos + right - up - forward,
+        pos - right + up - forward, pos + right + up - forward,
+        pos - right - up + forward, pos + right - up + forward,
+        pos - right + up + forward, pos + right + up + forward,
+    };
+    
+    auto& cm = CollisionManager::Instance();
+    cm.AddDebugLine(corners[0], corners[1], color); cm.AddDebugLine(corners[2], corners[3], color);
+    cm.AddDebugLine(corners[4], corners[5], color); cm.AddDebugLine(corners[6], corners[7], color);
+    cm.AddDebugLine(corners[0], corners[2], color); cm.AddDebugLine(corners[1], corners[3], color);
+    cm.AddDebugLine(corners[4], corners[6], color); cm.AddDebugLine(corners[5], corners[7], color);
+    cm.AddDebugLine(corners[0], corners[4], color); cm.AddDebugLine(corners[1], corners[5], color);
+    cm.AddDebugLine(corners[2], corners[6], color); cm.AddDebugLine(corners[3], corners[7], color);
+}
+
+
+void CollisionShapeSphere::DrawDebug(const Math::Matrix& worldMatrix, uint32_t color) {
+    Math::Vector3 pos = Math::Vector3::Transform(m_offset, worldMatrix);
+    auto& cm = CollisionManager::Instance();
+    
+    const int segments = 16;
+    for (int i = 0; i < segments; ++i) {
+        float t1 = (float)i / segments * 3.14159f * 2.0f;
+        float t2 = (float)(i + 1) / segments * 3.14159f * 2.0f;
+        cm.AddDebugLine(pos + Math::Vector3(cos(t1), sin(t1), 0)*radius, pos + Math::Vector3(cos(t2), sin(t2), 0)*radius, color);
+        cm.AddDebugLine(pos + Math::Vector3(cos(t1), 0, sin(t1))*radius, pos + Math::Vector3(cos(t2), 0, sin(t2))*radius, color);
+        cm.AddDebugLine(pos + Math::Vector3(0, cos(t1), sin(t1))*radius, pos + Math::Vector3(0, cos(t2), sin(t2))*radius, color);
+    }
+}
+
+
+void CollisionShapeCapsule::DrawDebug(const Math::Matrix& worldMatrix, uint32_t color) {
+    Math::Vector3 localOffsetStr = Math::Vector3(0, height * 0.5f, 0);
+    Math::Vector3 p1 = Math::Vector3::Transform(m_offset + localOffsetStr, worldMatrix);
+    Math::Vector3 p2 = Math::Vector3::Transform(m_offset - localOffsetStr, worldMatrix);
+    Math::Vector3 up = p1 - p2;
+    if(up.LengthSquared() < 0.001f) up = Math::Vector3(0, 1, 0);
+    else up.Normalize();
+    Math::Vector3 right = Math::Vector3::TransformNormal(Math::Vector3(1,0,0), worldMatrix);
+    if(abs(right.Dot(up)) > 0.99f) right = Math::Vector3(0,0,1);
+    right = right - up * right.Dot(up);
+    right.Normalize();
+    Math::Vector3 forward = up.Cross(right);
+    
+    auto& cm = CollisionManager::Instance();
+    const int segments = 16;
+    for (int i = 0; i < segments; ++i) {
+        float t1 = (float)i / segments * 3.14159f * 2.0f;
+        float t2 = (float)(i + 1) / segments * 3.14159f * 2.0f;
+        // Top hemisphere
+        if(i < segments/2) {
+            cm.AddDebugLine(p1 + right * cos(t1)*radius + up * sin(t1)*radius, p1 + right * cos(t2)*radius + up * sin(t2)*radius, color);
+            cm.AddDebugLine(p1 + forward * cos(t1)*radius + up * sin(t1)*radius, p1 + forward * cos(t2)*radius + up * sin(t2)*radius, color);
+        }
+        // Bottom hemisphere
+        if(i >= segments/2) {
+            cm.AddDebugLine(p2 + right * cos(t1)*radius + up * sin(t1)*radius, p2 + right * cos(t2)*radius + up * sin(t2)*radius, color);
+            cm.AddDebugLine(p2 + forward * cos(t1)*radius + up * sin(t1)*radius, p2 + forward * cos(t2)*radius + up * sin(t2)*radius, color);
+        }
+        // Horizontal circles
+        cm.AddDebugLine(p1 + right * cos(t1)*radius + forward * sin(t1)*radius, p1 + right * cos(t2)*radius + forward * sin(t2)*radius, color);
+        cm.AddDebugLine(p2 + right * cos(t1)*radius + forward * sin(t1)*radius, p2 + right * cos(t2)*radius + forward * sin(t2)*radius, color);
+    }
+    // Connecting lines
+    cm.AddDebugLine(p1 + right * radius, p2 + right * radius, color);
+    cm.AddDebugLine(p1 - right * radius, p2 - right * radius, color);
+    cm.AddDebugLine(p1 + forward * radius, p2 + forward * radius, color);
+    cm.AddDebugLine(p1 - forward * radius, p2 - forward * radius, color);
+}
+
+
+void CollisionShapeMesh::DrawDebug(const Math::Matrix& worldMatrix, uint32_t color) {
+    // Mesh collider debug draw is too heavy, skip or draw AABB
+    Math::Vector3 pos = Math::Vector3::Transform(m_offset, worldMatrix);
+    auto& cm = CollisionManager::Instance();
+    cm.AddDebugLine(pos, pos + Math::Vector3(0,1,0), color);
+}
+
+
+
+
+

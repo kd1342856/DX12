@@ -1,5 +1,4 @@
-#include "Pch.h"
-#include "Logger.h"
+#include "../../../Pch.h"
 
 Logger& Logger::Instance()
 {

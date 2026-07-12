@@ -1,17 +1,10 @@
 #pragma once
-#include "../../ComponentManager.h"
-#include "../../ECSCoordinator.h"
-#include "../System.h"
-#include "../../Components/Data/AnimationData.h"
-#include "../../Components/Data/ModelRenderData.h"
-#include "../../../DirectX/Utility/Time.h"
 
 class AnimationSystem : public SystemBase
 {
 public:
-    void Update()
+    void Update(float deltaTime) override
     {
-        float deltaTime = GameTimer::Instance().DeltaTime();
 
         for (auto const& entity : m_entities)
         {

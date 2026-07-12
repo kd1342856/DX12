@@ -16,10 +16,10 @@ void GameSequence::Start()
     m_currentState = State::Playing;
 }
 
-void GameSequence::Update()
+void GameSequence::Update(float deltaTime)
 {
     if (m_currentState == State::GameClear) {
-        m_clearTimer += GameTimer::Instance().DeltaTime();
+        m_clearTimer += deltaTime;
     }
 }
 
@@ -33,12 +33,12 @@ void GameSequence::PreDraw()
 
 void GameSequence::Draw()
 {
-    // ƒNƒŠƒAŽž‚ÌUI•`‰æ (ImGui‚Å‰¼ŽÀ‘•)
+    // ã‚¯ãƒªã‚¢æ™‚ã®UIæç”» (ImGuiã§ä»®å®Ÿè£…)
     if (m_currentState == State::GameClear) {
         ImGui::SetNextWindowPos(ImVec2(1280.0f * 0.5f - 150.0f, 720.0f * 0.5f - 50.0f), ImGuiCond_Always);
         ImGui::SetNextWindowSize(ImVec2(300, 100), ImGuiCond_Always);
         
-        // ”wŒi‚ð“§–¾‚É‚µ‚ÄƒeƒLƒXƒg‚ð–Ú—§‚½‚¹‚é
+        // èƒŒæ™¯ã‚’é€æ˜Žã«ã—ã¦ãƒ†ã‚­ã‚¹ãƒˆã‚’ç›®ç«‹ãŸã›ã‚‹
         ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0.5f));
         ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoInputs;
         

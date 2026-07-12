@@ -1,7 +1,5 @@
 #pragma once
-#include <memory>
-#include <string>
-#include "NativeScript.h"
+class NativeScript;
 
 struct NativeScriptData {
     std::shared_ptr<NativeScript> Instance;

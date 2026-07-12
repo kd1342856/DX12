@@ -1,5 +1,4 @@
 #pragma once
-#include "../Buffer.h"
 
 class RenderTarget : public Buffer
 {

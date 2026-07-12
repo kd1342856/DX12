@@ -1,5 +1,4 @@
 #pragma once
-#include "../../../../Framework/ECS/Components/Data/NativeScript.h"
 
 class Player : public NativeScript {
 public:
@@ -7,7 +6,7 @@ public:
 
     void Awake() override;
     void Start() override;
-    void Update() override;
+    void Update(float deltaTime) override;
     void PostUpdate() override;
     void PreDraw() override;
     void Draw() override;

@@ -1,4 +1,4 @@
-#include "../../../../Pch.h"
+﻿#include "../../../../Pch.h"
 #include "GhostAI.h"
 #include "../../../../Framework/Manager/NavMeshManager.h"
 #include "../../../../Framework/Manager/Scene/SceneManager.h"
@@ -188,10 +188,9 @@ void GhostAI::ImGuiUpdate()
     std::function<void(std::shared_ptr<GameObject>)> findModel = [&](std::shared_ptr<GameObject> obj)
     {
         if (spModel) return;
-        if (ecs.HasComponent<ModelRenderData>(obj->GetEntityID()))
+        if (auto* pMd = ecs.TryGetComponent<ModelRenderData>(obj->GetEntityID()))
         {
-            auto& md = ecs.GetComponent<ModelRenderData>(obj->GetEntityID());
-            if (md.m_spModelData) spModel = md.m_spModelData;
+            if (pMd->m_spModelData) spModel = pMd->m_spModelData;
         }
         for (auto& child : obj->GetChildren())
             findModel(child);
@@ -239,7 +238,7 @@ void GhostAI::OnCollisionEnter(GameObject* other)
     if (m_currentState == GhostAI::State::Dead) return;
     if (other && other->GetName() == "Player")
     {
-        SceneManager::Instance().ChangeScene(std::make_shared<TitleScene>());
+        SceneManager::Instance().ChangeScene(std::make_unique<TitleScene>());
     }
 }
 
@@ -254,3 +253,4 @@ void GhostAI::Exorcise()
     NavMeshManager::Instance().ClearPath(GetGameObject()->GetEntityID());
     SetState(GhostAI::State::Dead);
 }
+

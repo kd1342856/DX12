@@ -1,5 +1,4 @@
 #pragma once
-#include "../../../../Graphics/Shader/ShaderManager.h"
 
 // RenderSystem: Draws entities with Transform + ModelRenderData components
 class RenderSystem : public SystemBase
@@ -11,12 +10,7 @@ public:
 	Entity GetCameraEntity() const { return m_cameraEntity; }
 	void SetCameraEntity(Entity cameraEntity) { m_cameraEntity = cameraEntity; }
 
-	void Update() override
-	{
-		Update(m_cameraEntity, nullptr);
-	}
-
-	void Update(Entity cameraEntity, class RenderTarget* pRT = nullptr)
+	void Render(Entity cameraEntity, class RenderTarget* pRT = nullptr)
 	{
 		if (!m_pCoordinator) return;
 		if (cameraEntity == INVALID_ENTITY) return;
@@ -25,188 +19,121 @@ public:
 		auto* pGraphicsDevice = &GDF::Instance().GetGraphicsDevice();
 		auto* pCmdList = pGraphicsDevice->GetCmdList();
 
-		// Normalize light direction
+		// ライト方向の正規化
 		Math::Vector3 lightDir = m_lightDirection;
 		lightDir.Normalize();
 
-		// Initialize light data (always set regardless of shadow pass)
+		// ライトデータの初期化（シャドウパスの有無に関わらず常にセット）
 		CBufferData::Light cbLight = {};
-		cbLight.AmbientLight = Math::Vector3(0.35f, 0.35f, 0.35f); // Dark ambient for horror
+		cbLight.AmbientLight = Math::Vector3(0.35f, 0.35f, 0.35f);
 		cbLight.DL_Dir = lightDir;
-		cbLight.DL_Color = Math::Vector3(0.6f, 0.6f, 0.65f); // Dark directional (moonlight)
+		cbLight.DL_Color = Math::Vector3(0.6f, 0.6f, 0.65f);
 		cbLight.SL_Count = 0;
-        
-		for (size_t i = 0; i < m_spotLights.size() && cbLight.SL_Count < 10; ++i) {
-			cbLight.SL[cbLight.SL_Count] = m_spotLights[i];
-			cbLight.SL_Count++;
-		}
 
 		// =============================================
-		// Pass 1: Shadow Pass
+		// Pass 1: Shadow Pass（フレームに1回だけ実行）
+		// エディターモードで Update() が複数回呼ばれても
+		// シャドウパスは最初の1回のみ実行する
 		// =============================================
-		auto* pShadowMap = pGraphicsDevice->GetShadowMap();
-		if (pShadowMap && ShaderManager::Instance().m_shadowShader.IsCreated())
+		if (!m_shadowPassDone)
 		{
-			auto desc = pShadowMap->GetBuffer()->GetDesc();
-
-			D3D12_VIEWPORT shadowViewport = {};
-
-			shadowViewport.Width = (float)desc.Width;
-			shadowViewport.Height = (float)desc.Height;
-
-			shadowViewport.MinDepth = 0.0f;
-			shadowViewport.MaxDepth = 1.0f;
-
-			D3D12_RECT shadowScissor = { 0, 0, (LONG)desc.Width, (LONG)desc.Height };
-
-			pCmdList->RSSetViewports(1, &shadowViewport);
-			pCmdList->RSSetScissorRects(1, &shadowScissor);
-
-			pShadowMap->TransitionTo(pCmdList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
-			pShadowMap->ClearBuffer();
-			auto dsvH = pGraphicsDevice->GetDSVHeap()->GetCPUHandle(pShadowMap->GetDSVNumber());
-			pCmdList->OMSetRenderTargets(0, nullptr, false, &dsvH);
-
-			Math::Vector3 lightPos = Math::Vector3(0, 0, 0) - lightDir * 50.0f;
-			Math::Matrix mLightView = Math::Matrix::CreateLookAt(lightPos, Math::Vector3(0, 0, 0), Math::Vector3::Up);
-			Math::Matrix mLightProj = Math::Matrix::CreateOrthographic(100.0f, 100.0f, 0.1f, 100.0f);
-			Math::Matrix mLightVP = mLightView * mLightProj;
-
-			CBufferData::Camera cbLightCam = {};
-			cbLightCam.mView = mLightView;
-			cbLightCam.mProj = mLightProj;
-			cbLightCam.mVP = mLightVP;
-
-			bool isSkinningShadowBegun = false;
-			bool isLitShadowBegun = false;
-
-			for (auto const& entity : m_entities)
+			auto* pShadowMap = pGraphicsDevice->GetShadowMap();
+			if (pShadowMap && ShaderManager::Instance().m_shadowShader.IsCreated())
 			{
-				auto& cTransform = m_pCoordinator->GetComponent<TransformData>(entity);
-				auto& cModel = m_pCoordinator->GetComponent<ModelRenderData>(entity);
-				if (cModel.m_spModelData && cModel.m_spModelData->IsLoaded())
+				auto desc = pShadowMap->GetBuffer()->GetDesc();
+
+				D3D12_VIEWPORT shadowViewport = {};
+				shadowViewport.Width = (float)desc.Width;
+				shadowViewport.Height = (float)desc.Height;
+				shadowViewport.MinDepth = 0.0f;
+				shadowViewport.MaxDepth = 1.0f;
+
+				D3D12_RECT shadowScissor = { 0, 0, (LONG)desc.Width, (LONG)desc.Height };
+
+				pCmdList->RSSetViewports(1, &shadowViewport);
+				pCmdList->RSSetScissorRects(1, &shadowScissor);
+
+				pShadowMap->TransitionTo(pCmdList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+				pShadowMap->ClearBuffer();
+				auto dsvH = pGraphicsDevice->GetDSVHeap()->GetCPUHandle(pShadowMap->GetDSVNumber());
+				pCmdList->OMSetRenderTargets(0, nullptr, false, &dsvH);
+
+				// カメラの現在位置を取得（カメラ中心で影を描画するため）
+				Math::Vector3 camPos = Math::Vector3::Zero;
+				if (auto* pTrans = m_pCoordinator->TryGetComponent<TransformData>(m_cameraEntity))
 				{
-					if (cModel.m_modelType == ModelType::Dynamic)
+					camPos = pTrans->m_position;
+				}
+
+				// シャドウシマリング（チラつき）防止のため、カメラ座標をシャドウマップのテクセル単位にスナップする
+				float texelSize = 100.0f / 4096.0f;
+				Math::Vector3 snappedCamPos = camPos;
+				snappedCamPos.x = std::floor(camPos.x / texelSize) * texelSize;
+				snappedCamPos.y = std::floor(camPos.y / texelSize) * texelSize;
+				snappedCamPos.z = std::floor(camPos.z / texelSize) * texelSize;
+
+				Math::Vector3 lightPos = snappedCamPos - lightDir * 50.0f;
+				Math::Matrix mLightView = Math::Matrix::CreateLookAt(lightPos, snappedCamPos, Math::Vector3::Up);
+				Math::Matrix mLightProj = Math::Matrix::CreateOrthographic(100.0f, 100.0f, 0.1f, 100.0f);
+				Math::Matrix mLightVP = mLightView * mLightProj;
+
+				CBufferData::Camera cbLightCam = {};
+				cbLightCam.mView = mLightView;
+				cbLightCam.mProj = mLightProj;
+				cbLightCam.mVP = mLightVP;
+
+				bool isSkinningShadowBegun = false;
+				bool isLitShadowBegun = false;
+
+				for (auto const& entity : m_entities)
+				{
+					auto& cTransform = m_pCoordinator->GetComponent<TransformData>(entity);
+					auto& cModel = m_pCoordinator->GetComponent<ModelRenderData>(entity);
+					if (cModel.m_spModelData && cModel.m_spModelData->IsLoaded())
 					{
-						if (!isSkinningShadowBegun)
+						if (cModel.m_modelType == ModelType::Dynamic)
 						{
-							ShaderManager::Instance().m_skinningShader.BeginShadow();
-							GDF::Instance().BindCBuffer(0, cbLightCam);
-							isSkinningShadowBegun = true;
-							isLitShadowBegun = false;
+							if (!isSkinningShadowBegun)
+							{
+								ShaderManager::Instance().m_skinningShader.BeginShadow();
+								GDF::Instance().BindCBuffer(0, cbLightCam);
+								isSkinningShadowBegun = true;
+								isLitShadowBegun = false;
+							}
+							ShaderManager::Instance().m_skinningShader.DrawShadowModel(
+								*cModel.m_spModelData, cTransform.m_worldMatrix, cModel.m_spModelData->GetBoneMatrices());
 						}
-						ShaderManager::Instance().m_skinningShader.DrawShadowModel(
-							*cModel.m_spModelData, cTransform.m_worldMatrix, cModel.m_spModelData->GetBoneMatrices());
-					}
-					else
-					{
-						if (!isLitShadowBegun)
+						else
 						{
-							ShaderManager::Instance().m_shadowShader.Begin();
-							GDF::Instance().BindCBuffer(0, cbLightCam);
-							isLitShadowBegun = true;
-							isSkinningShadowBegun = false;
+							if (!isLitShadowBegun)
+							{
+								ShaderManager::Instance().m_shadowShader.Begin();
+								GDF::Instance().BindCBuffer(0, cbLightCam);
+								isLitShadowBegun = true;
+								isSkinningShadowBegun = false;
+							}
+							ShaderManager::Instance().m_shadowShader.DrawModel(*cModel.m_spModelData, cTransform.m_worldMatrix);
 						}
-						ShaderManager::Instance().m_shadowShader.DrawModel(*cModel.m_spModelData, cTransform.m_worldMatrix);
 					}
 				}
+
+				// シャドウ用ライトデータをセット
+				cbLight.DL_ShadowPower = 2.5f;
+				cbLight.DL_ShadowBias = 0.001f; // 影が浮いて隙間が見える現象（Peter Panning）を防ぐためバイアスを小さくする
+				cbLight.DL_mLightVP[0] = mLightVP;
+
+				pShadowMap->TransitionTo(pCmdList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 			}
 
-			// Add shadow-specific light data
-			cbLight.DL_ShadowPower = 2.5f;
-			cbLight.DL_ShadowBias = 0.005f;
-			cbLight.DL_mLightVP[0] = mLightVP;
+			// ライトデータをShaderManagerに送る
+			ShaderManager::Instance().SetLightData(cbLight);
 
-			pShadowMap->TransitionTo(pCmdList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+			// このフレームのシャドウパスは完了
+			m_shadowPassDone = true;
 		}
 
 		// =============================================
-		// Pass 1-B: Spot Light Shadow Pass (フラッシュライトのみ)
-		// =============================================
-		auto* pSpotShadowMap = pGraphicsDevice->GetSpotShadowMap();
-		if (pSpotShadowMap && cbLight.SL_Count > 0 && ShaderManager::Instance().m_shadowShader.IsCreated())
-		{
-			auto sdesc = pSpotShadowMap->GetBuffer()->GetDesc();
-
-			D3D12_VIEWPORT spotViewport = {};
-			spotViewport.Width = (float)sdesc.Width;
-			spotViewport.Height = (float)sdesc.Height;
-			spotViewport.MinDepth = 0.0f;
-			spotViewport.MaxDepth = 1.0f;
-			D3D12_RECT spotScissor = { 0, 0, (LONG)sdesc.Width, (LONG)sdesc.Height };
-			pCmdList->RSSetViewports(1, &spotViewport);
-			pCmdList->RSSetScissorRects(1, &spotScissor);
-
-			pSpotShadowMap->TransitionTo(pCmdList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
-			pSpotShadowMap->ClearBuffer();
-			auto spotDsvH = pGraphicsDevice->GetDSVHeap()->GetCPUHandle(pSpotShadowMap->GetDSVNumber());
-			pCmdList->OMSetRenderTargets(0, nullptr, false, &spotDsvH);
-
-			// フラッシュライトの視点でView/Proj行列を作成
-			auto& sl = cbLight.SL[0];
-			Math::Vector3 upVec = Math::Vector3::Up;
-			if (fabsf(sl.Dir.Dot(upVec)) > 0.99f) upVec = Math::Vector3::Right;
-
-			float outerAngle = acosf(sl.OuterCorn);
-			float fov = std::min(outerAngle * 2.0f + DirectX::XMConvertToRadians(4.0f), DirectX::XMConvertToRadians(170.0f));
-
-			Math::Matrix mSpotView = Math::Matrix::CreateLookAt(sl.Pos, sl.Pos + sl.Dir, upVec);
-			Math::Matrix mSpotProj = Math::Matrix::CreatePerspectiveFieldOfView(fov, 1.0f, 0.1f, sl.Range);
-			Math::Matrix mSpotVP = mSpotView * mSpotProj;
-
-			CBufferData::Camera cbSpotCam = {};
-			cbSpotCam.mView = mSpotView;
-			cbSpotCam.mProj = mSpotProj;
-			cbSpotCam.mVP = mSpotVP;
-
-			bool isSkinningSpotBegun = false;
-			bool isLitSpotBegun = false;
-
-			for (auto const& entity : m_entities)
-			{
-				auto& cTransform = m_pCoordinator->GetComponent<TransformData>(entity);
-				auto& cModel = m_pCoordinator->GetComponent<ModelRenderData>(entity);
-				if (cModel.m_spModelData && cModel.m_spModelData->IsLoaded())
-				{
-					if (cModel.m_modelType == ModelType::Dynamic)
-					{
-						if (!isSkinningSpotBegun)
-						{
-							ShaderManager::Instance().m_skinningShader.BeginShadow();
-							GDF::Instance().BindCBuffer(0, cbSpotCam);
-							isSkinningSpotBegun = true;
-							isLitSpotBegun = false;
-						}
-						ShaderManager::Instance().m_skinningShader.DrawShadowModel(
-							*cModel.m_spModelData, cTransform.m_worldMatrix, cModel.m_spModelData->GetBoneMatrices());
-					}
-					else
-					{
-						if (!isLitSpotBegun)
-						{
-							ShaderManager::Instance().m_shadowShader.Begin();
-							GDF::Instance().BindCBuffer(0, cbSpotCam);
-							isLitSpotBegun = true;
-							isSkinningSpotBegun = false;
-						}
-						ShaderManager::Instance().m_shadowShader.DrawModel(*cModel.m_spModelData, cTransform.m_worldMatrix);
-					}
-				}
-			}
-
-			// 影用パラメータをSpotLightに書き戻す
-			cbLight.SL[0].EnableShadow = 1.0f;
-			cbLight.SL[0].ShadowBias = 0.0015f;
-			cbLight.SL[0].mLightVP = mSpotVP;
-
-			pSpotShadowMap->TransitionTo(pCmdList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-		}
-
-		// Upload light data to ShaderManager
-		ShaderManager::Instance().SetLightData(cbLight);
-
-		// =============================================
-		// Pass 2: Set render target (always execute, independent of shadow pass)
+		// Pass 2: レンダーターゲット設定
 		// =============================================
 		if (pRT)
 		{
@@ -227,7 +154,7 @@ public:
 		pCmdList->RSSetScissorRects(1, &scissorRect);
 
 		// =============================================
-		// Pass 3: Main color pass (Lit / Skinning)
+		// Pass 3: カラーパス（Lit / Skinning）
 		// =============================================
 		auto& cCamera = m_pCoordinator->GetComponent<CameraData>(cameraEntity);
 		ShaderManager::Instance().SetCameraMatrix(cCamera.m_viewMatrix, cCamera.m_projMatrix);
@@ -271,18 +198,12 @@ public:
 		}
 	}
 
-public:
-	void AddSpotLight(const CBufferData::SpotLight& sl) {
-		m_spotLights.push_back(sl);
-	}
-
-	// フレームの最後にスポットライトをクリアする（Render完了後に呼ぶ）
-	void ClearSpotLights() {
-		m_spotLights.clear();
-	}
+	// フレーム先頭でシャドウパスフラグをリセット（毎フレーム1回だけ呼ぶこと）
+	void ResetShadowPass() { m_shadowPassDone = false; }
 
 private:
 	Entity m_cameraEntity = INVALID_ENTITY;
 	Math::Vector3 m_lightDirection = Math::Vector3(0.5f, -1.0f, 0.5f);
-	std::vector<CBufferData::SpotLight> m_spotLights;
+	// シャドウパスをフレームに1回だけ実行するためのフラグ
+	bool m_shadowPassDone = false;
 };

@@ -1,5 +1,4 @@
 #include "../../../Pch.h"
-#include "GDF.h"
 
 
 // デバイス初期化

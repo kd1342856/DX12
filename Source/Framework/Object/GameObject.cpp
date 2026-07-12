@@ -1,8 +1,6 @@
 #include "../../Pch.h"
 #include "GameObject.h"
 #include "../Manager/Scene/Scene.h"
-#include "../Manager/GameManager.h"
-#include "../ECS/Components/Data/NativeScriptData.h"
 
 GameObject::~GameObject() {
     if (m_entityId != INVALID_ENTITY && GameManager::IsInstanceAlive()) {

@@ -1,5 +1,4 @@
 #include "../../Pch.h"
-#include "ShaderManager.h"
 
 void ShaderManager::Init()
 {

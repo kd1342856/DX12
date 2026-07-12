@@ -1,4 +1,3 @@
-#include "Pch.h"
 #include "ClassAssembly.h"
 
 ClassAssembly& ClassAssembly::Instance()

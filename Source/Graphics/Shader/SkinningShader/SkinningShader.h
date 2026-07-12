@@ -1,7 +1,6 @@
 #pragma once
 #include "../Pipeline/Pipeline.h"
 #include "../RootSignature/RootSignature.h"
-#include "../../Geometry/Model/Model.h"
 
 class SkinningShader
 {

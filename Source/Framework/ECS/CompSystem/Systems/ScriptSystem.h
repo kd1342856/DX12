@@ -1,8 +1,6 @@
+﻿#pragma once
+#include "../../Components/Data/NativeScript.h"
 #pragma once
-#include "../../ComponentManager.h"
-#include "../../ECSCoordinator.h"
-#include "../System.h"
-#include "../../Components/Data/NativeScriptData.h"
 
 class ScriptSystem : public SystemBase
 {
@@ -27,12 +25,12 @@ public:
         }
     }
 
-    void Update()
+    void Update(float deltaTime) override
     {
         for (auto const& entity : m_entities) {
             auto& scriptData = m_pCoordinator->GetComponent<NativeScriptData>(entity);
             if (scriptData.Instance) {
-                scriptData.Instance->Update();
+                scriptData.Instance->Update(deltaTime);
             }
         }
     }

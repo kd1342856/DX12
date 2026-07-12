@@ -71,6 +71,7 @@ public:
     bool m_isTrigger = false;
 
     virtual void UpdateWorldAABB(const Math::Matrix& world) = 0;
+	virtual void DrawDebug(const Math::Matrix& worldMatrix, uint32_t color) = 0;
 };
 
 class CollisionShapeBox : public CollisionShape {
@@ -79,6 +80,7 @@ public:
     ShapeId GetShapeId() const override { return Box; }
 
     void UpdateWorldAABB(const Math::Matrix& world) override;
+	void DrawDebug(const Math::Matrix& worldMatrix, uint32_t color) override;
     bool RayCast(const RayInfo& ray, const Math::Matrix& world, RayResult& out) override;
 
     void Deserialize(const nlohmann::json& jsonObj) override;
@@ -97,6 +99,7 @@ public:
     ShapeId GetShapeId() const override { return Sphere; }
 
     void UpdateWorldAABB(const Math::Matrix& world) override;
+	void DrawDebug(const Math::Matrix& worldMatrix, uint32_t color) override;
     bool RayCast(const RayInfo& ray, const Math::Matrix& world, RayResult& out) override;
 
     void Deserialize(const nlohmann::json& jsonObj) override;
@@ -113,6 +116,7 @@ public:
     ShapeId GetShapeId() const override { return Capsule; }
 
     void UpdateWorldAABB(const Math::Matrix& world) override;
+	void DrawDebug(const Math::Matrix& worldMatrix, uint32_t color) override;
     bool RayCast(const RayInfo& ray, const Math::Matrix& world, RayResult& out) override;
 
     void Deserialize(const nlohmann::json& jsonObj) override;
@@ -130,6 +134,7 @@ public:
     ShapeId GetShapeId() const override { return Mesh; }
 
     void UpdateWorldAABB(const Math::Matrix& world) override;
+	void DrawDebug(const Math::Matrix& worldMatrix, uint32_t color) override;
     bool RayCast(const RayInfo& ray, const Math::Matrix& world, RayResult& out) override;
 
     void Deserialize(const nlohmann::json& jsonObj) override;

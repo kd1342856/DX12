@@ -2,11 +2,6 @@
 #include "Scene.h"
 #include "../Collision/CollisionManager.h"
 #include "../Resource/PrefabManager.h"
-#include "../../ECS/CompSystem/SpriteRenderSystem/SpriteRenderSystem.h"
-#include "../../ECS/CompSystem/Systems/TransformSystem.h"
-#include "../../ECS/CompSystem/Systems/CameraSystem.h"
-#include "../../ECS/CompSystem/Systems/AnimationSystem.h"
-#include "../../ECS/CompSystem/Systems/ScriptSystem.h"
 
 Scene::Scene() {}
 Scene::~Scene() {}
@@ -45,14 +40,14 @@ std::shared_ptr<GameObject> Scene::Instantiate(const std::string& filepath, cons
         auto& ecs = GameManager::Instance().GetECS();
         
         // Transform pos override
-        if (ecs.HasComponent<TransformData>(obj->GetEntityID())) {
-            auto& trans = ecs.GetComponent<TransformData>(obj->GetEntityID());
+        if (auto* ptrans = ecs.TryGetComponent<TransformData>(obj->GetEntityID())) {
+        auto& trans = *ptrans;
             trans.m_position = position;
         }
 
         // Script Init
-        if (ecs.HasComponent<NativeScriptData>(obj->GetEntityID())) {
-            auto& script = ecs.GetComponent<NativeScriptData>(obj->GetEntityID());
+        if (auto* pscript = ecs.TryGetComponent<NativeScriptData>(obj->GetEntityID())) {
+        auto& script = *pscript;
             if (script.Instance) {
                 script.Instance->Awake();
                 script.Instance->Start();
@@ -71,77 +66,42 @@ void Scene::Destroy(std::shared_ptr<GameObject> obj) {
 
 void Scene::Init() {
     auto& ecs = GameManager::Instance().GetECS();
-
-    m_spRenderSystem = ecs.RegisterSystem<RenderSystem>();
-    m_spSpriteRenderSystem = ecs.RegisterSystem<SpriteRenderSystem>();
-    Signature renderSig;
-    renderSig.set(ecs.GetComponentType<TransformData>());
-    renderSig.set(ecs.GetComponentType<ModelRenderData>());
-    ecs.SetSystemSignature<RenderSystem>(renderSig);
-    m_spRenderSystem->m_pCoordinator = &ecs;
-
-    Signature spriteSig;
-    spriteSig.set(ecs.GetComponentType<TransformData>());
-    spriteSig.set(ecs.GetComponentType<SpriteData>());
-    ecs.SetSystemSignature<SpriteRenderSystem>(spriteSig);
-    m_spSpriteRenderSystem->m_pCoordinator = &ecs;
-
-    m_spTransformSystem = ecs.RegisterSystem<TransformSystem>();
-    Signature transformSig;
-    transformSig.set(ecs.GetComponentType<TransformData>());
-    ecs.SetSystemSignature<TransformSystem>(transformSig);
-    m_spTransformSystem->m_pCoordinator = &ecs;
-
-    m_spCameraSystem = ecs.RegisterSystem<CameraSystem>();
-    Signature cameraSig;
-    cameraSig.set(ecs.GetComponentType<TransformData>());
-    cameraSig.set(ecs.GetComponentType<CameraData>());
-    ecs.SetSystemSignature<CameraSystem>(cameraSig);
-    m_spCameraSystem->m_pCoordinator = &ecs;
-
-    m_spAnimationSystem = ecs.RegisterSystem<AnimationSystem>();
-    Signature animSig;
-    animSig.set(ecs.GetComponentType<AnimationDataComponent>());
-    animSig.set(ecs.GetComponentType<ModelRenderData>());
-    ecs.SetSystemSignature<AnimationSystem>(animSig);
-    m_spAnimationSystem->m_pCoordinator = &ecs;
-
-    m_spScriptSystem = ecs.RegisterSystem<ScriptSystem>();
-    Signature scriptSig;
-    scriptSig.set(ecs.GetComponentType<NativeScriptData>());
-    ecs.SetSystemSignature<ScriptSystem>(scriptSig);
-    m_spScriptSystem->m_pCoordinator = &ecs;
-}
-
-void Scene::Update() {
-    auto& ecs = GameManager::Instance().GetECS();
-    CollisionManager::Instance().SetScene(this);
-    CollisionManager::Instance().ClearDebugLines();
-
-    m_spScriptSystem->Update();
-
-    std::vector<std::shared_ptr<GameObject>> roots;
-    for (auto& obj : m_gameObjects) {
-        if (!obj->GetParent()) roots.push_back(obj);
-    }
-    m_spTransformSystem->Update(roots);
-
-    CollisionManager::Instance().Solve(this);
-
-    m_spTransformSystem->Update(roots);
-
-    m_spCameraSystem->Update();
-    m_spAnimationSystem->Update();
     
-    m_spScriptSystem->PostUpdate();
+    std::function<void(const std::shared_ptr<GameObject>&)> callAwake = [&](const std::shared_ptr<GameObject>& node) {
+        if (!node) return;
+        if (auto* pscript = ecs.TryGetComponent<NativeScriptData>(node->GetEntityID())) {
+            if (pscript->Instance) {
+                pscript->Instance->Awake();
+            }
+        }
+        for (auto& child : node->GetChildren()) callAwake(child);
+    };
+
+    std::function<void(const std::shared_ptr<GameObject>&)> callStart = [&](const std::shared_ptr<GameObject>& node) {
+        if (!node) return;
+        if (auto* pscript = ecs.TryGetComponent<NativeScriptData>(node->GetEntityID())) {
+            if (pscript->Instance) {
+                pscript->Instance->Start();
+            }
+        }
+        for (auto& child : node->GetChildren()) callStart(child);
+    };
+
+    for (auto& obj : m_gameObjects) {
+        if (!obj->GetParent()) callAwake(obj);
+    }
+    for (auto& obj : m_gameObjects) {
+        if (!obj->GetParent()) callStart(obj);
+    }
 }
 
-void Scene::PreDraw() {
+void Scene::Update(float deltaTime) {
+    // System „ÅÆ Update „ÅØ GameManager::Update() „ÅåË°å„ÅÜ„ÄÇ
 }
 
 void Scene::Draw() {
-    m_spRenderSystem->Update();
-    m_spSpriteRenderSystem->Render();
+    // Scene Âõ∫Êúâ„ÅÆÊèèÁîªÔºàÂøÖË¶Å„Å™„ÇâÊ¥æÁîü„ÇØ„É©„Çπ„Åß„Ç™„Éº„Éê„Éº„É©„Ç§„ÉâÔºâ
+    // RenderSystem / SpriteRenderSystem „ÅØ GameManager::Update() „ÅåÊãÖÂΩì
 }
 
 void Scene::ImGuiUpdate() {
@@ -156,8 +116,8 @@ nlohmann::json Scene::SerializeGameObject(std::shared_ptr<GameObject> obj) const
     Entity e = obj->GetEntityID();
     nlohmann::json comps = nlohmann::json::array();
     
-    if (ecs.HasComponent<TransformData>(e)) {
-        auto& d = ecs.GetComponent<TransformData>(e);
+    if (auto* p_d = ecs.TryGetComponent<TransformData>(e)) {
+        auto& d = *p_d;
         nlohmann::json cj;
         cj["Type"] = "TransformData";
         cj["Position"] = {d.m_position.x, d.m_position.y, d.m_position.z};
@@ -166,8 +126,8 @@ nlohmann::json Scene::SerializeGameObject(std::shared_ptr<GameObject> obj) const
         comps.push_back(cj);
     }
     
-    if (ecs.HasComponent<CameraData>(e)) {
-        auto& d = ecs.GetComponent<CameraData>(e);
+    if (auto* p_d = ecs.TryGetComponent<CameraData>(e)) {
+        auto& d = *p_d;
         nlohmann::json cj;
         cj["Type"] = "CameraData";
         cj["Fov"] = d.m_fov;
@@ -180,8 +140,8 @@ nlohmann::json Scene::SerializeGameObject(std::shared_ptr<GameObject> obj) const
         comps.push_back(cj);
     }
 
-    if (ecs.HasComponent<ModelRenderData>(e)) {
-        auto& d = ecs.GetComponent<ModelRenderData>(e);
+    if (auto* p_d = ecs.TryGetComponent<ModelRenderData>(e)) {
+        auto& d = *p_d;
         nlohmann::json cj;
         cj["Type"] = "ModelRenderData";
         cj["FilePath"] = d.m_filePath;
@@ -189,8 +149,8 @@ nlohmann::json Scene::SerializeGameObject(std::shared_ptr<GameObject> obj) const
         comps.push_back(cj);
     }
 
-    if (ecs.HasComponent<SpriteData>(e)) {
-        auto& d = ecs.GetComponent<SpriteData>(e);
+    if (auto* p_d = ecs.TryGetComponent<SpriteData>(e)) {
+        auto& d = *p_d;
         nlohmann::json cj;
         cj["Type"] = "SpriteData";
         cj["FilePath"] = d.m_filePath;
@@ -201,8 +161,8 @@ nlohmann::json Scene::SerializeGameObject(std::shared_ptr<GameObject> obj) const
         comps.push_back(cj);
     }
 
-    if (ecs.HasComponent<ColliderData>(e)) {
-        auto& d = ecs.GetComponent<ColliderData>(e);
+    if (auto* p_d = ecs.TryGetComponent<ColliderData>(e)) {
+        auto& d = *p_d;
         nlohmann::json cj;
         cj["Type"] = "ColliderData";
         cj["IsStatic"] = d.m_isStatic;
@@ -217,8 +177,8 @@ nlohmann::json Scene::SerializeGameObject(std::shared_ptr<GameObject> obj) const
         comps.push_back(cj);
     }
 
-    if (ecs.HasComponent<AnimationDataComponent>(e)) {
-        auto& d = ecs.GetComponent<AnimationDataComponent>(e);
+    if (auto* p_d = ecs.TryGetComponent<AnimationDataComponent>(e)) {
+        auto& d = *p_d;
         nlohmann::json cj;
         cj["Type"] = "AnimationDataComponent";
         cj["AnimationIndex"] = d.currentAnim.AnimationIndex;
@@ -229,8 +189,8 @@ nlohmann::json Scene::SerializeGameObject(std::shared_ptr<GameObject> obj) const
         comps.push_back(cj);
     }
 
-    if (ecs.HasComponent<NativeScriptData>(e)) {
-        auto& d = ecs.GetComponent<NativeScriptData>(e);
+    if (auto* p_d = ecs.TryGetComponent<NativeScriptData>(e)) {
+        auto& d = *p_d;
         nlohmann::json cj;
         cj["Type"] = "NativeScriptData";
         cj["ScriptName"] = d.ScriptName;
@@ -418,7 +378,7 @@ void Scene::DeserializeGameObject(const nlohmann::json& oj, std::shared_ptr<Game
 }
 
 void Scene::Deserialize(const nlohmann::json& in) {
-    // GameObjectÇÉNÉäÉAÇµÅAÉfÉXÉgÉâÉNÉ^Ç≈ECSÇÃEntityÇ‡îjä¸Ç≥ÇÍÇÈ
+    // GameObject„Çí„ÇØ„É™„Ç¢„Åó„ÄÅ„Éá„Çπ„Éà„É©„ÇØ„Çø„ÅßECS„ÅÆEntity„ÇÇÁ†¥Ê£Ñ„Åï„Çå„Çã
     m_gameObjects.clear();
 
     if (in.contains("GameObjects")) {
@@ -427,5 +387,10 @@ void Scene::Deserialize(const nlohmann::json& in) {
         }
     }
 }
+
+
+
+
+
 
 

@@ -1,7 +1,6 @@
 #pragma once
 #include <cstdint>
 #include <cstdlib>
-#include <cassert>
 
 template <typename T, size_t ChunkSize = 1024>
 class PoolAllocator {

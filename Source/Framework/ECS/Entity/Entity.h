@@ -1,9 +1,5 @@
 #pragma once
 #include <cstdint>
-#include <bitset>
-#include <queue>
-#include <array>
-#include <cassert>
 
 // =============================================
 // Entity
@@ -58,7 +54,7 @@ public:
         m_signatures[entity] = signature;
     }
 
-    Signature GetSignature(Entity entity) const
+    const Signature& GetSignature(Entity entity) const
     {
         assert(entity < MAX_ENTITIES);
         return m_signatures[entity];

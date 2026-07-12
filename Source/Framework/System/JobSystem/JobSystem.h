@@ -1,11 +1,5 @@
-﻿#pragma once
-#include <functional>
-#include <thread>
-#include <vector>
-#include <queue>
-#include <mutex>
+#pragma once
 #include <condition_variable>
-#include <atomic>
 
 class JobSystem {
 public:
@@ -20,13 +14,20 @@ public:
     // Wait for all currently executing and queued jobs to finish
     void Wait();
 
+    // Statistics
+    int GetActiveJobCount() const { return m_activeJobs.load(); }
+    size_t GetWorkerCount() const { return m_workers.size(); }
+    std::vector<bool> GetWorkerStatuses();
+    size_t GetQueuedJobCount();
+
 private:
     JobSystem() = default;
     ~JobSystem();
 
-    void WorkerThread();
+    void WorkerThread(uint32_t workerIndex);
 
     std::vector<std::thread> m_workers;
+    std::vector<bool> m_workerActive;
     std::queue<std::function<void()>> m_jobQueue;
     
     std::mutex m_queueMutex;

@@ -1,6 +1,5 @@
 #include "../../../Pch.h"
 #include "ModelLoader.h"
-#include "Model.h"
 #ifdef _DEBUG
 #pragma comment(lib, "assimp-vc143-mtd.lib")
 #else

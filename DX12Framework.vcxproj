@@ -19,6 +19,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>$(Platform)\$(Configuration)\</OutDir>
+
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{4047c3f1-3b01-48b3-86e0-2334475f6aee}</ProjectGuid>
@@ -80,7 +83,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>Pch.h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>Pch.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
-      <AdditionalIncludeDirectories>Library/assimp/include;Library/recastnavigation/include;Library/ImGui</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Library\assimp\include;Library\recastnavigation\include;Library\ImGui</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -102,7 +105,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>Pch.h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>Pch.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
-      <AdditionalIncludeDirectories>Library/assimp/include;Library/recastnavigation/include;Library/ImGui</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Library\assimp\include;Library\recastnavigation\include;Library\ImGui</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -124,7 +127,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>Pch.h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>Pch.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
-      <AdditionalIncludeDirectories>Library/assimp/include;Library/recastnavigation/include;Library/ImGui</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Library\assimp\include;Library\recastnavigation\include;Library\ImGui</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -146,7 +149,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>Pch.h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>Pch.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
-      <AdditionalIncludeDirectories>Library/assimp/include;Library/recastnavigation/include;Library/ImGui</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Library\assimp\include;Library\recastnavigation\include;Library\ImGui</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -167,8 +170,10 @@
     <ClInclude Include="Source\Framework\DirectX\GDF\GDF.h" />
     <ClInclude Include="Source\Framework\DirectX\Utility\ClassAssembly.h" />
     <ClInclude Include="Source\Framework\DirectX\Utility\Input.h" />
-    <ClInclude Include="Source\Framework\DirectX\Utility\Time.h" />
     <ClInclude Include="Source\Framework\DirectX\Utility\Logger.h" />
+    <ClInclude Include="Source\Framework\DirectX\Utility\Profiler.h" />
+    <ClInclude Include="Source\Framework\DirectX\Utility\Random.h" />
+    <ClInclude Include="Source\Framework\DirectX\Utility\Time.h" />
     <ClInclude Include="Source\Framework\DirectX\Utility\Utility.h" />
     <ClInclude Include="Source\Framework\DirectX\Window\Window.h" />
     <ClInclude Include="Source\Framework\ECS\ComponentManager.h" />
@@ -216,6 +221,7 @@
     <ClInclude Include="Source\Graphics\Descriptors\Heap\Heap.h" />
     <ClInclude Include="Source\Graphics\Descriptors\Heap\RTVHeap\RTVHeap.h" />
     <ClInclude Include="Source\Graphics\Device\GraphicsDevice.h" />
+    <ClInclude Include="Source\Graphics\Renderer\Renderer.h" />
     <ClInclude Include="Source\Graphics\Geometry\Mesh\Mesh.h" />
     <ClInclude Include="Source\Graphics\Geometry\Mesh\MeshData\MeshData.h" />
     <ClInclude Include="Source\Graphics\Geometry\Model\Model.h" />
@@ -238,7 +244,6 @@
     <ClInclude Include="Source\Framework\ECS\CompSystem\Systems\TransformSystem.h" />
     <ClInclude Include="Source\Application\Object\Script\Ghost\GhostAI.h" />
     <ClInclude Include="Source\Application\Object\Script\System\GameSequence.h" />
-    <ClInclude Include="Source\Framework\DirectX\Utility\Random.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Library\ImGui\imgui.cpp" />
@@ -255,11 +260,21 @@
     <ClCompile Include="Source\Application\Scene\GameScene\GameScene.cpp" />
     <ClCompile Include="Source\Application\Scene\TitleScene\TitleScene.cpp" />
     <ClCompile Include="Source\Framework\DirectX\GDF\GDF.cpp" />
+    <ClCompile Include="Source\Framework\DirectX\Utility\ClassAssembly.cpp" />
     <ClCompile Include="Source\Framework\DirectX\Utility\Input.cpp" />
+    <ClCompile Include="Source\Framework\DirectX\Utility\Logger.cpp" />
+    <ClCompile Include="Source\Framework\DirectX\Utility\Profiler.cpp" />
     <ClCompile Include="Source\Framework\DirectX\Utility\Time.cpp" />
     <ClCompile Include="Source\Framework\DirectX\Utility\Utility.cpp" />
     <ClCompile Include="Source\Framework\DirectX\Window\Window.cpp" />
     <ClCompile Include="Source\Framework\ImGuiEditor\Editor\Editor.cpp" />
+    <ClCompile Include="Source\Framework\ImGuiEditor\Editor\HierarchyWindow.cpp" />
+    <ClCompile Include="Source\Framework\ImGuiEditor\Editor\InspectorWindow.cpp" />
+    <ClCompile Include="Source\Framework\ImGuiEditor\Editor\StatisticsWindow.cpp" />
+    <ClCompile Include="Source\Framework\ImGuiEditor\Editor\ConsoleWindow.cpp" />
+    <ClCompile Include="Source\Framework\ImGuiEditor\Editor\AssetBrowserWindow.cpp" />
+    <ClCompile Include="Source\Framework\ImGuiEditor\Editor\GameViewWindow.cpp" />
+    <ClCompile Include="Source\Framework\ImGuiEditor\Editor\Toolbar.cpp" />
     <ClCompile Include="Source\Framework\Manager\Animation\AnimationManager.cpp" />
     <ClCompile Include="Source\Framework\Manager\Audio\AudioManager.cpp" />
     <ClCompile Include="Source\Framework\Manager\Collision\CollisionManager.cpp" />
@@ -281,6 +296,7 @@
     <ClCompile Include="Source\Graphics\Descriptors\Heap\DSVHeap\DSVHeap.cpp" />
     <ClCompile Include="Source\Graphics\Descriptors\Heap\RTVHeap\RTVHeap.cpp" />
     <ClCompile Include="Source\Graphics\Device\GraphicsDevice.cpp" />
+    <ClCompile Include="Source\Graphics\Renderer\Renderer.cpp" />
     <ClCompile Include="Source\Graphics\Geometry\Mesh\Mesh.cpp" />
     <ClCompile Include="Source\Graphics\Geometry\Model\Model.cpp" />
     <ClCompile Include="Source\Graphics\Geometry\Model\ModelLoader.cpp" />
@@ -395,14 +411,14 @@
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
-    <Import Project="packages\directxtk12_desktop_2019.2025.10.28.1\build\native\directxtk12_desktop_2019.targets" Condition="Exists('packages\directxtk12_desktop_2019.2025.10.28.1\build\native\directxtk12_desktop_2019.targets')" />
     <Import Project="packages\directxtex_desktop_2019.2025.10.28.1\build\native\directxtex_desktop_2019.targets" Condition="Exists('packages\directxtex_desktop_2019.2025.10.28.1\build\native\directxtex_desktop_2019.targets')" />
+    <Import Project="packages\directxtk12_desktop_2019.2025.10.28.1\build\native\directxtk12_desktop_2019.targets" Condition="Exists('packages\directxtk12_desktop_2019.2025.10.28.1\build\native\directxtk12_desktop_2019.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>????v???W?F?N?g??A????R???s???[?^?[????? NuGet ?p?b?P?[?W??Q??????????B??????p?b?P?[?W??_?E?????[?h??????A[NuGet ?p?b?P?[?W?????] ??g?p??????B?????????Ahttp://go.microsoft.com/fwlink/?LinkID=322105 ??Q?????????????B??????????t?@?C???? {0} ????B</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('packages\directxtk12_desktop_2019.2025.10.28.1\build\native\directxtk12_desktop_2019.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\directxtk12_desktop_2019.2025.10.28.1\build\native\directxtk12_desktop_2019.targets'))" />
     <Error Condition="!Exists('packages\directxtex_desktop_2019.2025.10.28.1\build\native\directxtex_desktop_2019.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\directxtex_desktop_2019.2025.10.28.1\build\native\directxtex_desktop_2019.targets'))" />
+    <Error Condition="!Exists('packages\directxtk12_desktop_2019.2025.10.28.1\build\native\directxtk12_desktop_2019.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\directxtk12_desktop_2019.2025.10.28.1\build\native\directxtk12_desktop_2019.targets'))" />
   </Target>
 </Project>

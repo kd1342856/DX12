@@ -1,9 +1,5 @@
 #include "../../../Pch.h"
 #include "RenderTarget.h"
-#include "../../Device/GraphicsDevice.h"
-#include "../../Descriptors/Heap/RTVHeap/RTVHeap.h"
-#include "../../Descriptors/Heap/CBVSRVUAVHeap/CBVSRVUAVHeap.h"
-#include "../../Descriptors/Heap/DSVHeap/DSVHeap.h"
 
 bool RenderTarget::Create(int width, int height)
 {

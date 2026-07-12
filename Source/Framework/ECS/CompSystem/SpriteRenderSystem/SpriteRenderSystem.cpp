@@ -3,7 +3,7 @@
 #include "SpriteRenderSystem.h"
 #include <SpriteBatch.h>
 
-void SpriteRenderSystem::Update() {
+void SpriteRenderSystem::Update(float deltaTime) {
 }
 
 void SpriteRenderSystem::Render() {

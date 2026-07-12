@@ -1,9 +1,9 @@
-#pragma once
+﻿#pragma once
 #include "../../../Library/nlohmann/json.hpp"
 #include "Object.h"
-#include "../ECS/Entity/Entity.h"
 
 class Scene;
+#include "../Manager/GameManager.h"
 
 // =============================================
 // GameObject
@@ -25,7 +25,7 @@ public:
     bool IsDynamic() const { return m_isDynamic; }
 
     void SetParent(std::shared_ptr<GameObject> parent);
-    void Destroy();
+    void Destroy() override;
     
     GameObject* GetParent() const { return m_pParent; }
     const std::vector<std::shared_ptr<GameObject>>& GetChildren() const { return m_children; }
@@ -50,10 +50,7 @@ public:
         return GameManager::Instance().GetECS().GetComponent<T>(m_entityId);
     }
 
-    template<class T>
-    bool HasComponent() const {
-        return GameManager::Instance().GetECS().HasComponent<T>(m_entityId);
-    }
+    
 
 protected:
     bool m_isStarted = false;
@@ -65,3 +62,5 @@ private:
     Entity m_entityId = INVALID_ENTITY;
     bool m_isDynamic = false;
 };
+
+

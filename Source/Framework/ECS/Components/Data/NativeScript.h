@@ -1,5 +1,4 @@
 #pragma once
-#include "../../Entity/Entity.h"
 class GameObject;
 
 // Base class for all native C++ scripts
@@ -9,7 +8,7 @@ public:
     
     virtual void Awake() {}
     virtual void Start() {}
-    virtual void Update() {}
+    virtual void Update(float deltaTime) {}
     virtual void PostUpdate() {}
     virtual void PreDraw() {}
     virtual void Draw() {}

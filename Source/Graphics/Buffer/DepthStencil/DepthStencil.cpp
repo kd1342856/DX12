@@ -1,7 +1,5 @@
 #include "../../../Pch.h"
-#include "DepthStencil.h"
 
-#include "../../Device/GraphicsDevice.h"
 
 bool DepthStencil::Create(GraphicsDevice* pGraphicsDevice, const Math::Vector2& resolution, DepthStencilFormat format, bool bCreateSRV)
 {

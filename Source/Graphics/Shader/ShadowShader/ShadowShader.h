@@ -2,8 +2,6 @@
 
 #include "../Pipeline/Pipeline.h"
 #include "../RootSignature/RootSignature.h"
-#include "../../Device/GraphicsDevice.h"
-#include "../../../Framework/DirectX/GDF/GDF.h"
 
 class ShadowShader
 {

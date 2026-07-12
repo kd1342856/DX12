@@ -1,6 +1,5 @@
 #pragma once
 #include <assimp/matrix4x4.h>
-#include <atomic>
 
 class Mesh;
 struct AnimationData;

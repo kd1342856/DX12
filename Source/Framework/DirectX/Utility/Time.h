@@ -1,7 +1,5 @@
 ﻿#pragma once
 
-#include <chrono>
-#include <string>
 #include <windows.h>
 
 class GameTimer

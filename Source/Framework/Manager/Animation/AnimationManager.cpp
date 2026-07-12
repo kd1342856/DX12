@@ -4,9 +4,8 @@
 void AnimationManager::PlayAnimation(Entity entity, int animIndex, bool isLoop, float speed)
 {
     auto& ecs = GameManager::Instance().GetECS();
-    if (ecs.HasComponent<AnimationDataComponent>(entity)) 
-    {
-        auto& anim = ecs.GetComponent<AnimationDataComponent>(entity);
+    if (auto* pAnim = ecs.TryGetComponent<AnimationDataComponent>(entity)) {
+        auto& anim = *pAnim;
         if (anim.currentAnim.AnimationIndex != animIndex || !anim.currentAnim.IsPlaying) 
         {
             anim.currentAnim.AnimationIndex = animIndex;
@@ -21,8 +20,10 @@ void AnimationManager::PlayAnimation(Entity entity, int animIndex, bool isLoop, 
 void AnimationManager::PlayAnimationByName(Entity entity, const std::string& animName, bool isLoop, float speed)
 {
     auto& ecs = GameManager::Instance().GetECS();
-    if (ecs.HasComponent<AnimationDataComponent>(entity) && ecs.HasComponent<ModelRenderData>(entity)) {
-        auto& modelData = ecs.GetComponent<ModelRenderData>(entity);
+    auto* pAnim = ecs.TryGetComponent<AnimationDataComponent>(entity);
+    auto* pModel = ecs.TryGetComponent<ModelRenderData>(entity);
+    if (pAnim && pModel) {
+        auto& modelData = *pModel;
         if (modelData.m_spModelData) {
             const auto& animations = modelData.m_spModelData->GetAnimations();
             for (int i = 0; i < (int)animations.size(); ++i) {
@@ -38,8 +39,8 @@ void AnimationManager::PlayAnimationByName(Entity entity, const std::string& ani
 void AnimationManager::StopAnimation(Entity entity)
 {
     auto& ecs = GameManager::Instance().GetECS();
-    if (ecs.HasComponent<AnimationDataComponent>(entity)) {
-        auto& anim = ecs.GetComponent<AnimationDataComponent>(entity);
+    if (auto* pAnim = ecs.TryGetComponent<AnimationDataComponent>(entity)) {
+        auto& anim = *pAnim;
         anim.currentAnim.IsPlaying = false;
         anim.currentAnim.ProgressTime = 0.0f;
     }
@@ -48,8 +49,8 @@ void AnimationManager::StopAnimation(Entity entity)
 void AnimationManager::PauseAnimation(Entity entity)
 {
     auto& ecs = GameManager::Instance().GetECS();
-    if (ecs.HasComponent<AnimationDataComponent>(entity)) {
-        auto& anim = ecs.GetComponent<AnimationDataComponent>(entity);
+    if (auto* pAnim = ecs.TryGetComponent<AnimationDataComponent>(entity)) {
+        auto& anim = *pAnim;
         anim.currentAnim.IsPlaying = false;
     }
 }
@@ -57,8 +58,8 @@ void AnimationManager::PauseAnimation(Entity entity)
 void AnimationManager::ResumeAnimation(Entity entity)
 {
     auto& ecs = GameManager::Instance().GetECS();
-    if (ecs.HasComponent<AnimationDataComponent>(entity)) {
-        auto& anim = ecs.GetComponent<AnimationDataComponent>(entity);
+    if (auto* pAnim = ecs.TryGetComponent<AnimationDataComponent>(entity)) {
+        auto& anim = *pAnim;
         anim.currentAnim.IsPlaying = true;
     }
 }

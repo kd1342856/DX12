@@ -1,8 +1,6 @@
 #pragma once
 #include <cstdint>
 #include <cstdlib>
-#include <cassert>
-#include <algorithm>
 
 class LinearAllocator {
 public:

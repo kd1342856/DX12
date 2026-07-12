@@ -1,14 +1,9 @@
 #pragma once
-#include "../../ComponentManager.h"
-#include "../../ECSCoordinator.h"
-#include "../System.h"
-#include "../../Components/Data/CameraData.h"
-#include "../../Components/Data/TransformData.h"
 
 class CameraSystem : public SystemBase
 {
 public:
-    void Update()
+    void Update(float deltaTime) override
     {
         for (auto const& entity : m_entities)
         {

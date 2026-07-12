@@ -6,14 +6,19 @@ JobSystem::~JobSystem() {
 }
 
 void JobSystem::Init() {
+    if (!m_workers.empty()) {
+        return; // すでに初期化済みの場合はスキップ
+    }
+
     uint32_t numThreads = std::thread::hardware_concurrency();
     if (numThreads == 0) numThreads = 4;
     
     // Reserve one thread for main, use the rest (at least 1)
     numThreads = (numThreads > 1) ? numThreads - 1 : 1;
+    m_workerActive.resize(numThreads, false);
 
     for (uint32_t i = 0; i < numThreads; ++i) {
-        m_workers.emplace_back(&JobSystem::WorkerThread, this);
+        m_workers.emplace_back(&JobSystem::WorkerThread, this, i);
     }
 }
 
@@ -49,7 +54,7 @@ void JobSystem::Wait() {
     m_waitCondition.wait(lock, [this] { return m_activeJobs == 0; });
 }
 
-void JobSystem::WorkerThread() {
+void JobSystem::WorkerThread(uint32_t workerIndex) {
     while (true) {
         std::function<void()> job;
         
@@ -63,6 +68,7 @@ void JobSystem::WorkerThread() {
             
             job = std::move(m_jobQueue.front());
             m_jobQueue.pop();
+            m_workerActive[workerIndex] = true;
         }
         
         // Execute the job outside of the lock
@@ -71,6 +77,7 @@ void JobSystem::WorkerThread() {
         {
             std::unique_lock<std::mutex> lock(m_queueMutex);
             m_activeJobs--;
+            m_workerActive[workerIndex] = false;
             if (m_activeJobs == 0) {
                 m_waitCondition.notify_all();
             }
@@ -82,3 +89,16 @@ JobSystem& JobSystem::Instance()
     static JobSystem instance;
     return instance;
 }
+
+std::vector<bool> JobSystem::GetWorkerStatuses()
+{
+    std::unique_lock<std::mutex> lock(m_queueMutex);
+    return m_workerActive;
+}
+
+size_t JobSystem::GetQueuedJobCount()
+{
+	std::unique_lock<std::mutex> lock(m_queueMutex);
+	return m_jobQueue.size();
+}
+

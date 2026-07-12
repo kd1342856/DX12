@@ -151,6 +151,9 @@
     <Filter Include="Source\Graphics\Device">
       <UniqueIdentifier>{FB70EC14-1BF5-4CAE-BFB6-7A0518378280}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Graphics\Renderer">
+      <UniqueIdentifier>{B1A832A2-C1F8-4A9B-B114-1C1E1B95B3C8}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source\Graphics\Geometry">
       <UniqueIdentifier>{E306D558-F900-4AC3-BF0F-885EF54F6D32}</UniqueIdentifier>
     </Filter>
@@ -273,6 +276,28 @@
     <ClCompile Include="Source\Framework\ImGuiEditor\Editor\Editor.cpp">
       <Filter>Source\Framework\ImGuiEditor\Editor</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Framework\ImGuiEditor\Editor\HierarchyWindow.cpp">
+      <Filter>Source\Framework\ImGuiEditor\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Framework\ImGuiEditor\Editor\InspectorWindow.cpp">
+      <Filter>Source\Framework\ImGuiEditor\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Framework\ImGuiEditor\Editor\StatisticsWindow.cpp">
+      <Filter>Source\Framework\ImGuiEditor\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Framework\ImGuiEditor\Editor\ConsoleWindow.cpp">
+      <Filter>Source\Framework\ImGuiEditor\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Framework\ImGuiEditor\Editor\AssetBrowserWindow.cpp">
+      <Filter>Source\Framework\ImGuiEditor\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Framework\ImGuiEditor\Editor\GameViewWindow.cpp">
+      <Filter>Source\Framework\ImGuiEditor\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Framework\ImGuiEditor\Editor\Toolbar.cpp">
+      <Filter>Source\Framework\ImGuiEditor\Editor</Filter>
+    </ClCompile>
+
     <ClCompile Include="Source\Framework\Manager\GameManager.cpp">
       <Filter>Source\Framework\Manager</Filter>
     </ClCompile>
@@ -305,6 +330,9 @@
     </ClCompile>
     <ClCompile Include="Source\Graphics\Device\GraphicsDevice.cpp">
       <Filter>Source\Graphics\Device</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Graphics\Renderer\Renderer.cpp">
+      <Filter>Source\Graphics\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="Source\Graphics\Geometry\Mesh\Mesh.cpp">
       <Filter>Source\Graphics\Geometry\Mesh</Filter>
@@ -494,6 +522,9 @@
     </ClInclude>
     <ClInclude Include="Source\Graphics\Device\GraphicsDevice.h">
       <Filter>Source\Graphics\Device</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Graphics\Renderer\Renderer.h">
+      <Filter>Source\Graphics\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="Source\Graphics\Geometry\Mesh\Mesh.h">
       <Filter>Source\Graphics\Geometry\Mesh</Filter>
