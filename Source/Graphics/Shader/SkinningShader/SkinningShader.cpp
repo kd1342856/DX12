@@ -1,130 +1,82 @@
 #include "../../../Pch.h"
 #include "SkinningShader.h"
+#include "../ShaderCompiler/ShaderCompiler.h"
+#include "../../Renderer/ModelRenderer.h"
+#include "../../../Framework/DirectX/GDF/GDF.h"
 
 void SkinningShader::Create(GraphicsDevice* pGraphicsDevice)
 {
 	m_pDevice = pGraphicsDevice;
-	LoadShaderFile(L"SkinningShader");
 
-	std::vector<RangeType> rangeTypes = {
-		RangeType::CBV, RangeType::CBV, RangeType::CBV, // cbCamera, cbWorld, cbBones
-		RangeType::SRV, RangeType::SRV, RangeType::SRV, RangeType::SRV
+	auto vsBlob = ShaderCompiler::CompileVS(L"Asset/Shader/SkinningShader/SkinningShader_VS.hlsl", "main");
+	auto psBlob = ShaderCompiler::CompilePS(L"Asset/Shader/SkinningShader/SkinningShader_PS.hlsl", "main");
+
+	std::vector<DescriptorRange> ranges = {
+		{ RangeType::CBV, 0, 1, 0 },
+		{ RangeType::CBV, 1, 1, 0 },
+		{ RangeType::CBV, 2, 1, 0 },
+		{ RangeType::SRV, 0, 1, 0 },
+		{ RangeType::SRV, 1, 1, 0 },
+		{ RangeType::SRV, 2, 1, 0 },
+		{ RangeType::SRV, 3, 1, 0 }
 	};
-	m_cbvCount = 0;
+	m_cbvCount = 3; 
 
-	m_upRootSignature = std::make_unique<RootSignature>();
-	m_upRootSignature->Create(pGraphicsDevice, rangeTypes, m_cbvCount);
+	m_rootSignature = std::make_unique<RootSignature>();
+	m_rootSignature->Create(pGraphicsDevice, ranges);
 
-	RenderingSetting setting = {};
-	setting.InputLayouts = {
+	PipelineDesc desc;
+	desc.pBlobs = { vsBlob.Get(), nullptr, nullptr, nullptr, psBlob.Get() };
+	desc.InputLayouts = {
 		InputLayout::POSITION, InputLayout::TEXCOORD, InputLayout::NORMAL,
 		InputLayout::COLOR, InputLayout::TANGENT,
 		InputLayout::SKININDEX, InputLayout::SKINWEIGHT
 	};
-	setting.Formats = { DXGI_FORMAT_R8G8B8A8_UNORM };
-	setting.RTVCount = 1;
+	desc.Formats = { DXGI_FORMAT_R8G8B8A8_UNORM };
+	desc.pRootSignature = m_rootSignature.get();
+	desc.TopologyType = PrimitiveTopologyType::Triangle;
 
-	m_upPipeline = std::make_unique<Pipeline>();
-	m_upPipeline->SetRenderSettings(pGraphicsDevice, m_upRootSignature.get(), setting.InputLayouts,
-		setting.CullMode, setting.BlendMode, setting.PrimitiveTopologyType);
-	m_upPipeline->Create({ m_pVSBlob, m_pHSBlob, m_pDSBlob, m_pGSBlob, m_pPSBlob }, setting.Formats,
-		setting.IsDepth, setting.IsDepthMask, setting.RTVCount, setting.IsWireFrame);
+	m_pipeline = std::make_unique<Pipeline>();
+	m_pipeline->Create(pGraphicsDevice, desc);
 
-	// シャドウ用パイプライン作成
-	RenderingSetting shadowSetting = setting;
-	shadowSetting.Formats = {};
-	shadowSetting.RTVCount = 0;
-	shadowSetting.CullMode = CullMode::None; // 両面描画で影を落とす
+	PipelineDesc shadowDesc = desc;
+	shadowDesc.pBlobs = { vsBlob.Get(), nullptr, nullptr, nullptr, nullptr };
+	shadowDesc.Formats = {};
+	shadowDesc.CullMode = CullMode::None;
+	
 	m_upShadowPipeline = std::make_unique<Pipeline>();
-	m_upShadowPipeline->SetRenderSettings(pGraphicsDevice, m_upRootSignature.get(), shadowSetting.InputLayouts,
-		shadowSetting.CullMode, shadowSetting.BlendMode, shadowSetting.PrimitiveTopologyType);
-	m_upShadowPipeline->Create({ m_pVSBlob, nullptr, nullptr, nullptr, nullptr }, shadowSetting.Formats,
-		shadowSetting.IsDepth, shadowSetting.IsDepthMask, shadowSetting.RTVCount, shadowSetting.IsWireFrame);
+	m_upShadowPipeline->Create(pGraphicsDevice, shadowDesc);
 }
 
-void SkinningShader::Begin()
+void SkinningShader::Begin(RenderContext& context)
 {
-	m_pDevice->GetCmdList()->SetPipelineState(m_upPipeline->GetPipeline());
-	m_pDevice->GetCmdList()->SetGraphicsRootSignature(m_upRootSignature->GetRootSignature());
-
-	D3D12_PRIMITIVE_TOPOLOGY_TYPE topologyType =
-		static_cast<D3D12_PRIMITIVE_TOPOLOGY_TYPE>(m_upPipeline->GetTopologyType());
-
-	switch (topologyType)
-	{
-	case D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT:
-		m_pDevice->GetCmdList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
-		break;
-	case D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE:
-		m_pDevice->GetCmdList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINELIST);
-		break;
-	case D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE:
-		m_pDevice->GetCmdList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		break;
-	case D3D12_PRIMITIVE_TOPOLOGY_TYPE_PATCH:
-		m_pDevice->GetCmdList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_4_CONTROL_POINT_PATCHLIST);
-		break;
-	}
-
-	D3D12_VIEWPORT viewport = {};
-	D3D12_RECT rect = {};
-	viewport.Width = 1280.0f;
-	viewport.Height = 720.0f;
-	viewport.MinDepth = 0.0f;
-	viewport.MaxDepth = 1.0f;
-	rect.right = 1280;
-	rect.bottom = 720;
-
-	m_pDevice->GetCmdList()->RSSetViewports(1, &viewport);
-	m_pDevice->GetCmdList()->RSSetScissorRects(1, &rect);
-
-	ShaderManager::Instance().BindCameraMatrix(0);
+	GraphicsShader::Begin(context);
+	context.BindCamera(0);
 }
 
-void SkinningShader::DrawModel(const ModelData& modelData, const Math::Matrix& mWorld, const std::vector<Math::Matrix>& boneMatrices)
+void SkinningShader::BeginModel(const ModelData& model, const DrawContext& drawContext)
 {
-	// ボーン行列を定数バッファにセット
-	CBufferData::Bones cbBones;
-	for (size_t i = 0; i < boneMatrices.size() && i < 256; ++i)
-	{
-		cbBones.mBones[i] = boneMatrices[i];
-	}
-	GDF::Instance().BindCBuffer(2, cbBones);
+	m_pCurrentDrawContext = &drawContext;
 
-	const auto& nodes = modelData.GetNodes();
-	std::vector<Math::Matrix> nodeWorldMatrices(nodes.size());
-
-	for (int i = 0; i < (int)nodes.size(); ++i)
-	{
-		const auto& node = nodes[i];
-		aiMatrix4x4 aiMat = node.localTransform;
-		Math::Matrix matLocal = *(Math::Matrix*)&aiMat;
-
-		if (node.parentIndex == -1)
-		{
-			nodeWorldMatrices[i] = matLocal * mWorld;
+	if (drawContext.BoneMatrices) {
+		CBufferData::Bones cbBones;
+		for (size_t i = 0; i < drawContext.BoneMatrices->size() && i < 256; ++i) {
+			cbBones.mBones[i] = (*drawContext.BoneMatrices)[i];
 		}
-		else
-		{
-			nodeWorldMatrices[i] = matLocal * nodeWorldMatrices[node.parentIndex];
-		}
-
-		CBufferData::PerDraw cbDraw; cbDraw.mWorld = mWorld; GDF::Instance().BindCBuffer(1, cbDraw);
-
-		for (const auto& spMesh : node.meshes)
-		{
-			if (spMesh)
-			{
-				DrawMesh(*spMesh);
-			}
-		}
+		GDF::Instance().BindCBuffer(2, cbBones);
 	}
 }
 
-void SkinningShader::DrawMesh(const Mesh& mesh)
+void SkinningShader::BeginNode(const ModelData::Node& node, const Math::Matrix& nodeWorld)
 {
-	SetMaterial(mesh.GetMaterial());
-	mesh.DrawInstanced(mesh.GetInstanceCount());
+	CBufferData::PerDraw cbDraw; 
+	cbDraw.mWorld = nodeWorld; 
+	GDF::Instance().BindCBuffer(1, cbDraw);
+}
+
+void SkinningShader::BeforeDrawMesh(const Mesh& mesh, const Material& material)
+{
+	SetMaterial(material);
 }
 
 void SkinningShader::SetMaterial(const Material& material)
@@ -142,56 +94,10 @@ void SkinningShader::SetMaterial(const Material& material)
 	else GraphicsDevice::Instance().GetBlackTex()->Set(m_cbvCount + 3);
 }
 
-void SkinningShader::LoadShaderFile(const std::wstring& filePath)
-{
-	ID3DInclude* include = D3D_COMPILE_STANDARD_FILE_INCLUDE;
-	// デバッグビルドは最適化スキップ、リリースビルドは最高速最適化
-#ifdef _DEBUG
-	UINT flag = D3DCOMPILE_DEBUG;
-#else
-	UINT flag = D3DCOMPILE_OPTIMIZATION_LEVEL3;
-#endif
-	ComPtr<ID3DBlob> pErrorBlob = nullptr;
-
-	std::wstring format = L".hlsl";
-	std::wstring currentPath = L"Asset/Shader/" + filePath + L"/";
-
-	// VS
-	{
-		std::wstring fullPath = currentPath + filePath + L"_VS" + format;
-		auto hr = D3DCompileFromFile(fullPath.c_str(), nullptr, include, "main",
-			"vs_5_0", flag, 0, &m_pVSBlob, &pErrorBlob);
-		if (FAILED(hr))
-		{
-			if (pErrorBlob)
-			{
-				OutputDebugStringA((char*)pErrorBlob->GetBufferPointer());
-			}
-				assert(0 && "頂点シェーダーのコンパイルに失敗しました");
-			return;
-		}
-	}
-	// PS
-	{
-		std::wstring fullPath = currentPath + filePath + L"_PS" + format;
-		auto hr = D3DCompileFromFile(fullPath.c_str(), nullptr, include, "main",
-			"ps_5_0", flag, 0, &m_pPSBlob, &pErrorBlob);
-		if (FAILED(hr))
-		{
-			if (pErrorBlob)
-			{
-				OutputDebugStringA((char*)pErrorBlob->GetBufferPointer());
-			}
-				assert(0 && "ピクセルシェーダーのコンパイルに失敗しました");
-			return;
-		}
-	}
-}
-
-void SkinningShader::BeginShadow()
+void SkinningShader::BeginShadow(RenderContext& context)
 {
 	m_pDevice->GetCmdList()->SetPipelineState(m_upShadowPipeline->GetPipeline());
-	m_pDevice->GetCmdList()->SetGraphicsRootSignature(m_upRootSignature->GetRootSignature());
+	m_pDevice->GetCmdList()->SetGraphicsRootSignature(m_rootSignature->GetRootSignature());
 	m_pDevice->GetCmdList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	D3D12_VIEWPORT viewport = {};
@@ -202,48 +108,15 @@ void SkinningShader::BeginShadow()
 	viewport.MaxDepth = 1.0f;
 	rect.right = 4096;
 	rect.bottom = 4096;
-
 	m_pDevice->GetCmdList()->RSSetViewports(1, &viewport);
 	m_pDevice->GetCmdList()->RSSetScissorRects(1, &rect);
+
+	context.BindCamera(0);
 }
 
-void SkinningShader::DrawShadowModel(const ModelData& modelData, const Math::Matrix& mWorld, const std::vector<Math::Matrix>& boneMatrices)
+void SkinningShader::DrawShadowModel(const ModelData& modelData, const DrawContext& context)
 {
-	CBufferData::Bones cbBones;
-	for (size_t i = 0; i < boneMatrices.size() && i < 256; ++i)
-	{
-		cbBones.mBones[i] = boneMatrices[i];
-	}
-	GDF::Instance().BindCBuffer(2, cbBones);
-
-	const auto& nodes = modelData.GetNodes();
-	std::vector<Math::Matrix> nodeWorldMatrices(nodes.size());
-
-	for (int i = 0; i < (int)nodes.size(); ++i)
-	{
-		const auto& node = nodes[i];
-		aiMatrix4x4 aiMat = node.localTransform;
-		Math::Matrix matLocal = *(Math::Matrix*)&aiMat;
-
-		if (node.parentIndex == -1)
-		{
-			nodeWorldMatrices[i] = matLocal * mWorld;
-		}
-		else
-		{
-			nodeWorldMatrices[i] = matLocal * nodeWorldMatrices[node.parentIndex];
-		}
-
-		CBufferData::PerDraw cbDraw; 
-		cbDraw.mWorld = nodeWorldMatrices[i]; 
-		GDF::Instance().BindCBuffer(1, cbDraw);
-
-		for (const auto& spMesh : node.meshes)
-		{
-			if (spMesh)
-			{
-				spMesh->DrawInstanced(spMesh->GetInstanceCount());
-			}
-		}
-	}
+	// Shadow drawing using ModelRenderer but with shadow pipeline
+	// This is a temporary solution until shadow passes are unified
+	ModelRenderer::Draw(*this, modelData, context);
 }

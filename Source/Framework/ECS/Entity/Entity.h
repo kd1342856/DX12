@@ -1,3 +1,4 @@
+#include <mutex>
 #pragma once
 #include <cstdint>
 
@@ -19,6 +20,7 @@ using Signature = std::bitset<MAX_COMPONENTS>;
 // =============================================
 class EntityManager
 {
+    std::mutex m_mutex;
 public:
     EntityManager()
     {
@@ -28,8 +30,26 @@ public:
         }
     }
 
+        Entity AllocateEntity()
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        assert(m_livingEntityCount < MAX_ENTITIES);
+        Entity entityId = m_availableEntities.front();
+        m_availableEntities.pop();
+        ++m_livingEntityCount;
+        m_alive[entityId] = false; // まだアクティブではない
+        return entityId;
+    }
+
+    void InitializeEntity(Entity entity)
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        m_alive[entity] = true;
+    }
+
     Entity CreateEntity()
     {
+        std::lock_guard<std::mutex> lock(m_mutex);
         assert(m_livingEntityCount < MAX_ENTITIES);
         Entity entityId = m_availableEntities.front();
         m_availableEntities.pop();
@@ -40,6 +60,7 @@ public:
 
     void DestroyEntity(Entity entity)
     {
+        std::lock_guard<std::mutex> lock(m_mutex);
         assert(entity < MAX_ENTITIES);
         assert(m_alive[entity]);
         m_signatures[entity].reset();

@@ -1,111 +1,73 @@
 #include "../../../Pch.h"
 #include "LitShader.h"
+#include "../ShaderCompiler/ShaderCompiler.h"
+#include "../../../Framework/DirectX/GDF/GDF.h"
+#include "../../Renderer/RenderContext.h"
 
 void LitShader::Create(GraphicsDevice* pGraphicsDevice)
 {
 	m_pDevice = pGraphicsDevice;
-	LoadShaderFile(L"LitShader");
 
-	// Registers for LitShader:
-	// CBV0: cbPerCamera (b0)
-	// CBV1: cbPerDraw (b1)
-	// CBV2: cbPerMaterial (b2)
-	// CBV3: cbLight (b3)
-	// CBV4: cbSystem (b4)
-	// SRV0~SRV3: Material Textures (t0~t3)
-	// SRV4~SRV8: Common Textures (t4~t8)
-	// ※ t9(SpotShadowMap)は未使用のため削除済み
+	auto vsBlob = ShaderCompiler::CompileVS(L"Asset/Shader/LitShader/LitShader_VS.hlsl", "VS");
+	auto psBlob = ShaderCompiler::CompilePS(L"Asset/Shader/LitShader/LitShader_PS.hlsl", "PS");
 
-	std::vector<RangeType> rangeTypes = {
-		RangeType::CBV, RangeType::CBV, RangeType::CBV, RangeType::CBV, RangeType::CBV, // 5 CBVs
-		RangeType::SRV, RangeType::SRV, RangeType::SRV, RangeType::SRV,                 // t0-t3
-		RangeType::SRV, RangeType::SRV, RangeType::SRV, RangeType::SRV, RangeType::SRV,  // t4-t8
+	std::vector<DescriptorRange> ranges = {
+		{ RangeType::CBV, 0, 1, 0 }, // b0
+		{ RangeType::CBV, 1, 1, 0 }, // b1
+		{ RangeType::CBV, 2, 1, 0 }, // b2
+		{ RangeType::CBV, 3, 1, 0 }, // b3
+		{ RangeType::CBV, 4, 1, 0 }, // b4
+		{ RangeType::SRV, 0, 1, 0 }, // t0
+		{ RangeType::SRV, 1, 1, 0 }, // t1
+		{ RangeType::SRV, 2, 1, 0 }, // t2
+		{ RangeType::SRV, 3, 1, 0 }, // t3
+		{ RangeType::SRV, 4, 1, 0 }, // t4
+		{ RangeType::SRV, 5, 1, 0 }, // t5
+		{ RangeType::SRV, 6, 1, 0 }, // t6
+		{ RangeType::SRV, 7, 1, 0 }, // t7
+		{ RangeType::SRV, 8, 1, 0 }  // t8
 	};
+	m_cbvCount = 5;
 
-	m_upRootSignature = std::make_unique<RootSignature>();
-	m_upRootSignature->Create(pGraphicsDevice, rangeTypes, m_cbvCount);
+	m_rootSignature = std::make_unique<RootSignature>();
+	m_rootSignature->Create(pGraphicsDevice, ranges);
 
-	RenderingSetting setting = {};
-	setting.InputLayouts = {
-		InputLayout::POSITION, InputLayout::TEXCOORD, InputLayout::NORMAL, InputLayout::COLOR, InputLayout::TANGENT
-	};
-	setting.Formats = { DXGI_FORMAT_R8G8B8A8_UNORM };
-	setting.BlendMode = BlendMode::None; // Opaque default
+	PipelineDesc desc;
+	desc.pBlobs = { vsBlob.Get(), nullptr, nullptr, nullptr, psBlob.Get() };
+	desc.InputLayouts = { InputLayout::POSITION, InputLayout::TEXCOORD, InputLayout::NORMAL, InputLayout::COLOR, InputLayout::TANGENT };
+	desc.Formats = { DXGI_FORMAT_R8G8B8A8_UNORM };
+	desc.pRootSignature = m_rootSignature.get();
+	desc.TopologyType = PrimitiveTopologyType::Triangle;
 
-	m_upPipeline = std::make_unique<Pipeline>();
-	m_upPipeline->SetRenderSettings(pGraphicsDevice, m_upRootSignature.get(), setting.InputLayouts,
-		setting.CullMode, setting.BlendMode, setting.PrimitiveTopologyType);
-	m_upPipeline->Create({ m_pVSBlob, m_pHSBlob, m_pDSBlob, m_pGSBlob, m_pPSBlob }, setting.Formats,
-		setting.IsDepth, setting.IsDepthMask, setting.RTVCount, setting.IsWireFrame);
+	m_pipeline = std::make_unique<Pipeline>();
+	m_pipeline->Create(pGraphicsDevice, desc);
 }
 
-void LitShader::Begin()
+void LitShader::Begin(RenderContext& context)
 {
-	m_pDevice->GetCmdList()->SetPipelineState(m_upPipeline->GetPipeline());
-	m_pDevice->GetCmdList()->SetGraphicsRootSignature(m_upRootSignature->GetRootSignature());
+	GraphicsShader::Begin(context);
+	context.BindCamera(0);
+	context.BindLight(3);
 
-	D3D12_PRIMITIVE_TOPOLOGY_TYPE topologyType =
-		static_cast<D3D12_PRIMITIVE_TOPOLOGY_TYPE>(m_upPipeline->GetTopologyType());
-
-	switch (topologyType)
-	{
-	case D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT:
-		m_pDevice->GetCmdList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
-		break;
-	case D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE:
-		m_pDevice->GetCmdList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINELIST);
-		break;
-	case D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE:
-		m_pDevice->GetCmdList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		break;
-	case D3D12_PRIMITIVE_TOPOLOGY_TYPE_PATCH:
-		m_pDevice->GetCmdList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_4_CONTROL_POINT_PATCHLIST);
-		break;
-	}
-
-	D3D12_VIEWPORT viewport = {};
-	D3D12_RECT rect = {};
-	viewport.Width = 1280.0f;
-	viewport.Height = 720.0f;
-	viewport.MinDepth = 0.0f;
-	viewport.MaxDepth = 1.0f;
-	rect.right = 1280;
-	rect.bottom = 720;
-
-	GraphicsDevice::Instance().GetCmdList()->RSSetViewports(1, &viewport);
-	GraphicsDevice::Instance().GetCmdList()->RSSetScissorRects(1, &rect);
-
-	// シャドウマップのバインド (t7 = m_cbvCount + 7)
-	auto* pShadowMap = GraphicsDevice::Instance().GetShadowMap();
+	// Bind ShadowMap to t7 (index 12)
+	auto* pShadowMap = m_pDevice->GetShadowMap();
 	if (pShadowMap && pShadowMap->GetSRVNumber() != -1)
 	{
-		auto handle = GraphicsDevice::Instance().GetCBVSRVUAVHeap()->GetGPUHandle(pShadowMap->GetSRVNumber());
-		GraphicsDevice::Instance().GetCmdList()->SetGraphicsRootDescriptorTable(m_cbvCount + 7, handle);
+		auto handle = m_pDevice->GetCBVSRVUAVHeap()->GetGPUHandle(pShadowMap->GetSRVNumber());
+		m_pDevice->GetCmdList()->SetGraphicsRootDescriptorTable(12, handle);
 	}
-	// SpotShadowMapは未使用のため削除
-	ShaderManager::Instance().BindCameraMatrix(0);
-	ShaderManager::Instance().BindLightData(3);
 }
 
-void LitShader::DrawModel(const ModelData& modelData, const Math::Matrix& mWorld)
+void LitShader::BeginNode(const ModelData::Node& node, const Math::Matrix& nodeWorld)
 {
 	CBufferData::PerDraw cbDraw;
-	cbDraw.mWorld = mWorld;
+	cbDraw.mWorld = nodeWorld;
 	GDF::Instance().BindCBuffer(1, cbDraw);
-
-	for (auto& node : modelData.GetNodes())
-	{
-		for (const auto& spMesh : node.meshes)
-		{
-			DrawMesh(*spMesh);
-		}
-	}
 }
 
-void LitShader::DrawMesh(const Mesh& mesh)
+void LitShader::BeforeDrawMesh(const Mesh& mesh, const Material& material)
 {
-	SetMaterial(mesh.GetMaterial());
-	mesh.DrawInstanced(mesh.GetInstanceCount());
+	SetMaterial(material);
 }
 
 void LitShader::SetMaterial(const Material& material)
@@ -114,8 +76,7 @@ void LitShader::SetMaterial(const Material& material)
 	cbMat.BaseColor = material.BaseColor;
 	cbMat.EmissiveColor = Math::Vector4(material.Emissive.x, material.Emissive.y, material.Emissive.z, 1.0f);
 	cbMat.Metallic = material.Metallic;
-	cbMat.Smoothness = material.Roughness; // Mapping roughness to smoothness to match hlsl name if needed
-	
+	cbMat.Smoothness = material.Roughness; // Mapping roughness to smoothness
 	GDF::Instance().BindCBuffer(2, cbMat);
 
 	if (material.spBaseColorTex) material.spBaseColorTex->Set(m_cbvCount);
@@ -129,51 +90,10 @@ void LitShader::SetMaterial(const Material& material)
 
 	if (material.spEmissiveTex) material.spEmissiveTex->Set(m_cbvCount + 3);
 	else GraphicsDevice::Instance().GetBlackTex()->Set(m_cbvCount + 3);
+
+	// TODO: ShadowMap binding should ideally be done by RenderContext once per frame, not per material.
+	// We will leave slot m_cbvCount+4 (SRV 4) for ShadowMap to be bound by Renderer.
 }
 
-void LitShader::LoadShaderFile(const std::wstring& filePath)
-{
-	ID3DInclude* include = D3D_COMPILE_STANDARD_FILE_INCLUDE;
-	// デバッグビルドは最適化スキップ、リリースビルドは最高速最適化
-	// シェーダーの最適化をスキップするとFPSが極端に落ちるため、デバッグでも最適化を有効にする
-#ifdef _DEBUG
-	UINT flag = D3DCOMPILE_DEBUG; // SKIP_OPTIMIZATIONを削除
-#else
-	UINT flag = D3DCOMPILE_OPTIMIZATION_LEVEL3;
-#endif
-	ID3DBlob* pErrorBlob = nullptr;
 
-	std::wstring format = L".hlsl";
-	std::wstring currentPath = L"Asset/Shader/LitShader/";
 
-	// VS
-	{
-		std::wstring fullPath = currentPath + filePath + L"_VS" + format;
-		auto hResult = D3DCompileFromFile(fullPath.c_str(), nullptr, include, "VS",
-			"vs_5_0", flag, 0, &m_pVSBlob, &pErrorBlob);
-		if (FAILED(hResult))
-		{
-			if (pErrorBlob)
-			{
-				OutputDebugStringA((char*)pErrorBlob->GetBufferPointer());
-			}
-			assert(0 && "頂点シェーダーのコンパイルに失敗しました");
-			return;
-		}
-	}
-	// PS
-	{
-		std::wstring fullPath = currentPath + filePath + L"_PS" + format;
-		auto hResult = D3DCompileFromFile(fullPath.c_str(), nullptr, include, "PS",
-			"ps_5_0", flag, 0, &m_pPSBlob, &pErrorBlob);
-		if (FAILED(hResult))
-		{
-			if (pErrorBlob)
-			{
-				OutputDebugStringA((char*)pErrorBlob->GetBufferPointer());
-			}
-			assert(0 && "ピクセルシェーダーのコンパイルに失敗しました");
-			return;
-		}
-	}
-}

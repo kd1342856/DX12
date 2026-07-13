@@ -1,4 +1,10 @@
 #pragma once
+#include "../../../../Graphics/Shader/ShaderLibrary.h"
+#include "../../../../Graphics/Shader/LitShader/LitShader.h"
+#include "../../../../Graphics/Shader/ShadowShader/ShadowShader.h"
+#include "../../../../Graphics/Shader/SkinningShader/SkinningShader.h"
+#include "../../../../Graphics/Renderer/ModelRenderer.h"
+#include "../../../../Graphics/Renderer/Renderer.h"
 
 // RenderSystem: Draws entities with Transform + ModelRenderData components
 class RenderSystem : public SystemBase
@@ -27,7 +33,7 @@ public:
 		cbLight.SL_Count = 0;
 
 		auto* pShadowMap = pGraphicsDevice->GetShadowMap();
-		if (pShadowMap && ShaderManager::Instance().m_shadowShader.IsCreated())
+		if (pShadowMap)
 		{
 			auto desc = pShadowMap->GetBuffer()->GetDesc();
 
@@ -67,13 +73,22 @@ public:
 			Math::Matrix mLightProj = Math::Matrix::CreateOrthographic(100.0f, 100.0f, 0.1f, 100.0f);
 			Math::Matrix mLightVP = mLightView * mLightProj;
 
-			CBufferData::Camera cbLightCam = {};
-			cbLightCam.mView = mLightView;
-			cbLightCam.mProj = mLightProj;
-			cbLightCam.mVP = mLightVP;
+			RenderContext& context = Renderer::GetContext();
+			// Save current cam
+			Math::Matrix oldView = context.View;
+			Math::Matrix oldProj = context.Projection;
+
+			// Temporarily use light matrix for shadow map rendering
+			context.View = mLightView;
+			context.Projection = mLightProj;
+			
+			auto& shadowShader = ShaderLibrary::Instance().Get<ShadowShader>();
+			auto& skinningShader = ShaderLibrary::Instance().Get<SkinningShader>();
 
 			bool isSkinningShadowBegun = false;
 			bool isLitShadowBegun = false;
+
+			DrawContext drawContext;
 
 			for (auto const& entity : m_entities)
 			{
@@ -81,31 +96,37 @@ public:
 				auto& cModel = m_pCoordinator->GetComponent<ModelRenderData>(entity);
 				if (cModel.m_spModelData && cModel.m_spModelData->IsLoaded())
 				{
+					drawContext.SetWorld(cTransform.m_worldMatrix);
+
 					if (cModel.m_modelType == ModelType::Dynamic)
 					{
+						auto bones = cModel.m_spModelData->GetBoneMatrices();
+						drawContext.SetBones(&bones);
 						if (!isSkinningShadowBegun)
 						{
-							ShaderManager::Instance().m_skinningShader.BeginShadow();
-							GDF::Instance().BindCBuffer(0, cbLightCam);
+							skinningShader.BeginShadow(context);
 							isSkinningShadowBegun = true;
 							isLitShadowBegun = false;
 						}
-						ShaderManager::Instance().m_skinningShader.DrawShadowModel(
-							*cModel.m_spModelData, cTransform.m_worldMatrix, cModel.m_spModelData->GetBoneMatrices());
+						skinningShader.DrawShadowModel(*cModel.m_spModelData, drawContext);
 					}
 					else
 					{
+						drawContext.SetBones(nullptr);
 						if (!isLitShadowBegun)
 						{
-							ShaderManager::Instance().m_shadowShader.Begin();
-							GDF::Instance().BindCBuffer(0, cbLightCam);
+							shadowShader.Begin(context);
 							isLitShadowBegun = true;
 							isSkinningShadowBegun = false;
 						}
-						ShaderManager::Instance().m_shadowShader.DrawModel(*cModel.m_spModelData, cTransform.m_worldMatrix);
+						ModelRenderer::Draw(shadowShader, *cModel.m_spModelData, drawContext);
 					}
 				}
 			}
+
+			// Restore
+			context.View = oldView;
+			context.Projection = oldProj;
 
 			cbLight.DL_ShadowPower = 2.5f;
 			cbLight.DL_ShadowBias = 0.001f;
@@ -114,7 +135,8 @@ public:
 			pShadowMap->TransitionTo(pCmdList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 		}
 
-		ShaderManager::Instance().SetLightData(cbLight);
+		RenderContext& context = Renderer::GetContext();
+		context.Light = cbLight;
 	}
 
 	void RenderScene(Entity cameraEntity, class RenderTarget* pRT = nullptr)
@@ -126,35 +148,37 @@ public:
 		auto* pGraphicsDevice = &GDF::Instance().GetGraphicsDevice();
 		auto* pCmdList = pGraphicsDevice->GetCmdList();
 
-		// =============================================
-		// Pass 2: レンダーターゲット設定
-		// =============================================
 		if (pRT)
 		{
 			pGraphicsDevice->SetRenderTarget(pRT);
+			Renderer::BindViewport(pRT);
 		}
 		else
 		{
 			pGraphicsDevice->SetBackBuffer();
+			// Bind default viewport
+			D3D12_VIEWPORT viewport = {};
+			viewport.Width = 1280.0f;
+			viewport.Height = 720.0f;
+			viewport.MinDepth = 0.0f;
+			viewport.MaxDepth = 1.0f;
+			D3D12_RECT scissorRect = { 0, 0, 1280, 720 };
+			pCmdList->RSSetViewports(1, &viewport);
+			pCmdList->RSSetScissorRects(1, &scissorRect);
 		}
 
-		D3D12_VIEWPORT viewport = {};
-		viewport.Width = 1280.0f;
-		viewport.Height = 720.0f;
-		viewport.MinDepth = 0.0f;
-		viewport.MaxDepth = 1.0f;
-		D3D12_RECT scissorRect = { 0, 0, 1280, 720 };
-		pCmdList->RSSetViewports(1, &viewport);
-		pCmdList->RSSetScissorRects(1, &scissorRect);
-
-		// =============================================
-		// Pass 3: カラーパス（Lit / Skinning）
-		// =============================================
 		auto& cCamera = m_pCoordinator->GetComponent<CameraData>(cameraEntity);
-		ShaderManager::Instance().SetCameraMatrix(cCamera.m_viewMatrix, cCamera.m_projMatrix);
+		RenderContext& context = Renderer::GetContext();
+		context.View = cCamera.m_viewMatrix;
+		context.Projection = cCamera.m_projMatrix;
+
+		auto& litShader = ShaderLibrary::Instance().Get<LitShader>();
+		auto& skinningShader = ShaderLibrary::Instance().Get<SkinningShader>();
 
 		bool isLitBegun = false;
 		bool isSkinningBegun = false;
+
+		DrawContext drawContext;
 
 		for (auto const& entity : m_entities)
 		{
@@ -163,30 +187,30 @@ public:
 
 			if (cModel.m_spModelData && cModel.m_spModelData->IsLoaded())
 			{
+				drawContext.SetWorld(cTransform.m_worldMatrix);
+
 				if (cModel.m_modelType == ModelType::Dynamic)
 				{
+					auto bones = cModel.m_spModelData->GetBoneMatrices();
+						drawContext.SetBones(&bones);
 					if (!isSkinningBegun)
 					{
-						ShaderManager::Instance().m_skinningShader.Begin();
-						ShaderManager::Instance().BindCameraMatrix(0);
-						ShaderManager::Instance().BindLightData(1);
+						skinningShader.Begin(context);
 						isSkinningBegun = true;
 						isLitBegun = false;
 					}
-					ShaderManager::Instance().m_skinningShader.DrawModel(
-						*cModel.m_spModelData, cTransform.m_worldMatrix, cModel.m_spModelData->GetBoneMatrices());
+					ModelRenderer::Draw(skinningShader, *cModel.m_spModelData, drawContext);
 				}
 				else
 				{
+					drawContext.SetBones(nullptr);
 					if (!isLitBegun)
 					{
-						ShaderManager::Instance().m_litShader.Begin();
-						ShaderManager::Instance().BindCameraMatrix(0);
-						ShaderManager::Instance().BindLightData(1);
+						litShader.Begin(context);
 						isLitBegun = true;
 						isSkinningBegun = false;
 					}
-					ShaderManager::Instance().m_litShader.DrawModel(*cModel.m_spModelData, cTransform.m_worldMatrix);
+					ModelRenderer::Draw(litShader, *cModel.m_spModelData, drawContext);
 				}
 			}
 		}
@@ -196,3 +220,4 @@ private:
 	Entity m_cameraEntity = INVALID_ENTITY;
 	Math::Vector3 m_lightDirection = Math::Vector3(0.5f, -1.0f, 0.5f);
 };
+

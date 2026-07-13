@@ -1,5 +1,11 @@
-#include "../../Pch.h"
+﻿#include "../../Pch.h"
 #include "GameManager.h"
+#include "../../Graphics/Shader/ShaderLibrary.h"
+#include "../../Graphics/Shader/StandardShader/StandardShader.h"
+#include "../../Graphics/Shader/LitShader/LitShader.h"
+#include "../../Graphics/Shader/ShadowShader/ShadowShader.h"
+#include "../../Graphics/Shader/SkinningShader/SkinningShader.h"
+#include "../../Graphics/Shader/PostProcessShader/PostProcessShader.h"
 #include "Scene/Scene.h"
 #include "../Object/GameObject.h"
 #include "../ECS/CompSystem/Systems/RenderSystem.h"
@@ -9,7 +15,7 @@
 #include "../ECS/CompSystem/Systems/AnimationSystem.h"
 #include "../ECS/CompSystem/Systems/ScriptSystem.h"
 
-// GameManager の static メンバ変数の定義
+// GameManager 縺ｮ static 繝｡繝ｳ繝仙､画焚縺ｮ螳夂ｾｩ
 bool GameManager::s_alive = true;
 GameManager& GameManager::Instance()
 {
@@ -21,7 +27,7 @@ void GameManager::Init()
 {
     m_ecs.Init();
 
-    // --- Component 型登録 ---
+    // --- Component 蝙狗匳骭ｲ ---
     m_ecs.RegisterComponent<TransformData>();
     m_ecs.RegisterComponent<CameraData>();
     m_ecs.RegisterComponent<ModelRenderData>();
@@ -31,7 +37,7 @@ void GameManager::Init()
     m_ecs.RegisterComponent<NativeScriptData>();
     m_ecs.RegisterComponent<SpriteData>();
 
-    // --- System 登録 & Signature 設定 ---
+    // --- System 逋ｻ骭ｲ & Signature 險ｭ螳・---
     m_spScriptSystem = m_ecs.RegisterSystem<ScriptSystem>();
     {
         Signature sig;
@@ -85,7 +91,14 @@ void GameManager::Init()
     }
 
     CollisionManager::Instance().Init();
-    JobSystem::Instance().Init();
+        JobSystem::Instance().Init();
+
+    auto* pDevice = &GDF::Instance().GetGraphicsDevice();
+    ShaderLibrary::Instance().Register<StandardShader>(pDevice);
+    ShaderLibrary::Instance().Register<LitShader>(pDevice);
+    ShaderLibrary::Instance().Register<ShadowShader>(pDevice);
+    ShaderLibrary::Instance().Register<SkinningShader>(pDevice);
+    ShaderLibrary::Instance().Register<PostProcessShader>(pDevice);
 }
 
 void GameManager::Update(float deltaTime, class Scene* pScene)
@@ -96,7 +109,7 @@ void GameManager::Update(float deltaTime, class Scene* pScene)
 
     m_spAnimationSystem->Update(deltaTime);
 
-    // Transform: ルートオブジェクトから階層更新
+    // Transform: 繝ｫ繝ｼ繝医が繝悶ず繧ｧ繧ｯ繝医°繧蛾嚴螻､譖ｴ譁ｰ
     std::vector<std::shared_ptr<class GameObject>> roots;
     for (auto& obj : pScene->GetGameObjects()) {
         if (!obj->GetParent()) roots.push_back(obj);
@@ -108,11 +121,13 @@ void GameManager::Update(float deltaTime, class Scene* pScene)
     CollisionManager::Instance().ClearDebugLines();
     CollisionManager::Instance().Solve(pScene);
 
-    // 衝突後の Transform 再更新
+    // 陦晉ｪ∝ｾ後・ Transform 蜀肴峩譁ｰ
     m_spTransformSystem->Update(roots);
 
     m_spCameraSystem->Update(deltaTime);
     m_spScriptSystem->PostUpdate();
 
-    pScene->FlushDestroy();
+    GetECS().FlushCommands();
 }
+
+

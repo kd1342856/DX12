@@ -1,27 +1,14 @@
 #pragma once
-#include "../Pipeline/Pipeline.h"
-#include "../RootSignature/RootSignature.h"
+#include "../GraphicsShader/GraphicsShader.h"
 
-
-class LitShader
-{
+class LitShader : public GraphicsShader {
 public:
-	void Create(GraphicsDevice* pGraphicsDevice);
-	void DrawModel(const ModelData& modelData, const Math::Matrix& mWorld);
-	void Begin();
-	void DrawMesh(const Mesh& mesh);
-	void SetMaterial(const Material& material);
-	void LoadShaderFile(const std::wstring& filePath);
+	virtual void Create(GraphicsDevice* pGraphicsDevice) override;
+	virtual void Begin(RenderContext& context) override;
+	virtual void BeginNode(const ModelData::Node& node, const Math::Matrix& nodeWorld) override;
+	virtual void BeforeDrawMesh(const Mesh& mesh, const Material& material) override;
+
 private:
-	GraphicsDevice* m_pDevice = nullptr;
-	std::unique_ptr<Pipeline>		m_upPipeline = nullptr;
-	std::unique_ptr<RootSignature>	m_upRootSignature = nullptr;
-
-	ID3DBlob* m_pVSBlob = nullptr;
-	ID3DBlob* m_pHSBlob = nullptr;
-	ID3DBlob* m_pDSBlob = nullptr;
-	ID3DBlob* m_pGSBlob = nullptr;
-	ID3DBlob* m_pPSBlob = nullptr;
-
-	UINT m_cbvCount = 0;
+	void SetMaterial(const Material& material);
+	int m_cbvCount = 0;
 };

@@ -1,11 +1,11 @@
-#pragma once
+﻿#pragma once
 #include "../../../../Library/nlohmann/json.hpp"
 #include "../../Object/Object.h"
 #include "../../Object/GameObject.h"
 #include "./SceneBase.h"
 
-// Scene は System を一切知らない。
-// System の登録・Update は GameManager が一元管理する。
+// Scene 縺ｯ System 繧剃ｸ蛻・衍繧峨↑縺・・
+// System 縺ｮ逋ｻ骭ｲ繝ｻUpdate 縺ｯ GameManager 縺御ｸ蜈・ｮ｡逅・☆繧九・
 class Scene : public SceneBase {
 public:
     Scene();
@@ -20,24 +20,24 @@ public:
 
     const std::vector<std::shared_ptr<GameObject>>& GetGameObjects() const { return m_gameObjects; }
 
-    // シリアライズ
+    // 繧ｷ繝ｪ繧｢繝ｩ繧､繧ｺ
     void Serialize(nlohmann::json& out) const;
     nlohmann::json SerializeGameObject(std::shared_ptr<GameObject> obj) const;
     void Deserialize(const nlohmann::json& in);
     void DeserializeGameObject(const nlohmann::json& oj, std::shared_ptr<class GameObject> parent);
 
-    // Entity → GameObject のマッピング登録
+    // Entity 竊・GameObject 縺ｮ繝槭ャ繝斐Φ繧ｰ逋ｻ骭ｲ
     void RegisterGameObject(Entity e, std::shared_ptr<GameObject> obj) {
         m_entityToObject[e] = obj;
     }
 
-    // 生成・破棄
+    // 逕滓・繝ｻ遐ｴ譽・
     std::shared_ptr<GameObject> CreateGameObject(const std::string& name = "GameObject");
     std::shared_ptr<GameObject> Instantiate(const std::string& filepath, const Math::Vector3& position = Math::Vector3::Zero);
-    void Destroy(std::shared_ptr<GameObject> obj);
-    void FlushDestroy();
+    
+    
 
-    // 内部リスト操作
+    // 蜀・Κ繝ｪ繧ｹ繝域桃菴・
     void AddGameObject(std::shared_ptr<GameObject> obj) {
         auto it = std::find(m_gameObjects.begin(), m_gameObjects.end(), obj);
         if (it == m_gameObjects.end()) {
@@ -51,7 +51,7 @@ public:
         if (it != m_gameObjects.end()) {
             m_gameObjects.erase(it);
         }
-        // リーク修正: Entity -> shared_ptr のマッピングも必ず消す
+        // 繝ｪ繝ｼ繧ｯ菫ｮ豁｣: Entity -> shared_ptr 縺ｮ繝槭ャ繝斐Φ繧ｰ繧ょｿ・★豸医☆
         m_entityToObject.erase(e);
     }
 
@@ -66,5 +66,6 @@ protected:
 
 private:
     std::unordered_map<Entity, std::shared_ptr<GameObject>> m_entityToObject;
-    std::vector<std::shared_ptr<GameObject>> m_destroyQueue;
+    
 };
+

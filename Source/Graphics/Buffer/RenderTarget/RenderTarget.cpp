@@ -3,6 +3,8 @@
 
 bool RenderTarget::Create(int width, int height)
 {
+	m_width = width;
+	m_height = height;
 	m_pGraphicsDevice = &GraphicsDevice::Instance();
 
 	D3D12_HEAP_PROPERTIES heapProp = {};

@@ -1,24 +1,11 @@
 #pragma once
-#include "../Pipeline/Pipeline.h"
-#include "../RootSignature/RootSignature.h"
-
+#include "../GraphicsShader/GraphicsShader.h"
 
 class RenderTarget;
 
-class PostProcessShader
+class PostProcessShader : public GraphicsShader
 {
 public:
-	void Create(GraphicsDevice* pGraphicsDevice);
+	virtual void Create(GraphicsDevice* pGraphicsDevice) override;
 	void Draw(RenderTarget* pRenderTarget, float exposure);
-
-private:
-	void LoadShaderFile(const std::wstring& filePath);
-
-	GraphicsDevice* m_pDevice = nullptr;
-	std::unique_ptr<Pipeline>		m_upPipeline = nullptr;
-	std::unique_ptr<RootSignature>	m_upRootSignature = nullptr;
-
-	ID3DBlob* m_pVSBlob = nullptr;
-	ID3DBlob* m_pPSBlob = nullptr;
-	UINT m_cbvCount = 0;
 };

@@ -1,31 +1,26 @@
 #pragma once
-#include "../Pipeline/Pipeline.h"
-#include "../RootSignature/RootSignature.h"
+#include "../GraphicsShader/GraphicsShader.h"
 
-class SkinningShader
-{
+class SkinningShader : public GraphicsShader {
 public:
-	void Create(GraphicsDevice* pGraphicsDevice);
-	void DrawModel(const ModelData& modelData, const Math::Matrix& mWorld, const std::vector<Math::Matrix>& boneMatrices);
-	void BeginShadow();
-	void DrawShadowModel(const ModelData& modelData, const Math::Matrix& mWorld, const std::vector<Math::Matrix>& boneMatrices);
+	virtual void Create(GraphicsDevice* pGraphicsDevice) override;
+	virtual void Begin(RenderContext& context) override;
+	virtual void BeginModel(const ModelData& model, const DrawContext& drawContext) override;
+	virtual void BeginNode(const ModelData::Node& node, const Math::Matrix& nodeWorld) override;
+	virtual void BeforeDrawMesh(const Mesh& mesh, const Material& material) override;
 
-	void Begin();
-	void DrawMesh(const Mesh& mesh);
-	void SetMaterial(const Material& material);
-	void LoadShaderFile(const std::wstring& filePath);
+	// Note: ShadowPass could be a separate shader (e.g. SkinningShadowShader) 
+	// or we can use m_upShadowPipeline in a separate BeginShadow() if we don't separate it yet.
+	// For now, let's keep BeginShadow/DrawShadowModel using ModelRenderer too if possible.
+	void BeginShadow(RenderContext& context);
+	void DrawShadowModel(const ModelData& modelData, const DrawContext& context);
+
 private:
+	void SetMaterial(const Material& material);
 
-	GraphicsDevice* m_pDevice = nullptr;
-	std::unique_ptr<Pipeline>		m_upPipeline = nullptr;
-	std::unique_ptr<Pipeline>		m_upShadowPipeline = nullptr;
-	std::unique_ptr<RootSignature>	m_upRootSignature = nullptr;
-
-	ID3DBlob* m_pVSBlob = nullptr;
-	ID3DBlob* m_pHSBlob = nullptr;
-	ID3DBlob* m_pDSBlob = nullptr;
-	ID3DBlob* m_pGSBlob = nullptr;
-	ID3DBlob* m_pPSBlob = nullptr;
-
-	UINT m_cbvCount = 0;
+	std::unique_ptr<Pipeline> m_upShadowPipeline;
+	int m_cbvCount = 0;
+	
+	// Temporary state during DrawModel
+	const DrawContext* m_pCurrentDrawContext = nullptr;
 };

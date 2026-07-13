@@ -1,165 +1,69 @@
 #include "../../../Pch.h"
 #include "StandardShader.h"
+#include "../ShaderCompiler/ShaderCompiler.h"
+#include "../../../Framework/DirectX/GDF/GDF.h"
 
 void StandardShader::Create(GraphicsDevice* pGraphicsDevice)
 {
 	m_pDevice = pGraphicsDevice;
-	LoadShaderFile(L"Study");
 
-	std::vector<RangeType> rangeTypes = {
-		RangeType::CBV, RangeType::CBV,
-		RangeType::SRV, RangeType::SRV, RangeType::SRV, RangeType::SRV
+	auto vsBlob = ShaderCompiler::CompileVS(L"Asset/Shader/Study_VS.hlsl", "main");
+	auto psBlob = ShaderCompiler::CompilePS(L"Asset/Shader/Study_PS.hlsl", "main");
+
+	std::vector<DescriptorRange> ranges = {
+		{ RangeType::CBV, 0, 1, 0 },
+		{ RangeType::CBV, 1, 1, 0 },
+		{ RangeType::SRV, 0, 1, 0 },
+		{ RangeType::SRV, 1, 1, 0 },
+		{ RangeType::SRV, 2, 1, 0 },
+		{ RangeType::SRV, 3, 1, 0 }
 	};
+	m_cbvCount = 2;
 
-	m_upRootSignature = std::make_unique<RootSignature>();
-	m_upRootSignature->Create(pGraphicsDevice, rangeTypes, m_cbvCount);
+	m_rootSignature = std::make_unique<RootSignature>();
+	m_rootSignature->Create(pGraphicsDevice, ranges);
 
-	RenderingSetting setting = {};
-	setting.InputLayouts = {
-		InputLayout::POSITION, InputLayout::TEXCOORD, InputLayout::COLOR,
-		InputLayout::NORMAL, InputLayout::TANGENT
-	};
-	setting.Formats = { DXGI_FORMAT_R8G8B8A8_UNORM };
+	PipelineDesc desc;
+	desc.pBlobs = { vsBlob.Get(), nullptr, nullptr, nullptr, psBlob.Get() };
+	desc.InputLayouts = { InputLayout::POSITION, InputLayout::TEXCOORD, InputLayout::COLOR, InputLayout::NORMAL, InputLayout::TANGENT };
+	desc.Formats = { DXGI_FORMAT_R8G8B8A8_UNORM };
+	desc.pRootSignature = m_rootSignature.get();
+	desc.TopologyType = PrimitiveTopologyType::Triangle;
 
-	m_upPipeline = std::make_unique<Pipeline>();
-	m_upPipeline->SetRenderSettings(pGraphicsDevice, m_upRootSignature.get(), setting.InputLayouts,
-		setting.CullMode, setting.BlendMode, setting.PrimitiveTopologyType);
-	m_upPipeline->Create({ m_pVSBlob, m_pHSBlob, m_pDSBlob, m_pGSBlob, m_pPSBlob }, setting.Formats,
-		setting.IsDepth, setting.IsDepthMask, setting.RTVCount, setting.IsWireFrame);
+	m_pipeline = std::make_unique<Pipeline>();
+	m_pipeline->Create(pGraphicsDevice, desc);
 }
 
-void StandardShader::Begin()
+void StandardShader::Begin(RenderContext& context)
 {
-	m_pDevice->GetCmdList()->SetPipelineState(m_upPipeline->GetPipeline());
-	m_pDevice->GetCmdList()->SetGraphicsRootSignature(m_upRootSignature->GetRootSignature());
-
-	D3D12_PRIMITIVE_TOPOLOGY_TYPE topologyType =
-		static_cast<D3D12_PRIMITIVE_TOPOLOGY_TYPE>(m_upPipeline->GetTopologyType());
-
-	switch (topologyType)
-	{
-	case D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT:
-		m_pDevice->GetCmdList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
-		break;
-	case D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE:
-		m_pDevice->GetCmdList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINELIST);
-		break;
-	case D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE:
-		m_pDevice->GetCmdList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		break;
-	case D3D12_PRIMITIVE_TOPOLOGY_TYPE_PATCH:
-		m_pDevice->GetCmdList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_4_CONTROL_POINT_PATCHLIST);
-		break;
-	}
-
-	D3D12_VIEWPORT viewport = {};
-	D3D12_RECT rect = {};
-	viewport.Width = 1280.0f;
-	viewport.Height = 720.0f;
-	viewport.MinDepth = 0.0f;
-	viewport.MaxDepth = 1.0f;
-	rect.right = 1280;
-	rect.bottom = 720;
-
-	GraphicsDevice::Instance().GetCmdList()->RSSetViewports(1, &viewport);
-	GraphicsDevice::Instance().GetCmdList()->RSSetScissorRects(1, &rect);
-
-	// カメラ定数バッファをバインド
-	ShaderManager::Instance().BindCameraMatrix(0);
+	GraphicsShader::Begin(context);
+	context.BindCamera(0);
 }
 
-void StandardShader::DrawModel(const ModelData& modelData, const Math::Matrix& mWorld)
+void StandardShader::BeginNode(const ModelData::Node& node, const Math::Matrix& nodeWorld)
 {
-	Begin();
-
-	// ワールド行列バインド
-	GDF::Instance().BindCBuffer(1, mWorld);
-
-	for (auto& node : modelData.GetNodes())
-	{
-		for (const auto& spMesh : node.meshes)
-		{
-			if (spMesh)
-			{
-				// メッシュの描画処理など
-				DrawMesh(*spMesh);
-			}
-		}
-	}
+	CBufferData::PerDraw cbDraw;
+	cbDraw.mWorld = nodeWorld;
+	GDF::Instance().BindCBuffer(1, cbDraw);
 }
 
-void StandardShader::DrawMesh(const Mesh& mesh)
+void StandardShader::BeforeDrawMesh(const Mesh& mesh, const Material& material)
 {
-	SetMaterial(mesh.GetMaterial());
-	mesh.DrawInstanced(mesh.GetInstanceCount());
+	SetMaterial(material);
 }
 
 void StandardShader::SetMaterial(const Material& material)
 {
+	CBufferData::Material cbMat = {};
+	cbMat.BaseColor = material.BaseColor;
+	cbMat.EmissiveColor = Math::Vector4(material.Emissive.x, material.Emissive.y, material.Emissive.z, 1.0f);
+	cbMat.Metallic = material.Metallic;
+	cbMat.Smoothness = material.Roughness; // Mapping roughness to smoothness
+	GDF::Instance().BindCBuffer(2, cbMat);
+
 	if (material.spBaseColorTex) material.spBaseColorTex->Set(m_cbvCount);
 	else GraphicsDevice::Instance().GetWhiteTex()->Set(m_cbvCount);
-
-	if (material.spNormalTex) material.spNormalTex->Set(m_cbvCount + 1);
-	else GraphicsDevice::Instance().GetNormalTex()->Set(m_cbvCount + 1);
-
-	if (material.spMetallicRoughnessTex) material.spMetallicRoughnessTex->Set(m_cbvCount + 2);
-	else GraphicsDevice::Instance().GetWhiteTex()->Set(m_cbvCount + 2);
-
-	if (material.spEmissiveTex) material.spEmissiveTex->Set(m_cbvCount + 3);
-	else GraphicsDevice::Instance().GetBlackTex()->Set(m_cbvCount + 3);
 }
 
-void StandardShader::LoadShaderFile(const std::wstring& filePath)
-{
-	ID3DInclude* include = D3D_COMPILE_STANDARD_FILE_INCLUDE;
-#if _DEBUG
-	UINT flag = D3DCOMPILE_DEBUG;
-#else
-	UINT flag = 0;
-#endif
-	ID3DBlob* pErrorBlob = nullptr;
 
-	std::wstring format = L".hlsl";
-	std::wstring currentPath = L"Asset/Shader/";
 
-	// 頂点シェーダー
-	{
-		std::wstring fullPath = currentPath + filePath + L"_VS" + format;
-		auto hr = D3DCompileFromFile(fullPath.c_str(), nullptr, include, "main",
-			"vs_5_0", flag, 0, &m_pVSBlob, &pErrorBlob);
-		if (FAILED(hr))
-		{
-			assert(0 && "頂点シェーダーのコンパイルに失敗しました");
-			return;
-		}
-	}
-	// ハルシェーダー
-	{
-		std::wstring fullPath = currentPath + filePath + L"_HS" + format;
-		D3DCompileFromFile(fullPath.c_str(), nullptr, include, "main",
-			"hs_5_0", flag, 0, &m_pHSBlob, &pErrorBlob);
-	}
-	// ドメインシェーダー
-	{
-		std::wstring fullPath = currentPath + filePath + L"_DS" + format;
-		D3DCompileFromFile(fullPath.c_str(), nullptr, include, "main",
-			"ds_5_0", flag, 0, &m_pDSBlob, &pErrorBlob);
-	}
-	// ジオメトリシェーダー
-	{
-		std::wstring fullPath = currentPath + filePath + L"_GS" + format;
-		D3DCompileFromFile(fullPath.c_str(), nullptr, include, "main",
-			"gs_5_0", flag, 0, &m_pGSBlob, &pErrorBlob);
-	}
-	// ピクセルシェーダー
-	{
-		std::wstring fullPath = currentPath + filePath + L"_PS" + format;
-		auto hr = D3DCompileFromFile(fullPath.c_str(), nullptr, include, "main",
-			"ps_5_0", flag, 0, &m_pPSBlob, &pErrorBlob);
-		if (FAILED(hr))
-		{
-			assert(0 && "ピクセルシェーダーのコンパイルに失敗しました");
-			return;
-		}
-	}
-}

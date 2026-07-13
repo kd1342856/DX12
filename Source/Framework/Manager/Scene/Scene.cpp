@@ -1,4 +1,4 @@
-#include "../../../Pch.h"
+﻿#include "../../../Pch.h"
 #include "Scene.h"
 #include "../Collision/CollisionManager.h"
 #include "../Resource/PrefabManager.h"
@@ -59,23 +59,8 @@ std::shared_ptr<GameObject> Scene::Instantiate(const std::string& filepath, cons
     return nullptr;
 }
 
-void Scene::Destroy(std::shared_ptr<GameObject> obj) {
-    if (!obj) return;
-    m_destroyQueue.push_back(obj);
-}
 
-void Scene::FlushDestroy() {
-    while (!m_destroyQueue.empty()) {
-        auto queue = std::move(m_destroyQueue);
-        m_destroyQueue.clear();
 
-        for (auto& obj : queue) {
-            if (obj) {
-                obj->ExecuteDestroy();
-            }
-        }
-    }
-}
 
 void Scene::Init() {
     auto& ecs = GameManager::Instance().GetECS();
@@ -109,12 +94,12 @@ void Scene::Init() {
 }
 
 void Scene::Update(float deltaTime) {
-    // System の Update は GameManager::Update() が行う。
+    // System 縺ｮ Update 縺ｯ GameManager::Update() 縺瑚｡後≧縲・
 }
 
 void Scene::Draw() {
-    // Scene 固有の描画（必要なら派生クラスでオーバーライド）
-    // RenderSystem / SpriteRenderSystem は GameManager::Update() が担当
+    // Scene 蝗ｺ譛峨・謠冗判・亥ｿ・ｦ√↑繧画ｴｾ逕溘け繝ｩ繧ｹ縺ｧ繧ｪ繝ｼ繝舌・繝ｩ繧､繝会ｼ・
+    // RenderSystem / SpriteRenderSystem 縺ｯ GameManager::Update() 縺梧球蠖・
 }
 
 void Scene::ImGuiUpdate() {
@@ -393,7 +378,7 @@ void Scene::DeserializeGameObject(const nlohmann::json& oj, std::shared_ptr<Game
 }
 
 void Scene::Deserialize(const nlohmann::json& in) {
-    // GameObjectをクリアし、デストラクタでECSのEntityも破棄される
+    // GameObject繧偵け繝ｪ繧｢縺励√ョ繧ｹ繝医Λ繧ｯ繧ｿ縺ｧECS縺ｮEntity繧らｴ譽・＆繧後ｋ
     m_gameObjects.clear();
 
     if (in.contains("GameObjects")) {
@@ -402,6 +387,8 @@ void Scene::Deserialize(const nlohmann::json& in) {
         }
     }
 }
+
+
 
 
 

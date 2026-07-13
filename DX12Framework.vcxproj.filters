@@ -351,7 +351,6 @@
     <ClCompile Include="Source\Graphics\Shader\RootSignature\RootSignature.cpp">
       <Filter>Source\Graphics\Shader\RootSignature</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Graphics\Shader\ShaderManager.cpp">
       <Filter>Source\Graphics\Shader</Filter>
     </ClCompile>
     <ClCompile Include="Source\Graphics\Shader\ShadowShader\ShadowShader.cpp">
@@ -549,7 +548,6 @@
     <ClInclude Include="Source\Graphics\Shader\RootSignature\RootSignature.h">
       <Filter>Source\Graphics\Shader\RootSignature</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Graphics\Shader\ShaderManager.h">
       <Filter>Source\Graphics\Shader</Filter>
     </ClInclude>
     <ClInclude Include="Source\Graphics\Shader\ShadowShader\ShadowShader.h">

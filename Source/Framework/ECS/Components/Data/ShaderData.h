@@ -1,12 +1,11 @@
 #pragma once
+#include "../../../../Graphics/Shader/Pipeline/Pipeline.h"
+#include <string>
+#include <vector>
 
-// =============================================
-// ShaderData
-// シェーダーと描画設定
-// =============================================
 struct ShaderData
 {
-	RenderingSetting m_renderingSetting;
+	PipelineDesc m_pipelineDesc;
 	std::vector<RangeType> m_rangeTypes;
 	std::wstring m_shaderFilePath;
 };

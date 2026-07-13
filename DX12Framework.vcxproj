@@ -190,6 +190,7 @@
     <ClInclude Include="Source\Framework\ECS\CompSystem\Systems\ScriptSystem.h" />
     <ClInclude Include="Source\Framework\ECS\ECS.h" />
     <ClInclude Include="Source\Framework\ECS\ECSCoordinator.h" />
+    <ClInclude Include="Source\Framework\ECS\ECSCommandBuffer.h" />
     <ClInclude Include="Source\Framework\ECS\Entity\Entity.h" />
     <ClInclude Include="Source\Framework\ImGuiEditor\Editor\Editor.h" />
     <ClInclude Include="Source\Framework\Manager\Animation\AnimationManager.h" />
@@ -221,6 +222,9 @@
     <ClInclude Include="Source\Graphics\Descriptors\Heap\RTVHeap\RTVHeap.h" />
     <ClInclude Include="Source\Graphics\Device\GraphicsDevice.h" />
     <ClInclude Include="Source\Graphics\Renderer\Renderer.h" />
+    <ClInclude Include="Source\Graphics\Renderer\ModelRenderer.h" />
+    <ClInclude Include="Source\Graphics\Renderer\RenderContext.h" />
+    <ClInclude Include="Source\Graphics\Renderer\DrawContext.h" />
     <ClInclude Include="Source\Graphics\Geometry\Mesh\Mesh.h" />
     <ClInclude Include="Source\Graphics\Geometry\Mesh\MeshData\MeshData.h" />
     <ClInclude Include="Source\Graphics\Geometry\Model\Model.h" />
@@ -232,8 +236,10 @@
     <ClInclude Include="Source\Graphics\Shader\Pipeline\Pipeline.h" />
     <ClInclude Include="Source\Graphics\Shader\PostProcessShader\PostProcessShader.h" />
     <ClInclude Include="Source\Graphics\Shader\RootSignature\RootSignature.h" />
-    <ClInclude Include="Source\Graphics\Shader\ShaderManager.h" />
     <ClInclude Include="Source\Graphics\Shader\StandardShader\StandardShader.h" />
+    <ClInclude Include="Source\Graphics\Shader\ShaderCompiler\ShaderCompiler.h" />
+    <ClInclude Include="Source\Graphics\Shader\GraphicsShader\GraphicsShader.h" />
+    <ClInclude Include="Source\Graphics\Shader\ShaderLibrary.h" />
     <ClInclude Include="Source\Pch.h" />
     <ClInclude Include="Source\Graphics\Buffer\RenderTarget\RenderTarget.h" />
     <ClInclude Include="Source\Framework\ECS\Components\Data\AnimationData.h" />
@@ -286,6 +292,7 @@
     <ClCompile Include="Source\Framework\System\JobSystem\JobSystem.cpp" />
     <ClCompile Include="Source\Framework\Manager\GameManager.cpp" />
     <ClCompile Include="Source\Framework\ECS\CompSystem\SpriteRenderSystem\SpriteRenderSystem.cpp" />
+    <ClCompile Include="Source\Framework\ECS\ECSCommandBuffer.cpp" />
     <ClCompile Include="Source\Framework\Object\GameObject.cpp" />
     <ClCompile Include="Source\Graphics\Buffer\CBufferAllocator\CBufferAllocator.cpp" />
     <ClCompile Include="Source\Graphics\Buffer\DepthStencil\DepthStencil.cpp" />
@@ -295,6 +302,8 @@
     <ClCompile Include="Source\Graphics\Descriptors\Heap\RTVHeap\RTVHeap.cpp" />
     <ClCompile Include="Source\Graphics\Device\GraphicsDevice.cpp" />
     <ClCompile Include="Source\Graphics\Renderer\Renderer.cpp" />
+    <ClCompile Include="Source\Graphics\Renderer\ModelRenderer.cpp" />
+    <ClCompile Include="Source\Graphics\Renderer\RenderContext.cpp" />
     <ClCompile Include="Source\Graphics\Geometry\Mesh\Mesh.cpp" />
     <ClCompile Include="Source\Graphics\Geometry\Model\Model.cpp" />
     <ClCompile Include="Source\Graphics\Geometry\Model\ModelLoader.cpp" />
@@ -304,8 +313,8 @@
     <ClCompile Include="Source\Graphics\Shader\Pipeline\Pipeline.cpp" />
     <ClCompile Include="Source\Graphics\Shader\PostProcessShader\PostProcessShader.cpp" />
     <ClCompile Include="Source\Graphics\Shader\RootSignature\RootSignature.cpp" />
-    <ClCompile Include="Source\Graphics\Shader\ShaderManager.cpp" />
     <ClCompile Include="Source\Graphics\Shader\StandardShader\StandardShader.cpp" />
+    <ClCompile Include="Source\Graphics\Shader\ShaderCompiler\ShaderCompiler.cpp" />
     <ClCompile Include="Source\Pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -320,32 +329,6 @@
     <None Include="Asset\Shader\inc_ShaderCore.hlsli" />
     <None Include="Asset\Shader\LitShader\inc_PBRCommon.hlsli" />
     <None Include="Asset\Shader\SkinningShader\inc_SkinningShader.hlsli" />
-    <None Include="Asset\Shader\Study_PS.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-      </ExcludedFromBuild>
-      <FileType>Document</FileType>
-    </None>
-    <None Include="Asset\Shader\Study_VS.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-      </ExcludedFromBuild>
-      <FileType>Document</FileType>
-    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

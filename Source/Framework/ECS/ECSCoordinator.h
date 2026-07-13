@@ -1,4 +1,6 @@
 ﻿#pragma once
+#include "ECSCommandBuffer.h"
+#include <vector>
 
 // =============================================
 // ECSCoordinator
@@ -22,6 +24,16 @@ public:
     Entity CreateEntity()
     {
         return m_upEntityManager->CreateEntity();
+    }
+
+    Entity AllocateEntity()
+    {
+        return m_upEntityManager->AllocateEntity();
+    }
+
+    void InitializeEntity(Entity entity)
+    {
+        m_upEntityManager->InitializeEntity(entity);
     }
 
     // Entity遐ｴ譽・ｼ育函蟄倥メ繧ｧ繝・け莉倥″繝ｻ莠碁㍾遐ｴ譽・ｒ螳牙・縺ｫ繧ｹ繧ｭ繝・・・・
@@ -131,10 +143,41 @@ public:
         m_upSystemManager->SetSignature<T>(signature);
     }
 
+public:
+    ECSCommandBuffer& GetCommandBuffer(int threadIndex = 0) {
+        if (threadIndex >= m_commandBuffers.size()) { m_commandBuffers.resize(threadIndex + 1); }
+        return m_commandBuffers[threadIndex];
+    }
+    void FlushCommands() {
+        for (auto& cb : m_commandBuffers) { cb.Playback(this); }
+    }
 private:
+    std::vector<ECSCommandBuffer> m_commandBuffers;
     std::unique_ptr<EntityManager> m_upEntityManager;
     std::unique_ptr<ComponentManager> m_upComponentManager;
     std::unique_ptr<SystemManager> m_upSystemManager;
 };
+
+
+
+
+
+template<typename T>
+inline void ECSCommandBuffer::AddComponent(Entity entity, const T& component)
+{
+    ECSExecuteFn fn = [](ECSCoordinator* coord, Entity e, const void* data) {
+        coord->AddComponent<T>(e, *static_cast<const T*>(data));
+    };
+    WriteCommand(ECSCommandType::AddComponent, entity, fn, sizeof(T), &component);
+}
+
+template<typename T>
+inline void ECSCommandBuffer::RemoveComponent(Entity entity)
+{
+    ECSExecuteFn fn = [](ECSCoordinator* coord, Entity e, const void*) {
+        coord->RemoveComponent<T>(e);
+    };
+    WriteCommand(ECSCommandType::RemoveComponent, entity, fn, 0, nullptr);
+}
 
 

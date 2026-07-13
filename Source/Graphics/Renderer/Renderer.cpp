@@ -1,19 +1,40 @@
 #include "../../Pch.h"
 #include "Renderer.h"
+#include "../Buffer/RenderTarget/RenderTarget.h"
 #include "../../Graphics/Device/GraphicsDevice.h"
 
-void Renderer::BeginFrame() {
-    D3D12_VIEWPORT viewport = {};
-    viewport.Width = 1280.0f;
-    viewport.Height = 720.0f;
-    viewport.MinDepth = 0.0f;
-    viewport.MaxDepth = 1.0f;
-    D3D12_RECT scissorRect = { 0, 0, 1280, 720 };
-    
-    GraphicsDevice::Instance().GetCmdList()->RSSetViewports(1, &viewport);
-    GraphicsDevice::Instance().GetCmdList()->RSSetScissorRects(1, &scissorRect);
+static RenderContext s_renderContext;
+
+RenderContext& Renderer::BeginFrame()
+{
+	// Initialization/clear operations for the frame can be done here.
+	return s_renderContext;
 }
 
-void Renderer::EndFrame() {
-    // Currently no-op. Extension point for future post-processing or submission logic.
+void Renderer::EndFrame()
+{
+	// Frame presentation or ending logic
+}
+
+void Renderer::BindViewport(RenderTarget* pRT)
+{
+	if (!pRT) return;
+	auto* cmd = GraphicsDevice::Instance().GetCmdList();
+	D3D12_VIEWPORT viewport = {};
+	viewport.Width = (float)pRT->GetWidth();
+	viewport.Height = (float)pRT->GetHeight();
+	viewport.MinDepth = 0.0f;
+	viewport.MaxDepth = 1.0f;
+
+	D3D12_RECT rect = {};
+	rect.right = pRT->GetWidth();
+	rect.bottom = pRT->GetHeight();
+
+	cmd->RSSetViewports(1, &viewport);
+	cmd->RSSetScissorRects(1, &rect);
+}
+
+RenderContext& Renderer::GetContext()
+{
+	return s_renderContext;
 }

@@ -1,7 +1,14 @@
 #pragma once
+#include "RenderContext.h"
+
+class RenderTarget;
 
 class Renderer {
 public:
-    static void BeginFrame();
-    static void EndFrame();
+	static RenderContext& BeginFrame();
+	static void EndFrame();
+	
+	static void BindViewport(RenderTarget* pRT);
+
+	static RenderContext& GetContext();
 };

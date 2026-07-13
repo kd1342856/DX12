@@ -1,26 +1,16 @@
-#include "../../Pch.h"
+﻿#include "../../Pch.h"
 #include "GameObject.h"
 #include "../Manager/Scene/Scene.h"
 
 GameObject::~GameObject() {
     if (m_entityId != INVALID_ENTITY && GameManager::IsInstanceAlive()) {
-        GameManager::Instance().GetECS().DestroyEntity(m_entityId);
+        GameManager::Instance().GetECS().GetCommandBuffer().DestroyEntity(m_entityId);
         m_entityId = INVALID_ENTITY;
     }
 }
 
 void GameObject::Destroy() {
-    if (m_pendingDestroy) return;
-    m_pendingDestroy = true;
-
-    // 子オブジェクトにも破棄を伝搬する
-    for (auto& child : m_children) {
-        child->Destroy();
-    }
-
-    if (m_scene) {
-        m_scene->Destroy(shared_from_this());
-    }
+    ExecuteDestroy();
 }
 
 void GameObject::ExecuteDestroy() {
@@ -47,7 +37,7 @@ void GameObject::ExecuteDestroy() {
     m_scene = nullptr;
 
     if (m_entityId != INVALID_ENTITY && GameManager::IsInstanceAlive()) {
-        GameManager::Instance().GetECS().DestroyEntity(m_entityId);
+        GameManager::Instance().GetECS().GetCommandBuffer().DestroyEntity(m_entityId);
         m_entityId = INVALID_ENTITY;
     }
 }
@@ -110,3 +100,5 @@ void GameObject::NotifyTriggerExit(GameObject* other) {
         if (pScript->Instance) pScript->Instance->OnTriggerExit(other);
     }
 }
+
+
