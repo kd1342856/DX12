@@ -21,7 +21,6 @@
   <PropertyGroup Label="Globals">
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <OutDir>$(Platform)\$(Configuration)\</OutDir>
-
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{4047c3f1-3b01-48b3-86e0-2334475f6aee}</ProjectGuid>
@@ -273,7 +272,6 @@
     <ClCompile Include="Source\Framework\ImGuiEditor\Editor\StatisticsWindow.cpp" />
     <ClCompile Include="Source\Framework\ImGuiEditor\Editor\ConsoleWindow.cpp" />
     <ClCompile Include="Source\Framework\ImGuiEditor\Editor\AssetBrowserWindow.cpp" />
-    <ClCompile Include="Source\Framework\ImGuiEditor\Editor\GameViewWindow.cpp" />
     <ClCompile Include="Source\Framework\ImGuiEditor\Editor\Toolbar.cpp" />
     <ClCompile Include="Source\Framework\Manager\Animation\AnimationManager.cpp" />
     <ClCompile Include="Source\Framework\Manager\Audio\AudioManager.cpp" />

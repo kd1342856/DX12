@@ -94,13 +94,14 @@ void GameManager::Update(float deltaTime, class Scene* pScene)
 
     m_spScriptSystem->Update(deltaTime);
 
+    m_spAnimationSystem->Update(deltaTime);
+
     // Transform: ルートオブジェクトから階層更新
     std::vector<std::shared_ptr<class GameObject>> roots;
     for (auto& obj : pScene->GetGameObjects()) {
         if (!obj->GetParent()) roots.push_back(obj);
     }
     m_spTransformSystem->Update(roots);
-    m_spAnimationSystem->Update(deltaTime);
 
     // Collision
     CollisionManager::Instance().SetScene(pScene);
@@ -112,4 +113,6 @@ void GameManager::Update(float deltaTime, class Scene* pScene)
 
     m_spCameraSystem->Update(deltaTime);
     m_spScriptSystem->PostUpdate();
+
+    pScene->FlushDestroy();
 }

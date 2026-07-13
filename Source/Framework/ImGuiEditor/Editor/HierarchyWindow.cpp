@@ -6,7 +6,8 @@
 #include "../../System/JobSystem/JobSystem.h"
 
 // Resolve the GetCurrentScene issue
-static std::shared_ptr<Scene> GetCurrentScenePtr() {
+static std::shared_ptr<Scene> GetCurrentScenePtr() 
+{
     return Editor::GetScene();
 }
 

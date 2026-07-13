@@ -23,6 +23,8 @@ public:
     void Init();
     void Shutdown();
 
+    void NotifyDestroy(Entity entity);
+
     void Solve(Scene* scene);
 
     // ColliderComponentに対してレイキャスト

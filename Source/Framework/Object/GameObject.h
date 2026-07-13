@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "../../../Library/nlohmann/json.hpp"
 #include "Object.h"
 
@@ -26,6 +26,7 @@ public:
 
     void SetParent(std::shared_ptr<GameObject> parent);
     void Destroy() override;
+    void ExecuteDestroy();
     
     GameObject* GetParent() const { return m_pParent; }
     const std::vector<std::shared_ptr<GameObject>>& GetChildren() const { return m_children; }

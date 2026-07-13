@@ -61,7 +61,20 @@ std::shared_ptr<GameObject> Scene::Instantiate(const std::string& filepath, cons
 
 void Scene::Destroy(std::shared_ptr<GameObject> obj) {
     if (!obj) return;
-    RemoveGameObject(obj);
+    m_destroyQueue.push_back(obj);
+}
+
+void Scene::FlushDestroy() {
+    while (!m_destroyQueue.empty()) {
+        auto queue = std::move(m_destroyQueue);
+        m_destroyQueue.clear();
+
+        for (auto& obj : queue) {
+            if (obj) {
+                obj->ExecuteDestroy();
+            }
+        }
+    }
 }
 
 void Scene::Init() {
@@ -110,6 +123,7 @@ void Scene::ImGuiUpdate() {
 nlohmann::json Scene::SerializeGameObject(std::shared_ptr<GameObject> obj) const {
     auto& ecs = GameManager::Instance().GetECS();
     nlohmann::json oj;
+    oj["UUID"] = obj->GetUUID();
     oj["Name"] = obj->GetName();
     oj["IsActive"] = obj->IsActive();
     
@@ -230,6 +244,7 @@ void Scene::DeserializeGameObject(const nlohmann::json& oj, std::shared_ptr<Game
     }
     Entity id = ecs.CreateEntity();
     obj->SetEntityID(id);
+    if (oj.contains("UUID")) obj->SetUUID(oj["UUID"]);
     if (oj.contains("Name")) obj->SetName(oj["Name"]);
     if (oj.contains("IsActive")) obj->SetActive(oj["IsActive"]);
 

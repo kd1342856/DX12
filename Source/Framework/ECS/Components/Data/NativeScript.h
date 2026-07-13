@@ -12,6 +12,7 @@ public:
     virtual void PostUpdate() {}
     virtual void PreDraw() {}
     virtual void Draw() {}
+    virtual void OnDestroy() {}
     
     // Collision callbacks
     virtual void OnCollisionEnter(GameObject* other) {}

@@ -96,46 +96,6 @@ void GhostAI::Deserialize(const nlohmann::json& in)
 void GhostAI::ImGuiUpdate()
 {
     ImGui::DragFloat("Move Speed", &m_moveSpeed, 0.1f, 0.1f, 10.0f);
-    if (ImGui::Button("Test Exorcise")) {
-        Exorcise();
-    }
-    
-    ImGui::Separator();
-    ImGui::Text("Animation Settings");
-    
-    auto& ecs = GameManager::Instance().GetECS();
-    auto entity = GetGameObject()->GetEntityID();
-    
-    if (auto* pModelData = ecs.TryGetComponent<ModelRenderData>(entity)) {
-        if (pModelData->m_spModelData) {
-            const auto& animations = pModelData->m_spModelData->GetAnimations();
-            if (!animations.empty()) {
-                std::vector<const char*> animNames;
-                for (const auto& anim : animations) {
-                    animNames.push_back(anim.name.c_str());
-                }
-                
-                auto drawCombo = [&](const char* label, int& idx) {
-                    if (idx < 0) idx = 0;
-                    if (idx >= (int)animNames.size()) idx = (int)animNames.size() - 1;
-                    ImGui::Combo(label, &idx, animNames.data(), (int)animNames.size());
-                };
-                
-                drawCombo("Idle Anim", m_animIdle);
-                drawCombo("Wander Anim", m_animWander);
-                drawCombo("Hunt Anim", m_animHunt);
-                drawCombo("Dead Anim", m_animDead);
-            } else {
-                ImGui::Text("Model has no animations.");
-            }
-        }
-    } else {
-        ImGui::Text("No ModelRenderData found. Add a model to select animations.");
-        ImGui::InputInt("Idle Anim", &m_animIdle);
-        ImGui::InputInt("Wander Anim", &m_animWander);
-        ImGui::InputInt("Hunt Anim", &m_animHunt);
-        ImGui::InputInt("Dead Anim", &m_animDead);
-    }
 }
 
 void GhostAI::OnCollisionEnter(GameObject* other)

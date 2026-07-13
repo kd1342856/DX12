@@ -10,6 +10,7 @@
 // Texture・Mesh など Asset 類は継承しない
 // =============================================
 class Object {
+    friend class Scene;
 public:
     Object() : m_uuid(GenerateUUID()) {}
     virtual ~Object() {}
@@ -36,7 +37,11 @@ public:
     // 破棄 (派生クラスで必ず実装)
     virtual void Destroy() = 0;
 
+    bool IsPendingDestroy() const { return m_pendingDestroy; }
+
 protected:
+    void SetUUID(uint64_t uuid) { m_uuid = uuid; }
+
     static uint64_t GenerateUUID() {
         static std::mt19937_64 rng(std::random_device{}());
         return rng();
@@ -47,4 +52,5 @@ protected:
     std::string m_tag      = "Untagged";
     uint32_t    m_layer    = 0;
     bool        m_isActive = true;
+    bool        m_pendingDestroy = false;
 };

@@ -34,6 +34,7 @@ private:
     std::condition_variable m_condition;
     
     std::atomic<bool> m_stop{false};
+    std::atomic<bool> m_acceptJob{true};
     std::atomic<int> m_activeJobs{0};
     std::condition_variable m_waitCondition;
 };

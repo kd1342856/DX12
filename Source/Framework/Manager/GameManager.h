@@ -44,7 +44,7 @@ public:
 
 private:
     GameManager() {}
-    ~GameManager() { JobSystem::Instance().Shutdown(); s_alive = false; }
+    ~GameManager() { s_alive = false; JobSystem::Instance().Shutdown(); }
     GameManager(const GameManager&) = delete;
     GameManager& operator=(const GameManager&) = delete;
 

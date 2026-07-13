@@ -250,6 +250,11 @@ void GameScene::Render()
 {
     Renderer::BeginFrame();
 
+    auto renderSystem = GameManager::Instance().GetRenderSystem();
+    if (renderSystem) {
+        renderSystem->RenderShadow();
+    }
+
     if (m_fullscreenGame)
         RenderGame();
     else
@@ -267,7 +272,7 @@ void GameScene::RenderGame()
     if (m_gameCameraEntity != INVALID_ENTITY)
     {
         GraphicsDevice::Instance().ClearBackBuffer(0.0f, 0.0f, 0.0f, 1.0f);
-        renderSystem->Render(m_gameCameraEntity, nullptr);
+        renderSystem->RenderScene(m_gameCameraEntity, nullptr);
         spriteRenderSystem->Render();
     }
     else
@@ -287,7 +292,7 @@ void GameScene::RenderEditor()
     GraphicsDevice::Instance().ClearBackBuffer(0.1f, 0.1f, 0.2f, 1.0f);
     if (m_editorCameraEntity != INVALID_ENTITY)
     {
-        renderSystem->Render(m_editorCameraEntity, nullptr);
+        renderSystem->RenderScene(m_editorCameraEntity, nullptr);
         spriteRenderSystem->Render();
         CollisionManager::Instance().DrawDebugWires(0, 0, 1280.0f, 720.0f, m_editorCameraEntity);
     }

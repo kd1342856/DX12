@@ -1,18 +1,8 @@
 #include "../../Pch.h"
 #include "Renderer.h"
-#include "../../Framework/ImGuiEditor/Editor/Editor.h"
-#include "../../Framework/Manager/Scene/Scene.h"
-#include "../../Framework/Manager/GameManager.h"
+#include "../../Graphics/Device/GraphicsDevice.h"
 
 void Renderer::BeginFrame() {
-    auto scene = Editor::GetScene();
-    if (scene) {
-        auto renderSystem = GameManager::Instance().GetRenderSystem();
-        if (renderSystem) {
-            renderSystem->ResetShadowPass();
-        }
-    }
-
     D3D12_VIEWPORT viewport = {};
     viewport.Width = 1280.0f;
     viewport.Height = 720.0f;

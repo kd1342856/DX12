@@ -1,4 +1,4 @@
-﻿#include "../../../Pch.h"
+#include "../../../Pch.h"
 #include "CollisionManager.h"
 #include <DirectXCollision.h>
 #include "../Scene/Scene.h"
@@ -18,6 +18,28 @@ void CollisionManager::Init() {
 
 void CollisionManager::Shutdown() {
     s_collisionSystem = nullptr;
+}
+
+void CollisionManager::NotifyDestroy(Entity entity) {
+    if (!m_pCurrentScene) return;
+    
+    auto it = m_prevCollisionPairs.begin();
+    while (it != m_prevCollisionPairs.end()) {
+        if (it->a == entity || it->b == entity) {
+            Entity otherEntity = (it->a == entity) ? it->b : it->a;
+            auto otherObj = m_pCurrentScene->GetGameObject(otherEntity);
+            if (otherObj) {
+                auto destroyedObj = m_pCurrentScene->GetGameObject(entity);
+                if (destroyedObj) {
+                    otherObj->NotifyTriggerExit(destroyedObj.get());
+                    otherObj->NotifyCollisionExit(destroyedObj.get());
+                }
+            }
+            it = m_prevCollisionPairs.erase(it);
+        } else {
+            ++it;
+        }
+    }
 }
 
 void CollisionManager::Solve(Scene* scene) {

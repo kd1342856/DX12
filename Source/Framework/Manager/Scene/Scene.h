@@ -35,6 +35,7 @@ public:
     std::shared_ptr<GameObject> CreateGameObject(const std::string& name = "GameObject");
     std::shared_ptr<GameObject> Instantiate(const std::string& filepath, const Math::Vector3& position = Math::Vector3::Zero);
     void Destroy(std::shared_ptr<GameObject> obj);
+    void FlushDestroy();
 
     // 内部リスト操作
     void AddGameObject(std::shared_ptr<GameObject> obj) {
@@ -65,4 +66,5 @@ protected:
 
 private:
     std::unordered_map<Entity, std::shared_ptr<GameObject>> m_entityToObject;
+    std::vector<std::shared_ptr<GameObject>> m_destroyQueue;
 };

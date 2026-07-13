@@ -10,11 +10,31 @@ GameObject::~GameObject() {
 }
 
 void GameObject::Destroy() {
-    // Make a copy of children to safely destroy them
-    auto childrenCopy = m_children;
-    for (auto& child : childrenCopy) {
+    if (m_pendingDestroy) return;
+    m_pendingDestroy = true;
+
+    // 子オブジェクトにも破棄を伝搬する
+    for (auto& child : m_children) {
         child->Destroy();
     }
+
+    if (m_scene) {
+        m_scene->Destroy(shared_from_this());
+    }
+}
+
+void GameObject::ExecuteDestroy() {
+    auto& ecs = GameManager::Instance().GetECS();
+    if (m_entityId != INVALID_ENTITY && GameManager::IsInstanceAlive()) {
+        CollisionManager::Instance().NotifyDestroy(m_entityId);
+
+        if (auto* pScript = ecs.TryGetComponent<NativeScriptData>(m_entityId)) {
+            if (pScript->Instance) {
+                pScript->Instance->OnDestroy();
+            }
+        }
+    }
+
     m_children.clear();
 
     if (m_pParent) {
@@ -46,5 +66,47 @@ void GameObject::SetParent(std::shared_ptr<GameObject> parent) {
         parent->m_children.push_back(shared_from_this());
     } else if (m_scene) {
         m_scene->AddGameObject(shared_from_this());
+    }
+}
+
+void GameObject::NotifyCollisionEnter(GameObject* other) {
+    if (m_entityId == INVALID_ENTITY || !GameManager::IsInstanceAlive()) return;
+    if (auto* pScript = GameManager::Instance().GetECS().TryGetComponent<NativeScriptData>(m_entityId)) {
+        if (pScript->Instance) pScript->Instance->OnCollisionEnter(other);
+    }
+}
+
+void GameObject::NotifyCollisionStay(GameObject* other) {
+    if (m_entityId == INVALID_ENTITY || !GameManager::IsInstanceAlive()) return;
+    if (auto* pScript = GameManager::Instance().GetECS().TryGetComponent<NativeScriptData>(m_entityId)) {
+        if (pScript->Instance) pScript->Instance->OnCollisionStay(other);
+    }
+}
+
+void GameObject::NotifyCollisionExit(GameObject* other) {
+    if (m_entityId == INVALID_ENTITY || !GameManager::IsInstanceAlive()) return;
+    if (auto* pScript = GameManager::Instance().GetECS().TryGetComponent<NativeScriptData>(m_entityId)) {
+        if (pScript->Instance) pScript->Instance->OnCollisionExit(other);
+    }
+}
+
+void GameObject::NotifyTriggerEnter(GameObject* other) {
+    if (m_entityId == INVALID_ENTITY || !GameManager::IsInstanceAlive()) return;
+    if (auto* pScript = GameManager::Instance().GetECS().TryGetComponent<NativeScriptData>(m_entityId)) {
+        if (pScript->Instance) pScript->Instance->OnTriggerEnter(other);
+    }
+}
+
+void GameObject::NotifyTriggerStay(GameObject* other) {
+    if (m_entityId == INVALID_ENTITY || !GameManager::IsInstanceAlive()) return;
+    if (auto* pScript = GameManager::Instance().GetECS().TryGetComponent<NativeScriptData>(m_entityId)) {
+        if (pScript->Instance) pScript->Instance->OnTriggerStay(other);
+    }
+}
+
+void GameObject::NotifyTriggerExit(GameObject* other) {
+    if (m_entityId == INVALID_ENTITY || !GameManager::IsInstanceAlive()) return;
+    if (auto* pScript = GameManager::Instance().GetECS().TryGetComponent<NativeScriptData>(m_entityId)) {
+        if (pScript->Instance) pScript->Instance->OnTriggerExit(other);
     }
 }

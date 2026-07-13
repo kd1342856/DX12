@@ -41,7 +41,8 @@
                 }
             ],
             "IsActive": true,
-            "Name": "MainCamera"
+            "Name": "MainCamera",
+            "UUID": 3550049709306429264
         },
         {
             "Children": [
@@ -73,7 +74,8 @@
                         }
                     ],
                     "IsActive": true,
-                    "Name": "Model"
+                    "Name": "Model",
+                    "UUID": 15488972587017794424
                 },
                 {
                     "Children": [],
@@ -113,7 +115,8 @@
                         }
                     ],
                     "IsActive": true,
-                    "Name": "Collider"
+                    "Name": "Collider",
+                    "UUID": 16631493188063701678
                 }
             ],
             "Components": [
@@ -137,7 +140,8 @@
                 }
             ],
             "IsActive": true,
-            "Name": "Stage"
+            "Name": "Stage",
+            "UUID": 8209704538782711917
         },
         {
             "Children": [
@@ -177,7 +181,8 @@
                         }
                     ],
                     "IsActive": true,
-                    "Name": "Model"
+                    "Name": "Model",
+                    "UUID": 1359808802738237787
                 },
                 {
                     "Children": [],
@@ -220,7 +225,8 @@
                         }
                     ],
                     "IsActive": true,
-                    "Name": "Camera"
+                    "Name": "Camera",
+                    "UUID": 11236533813172485698
                 },
                 {
                     "Children": [],
@@ -262,7 +268,8 @@
                         }
                     ],
                     "IsActive": true,
-                    "Name": "Collider"
+                    "Name": "Collider",
+                    "UUID": 18278461988555902607
                 }
             ],
             "Components": [
@@ -293,7 +300,8 @@
                 }
             ],
             "IsActive": true,
-            "Name": "Player"
+            "Name": "Player",
+            "UUID": 3866157230547448783
         },
         {
             "Children": [
@@ -333,7 +341,8 @@
                         }
                     ],
                     "IsActive": true,
-                    "Name": "Model"
+                    "Name": "Model",
+                    "UUID": 4335303955504982728
                 },
                 {
                     "Children": [],
@@ -375,7 +384,8 @@
                         }
                     ],
                     "IsActive": true,
-                    "Name": "Collider"
+                    "Name": "Collider",
+                    "UUID": 9013647911769739815
                 }
             ],
             "Components": [
@@ -408,7 +418,8 @@
                 }
             ],
             "IsActive": true,
-            "Name": "Ghost"
+            "Name": "Ghost",
+            "UUID": 16743052272710003998
         }
     ]
 }

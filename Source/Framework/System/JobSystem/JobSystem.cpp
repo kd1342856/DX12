@@ -10,6 +10,9 @@ void JobSystem::Init() {
         return; // すでに初期化済みの場合はスキップ
     }
 
+    m_stop = false;
+    m_acceptJob = true;
+
     uint32_t numThreads = std::thread::hardware_concurrency();
     if (numThreads == 0) numThreads = 4;
     
@@ -23,8 +26,11 @@ void JobSystem::Init() {
 }
 
 void JobSystem::Shutdown() {
-    if (m_stop) return;
+    if (!m_acceptJob) return; // すでにShutdown中
     
+    m_acceptJob = false; // 新規Jobの受付停止
+    Wait(); // 現在のJob完了待ち
+
     {
         std::unique_lock<std::mutex> lock(m_queueMutex);
         m_stop = true;
@@ -41,6 +47,8 @@ void JobSystem::Shutdown() {
 }
 
 void JobSystem::Execute(std::function<void()> job) {
+    if (!m_acceptJob) return;
+
     {
         std::unique_lock<std::mutex> lock(m_queueMutex);
         m_jobQueue.push(job);
@@ -51,7 +59,7 @@ void JobSystem::Execute(std::function<void()> job) {
 
 void JobSystem::Wait() {
     std::unique_lock<std::mutex> lock(m_queueMutex);
-    m_waitCondition.wait(lock, [this] { return m_activeJobs == 0; });
+    m_waitCondition.wait(lock, [this] { return m_activeJobs == 0 && m_jobQueue.empty(); });
 }
 
 void JobSystem::WorkerThread(uint32_t workerIndex) {

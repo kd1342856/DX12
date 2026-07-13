@@ -1,4 +1,4 @@
-﻿#include "../../../Pch.h"
+#include "../../../Pch.h"
 #include <SpriteBatch.h>
 #include "SceneManager.h"
 
@@ -27,14 +27,14 @@ void SceneManager::Update()
         {
             m_fadeAlpha = 1.0f;
 
-            // GPU�g�p���̃��\�[�X����S�ɉ�����邽�߁A
-            // ���V�[���̃f�X�g���N�^�Ăяo���O��GPU������҂�
+            // GPUgp̃\[XSɉ邽߁A
+            // V[̃fXgN^ĂяoOGPU҂
             GraphicsDevice::Instance().WaitForCommandQueue();
 
-            // ���V�[���𖾎��I�ɉ���i���̎��_�Ńf�X�g���N�^���Ă΂��j
+            CollisionManager::Instance().SetScene(nullptr);
             m_currentScene = nullptr;
 
-            // �V�V�[����Z�b�g���ď�����
+            // VV[Zbgď
             m_currentScene = std::move(m_nextScene);
 
             if (m_currentScene)
