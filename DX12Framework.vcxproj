@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -324,7 +324,7 @@
     <ClCompile Include="Source\Graphics\Buffer\RenderTarget\RenderTarget.cpp" />
     <ClCompile Include="Source\Application\Object\Script\Ghost\GhostAI.cpp" />
     <ClCompile Include="Source\Application\Object\Script\System\GameSequence.cpp" />
-  </ItemGroup>
+  <ClCompile Include="Source\Framework\ImGuiEditor\Editor\GameViewWindow.cpp" /></ItemGroup>
   <ItemGroup>
     <None Include="Asset\Shader\inc_ShaderCore.hlsli" />
     <None Include="Asset\Shader\LitShader\inc_PBRCommon.hlsli" />
@@ -332,17 +332,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Asset\Shader\inc_Study.hlsli">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-      </ExcludedFromBuild>
-    </None>
-  </ItemGroup>
+    </ItemGroup>
   <ItemGroup>
     <None Include="Asset\Shader\LitShader\LitShader.hlsli" />
     <None Include="Asset\Shader\LitShader\LitShader_VS.hlsl">
