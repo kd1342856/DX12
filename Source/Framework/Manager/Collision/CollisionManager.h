@@ -5,6 +5,7 @@ class Scene;
 class RenderTarget;
 
 #include "CollisionShape.h"
+#include "Octree.h"
 
 struct RaycastHit {
     bool hit = false;
@@ -55,6 +56,11 @@ private:
         ImU32 color;
     };
     std::vector<DebugLine> m_debugLines;
+
+    Octree m_staticOctree;
+    Octree m_dynamicOctree;
+    bool m_isStaticOctreeBuilt = false;
+    std::set<Entity> m_registeredStaticEntities;
 
     CollisionManager() {}
     ~CollisionManager() {}

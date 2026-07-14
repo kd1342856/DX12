@@ -7,16 +7,15 @@ void ModelRenderer::Draw(GraphicsShader& shader, const ModelData& model, const D
 	shader.BeginModel(model, context);
 
 	const auto& nodes = model.GetNodes();
-	std::vector<Math::Matrix> nodeWorldMatrices(nodes.size());
 
 	for (int i = 0; i < (int)nodes.size(); ++i) {
 		const auto& node = nodes[i];
 		
 		// In this framework, meshes and collisions are already baked to model root space.
 		// Applying Assimp's localTransforms causes double transformations and desyncs visual with collisions.
-		nodeWorldMatrices[i] = context.World;
+		Math::Matrix nodeWorldMatrix = context.World;
 
-		shader.BeginNode(node, nodeWorldMatrices[i]);
+		shader.BeginNode(node, nodeWorldMatrix);
 
 		for (const auto& spMesh : node.meshes) {
 			if (spMesh) {

@@ -1,4 +1,4 @@
-﻿#include "../../Pch.h"
+#include "../../Pch.h"
 #include "GameManager.h"
 #include "../../Graphics/Shader/ShaderLibrary.h"
 #include "../../Graphics/Shader/StandardShader/StandardShader.h"
@@ -14,6 +14,7 @@
 #include "../ECS/CompSystem/Systems/CameraSystem.h"
 #include "../ECS/CompSystem/Systems/AnimationSystem.h"
 #include "../ECS/CompSystem/Systems/ScriptSystem.h"
+#include "../ECS/ComponentSerializerRegistration.h"
 
 // GameManager 縺ｮ static 繝｡繝ｳ繝仙､画焚縺ｮ螳夂ｾｩ
 bool GameManager::s_alive = true;
@@ -26,6 +27,7 @@ GameManager& GameManager::Instance()
 void GameManager::Init()
 {
     m_ecs.Init();
+    RegisterComponentSerializers();
 
     // --- Component 蝙狗匳骭ｲ ---
     m_ecs.RegisterComponent<TransformData>();
@@ -128,6 +130,13 @@ void GameManager::Update(float deltaTime, class Scene* pScene)
     m_spScriptSystem->PostUpdate();
 
     GetECS().FlushCommands();
+}
+
+void GameManager::Shutdown()
+{
+    if (!s_alive) return;
+    s_alive = false;
+    JobSystem::Instance().Shutdown();
 }
 
 

@@ -27,7 +27,7 @@ void Application::Execute()
 
 	if (!m_window.Create(SCREEN_WIDTH, SCREEN_HEIGHT, L"DX12Framework", L"Window"))
 	{
-		assert(0 && "Window create failed");
+		MessageBoxW(nullptr, L"Failed to create window.", L"Error", MB_OK | MB_ICONERROR);
 		return;
 	}
 
@@ -35,7 +35,7 @@ void Application::Execute()
 
 	if (!GDF::Instance().Init(m_window.GetWndHandle(), SCREEN_WIDTH, SCREEN_HEIGHT))
 	{
-		assert(0 && "GDF init failed");
+		MessageBoxW(nullptr, L"Failed to initialize Graphics Device Framework.", L"Error", MB_OK | MB_ICONERROR);
 		return;
 	}
 
@@ -75,7 +75,7 @@ void Application::Execute()
 
 		GDF::Instance().BeginFrame();
 
-		// GameManager 縺悟・ System 繧帝・分縺ｫ Update
+		// GameManager 縺悟・ System 繧帝?・分縺ｫ Update
 		auto* pScene = dynamic_cast<Scene*>(SceneManager::Instance().GetCurrentScene());
 		GameManager::Instance().Update(GameTimer::Instance().DeltaTime(), pScene);
 
@@ -86,7 +86,9 @@ void Application::Execute()
 		GDF::Instance().EndFrame();
 	}
 
-	// AudioManager邵ｺ・ｮ驍ｨ繧・ｽｺ繝ｻ
+	// シングルトンの明示的な終了処理
+	GameManager::Instance().Shutdown();
+	JobSystem::Instance().Shutdown();
 	AudioManager::Instance().Shutdown();
 	GDF::Instance().Shutdown();
 }

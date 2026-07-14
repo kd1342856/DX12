@@ -1,7 +1,9 @@
 #pragma once
 #include <cstdint>
 #include <cstdlib>
-
+#include <new>
+#include <utility>
+#include <vector>
 template <typename T, size_t ChunkSize = 1024>
 class PoolAllocator {
     struct Node {
@@ -16,17 +18,21 @@ public:
         }
     }
 
-    T* Allocate() {
+    template<typename... Args>
+    T* Allocate(Args&&... args) {
         if (!m_head) {
             AllocateChunk();
         }
         Node* node = m_head;
         m_head = m_head->next;
-        return reinterpret_cast<T*>(node);
+        T* ptr = reinterpret_cast<T*>(node);
+        new (ptr) T(std::forward<Args>(args)...);
+        return ptr;
     }
 
     void Free(T* ptr) {
         if (!ptr) return;
+        ptr->~T();
         Node* node = reinterpret_cast<Node*>(ptr);
         node->next = m_head;
         m_head = node;

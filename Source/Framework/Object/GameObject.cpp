@@ -1,4 +1,4 @@
-﻿#include "../../Pch.h"
+#include "../../Pch.h"
 #include "GameObject.h"
 #include "../Manager/Scene/Scene.h"
 
@@ -27,13 +27,13 @@ void GameObject::ExecuteDestroy() {
 
     m_children.clear();
 
-    if (m_pParent) {
-        auto it = std::find(m_pParent->m_children.begin(), m_pParent->m_children.end(), shared_from_this());
-        if (it != m_pParent->m_children.end()) m_pParent->m_children.erase(it);
+    if (auto p = m_wpParent.lock()) {
+        auto it = std::find(p->m_children.begin(), p->m_children.end(), shared_from_this());
+        if (it != p->m_children.end()) p->m_children.erase(it);
     } else if (m_scene) {
         m_scene->RemoveGameObject(shared_from_this());
     }
-    m_pParent = nullptr;
+    m_wpParent.reset();
     m_scene = nullptr;
 
     if (m_entityId != INVALID_ENTITY && GameManager::IsInstanceAlive()) {
@@ -43,14 +43,14 @@ void GameObject::ExecuteDestroy() {
 }
 
 void GameObject::SetParent(std::shared_ptr<GameObject> parent) {
-    if (m_pParent) {
-        auto it = std::find(m_pParent->m_children.begin(), m_pParent->m_children.end(), shared_from_this());
-        if (it != m_pParent->m_children.end()) m_pParent->m_children.erase(it);
+    if (auto p = m_wpParent.lock()) {
+        auto it = std::find(p->m_children.begin(), p->m_children.end(), shared_from_this());
+        if (it != p->m_children.end()) p->m_children.erase(it);
     } else if (m_scene) {
         m_scene->RemoveGameObject(shared_from_this());
     }
 
-    m_pParent = parent ? parent.get() : nullptr;
+    m_wpParent = parent;
 
     if (parent) {
         parent->m_children.push_back(shared_from_this());

@@ -126,6 +126,7 @@ public:
     float height = 1.0f; 
 
     void Editor_ImGui() override;
+    void GetGeometry(const Math::Matrix& world, Math::Vector3& outP1, Math::Vector3& outP2, Math::Vector3& outUp, Math::Vector3& outRight, Math::Vector3& outForward) const;
 };
 
 class CollisionShapeMesh : public CollisionShape {

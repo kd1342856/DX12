@@ -188,6 +188,8 @@
     <ClInclude Include="Source\Framework\ECS\CompSystem\Systems\LightSystem.h" />
     <ClInclude Include="Source\Framework\ECS\CompSystem\Systems\RenderSystem.h" />
     <ClInclude Include="Source\Framework\ECS\CompSystem\Systems\ScriptSystem.h" />
+    <ClInclude Include="Source\Framework\ECS\ComponentSerializerRegistry.h" />
+    <ClInclude Include="Source\Framework\ECS\ComponentSerializerRegistration.h" />
     <ClInclude Include="Source\Framework\ECS\ECS.h" />
     <ClInclude Include="Source\Framework\ECS\ECSCoordinator.h" />
     <ClInclude Include="Source\Framework\ECS\ECSCommandBuffer.h" />
@@ -198,6 +200,7 @@
     <ClInclude Include="Source\Framework\Manager\Collision\CollisionManager.h" />
     <ClInclude Include="Source\Framework\Manager\Collision\CollisionShape.h" />
     <ClInclude Include="Source\Framework\Manager\Collision\CollisionSolver.h" />
+    <ClInclude Include="Source\Framework\Manager\Collision\Octree.h" />
     <ClInclude Include="Source\Framework\Manager\NavMesh\NavMeshManager.h" />
     <ClInclude Include="Source\Framework\Manager\Resource\PrefabManager.h" />
     <ClInclude Include="Source\Framework\Manager\Resource\ResourceManager.h" />
@@ -284,12 +287,14 @@
     <ClCompile Include="Source\Framework\Manager\Collision\CollisionManager.cpp" />
     <ClCompile Include="Source\Framework\Manager\Collision\CollisionShape.cpp" />
     <ClCompile Include="Source\Framework\Manager\Collision\CollisionSolver.cpp" />
+    <ClCompile Include="Source\Framework\Manager\Collision\Octree.cpp" />
     <ClCompile Include="Source\Framework\Manager\NavMesh\NavMeshManager.cpp" />
     <ClCompile Include="Source\Framework\Manager\Resource\PrefabManager.cpp" />
     <ClCompile Include="Source\Framework\Manager\Resource\ResourceManager.cpp" />
     <ClCompile Include="Source\Framework\Manager\Scene\Scene.cpp" />
     <ClCompile Include="Source\Framework\Manager\Scene\SceneManager.cpp" />
     <ClCompile Include="Source\Framework\System\JobSystem\JobSystem.cpp" />
+    <ClCompile Include="Source\Framework\ECS\ComponentSerializerRegistration.cpp" />
     <ClCompile Include="Source\Framework\Manager\GameManager.cpp" />
     <ClCompile Include="Source\Framework\ECS\CompSystem\SpriteRenderSystem\SpriteRenderSystem.cpp" />
     <ClCompile Include="Source\Framework\ECS\ECSCommandBuffer.cpp" />

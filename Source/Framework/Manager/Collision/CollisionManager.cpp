@@ -1,4 +1,4 @@
-#include "../../../Pch.h"
+﻿#include "../../../Pch.h"
 #include "CollisionManager.h"
 #include <DirectXCollision.h>
 #include "../Scene/Scene.h"
@@ -56,17 +56,47 @@ void CollisionManager::Solve(Scene* scene) {
         return current->GetEntityID();
     };
 
-    std::vector<Entity> entitiesWithCollider;
+    if (!m_isStaticOctreeBuilt) {
+        m_staticOctree.Build(DirectX::BoundingBox(Math::Vector3::Zero, Math::Vector3(5000, 5000, 5000)), 6);
+        m_isStaticOctreeBuilt = true;
+    }
+    m_dynamicOctree.Clear();
+    m_dynamicOctree.Build(DirectX::BoundingBox(Math::Vector3::Zero, Math::Vector3(5000, 5000, 5000)), 6);
+
+    std::vector<Entity> dynamicEntities;
+    std::vector<Entity> allEntities;
+
     for (Entity entity = 0; entity < MAX_ENTITIES; ++entity) {
         if (!ecs.IsAlive(entity)) continue;
         if (ecs.TryGetComponent<TransformData>(entity) && ecs.TryGetComponent<ColliderData>(entity)) {
-            entitiesWithCollider.push_back(entity);
+            auto& colData = ecs.GetComponent<ColliderData>(entity);
+            auto& transData = ecs.GetComponent<TransformData>(entity);
+
+            for (auto& shape : colData.m_shapes) {
+                if (shape) shape->UpdateWorldAABB(transData.m_worldMatrix);
+            }
+
+            allEntities.push_back(entity);
+
+            if (colData.m_isStatic) {
+                if (m_registeredStaticEntities.find(entity) == m_registeredStaticEntities.end()) {
+                    for (auto& shape : colData.m_shapes) {
+                        if (shape) m_staticOctree.Insert({entity, shape.get(), shape->m_worldAABB});
+                    }
+                    m_registeredStaticEntities.insert(entity);
+                }
+            } else {
+                dynamicEntities.push_back(entity);
+                for (auto& shape : colData.m_shapes) {
+                    if (shape) m_dynamicOctree.Insert({entity, shape.get(), shape->m_worldAABB});
+                }
+            }
         }
     }
 
     ClearDebugLines();
     if (m_debugWireEnabled) {
-        for (Entity entity : entitiesWithCollider) {
+        for (Entity entity : allEntities) {
             auto& trans = ecs.GetComponent<TransformData>(entity);
             auto& colData = ecs.GetComponent<ColliderData>(entity);
             ImU32 color = colData.m_isStatic ? IM_COL32(0, 255, 0, 255) : IM_COL32(255, 0, 0, 255);
@@ -78,83 +108,131 @@ void CollisionManager::Solve(Scene* scene) {
 
     std::set<CollisionPair> currentCollisionPairs;
 
-    for (size_t i = 0; i < entitiesWithCollider.size(); ++i) {
-        Entity entityA = entitiesWithCollider[i];
-        auto& colDataA = ecs.GetComponent<ColliderData>(entityA);
-        auto& transDataA = ecs.GetComponent<TransformData>(entityA);
+    auto checkCollision = [&](Entity entityA, CollisionShape* shapeA, Entity entityB, CollisionShape* shapeB) {
+        if (entityA == entityB) return;
+        Entity rootA = getRootEntity(entityA);
+        Entity rootB = getRootEntity(entityB);
+        if (rootA == rootB) return;
 
-        for (auto& shapeA : colDataA.m_shapes) {
-            shapeA->UpdateWorldAABB(transDataA.m_worldMatrix);
+        auto& transDataA = ecs.GetComponent<TransformData>(entityA);
+        auto& transDataB = ecs.GetComponent<TransformData>(entityB);
+        auto& colDataA = ecs.GetComponent<ColliderData>(entityA);
+        auto& colDataB = ecs.GetComponent<ColliderData>(entityB);
+
+        CollisionResult result;
+        bool isHit = false;
+        bool swapped = false;
+
+        if (shapeA->GetShapeId() == CollisionShape::Mesh && shapeB->GetShapeId() != CollisionShape::Mesh) {
+            isHit = CollisionSolver::CheckCollisionShape(result, shapeB, transDataB.m_worldMatrix, shapeA, transDataA.m_worldMatrix);
+            swapped = true;
+        } else if (shapeA->GetShapeId() != CollisionShape::Mesh && shapeB->GetShapeId() == CollisionShape::Mesh) {
+            isHit = CollisionSolver::CheckCollisionShape(result, shapeA, transDataA.m_worldMatrix, shapeB, transDataB.m_worldMatrix);
+            swapped = false;
+        } else {
+            isHit = CollisionSolver::CheckCollisionShape(result, shapeA, transDataA.m_worldMatrix, shapeB, transDataB.m_worldMatrix);
+            swapped = false;
         }
 
-        for (size_t j = i + 1; j < entitiesWithCollider.size(); ++j) {
-            Entity entityB = entitiesWithCollider[j];
-            auto& colDataB = ecs.GetComponent<ColliderData>(entityB);
-            auto& transDataB = ecs.GetComponent<TransformData>(entityB);
-
-            // 霑壹・蟀ｿ邵ｺ遒∵瀦騾ｧ繝ｻ繝ｻ陜｣・ｴ陷ｷ蛹ｻ繝ｻ邵ｲ竏晁劒騾ｧ繝ｻ竊題ｭ・ｽｹ邵ｺ・ｽ邵ｺ莉｣・定恪霈板ｰ邵ｺ繝ｻ
-            if (colDataA.m_isStatic && colDataB.m_isStatic) continue;
-
-            for (auto& shapeB : colDataB.m_shapes) {
-                shapeB->UpdateWorldAABB(transDataB.m_worldMatrix);
+        if (isHit) {
+            if (swapped) {
+                result.pushVector = -result.pushVector;
             }
 
-            for (auto& shapeA : colDataA.m_shapes) {
-                for (auto& shapeB : colDataB.m_shapes) {
-                    if (!shapeA->m_worldAABB.Intersects(shapeB->m_worldAABB)) continue;
+            CollisionPair pair;
+            pair.a = std::min(entityA, entityB);
+            pair.b = std::max(entityA, entityB);
+            if (currentCollisionPairs.find(pair) != currentCollisionPairs.end()) return;
+            currentCollisionPairs.insert(pair);
 
-                    CollisionResult result;
-                    bool isHit = false;
-                    bool swapped = false;
-
-                    if (shapeA->GetShapeId() == CollisionShape::Mesh && shapeB->GetShapeId() != CollisionShape::Mesh) {
-                        isHit = CollisionSolver::CheckCollisionShape(result, shapeB.get(), transDataB.m_worldMatrix, shapeA.get(), transDataA.m_worldMatrix);
-                        swapped = true;
-                    } else if (shapeA->GetShapeId() != CollisionShape::Mesh && shapeB->GetShapeId() == CollisionShape::Mesh) {
-                        isHit = CollisionSolver::CheckCollisionShape(result, shapeA.get(), transDataA.m_worldMatrix, shapeB.get(), transDataB.m_worldMatrix);
-                        swapped = false;
-                    } else {
-                        isHit = CollisionSolver::CheckCollisionShape(result, shapeA.get(), transDataA.m_worldMatrix, shapeB.get(), transDataB.m_worldMatrix);
-                        swapped = false;
+            if (!shapeA->m_isTrigger && !shapeB->m_isTrigger) {
+                auto* pRootTransA = ecs.TryGetComponent<TransformData>(rootA);
+                auto* pRootTransB = ecs.TryGetComponent<TransformData>(rootB);
+                if (pRootTransA && pRootTransB) {
+                    auto& rootTransA = *pRootTransA;
+                    auto& rootTransB = *pRootTransB;
+                    
+                    if (!colDataA.m_isStatic && !colDataB.m_isStatic) {
+                        rootTransA.m_position += result.pushVector * 0.5f;
+                        rootTransB.m_position -= result.pushVector * 0.5f;
+                    } else if (!colDataA.m_isStatic) {
+                        rootTransA.m_position += result.pushVector;
+                    } else if (!colDataB.m_isStatic) {
+                        rootTransB.m_position -= result.pushVector;
                     }
+                }
+            }
 
-                    if (isHit) {
-                        if (swapped) {
-                            result.pushVector = -result.pushVector;
-                        }
+            auto objA = scene->GetGameObject(entityA);
+            auto objB = scene->GetGameObject(entityB);
+            if (!objA || !objB) return;
 
-                        CollisionPair pair;
-                        pair.a = entityA; pair.b = entityB;
-                        currentCollisionPairs.insert(pair);
+            bool aIsTrigger = shapeA->m_isTrigger;
+            bool bIsTrigger = shapeB->m_isTrigger;
+            bool wasColliding = m_prevCollisionPairs.find(pair) != m_prevCollisionPairs.end();
 
-                        if (!shapeA->m_isTrigger && !shapeB->m_isTrigger) {
-                            Entity rootA = getRootEntity(entityA);
-                            Entity rootB = getRootEntity(entityB);
-                            
-                            auto* pRootTransA = ecs.TryGetComponent<TransformData>(rootA);
-                            auto* pRootTransB = ecs.TryGetComponent<TransformData>(rootB);
-                            if (pRootTransA && pRootTransB) {
-                                auto& rootTransA = *pRootTransA;
-                                auto& rootTransB = *pRootTransB;
-                                
-                                if (!colDataA.m_isStatic && !colDataB.m_isStatic) {
-                                    rootTransA.m_position += result.pushVector * 0.5f;
-                                    rootTransB.m_position -= result.pushVector * 0.5f;
-                                } else if (!colDataA.m_isStatic) {
-                                    rootTransA.m_position += result.pushVector;
-                                } else if (!colDataB.m_isStatic) {
-                                    rootTransB.m_position -= result.pushVector;
-                                }
-                            }
-                        }
+            if (aIsTrigger || bIsTrigger) {
+                if (!wasColliding) {
+                    objA->NotifyTriggerEnter(objB.get());
+                    objB->NotifyTriggerEnter(objA.get());
+                } else {
+                    objA->NotifyTriggerStay(objB.get());
+                    objB->NotifyTriggerStay(objA.get());
+                }
+            } else {
+                if (!wasColliding) {
+                    objA->NotifyCollisionEnter(objB.get());
+                    objB->NotifyCollisionEnter(objA.get());
+                } else {
+                    objA->NotifyCollisionStay(objB.get());
+                    objB->NotifyCollisionStay(objA.get());
+                }
+            }
+        }
+    };
+
+    for (Entity entityA : dynamicEntities) {
+        auto& colDataA = ecs.GetComponent<ColliderData>(entityA);
+        for (auto& shapeA : colDataA.m_shapes) {
+            if (!shapeA) continue;
+            std::vector<OctreeItem> potentialCollisions;
+            m_staticOctree.GetPotentialCollisions(shapeA->m_worldAABB, potentialCollisions);
+            m_dynamicOctree.GetPotentialCollisions(shapeA->m_worldAABB, potentialCollisions);
+
+            for (const auto& item : potentialCollisions) {
+                if (item.entity == entityA) continue;
+                checkCollision(entityA, shapeA.get(), item.entity, item.shape);
+            }
+        }
+    }
+
+    for (const auto& pair : m_prevCollisionPairs) {
+        if (currentCollisionPairs.find(pair) == currentCollisionPairs.end()) {
+            auto objA = scene->GetGameObject(pair.a);
+            auto objB = scene->GetGameObject(pair.b);
+            if (objA && objB) {
+                auto pColA = ecs.TryGetComponent<ColliderData>(pair.a);
+                auto pColB = ecs.TryGetComponent<ColliderData>(pair.b);
+                if (pColA && pColB) {
+                    bool aIsTrigger = false;
+                    for (auto& s : pColA->m_shapes) if(s->m_isTrigger) aIsTrigger = true;
+                    bool bIsTrigger = false;
+                    for (auto& s : pColB->m_shapes) if(s->m_isTrigger) bIsTrigger = true;
+
+                    if (aIsTrigger || bIsTrigger) {
+                        objA->NotifyTriggerExit(objB.get());
+                        objB->NotifyTriggerExit(objA.get());
+                    } else {
+                        objA->NotifyCollisionExit(objB.get());
+                        objB->NotifyCollisionExit(objA.get());
                     }
                 }
             }
         }
     }
+
     m_prevCollisionPairs = currentCollisionPairs;
 }
-
 RaycastHit CollisionManager::Raycast(const Math::Vector3& origin, const Math::Vector3& direction, float maxDistance, uint32_t collisionMask) {
     RaycastHit hitResult;
     hitResult.distance = maxDistance;

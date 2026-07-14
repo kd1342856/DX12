@@ -7,8 +7,8 @@ class Scene;
 
 // =============================================
 // GameObject
-// ECS EntitybvQ[IuWFNg?[gNX
-// [U[ECS EntityID????
+// ECS Entityベースのオブジェクトラッパークラス
+// ユーザーにECS EntityIDを隠蔽する
 // =============================================
 class GameObject : public Object, public std::enable_shared_from_this<GameObject> {
 public:
@@ -28,11 +28,11 @@ public:
     void Destroy() override;
     void ExecuteDestroy();
     
-    GameObject* GetParent() const { return m_pParent; }
+    GameObject* GetParent() const { return m_wpParent.lock().get(); }
     const std::vector<std::shared_ptr<GameObject>>& GetChildren() const { return m_children; }
 
     // =============================================
-    // RWR[obNdwp[
+    // 衝突コールバック用インターフェース
     // =============================================
     void NotifyCollisionEnter(GameObject* other);
     void NotifyCollisionStay(GameObject* other);
@@ -58,7 +58,7 @@ protected:
 
 private:
     std::vector<std::shared_ptr<GameObject>> m_children;
-    GameObject* m_pParent = nullptr;
+    std::weak_ptr<GameObject> m_wpParent;
     Scene* m_scene = nullptr;
     Entity m_entityId = INVALID_ENTITY;
     bool m_isDynamic = false;

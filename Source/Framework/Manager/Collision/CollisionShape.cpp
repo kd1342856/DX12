@@ -1,4 +1,4 @@
-﻿#include "../../../Pch.h"
+#include "../../../Pch.h"
 #include "CollisionShape.h"
 #include "../Collision/CollisionManager.h"
 #include "../Scene/Scene.h"
@@ -161,11 +161,94 @@ bool CollisionShapeSphere::RayCast(const RayInfo& ray, const Math::Matrix& world
     return false;
 }
 
-bool CollisionShapeCapsule::RayCast(const RayInfo& ray, const Math::Matrix& world, RayResult& out) {
+void CollisionShapeCapsule::GetGeometry(const Math::Matrix& world, Math::Vector3& outP1, Math::Vector3& outP2, Math::Vector3& outUp, Math::Vector3& outRight, Math::Vector3& outForward) const {
     Math::Vector3 localOffsetStr = Math::Vector3(0, height * 0.5f, 0);
-    Math::Vector3 p1 = Math::Vector3::Transform(m_offset + localOffsetStr, world);
-    Math::Vector3 p2 = Math::Vector3::Transform(m_offset - localOffsetStr, world);
+    outP1 = Math::Vector3::Transform(m_offset + localOffsetStr, world);
+    outP2 = Math::Vector3::Transform(m_offset - localOffsetStr, world);
+    outUp = outP1 - outP2;
+    if(outUp.LengthSquared() < 0.001f) outUp = Math::Vector3(0, 1, 0);
+    else outUp.Normalize();
+    outRight = Math::Vector3::TransformNormal(Math::Vector3(1,0,0), world);
+    if(abs(outRight.Dot(outUp)) > 0.99f) outRight = Math::Vector3(0,0,1);
+    outRight = outRight - outUp * outRight.Dot(outUp);
+    outRight.Normalize();
+    outForward = outUp.Cross(outRight);
+}
+
+bool CollisionShapeCapsule::RayCast(const RayInfo& ray, const Math::Matrix& world, RayResult& out) {
+    Math::Vector3 p1, p2, up, right, forward;
+    GetGeometry(world, p1, p2, up, right, forward);
+
+    Math::Vector3 d = ray.rayDir;
+    Math::Vector3 m = ray.startPos - p2;
+    Math::Vector3 n = p1 - p2;
+    float md = m.Dot(d);
+    float nd = n.Dot(d);
+    float dd = d.Dot(d);
+
+    if (md < 0.0f && md + nd < 0.0f) return false; 
     
+    float nn = n.Dot(n);
+    float mn = m.Dot(n);
+    float a = dd * nn - nd * nd;
+    float k = m.Dot(m) - radius * radius;
+    float c = dd * k - md * md;
+
+    if (std::abs(a) < 0.0001f) {
+        if (c > 0.0f) return false;
+        if (md < 0.0f) {
+            float t = -mn / nn;
+            if (t >= 0.0f && t <= 1.0f) {
+            }
+        }
+    }
+
+    float b = dd * mn - nd * md;
+    float discr = b * b - a * c;
+    if (discr < 0.0f) return false;
+
+    float t = (-b - std::sqrt(discr)) / a;
+    if (t < 0.0f || t > ray.range) return false;
+
+    float y = mn + t * nd;
+    if (y > 0.0f && y < nn) {
+        out.isHit = true;
+        out.distance = t;
+        out.hitPos = ray.startPos + d * t;
+        out.hitNormal = out.hitPos - (p2 + n * (y / nn));
+        out.hitNormal.Normalize();
+        return true;
+    }
+
+    float t1 = -1.0f, t2 = -1.0f;
+    float c1 = m.Dot(m) - radius * radius;
+    float b1 = m.Dot(d);
+    float discr1 = b1 * b1 - c1;
+    if (discr1 >= 0.0f) t1 = -b1 - std::sqrt(discr1);
+
+    Math::Vector3 m2 = ray.startPos - p1;
+    float c2 = m2.Dot(m2) - radius * radius;
+    float b2 = m2.Dot(d);
+    float discr2 = b2 * b2 - c2;
+    if (discr2 >= 0.0f) t2 = -b2 - std::sqrt(discr2);
+
+    float best_t = -1.0f;
+    Math::Vector3 best_center;
+
+    if (t1 >= 0.0f && t1 <= ray.range) { best_t = t1; best_center = p2; }
+    if (t2 >= 0.0f && t2 <= ray.range) {
+        if (best_t < 0.0f || t2 < best_t) { best_t = t2; best_center = p1; }
+    }
+
+    if (best_t >= 0.0f) {
+        out.isHit = true;
+        out.distance = best_t;
+        out.hitPos = ray.startPos + d * best_t;
+        out.hitNormal = out.hitPos - best_center;
+        out.hitNormal.Normalize();
+        return true;
+    }
+
     return false;
 }
 
@@ -369,17 +452,8 @@ void CollisionShapeSphere::DrawDebug(const Math::Matrix& worldMatrix, uint32_t c
 
 
 void CollisionShapeCapsule::DrawDebug(const Math::Matrix& worldMatrix, uint32_t color) {
-    Math::Vector3 localOffsetStr = Math::Vector3(0, height * 0.5f, 0);
-    Math::Vector3 p1 = Math::Vector3::Transform(m_offset + localOffsetStr, worldMatrix);
-    Math::Vector3 p2 = Math::Vector3::Transform(m_offset - localOffsetStr, worldMatrix);
-    Math::Vector3 up = p1 - p2;
-    if(up.LengthSquared() < 0.001f) up = Math::Vector3(0, 1, 0);
-    else up.Normalize();
-    Math::Vector3 right = Math::Vector3::TransformNormal(Math::Vector3(1,0,0), worldMatrix);
-    if(abs(right.Dot(up)) > 0.99f) right = Math::Vector3(0,0,1);
-    right = right - up * right.Dot(up);
-    right.Normalize();
-    Math::Vector3 forward = up.Cross(right);
+    Math::Vector3 p1, p2, up, right, forward;
+    GetGeometry(worldMatrix, p1, p2, up, right, forward);
     
     auto& cm = CollisionManager::Instance();
     const int segments = 16;

@@ -297,6 +297,9 @@
     <ClCompile Include="Source\Framework\Manager\GameManager.cpp">
       <Filter>Source\Framework\Manager</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Framework\ECS\ComponentSerializerRegistration.cpp">
+      <Filter>Source\Framework\ECS</Filter>
+    </ClCompile>
     <ClCompile Include="Source\Framework\Object\GameObject.cpp">
       <Filter>Source\Framework\Object</Filter>
     </ClCompile>
@@ -451,6 +454,12 @@
       <Filter>Source\Framework\ECS\Components\Data</Filter>
     </ClInclude>
     <ClInclude Include="Source\Framework\ECS\ECS.h">
+      <Filter>Source\Framework\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\ECS\ComponentSerializerRegistry.h">
+      <Filter>Source\Framework\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\ECS\ComponentSerializerRegistration.h">
       <Filter>Source\Framework\ECS</Filter>
     </ClInclude>
     <ClInclude Include="Source\Framework\ECS\ECSCoordinator.h">
@@ -622,6 +631,9 @@
     <ClCompile Include="Source\Framework\Manager\Collision\CollisionSolver.cpp">
       <Filter>Source\Framework\Manager\Collision</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Framework\Manager\Collision\Octree.cpp">
+      <Filter>Source\Framework\Manager\Collision</Filter>
+    </ClCompile>
     <ClCompile Include="Source\Framework\Manager\Audio\AudioManager.cpp">
       <Filter>Source\Framework\Manager\Audio</Filter>
     </ClCompile>
@@ -664,6 +676,9 @@
       <Filter>Source\Framework\Manager\Collision</Filter>
     </ClInclude>
     <ClInclude Include="Source\Framework\Manager\Collision\CollisionSolver.h">
+      <Filter>Source\Framework\Manager\Collision</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\Manager\Collision\Octree.h">
       <Filter>Source\Framework\Manager\Collision</Filter>
     </ClInclude>
     <ClInclude Include="Source\Framework\Manager\Audio\AudioManager.h">
