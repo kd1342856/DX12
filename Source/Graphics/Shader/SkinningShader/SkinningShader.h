@@ -13,13 +13,11 @@ public:
 	// or we can use m_upShadowPipeline in a separate BeginShadow() if we don't separate it yet.
 	// For now, let's keep BeginShadow/DrawShadowModel using ModelRenderer too if possible.
 	void BeginShadow(RenderContext& context);
-	void DrawShadowModel(const ModelData& modelData, const DrawContext& context);
 
 private:
 	void SetMaterial(const Material& material);
 
-	std::unique_ptr<Pipeline> m_upShadowPipeline;
-	int m_cbvCount = 0;
+	ID3D12PipelineState* m_pShadowPipelineState = nullptr;
 	
 	// Temporary state during DrawModel
 	const DrawContext* m_pCurrentDrawContext = nullptr;

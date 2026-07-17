@@ -1,37 +1,21 @@
 #include "../../../Pch.h"
 #include "../../../Framework/DirectX/Utility/Profiler.h"
 #include "PostProcessShader.h"
-#include "../../Buffer/RenderTarget/RenderTarget.h"
-#include "../ShaderCompiler/ShaderCompiler.h"
+#include "../../GPUResource/RenderTarget/RenderTarget.h"
+
 
 void PostProcessShader::Create(GraphicsDevice* pGraphicsDevice)
 {
 	m_pDevice = pGraphicsDevice;
 
-	auto vsBlob = ShaderCompiler::CompileVS(L"Asset/Shader/PostProcessShader/PostProcessShader_VS.hlsl", "VS");
-	auto psBlob = ShaderCompiler::CompilePS(L"Asset/Shader/PostProcessShader/PostProcessShader_PS.hlsl", "PS");
-
-	std::vector<DescriptorRange> ranges = {
-		{ RangeType::CBV, 0, 1, 0 },
-		{ RangeType::SRV, 0, 1, 0 }
-	};
-
-	m_rootSignature = std::make_unique<RootSignature>();
-	m_rootSignature->Create(pGraphicsDevice, ranges);
+	m_pProgram = ShaderManager::Instance().LoadShader(L"Asset/Shader/PostProcessShader/PostProcessShader_VS.hlsl", L"Asset/Shader/PostProcessShader/PostProcessShader_PS.hlsl");
 
 	PipelineDesc desc;
-	desc.pBlobs = { vsBlob.Get(), nullptr, nullptr, nullptr, psBlob.Get() };
-	desc.InputLayouts = {}; // Empty for full screen quad usually
+	desc.InputLayouts = {};
 	desc.Formats = { DXGI_FORMAT_R8G8B8A8_UNORM };
-	desc.IsDepth = false;
-	desc.IsDepthMask = false;
-	desc.CullMode = CullMode::None;
-	desc.BlendMode = BlendMode::None;
-	desc.pRootSignature = m_rootSignature.get();
-	desc.TopologyType = PrimitiveTopologyType::Triangle;
-
-	m_pipeline = std::make_unique<Pipeline>();
-	m_pipeline->Create(pGraphicsDevice, desc);
+	
+	m_topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+	m_pPipelineState = ShaderManager::Instance().GetPipelineState(m_pProgram, desc);
 }
 
 void PostProcessShader::Draw(RenderTarget* pRenderTarget, float exposure)
@@ -46,7 +30,7 @@ void PostProcessShader::Draw(RenderTarget* pRenderTarget, float exposure)
 	// Viewport is bound externally, but PostProcess traditionally forced it.
 	// Now we expect Renderer to have bound viewport for the target RT.
 
-	auto srvHeap = GraphicsDevice::Instance().GetCBVSRVUAVHeap();
+	auto srvHeap = GraphicsDevice::Instance().GetDescriptorHeapManager()->GetCBVSRVUAVAllocator();
 	m_pDevice->GetCmdList()->SetGraphicsRootDescriptorTable(1, srvHeap->GetGPUHandle(pRenderTarget->GetSRVIndex()));
 
 	Profiler::Instance().AddDrawCall("PostProcess", 1);

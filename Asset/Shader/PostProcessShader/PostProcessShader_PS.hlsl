@@ -11,7 +11,7 @@ float3 ACESFilmicToneMapping(float3 x)
     return saturate((x * (a * x + b)) / (x * (c * x + d) + e));
 }
 
-float4 PS(PSInput In) : SV_Target0
+float4 main(PSInput In) : SV_Target0
 {
     float4 texColor = g_tex.Sample(g_ss, In.UV);
     texColor.rgb = ACESFilmicToneMapping(texColor.rgb * g_Exposure);

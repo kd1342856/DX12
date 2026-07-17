@@ -1,5 +1,7 @@
 #pragma once
 #include "MeshData/MeshData.h"
+#include "../../GPUResource/Buffer/VertexBuffer.h"
+#include "../../GPUResource/Buffer/IndexBuffer.h"
 
 class Texture;
 
@@ -7,21 +9,7 @@ struct MeshFace
 {
 	UINT Idx[3];
 };
-struct Material
-{
-	std::string Name;
-	std::shared_ptr<Texture>	spBaseColorTex;
-	Math::Vector4 BaseColor = { 1,1,1,1 };
-
-	std::shared_ptr<Texture> spMetallicRoughnessTex;
-	float Metallic = 0.0f;
-	float Roughness = 1.0f;
-
-	std::shared_ptr<Texture> spEmissiveTex;
-	Math::Vector3 Emissive = { 0,0,0 };
-
-	std::shared_ptr<Texture> spNormalTex;
-};
+#include "../../GPUResource/Material/Material.h"
 
 class Mesh
 {
@@ -42,10 +30,8 @@ private:
 	std::vector<MeshVertex> m_vertices;
 	std::vector<MeshFace> m_faces;
 
-	Microsoft::WRL::ComPtr<ID3D12Resource>		m_pVBuffer = nullptr;
-	Microsoft::WRL::ComPtr<ID3D12Resource>		m_pIBuffer = nullptr;
-	D3D12_VERTEX_BUFFER_VIEW	m_vbView;
-	D3D12_INDEX_BUFFER_VIEW		m_ibView;
+	VertexBuffer m_vertexBuffer;
+	IndexBuffer m_indexBuffer;
 
 	UINT m_instanceCount;
 	Material m_material;

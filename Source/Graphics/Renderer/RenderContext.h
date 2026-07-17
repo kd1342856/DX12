@@ -1,5 +1,5 @@
 #pragma once
-#include "../Buffer/CBufferAllocator/CBufferData/CBufferData.h"
+#include "../GPUResource/CBufferData/CBufferData.h"
 
 struct RenderContext
 {

@@ -1,6 +1,6 @@
 #include "../../Pch.h"
 #include "Renderer.h"
-#include "../Buffer/RenderTarget/RenderTarget.h"
+#include "../GPUResource/RenderTarget/RenderTarget.h"
 #include "../../Graphics/Device/GraphicsDevice.h"
 
 static RenderContext s_renderContext;

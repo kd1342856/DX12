@@ -1,4 +1,4 @@
-#include "../inc_ShaderCore.hlsli"
+#include "ShaderCore.hlsli"
 #include "inc_PBRCommon.hlsli"
 
 // 16?T???v?? Poisson Disk

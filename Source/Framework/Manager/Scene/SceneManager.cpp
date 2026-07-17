@@ -29,7 +29,7 @@ void SceneManager::Update()
 
             // GPUgp?\[XS???A
             // V[?fXgN^?„‘oOGPU?
-            GraphicsDevice::Instance().WaitForCommandQueue();
+            GraphicsDevice::Instance().GetQueueManager()->GetGraphicsQueue()->Flush();
 
             CollisionManager::Instance().SetScene(nullptr);
             m_currentScene = nullptr;
@@ -85,7 +85,7 @@ void SceneManager::DrawFade()
     auto texSize = DirectX::XMUINT2(1, 1);
 
     pSpriteBatch->Draw(
-        pGraphicsDevice->GetCBVSRVUAVHeap()->GetGPUHandle(m_pFadeTexture->GetSRVNumber()),
+        pGraphicsDevice->GetDescriptorHeapManager()->GetCBVSRVUAVAllocator()->GetGPUHandle(m_pFadeTexture->GetSRVNumber()),
         texSize,
         pos,
         nullptr,
@@ -122,3 +122,4 @@ void SceneManager::SetCurrentSceneWithoutFade(std::unique_ptr<SceneBase> scene)
 {
     m_currentScene = std::move(scene);
 }
+

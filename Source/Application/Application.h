@@ -1,5 +1,5 @@
 #pragma once
-#include "../Framework/DirectX/Window/Window.h"
+#include "../../Source/Framework/Window/Window.h"
 
 class Application
 {

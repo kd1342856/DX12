@@ -1,10 +1,10 @@
-#include "../../../Pch.h"
+﻿#include "../../../Pch.h"
 #include "../../Manager/Scene/Scene.h"
 #include "../../Manager/Scene/SceneManager.h"
 #include "../../Manager/Collision/CollisionManager.h"
 #include "../../DirectX/Utility/Profiler.h"
 #include "../../System/JobSystem/JobSystem.h"
-#include "../../../Graphics/Buffer/RenderTarget/RenderTarget.h"
+#include "../../../Graphics/GPUResource/RenderTarget/RenderTarget.h"
 #include "../../DirectX/Utility/Input.h"
 
 // Resolve the GetCurrentScene issue

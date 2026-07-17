@@ -5,7 +5,7 @@
 //================================
 
 // 頂点シェーダ
-VSOutput VS(  float4 pos : POSITION,  // 頂点座標
+VSOutput main(  float3 pos : POSITION,  // 頂点座標
                 float2 uv : TEXCOORD0,  // テクスチャUV座標
                 float3 normal : NORMAL,  // 法線ベクトル
                 float4 color : COLOR,    // 頂点カラー
@@ -17,8 +17,8 @@ VSOutput VS(  float4 pos : POSITION,  // 頂点座標
     // 変換
     float4x4 mVP = mul(g_mV, g_mP);
     float4x4 mWVP = mul(g_mW, mVP);
-    Out.Pos = mul(pos, mWVP);       // ローカル座標 -> 投影座標へ一括変換
-    Out.wPos = mul(pos, g_mW).xyz;
+    Out.Pos = mul(float4(pos, 1.0f), mWVP);       // ローカル座標 -> 投影座標へ一括変換
+    Out.wPos = mul(float4(pos, 1.0f), g_mW).xyz;
 
     // 法線
     float3 t = mul(tangent, (float3x3)g_mW);

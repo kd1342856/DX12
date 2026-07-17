@@ -1,4 +1,6 @@
 #include "../../../Pch.h"
+#include "../Asset/MeshManager.h"
+#include "../../../Graphics/Geometry/Mesh/Mesh.h"
 #include "CollisionShape.h"
 #include "../Collision/CollisionManager.h"
 #include "../Scene/Scene.h"
@@ -300,7 +302,8 @@ bool CollisionShapeMesh::RayCast(const RayInfo& ray, const Math::Matrix& world, 
         DirectX::XMVECTOR sNode = DirectX::XMVector3Transform(s, DirectX::XMMatrixInverse(nullptr, mNode));
         DirectX::XMVECTOR dNode = DirectX::XMVector3TransformNormal(d, DirectX::XMMatrixInverse(nullptr, mNode));
         
-        for (const auto& mesh : node.meshes) {
+        for (const auto& meshHandle : node.meshes) {
+            auto mesh = MeshManager::Instance().Get(meshHandle);
             if (!mesh) continue;
             const auto& verts = mesh->GetVertices();
             for (const auto& face : mesh->GetFaces()) {
@@ -389,7 +392,9 @@ void CollisionShapeMesh::UpdateWorldAABB(const Math::Matrix& world) {
     Math::Matrix worldMat = Math::Matrix::CreateTranslation(m_offset) * world;
 
     for (const auto& node : m_model->GetNodes()) {
-        for (const auto& mesh : node.meshes) {
+        for (const auto& meshHandle : node.meshes) {
+            auto mesh = MeshManager::Instance().Get(meshHandle);
+            if (!mesh) continue;
             for (const auto& vert : mesh->GetVertices()) {
                 Math::Vector3 wp = Math::Vector3::Transform(vert.Position, worldMat);
                 aabbMin = Math::Vector3::Min(aabbMin, wp);

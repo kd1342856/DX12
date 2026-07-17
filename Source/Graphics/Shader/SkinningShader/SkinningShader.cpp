@@ -1,51 +1,33 @@
 #include "../../../Pch.h"
 #include "SkinningShader.h"
-#include "../ShaderCompiler/ShaderCompiler.h"
+
 #include "../../Renderer/ModelRenderer.h"
-#include "../../../Framework/DirectX/GDF/GDF.h"
+#include "../../GDF/GDF.h"
 
 void SkinningShader::Create(GraphicsDevice* pGraphicsDevice)
 {
 	m_pDevice = pGraphicsDevice;
 
-	auto vsBlob = ShaderCompiler::CompileVS(L"Asset/Shader/SkinningShader/SkinningShader_VS.hlsl", "main");
-	auto psBlob = ShaderCompiler::CompilePS(L"Asset/Shader/SkinningShader/SkinningShader_PS.hlsl", "main");
-
-	std::vector<DescriptorRange> ranges = {
-		{ RangeType::CBV, 0, 1, 0 },
-		{ RangeType::CBV, 1, 1, 0 },
-		{ RangeType::CBV, 2, 1, 0 },
-		{ RangeType::SRV, 0, 1, 0 },
-		{ RangeType::SRV, 1, 1, 0 },
-		{ RangeType::SRV, 2, 1, 0 },
-		{ RangeType::SRV, 3, 1, 0 }
-	};
-	m_cbvCount = 3; 
-
-	m_rootSignature = std::make_unique<RootSignature>();
-	m_rootSignature->Create(pGraphicsDevice, ranges);
+	m_pProgram = ShaderManager::Instance().LoadShader(L"Asset/Shader/SkinningShader/SkinningShader_VS.hlsl", L"Asset/Shader/SkinningShader/SkinningShader_PS.hlsl");
 
 	PipelineDesc desc;
-	desc.pBlobs = { vsBlob.Get(), nullptr, nullptr, nullptr, psBlob.Get() };
 	desc.InputLayouts = {
 		InputLayout::POSITION, InputLayout::TEXCOORD, InputLayout::NORMAL,
 		InputLayout::COLOR, InputLayout::TANGENT,
 		InputLayout::SKININDEX, InputLayout::SKINWEIGHT
 	};
 	desc.Formats = { DXGI_FORMAT_R8G8B8A8_UNORM };
-	desc.pRootSignature = m_rootSignature.get();
-	desc.TopologyType = PrimitiveTopologyType::Triangle;
-
-	m_pipeline = std::make_unique<Pipeline>();
-	m_pipeline->Create(pGraphicsDevice, desc);
+	
+	m_topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+	m_pPipelineState = ShaderManager::Instance().GetPipelineState(m_pProgram, desc);
 
 	PipelineDesc shadowDesc = desc;
-	shadowDesc.pBlobs = { vsBlob.Get(), nullptr, nullptr, nullptr, nullptr };
+	// Shadow pipeline (depth only)
 	shadowDesc.Formats = {};
 	shadowDesc.CullMode = CullMode::None;
-	
-	m_upShadowPipeline = std::make_unique<Pipeline>();
-	m_upShadowPipeline->Create(pGraphicsDevice, shadowDesc);
+	shadowDesc.pBlobs = { m_pProgram->pVS.Get(), nullptr, nullptr, nullptr, nullptr };
+	// RootSignature will be overriden inside GetPipelineState
+	m_pShadowPipelineState = ShaderManager::Instance().GetPipelineState(m_pProgram, shadowDesc);
 }
 
 void SkinningShader::Begin(RenderContext& context)
@@ -81,23 +63,23 @@ void SkinningShader::BeforeDrawMesh(const Mesh& mesh, const Material& material)
 
 void SkinningShader::SetMaterial(const Material& material)
 {
-	if (material.spBaseColorTex) material.spBaseColorTex->Set(m_cbvCount);
-	else GraphicsDevice::Instance().GetWhiteTex()->Set(m_cbvCount);
+	if (material.spBaseColorTex) material.spBaseColorTex->Set(4);
+	else GraphicsDevice::Instance().GetWhiteTex()->Set(4);
 
-	if (material.spNormalTex) material.spNormalTex->Set(m_cbvCount + 1);
-	else GraphicsDevice::Instance().GetNormalTex()->Set(m_cbvCount + 1);
+	if (material.spNormalTex) material.spNormalTex->Set(4 + 1);
+	else GraphicsDevice::Instance().GetNormalTex()->Set(4 + 1);
 
-	if (material.spMetallicRoughnessTex) material.spMetallicRoughnessTex->Set(m_cbvCount + 2);
-	else GraphicsDevice::Instance().GetWhiteTex()->Set(m_cbvCount + 2);
+	if (material.spMetallicRoughnessTex) material.spMetallicRoughnessTex->Set(4 + 2);
+	else GraphicsDevice::Instance().GetWhiteTex()->Set(4 + 2);
 
-	if (material.spEmissiveTex) material.spEmissiveTex->Set(m_cbvCount + 3);
-	else GraphicsDevice::Instance().GetBlackTex()->Set(m_cbvCount + 3);
+	if (material.spEmissiveTex) material.spEmissiveTex->Set(4 + 3);
+	else GraphicsDevice::Instance().GetBlackTex()->Set(4 + 3);
 }
 
 void SkinningShader::BeginShadow(RenderContext& context)
 {
-	m_pDevice->GetCmdList()->SetPipelineState(m_upShadowPipeline->GetPipeline());
-	m_pDevice->GetCmdList()->SetGraphicsRootSignature(m_rootSignature->GetRootSignature());
+	if (m_pShadowPipelineState) m_pDevice->GetCmdList()->SetPipelineState(m_pShadowPipelineState);
+	if (m_pProgram && m_pProgram->pRootSignature) m_pDevice->GetCmdList()->SetGraphicsRootSignature(m_pProgram->pRootSignature->GetRootSignature());
 	m_pDevice->GetCmdList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	D3D12_VIEWPORT viewport = {};
@@ -114,9 +96,4 @@ void SkinningShader::BeginShadow(RenderContext& context)
 	context.BindCamera(0);
 }
 
-void SkinningShader::DrawShadowModel(const ModelData& modelData, const DrawContext& context)
-{
-	// Shadow drawing using ModelRenderer but with shadow pipeline
-	// This is a temporary solution until shadow passes are unified
-	ModelRenderer::Draw(*this, modelData, context);
-}
+

@@ -76,7 +76,7 @@
 #include"Framework/DirectX/Utility/Random.h"
 
 //	GDFファサード(GraphicsDeviceの後に配置)
-#include"Framework/DirectX/GDF/GDF.h"
+#include"Graphics/GDF/GDF.h"
 
 //	ECS（Editor.hより前に定義してGameObjectを完全解決する）
 #include"Framework/ECS/ECS.h"
@@ -88,5 +88,8 @@
 
 #include "Framework/ImGuiEditor/Editor/Editor.h"
 #include "Framework/ECS/Components/Data/NativeScript.h"
+
+#include "Graphics/Graphics.h"
+
 
 

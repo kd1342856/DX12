@@ -1,5 +1,7 @@
-﻿#include "../../../Pch.h"
+#include "../../../Pch.h"
 #include "CollisionManager.h"
+#include "../Asset/MeshManager.h"
+#include "../../../Graphics/Geometry/Mesh/Mesh.h"
 #include <DirectXCollision.h>
 #include "../Scene/Scene.h"
 
@@ -299,7 +301,9 @@ RaycastHit CollisionManager::RaycastAgainstMesh(const Math::Vector3& origin, con
                 localDir.Normalize();
 
                 for (const auto& node : modelData.m_spModelData->GetNodes()) {
-                    for (const auto& mesh : node.meshes) {
+                    for (const auto& meshHandle : node.meshes) {
+                        Mesh* mesh = MeshManager::Instance().Get(meshHandle);
+                        if (!mesh) continue;
                         auto& vertices = mesh->GetVertices();
                         auto& faces = mesh->GetFaces();
 

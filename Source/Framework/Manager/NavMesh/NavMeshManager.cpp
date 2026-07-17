@@ -1,5 +1,6 @@
 #include "../../../Pch.h"
 #include "NavMeshManager.h"
+#include "../Asset/MeshManager.h"
 #include "Recast/Recast.h"
 #include "Detour/DetourNavMesh.h"
 #include "Detour/DetourNavMeshBuilder.h"
@@ -58,8 +59,11 @@ bool NavMeshManager::BuildNavMesh(std::shared_ptr<ModelData> stageModel, const M
 
     for (const auto& node : stageModel->GetNodes())
     {
-        for (const auto& mesh : node.meshes)
+        for (const auto& meshHandle : node.meshes)
         {
+            Mesh* mesh = MeshManager::Instance().Get(meshHandle);
+            if (!mesh) continue;
+
             const auto& meshVerts = mesh->GetVertices();
             const auto& meshFaces = mesh->GetFaces();
 

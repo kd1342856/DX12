@@ -1,52 +1,58 @@
 #pragma once
+#include <mutex>
 
-class RTVHeap;
-class CBVSRVUAVHeap;
-class CBufferAllocator;
-class DSVHeap;
+class DescriptorHeapManager;
+
+class FrameConstantBufferAllocator;
+
 class DepthStencil;
 class Texture;
+class ResourceUploader;
+class ResourceStateTracker;
 class RenderTarget;
-
-struct FrameContext
-{
-	Microsoft::WRL::ComPtr<ID3D12CommandAllocator> allocator;
-	UINT64 fenceValue = 0;
-};
 
 #include <GraphicsMemory.h>
 #include <SpriteBatch.h>
+#include "Frame/FrameManager.h"
+#include "Queue/QueueManager.h"
+#include "Context/ContextManager.h"
 
 class GraphicsDevice {
 public:
-	// 初期化
+	// 蛻晄悄蛹・
 	bool Init(HWND hWnd, int w, int h);
 	
-	// 描画終了
+	// 謠冗判邨ゆｺ・
 	void EndFrame();
 
-	// 描画開始
+	// 謠冗判髢句ｧ・
 	void BeginFrame();
 
-	void WaitForCommandQueue();
-
-	// レンダーターゲット設定
+	
+	// 繝ｬ繝ｳ繝繝ｼ繧ｿ繝ｼ繧ｲ繝・ヨ險ｭ螳・
 	void SetRenderTarget(RenderTarget* pRT);
 	void SetBackBuffer();
 	void ClearBackBuffer(float r, float g, float b, float a);
 
-	// ImGui描画(EndFrame前に呼ぶ)
+	// ImGui謠冗判(EndFrame蜑阪↓蜻ｼ縺ｶ)
 	void RenderImGui();
 
 	// Getter
 	ID3D12Device8* GetDevice()const						{ return m_pDevice.Get(); }
-	ID3D12GraphicsCommandList6* GetCmdList()const		{ return m_pCmdList.Get(); }
-	CBVSRVUAVHeap* GetCBVSRVUAVHeap()const { return m_upCBVSRVUAVHeap.get(); }
-	CBufferAllocator* GetCBufferAllocator()const { return m_upCBufferAllocator.get(); }
-	DepthStencil* GetDepthStencil()const { return m_upDepthStencil.get(); }
+	
+	ID3D12GraphicsCommandList6* GetCmdList() const { return m_upContextManager->GetGraphicsContext()->GetCmdList(); }
+	ContextManager* GetContextManager() const { return m_upContextManager.get(); }
+	ResourceUploader* GetResourceUploader()const { return m_upResourceUploader.get(); }
+		QueueManager* GetQueueManager() const { return m_upQueueManager.get(); }
+	FrameManager* GetFrameManager() const { return m_upFrameManager.get(); }
+	DescriptorHeapManager* GetDescriptorHeapManager()const { return m_upDescriptorHeapManager.get(); }
+	FrameConstantBufferAllocator* GetFrameConstantBufferAllocator() { return m_upFrameManager->GetCurrentFrameResource().GetConstantBufferAllocator(); }
+
+	const FrameConstantBufferAllocator* GetFrameConstantBufferAllocator() const { return m_upFrameManager->GetCurrentFrameResource().GetConstantBufferAllocator(); }
+	DepthStencil* GetDepthStencil()const { return m_upDepthStencil.get(); } 
 	DepthStencil* GetShadowMap()const { return m_upShadowMap.get(); }
-	RTVHeap* GetRTVHeap()const { return m_pRTVHeap.get(); }
-	DSVHeap* GetDSVHeap()const { return m_upDSVHeap.get(); }
+	
+	
 	Texture* GetWhiteTex()const { return m_spWhiteTex.get(); }
 	Texture* GetBlackTex()const { return m_spBlackTex.get(); }
 	Texture* GetNormalTex()const { return m_spNormalTex.get(); }
@@ -54,41 +60,24 @@ public:
 	// SpriteBatch
 	DirectX::SpriteBatch* GetSpriteBatch() const { return m_spSpriteBatch.get(); }
 
-	// 終了処理
+	// 邨ゆｺ・・逅・
 	void Shutdown();
 	void EnableDebugLayer();
 
 	ID3D12DescriptorHeap* GetImGuiSRVHeap() const { return m_upImGuiSRVHeap.Get(); }
 
-	// SpotShadowMapは未使用のため削除済み
-
-public:
+	// SpotShadowMap縺ｯ譛ｪ菴ｿ逕ｨ縺ｮ縺溘ａ蜑企勁貂医∩
 	int m_imGuiSrvCount = 1;
 
 	std::unique_ptr<DirectX::SpriteBatch> m_spSpriteBatch;
-private:
-	bool CreateFactory();
-	bool CreateDevice();
-	bool CreateCommandList();
-	UINT64 SignalQueue();
-	void WaitForFence(UINT64 value);
-	bool CreateSwapChain(HWND hWnd, int width, int height);
-	bool CreateSwapChainRTV();
-	bool CreateFence();
-	bool CreateDefaultTextures();
 
-	// SpotShadowMap: 未使用のため削除済み
-
-	// ImGui初期化
-	bool InitImGui();
-	void ShutdownImGui();
-
-public:
 	int AllocateImGuiSRV(ID3D12Resource* pBuffer);
 	int AllocateImGuiSRVIndex() { return m_imGuiSrvCount++; }
 	D3D12_GPU_DESCRIPTOR_HANDLE GetImGuiSRVGPUHandle(int index);
 
-	void SetResourceBarrier(ID3D12Resource* pResource, D3D12_RESOURCE_STATES before, D3D12_RESOURCE_STATES after);
+	int CreateSRV(ID3D12Resource* pBuffer);
+	int CreateRTV(ID3D12Resource* pBuffer);
+	int CreateDSV(ID3D12Resource* pBuffer, DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN);
 
 	enum class GPUTier
 	{
@@ -100,47 +89,59 @@ public:
 		Kind,
 	};
 
-	// デバイス
+	// 繝・ヰ繧､繧ｹ
 	Microsoft::WRL::ComPtr<ID3D12Device8>					m_pDevice = nullptr;
 	Microsoft::WRL::ComPtr<IDXGIFactory6>					m_pDxgiFactory = nullptr;
 	Microsoft::WRL::ComPtr<IDXGIAdapter3>					m_pAdapter3 = nullptr;
 
-	// コマンド
-	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList6>		m_pCmdList = nullptr;
-	Microsoft::WRL::ComPtr<ID3D12CommandQueue>				m_pCmdQueue = nullptr;
-	static constexpr int					kFrameCount = 2;
-	FrameContext							m_frames[kFrameCount];
-	UINT									m_frameIndex = 0;
-
-	// スワップチェーン
+	// 繧ｳ繝槭Φ繝・
+			
+	// 繧ｹ繝ｯ繝・・繝√ぉ繝ｼ繝ｳ
 	Microsoft::WRL::ComPtr<IDXGISwapChain4>					m_pSwapChain = nullptr;
 
 	std::array<Microsoft::WRL::ComPtr<ID3D12Resource>, 2>	m_pSwapchainBuffers;
-	std::unique_ptr<RTVHeap>				m_pRTVHeap = nullptr;
 
-	Microsoft::WRL::ComPtr<ID3D12Fence>						m_pFence = nullptr;
-	HANDLE									m_fenceEvent = nullptr;
-	UINT64									m_fenceVal = 0;
 
-	std::unique_ptr<CBVSRVUAVHeap>			m_upCBVSRVUAVHeap = nullptr;
-	std::unique_ptr<CBufferAllocator>		m_upCBufferAllocator = nullptr;
-	std::unique_ptr<DSVHeap>				m_upDSVHeap = nullptr;
+	
+	std::unique_ptr<QueueManager> m_upQueueManager = nullptr;
+	std::unique_ptr<FrameManager> m_upFrameManager = nullptr;
+	std::unique_ptr<ContextManager> m_upContextManager = nullptr;
+	std::unique_ptr<DescriptorHeapManager> m_upDescriptorHeapManager = nullptr;
+
 	std::unique_ptr<DepthStencil>			m_upDepthStencil = nullptr;
 	std::unique_ptr<DepthStencil>			m_upShadowMap = nullptr;
-	std::unique_ptr<Texture> m_spWhiteTex = nullptr;
+	std::unique_ptr<ResourceUploader> m_upResourceUploader = nullptr;
+		std::unique_ptr<Texture> m_spWhiteTex = nullptr;
 	std::unique_ptr<Texture> m_spBlackTex = nullptr;
 	std::unique_ptr<Texture> m_spNormalTex = nullptr;
 
-	// ImGui用SRV用ヒープ
+	// ImGui逕ｨSRV逕ｨ繝偵・繝・
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>			m_upImGuiSRVHeap = nullptr;
 	std::unique_ptr<DirectX::GraphicsMemory> m_graphicsMemory = nullptr;
 	float GetVRAMUsageMB();
-
 private:
-	GraphicsDevice() {}
-	~GraphicsDevice() {}
+	bool CreateFactory();
+	bool CreateDevice();
+				bool CreateSwapChain(HWND hWnd, int width, int height);
+	bool CreateSwapChainRTV();
+		bool CreateDefaultTextures();
+
+	// SpotShadowMap: 譛ｪ菴ｿ逕ｨ縺ｮ縺溘ａ蜑企勁貂医∩
+
+	// ImGui蛻晄悄蛹・
+	bool InitImGui();
+	void ShutdownImGui();
+
+	GraphicsDevice();
+	~GraphicsDevice();
 public:
 	static GraphicsDevice& Instance();
 
 };
+
+
+
+
+
+
 

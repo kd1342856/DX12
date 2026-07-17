@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf-8'?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -166,7 +166,6 @@
     <ClInclude Include="Source\Application\Scene\GameScene\GameScene.h" />
     <ClInclude Include="Source\Application\Scene\TitleScene\TitleScene.h" />
     <ClInclude Include="Source\Application\Scene\SceneBase.h" />
-    <ClInclude Include="Source\Framework\DirectX\GDF\GDF.h" />
     <ClInclude Include="Source\Framework\DirectX\Utility\ClassAssembly.h" />
     <ClInclude Include="Source\Framework\DirectX\Utility\Input.h" />
     <ClInclude Include="Source\Framework\DirectX\Utility\Logger.h" />
@@ -174,7 +173,6 @@
     <ClInclude Include="Source\Framework\DirectX\Utility\Random.h" />
     <ClInclude Include="Source\Framework\DirectX\Utility\Time.h" />
     <ClInclude Include="Source\Framework\DirectX\Utility\Utility.h" />
-    <ClInclude Include="Source\Framework\DirectX\Window\Window.h" />
     <ClInclude Include="Source\Framework\ECS\ComponentManager.h" />
     <ClInclude Include="Source\Framework\ECS\Components\Data\CameraData.h" />
     <ClInclude Include="Source\Framework\ECS\Components\Data\ModelRenderData.h" />
@@ -214,15 +212,6 @@
     <ClInclude Include="Source\Framework\Object\GameObject.h" />
     <ClInclude Include="Source\Framework\Object\Object.h" />
     <ClInclude Include="Source\Framework\System.h" />
-    <ClInclude Include="Source\Graphics\Buffer\Buffer.h" />
-    <ClInclude Include="Source\Graphics\Buffer\CBufferAllocator\CBufferAllocator.h" />
-    <ClInclude Include="Source\Graphics\Buffer\CBufferAllocator\CBufferData\CBufferData.h" />
-    <ClInclude Include="Source\Graphics\Buffer\DepthStencil\DepthStencil.h" />
-    <ClInclude Include="Source\Graphics\Buffer\Texture\Texture.h" />
-    <ClInclude Include="Source\Graphics\Descriptors\Heap\CBVSRVUAVHeap\CBVSRVUAVHeap.h" />
-    <ClInclude Include="Source\Graphics\Descriptors\Heap\DSVHeap\DSVHeap.h" />
-    <ClInclude Include="Source\Graphics\Descriptors\Heap\Heap.h" />
-    <ClInclude Include="Source\Graphics\Descriptors\Heap\RTVHeap\RTVHeap.h" />
     <ClInclude Include="Source\Graphics\Device\GraphicsDevice.h" />
     <ClInclude Include="Source\Graphics\Renderer\Renderer.h" />
     <ClInclude Include="Source\Graphics\Renderer\ModelRenderer.h" />
@@ -231,7 +220,6 @@
     <ClInclude Include="Source\Graphics\Geometry\Mesh\Mesh.h" />
     <ClInclude Include="Source\Graphics\Geometry\Mesh\MeshData\MeshData.h" />
     <ClInclude Include="Source\Graphics\Geometry\Model\Model.h" />
-    <ClInclude Include="Source\Graphics\Geometry\Model\ModelLoader.h" />
     <ClInclude Include="Source\Graphics\Graphics.h" />
     <ClInclude Include="Source\Graphics\Shader\LitShader\LitShader.h" />
     <ClInclude Include="Source\Graphics\Shader\ShadowShader\ShadowShader.h" />
@@ -239,12 +227,10 @@
     <ClInclude Include="Source\Graphics\Shader\Pipeline\Pipeline.h" />
     <ClInclude Include="Source\Graphics\Shader\PostProcessShader\PostProcessShader.h" />
     <ClInclude Include="Source\Graphics\Shader\RootSignature\RootSignature.h" />
-    <ClInclude Include="Source\Graphics\Shader\StandardShader\StandardShader.h" />
     <ClInclude Include="Source\Graphics\Shader\ShaderCompiler\ShaderCompiler.h" />
     <ClInclude Include="Source\Graphics\Shader\GraphicsShader\GraphicsShader.h" />
     <ClInclude Include="Source\Graphics\Shader\ShaderLibrary.h" />
     <ClInclude Include="Source\Pch.h" />
-    <ClInclude Include="Source\Graphics\Buffer\RenderTarget\RenderTarget.h" />
     <ClInclude Include="Source\Framework\ECS\Components\Data\AnimationData.h" />
     <ClInclude Include="Source\Framework\ECS\Components\Data\ColliderData.h" />
     <ClInclude Include="Source\Framework\ECS\Components\Data\NativeScriptData.h" />
@@ -252,6 +238,49 @@
     <ClInclude Include="Source\Framework\ECS\CompSystem\Systems\TransformSystem.h" />
     <ClInclude Include="Source\Application\Object\Script\Ghost\GhostAI.h" />
     <ClInclude Include="Source\Application\Object\Script\System\GameSequence.h" />
+    <ClInclude Include="Source\Framework\Manager\Asset\AnimationAssetManager.h" />
+    <ClInclude Include="Source\Framework\Manager\Asset\AssetData.h" />
+    <ClInclude Include="Source\Framework\Manager\Asset\AssetHandle.h" />
+    <ClInclude Include="Source\Framework\Manager\Asset\AssetImporter.h" />
+    <ClInclude Include="Source\Framework\Manager\Asset\AssetManager.h" />
+    <ClInclude Include="Source\Framework\Manager\Asset\GltfImporter.h" />
+    <ClInclude Include="Source\Framework\Manager\Asset\LoadModelOption.h" />
+    <ClInclude Include="Source\Framework\Manager\Asset\MaterialManager.h" />
+    <ClInclude Include="Source\Framework\Manager\Asset\MeshManager.h" />
+    <ClInclude Include="Source\Framework\Manager\Asset\TextureManager.h" />
+    <ClInclude Include="Source\Framework\Window\Window.h" />
+    <ClInclude Include="Source\Graphics\Descriptor\DescriptorAllocator.h" />
+    <ClInclude Include="Source\Graphics\Descriptor\DescriptorHeapManager.h" />
+    <ClInclude Include="Source\Graphics\Device\Context\CommandContext.h" />
+    <ClInclude Include="Source\Graphics\Device\Context\ContextManager.h" />
+    <ClInclude Include="Source\Graphics\Device\Context\ContextPool.h" />
+    <ClInclude Include="Source\Graphics\Device\Context\GraphicsCommandContext.h" />
+    <ClInclude Include="Source\Graphics\Device\Context\ScopedCommandContext.h" />
+    <ClInclude Include="Source\Graphics\Device\Context\UploadCommandContext.h" />
+    <ClInclude Include="Source\Graphics\Device\Frame\FrameManager.h" />
+    <ClInclude Include="Source\Graphics\Device\Queue\CommandQueue.h" />
+    <ClInclude Include="Source\Graphics\Device\Queue\QueueManager.h" />
+    <ClInclude Include="Source\Graphics\Device\FrameResource.h" />
+    <ClInclude Include="Source\Graphics\Device\ResourceStateTracker.h" />
+    <ClInclude Include="Source\Graphics\Device\ResourceUploader.h" />
+    <ClInclude Include="Source\Graphics\GDF\GDF.h" />
+    <ClInclude Include="Source\Graphics\GPUResource\Buffer\ConstantBuffer.h" />
+    <ClInclude Include="Source\Graphics\GPUResource\Buffer\GPUBuffer.h" />
+    <ClInclude Include="Source\Graphics\GPUResource\Buffer\IndexBuffer.h" />
+    <ClInclude Include="Source\Graphics\GPUResource\Buffer\VertexBuffer.h" />
+    <ClInclude Include="Source\Graphics\GPUResource\CBufferData\CBufferData.h" />
+    <ClInclude Include="Source\Graphics\GPUResource\DepthStencil\DepthStencil.h" />
+    <ClInclude Include="Source\Graphics\GPUResource\FrameConstantBufferAllocator\FrameConstantBufferAllocator.h" />
+    <ClInclude Include="Source\Graphics\GPUResource\Material\Material.h" />
+    <ClInclude Include="Source\Graphics\GPUResource\RenderTarget\RenderTarget.h" />
+    <ClInclude Include="Source\Graphics\GPUResource\Texture\Texture.h" />
+    <ClInclude Include="Source\Graphics\GPUResource\GPUResource.h" />
+    <ClInclude Include="Source\Graphics\GPUUploadQueue\GPUUploadQueue.h" />
+    <ClInclude Include="Source\Graphics\Renderer\RenderItem.h" />
+    <ClInclude Include="Source\Graphics\Renderer\RenderManager.h" />
+    <ClInclude Include="Source\Graphics\Renderer\RenderQueue.h" />
+    <ClInclude Include="Source\Graphics\Shader\ShaderManager\ShaderManager.h" />
+    <ClInclude Include="Source\Graphics\Shader\ShaderReflection\ShaderReflection.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Library\ImGui\imgui.cpp" />
@@ -267,14 +296,12 @@
     <ClCompile Include="Source\Application\Application.cpp" />
     <ClCompile Include="Source\Application\Scene\GameScene\GameScene.cpp" />
     <ClCompile Include="Source\Application\Scene\TitleScene\TitleScene.cpp" />
-    <ClCompile Include="Source\Framework\DirectX\GDF\GDF.cpp" />
     <ClCompile Include="Source\Framework\DirectX\Utility\ClassAssembly.cpp" />
     <ClCompile Include="Source\Framework\DirectX\Utility\Input.cpp" />
     <ClCompile Include="Source\Framework\DirectX\Utility\Logger.cpp" />
     <ClCompile Include="Source\Framework\DirectX\Utility\Profiler.cpp" />
     <ClCompile Include="Source\Framework\DirectX\Utility\Time.cpp" />
     <ClCompile Include="Source\Framework\DirectX\Utility\Utility.cpp" />
-    <ClCompile Include="Source\Framework\DirectX\Window\Window.cpp" />
     <ClCompile Include="Source\Framework\ImGuiEditor\Editor\Editor.cpp" />
     <ClCompile Include="Source\Framework\ImGuiEditor\Editor\HierarchyWindow.cpp" />
     <ClCompile Include="Source\Framework\ImGuiEditor\Editor\InspectorWindow.cpp" />
@@ -299,26 +326,18 @@
     <ClCompile Include="Source\Framework\ECS\CompSystem\SpriteRenderSystem\SpriteRenderSystem.cpp" />
     <ClCompile Include="Source\Framework\ECS\ECSCommandBuffer.cpp" />
     <ClCompile Include="Source\Framework\Object\GameObject.cpp" />
-    <ClCompile Include="Source\Graphics\Buffer\CBufferAllocator\CBufferAllocator.cpp" />
-    <ClCompile Include="Source\Graphics\Buffer\DepthStencil\DepthStencil.cpp" />
-    <ClCompile Include="Source\Graphics\Buffer\Texture\Texture.cpp" />
-    <ClCompile Include="Source\Graphics\Descriptors\Heap\CBVSRVUAVHeap\CBVSRVUAVHeap.cpp" />
-    <ClCompile Include="Source\Graphics\Descriptors\Heap\DSVHeap\DSVHeap.cpp" />
-    <ClCompile Include="Source\Graphics\Descriptors\Heap\RTVHeap\RTVHeap.cpp" />
     <ClCompile Include="Source\Graphics\Device\GraphicsDevice.cpp" />
     <ClCompile Include="Source\Graphics\Renderer\Renderer.cpp" />
     <ClCompile Include="Source\Graphics\Renderer\ModelRenderer.cpp" />
     <ClCompile Include="Source\Graphics\Renderer\RenderContext.cpp" />
     <ClCompile Include="Source\Graphics\Geometry\Mesh\Mesh.cpp" />
     <ClCompile Include="Source\Graphics\Geometry\Model\Model.cpp" />
-    <ClCompile Include="Source\Graphics\Geometry\Model\ModelLoader.cpp" />
     <ClCompile Include="Source\Graphics\Shader\LitShader\LitShader.cpp" />
     <ClCompile Include="Source\Graphics\Shader\ShadowShader\ShadowShader.cpp" />
     <ClCompile Include="Source\Graphics\Shader\SkinningShader\SkinningShader.cpp" />
     <ClCompile Include="Source\Graphics\Shader\Pipeline\Pipeline.cpp" />
     <ClCompile Include="Source\Graphics\Shader\PostProcessShader\PostProcessShader.cpp" />
     <ClCompile Include="Source\Graphics\Shader\RootSignature\RootSignature.cpp" />
-    <ClCompile Include="Source\Graphics\Shader\StandardShader\StandardShader.cpp" />
     <ClCompile Include="Source\Graphics\Shader\ShaderCompiler\ShaderCompiler.cpp" />
     <ClCompile Include="Source\Pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -326,10 +345,42 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Source\Graphics\Buffer\RenderTarget\RenderTarget.cpp" />
     <ClCompile Include="Source\Application\Object\Script\Ghost\GhostAI.cpp" />
     <ClCompile Include="Source\Application\Object\Script\System\GameSequence.cpp" />
-  <ClCompile Include="Source\Framework\ImGuiEditor\Editor\GameViewWindow.cpp" /></ItemGroup>
+    <ClCompile Include="Source\Framework\ImGuiEditor\Editor\GameViewWindow.cpp" />
+    <ClCompile Include="Source\Framework\Manager\Asset\AnimationAssetManager.cpp" />
+    <ClCompile Include="Source\Framework\Manager\Asset\AssetManager.cpp" />
+    <ClCompile Include="Source\Framework\Manager\Asset\GltfImporter.cpp" />
+    <ClCompile Include="Source\Framework\Manager\Asset\MaterialManager.cpp" />
+    <ClCompile Include="Source\Framework\Manager\Asset\MeshManager.cpp" />
+    <ClCompile Include="Source\Framework\Manager\Asset\TextureManager.cpp" />
+    <ClCompile Include="Source\Framework\Window\Window.cpp" />
+    <ClCompile Include="Source\Graphics\Descriptor\DescriptorAllocator.cpp" />
+    <ClCompile Include="Source\Graphics\Descriptor\DescriptorHeapManager.cpp" />
+    <ClCompile Include="Source\Graphics\Device\Context\ContextManager.cpp" />
+    <ClCompile Include="Source\Graphics\Device\Context\GraphicsCommandContext.cpp" />
+    <ClCompile Include="Source\Graphics\Device\Context\UploadCommandContext.cpp" />
+    <ClCompile Include="Source\Graphics\Device\Frame\FrameManager.cpp" />
+    <ClCompile Include="Source\Graphics\Device\Queue\CommandQueue.cpp" />
+    <ClCompile Include="Source\Graphics\Device\Queue\QueueManager.cpp" />
+    <ClCompile Include="Source\Graphics\Device\FrameResource.cpp" />
+    <ClCompile Include="Source\Graphics\Device\ResourceStateTracker.cpp" />
+    <ClCompile Include="Source\Graphics\Device\ResourceUploader.cpp" />
+    <ClCompile Include="Source\Graphics\GDF\GDF.cpp" />
+    <ClCompile Include="Source\Graphics\GPUResource\Buffer\ConstantBuffer.cpp" />
+    <ClCompile Include="Source\Graphics\GPUResource\Buffer\IndexBuffer.cpp" />
+    <ClCompile Include="Source\Graphics\GPUResource\Buffer\VertexBuffer.cpp" />
+    <ClCompile Include="Source\Graphics\GPUResource\DepthStencil\DepthStencil.cpp" />
+    <ClCompile Include="Source\Graphics\GPUResource\FrameConstantBufferAllocator\FrameConstantBufferAllocator.cpp" />
+    <ClCompile Include="Source\Graphics\GPUResource\Material\Material.cpp" />
+    <ClCompile Include="Source\Graphics\GPUResource\RenderTarget\RenderTarget.cpp" />
+    <ClCompile Include="Source\Graphics\GPUResource\Texture\Texture.cpp" />
+    <ClCompile Include="Source\Graphics\GPUUploadQueue\GPUUploadQueue.cpp" />
+    <ClCompile Include="Source\Graphics\Renderer\RenderManager.cpp" />
+    <ClCompile Include="Source\Graphics\Renderer\RenderQueue.cpp" />
+    <ClCompile Include="Source\Graphics\Shader\ShaderManager\ShaderManager.cpp" />
+    <ClCompile Include="Source\Graphics\Shader\ShaderReflection\ShaderReflection.cpp" />
+  </ItemGroup>
   <ItemGroup>
     <None Include="Asset\Shader\inc_ShaderCore.hlsli" />
     <None Include="Asset\Shader\LitShader\inc_PBRCommon.hlsli" />
@@ -337,7 +388,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    </ItemGroup>
+  </ItemGroup>
   <ItemGroup>
     <None Include="Asset\Shader\LitShader\LitShader.hlsli" />
     <None Include="Asset\Shader\LitShader\LitShader_VS.hlsl">

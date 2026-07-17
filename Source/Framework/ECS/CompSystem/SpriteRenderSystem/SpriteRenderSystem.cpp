@@ -34,7 +34,7 @@ void SpriteRenderSystem::Render() {
         }
 
         // Skip if texture is not ready
-        if (!cSprite.m_spTexture || !cSprite.m_spTexture->m_pBuffer) {
+        if (!cSprite.m_spTexture || !cSprite.m_spTexture->m_resource) {
             continue;
         }
 
@@ -44,7 +44,7 @@ void SpriteRenderSystem::Render() {
         
         float rotZ = 0.0f; 
 
-        auto desc = cSprite.m_spTexture->m_pBuffer->GetDesc();
+        auto desc = cSprite.m_spTexture->m_resource->GetDesc();
         DirectX::XMUINT2 texSize((uint32_t)desc.Width, (uint32_t)desc.Height);
 
         // Calculate pivot (origin)
@@ -63,7 +63,7 @@ void SpriteRenderSystem::Render() {
         DirectX::XMFLOAT2 screenPos(pos.x, pos.y);
 
         pSpriteBatch->Draw(
-            pGraphicsDevice->GetCBVSRVUAVHeap()->GetGPUHandle(cSprite.m_spTexture->m_srvNumber), // Texture2D
+            pGraphicsDevice->GetDescriptorHeapManager()->GetCBVSRVUAVAllocator()->GetGPUHandle(cSprite.m_spTexture->m_srvNumber), // Texture2D
             texSize, // Get size
             screenPos, // Position
             nullptr, // Source Rect (null = full image)

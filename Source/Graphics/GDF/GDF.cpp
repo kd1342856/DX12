@@ -11,11 +11,11 @@ bool GDF::Init(HWND hwnd, int width, int height)
 void GDF::BeginFrame()
 {
 	GraphicsDevice::Instance().BeginFrame();
-	GraphicsDevice::Instance().GetCBVSRVUAVHeap()->SetHeap();
+	
 
 	// Input状態を毎フレーム更新
 	Input::Instance().Update();
-	GraphicsDevice::Instance().GetCBufferAllocator()->ResetCurrentUseNumber();
+	GraphicsDevice::Instance().GetFrameConstantBufferAllocator()->Reset();
 
 	// ImGuiフレーム開始
 	ImGui_ImplDX12_NewFrame();
@@ -71,3 +71,4 @@ GDF& GDF::Instance()
     static GDF instance;
     return instance;
 }
+

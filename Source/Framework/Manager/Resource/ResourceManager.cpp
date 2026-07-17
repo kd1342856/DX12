@@ -1,5 +1,5 @@
 #include "../../../Pch.h"
-#include "../../../Graphics/Geometry/Model/ModelLoader.h"
+#include "../Asset/AssetManager.h"
 
 std::shared_ptr<ModelData> ResourceManager::LoadModelAsync(const std::string& filepath) {
     std::lock_guard<std::mutex> lock(m_mutex);
@@ -16,8 +16,8 @@ std::shared_ptr<ModelData> ResourceManager::LoadModelAsync(const std::string& fi
 
     // Queue the load job
     JobSystem::Instance().Execute([filepath, pModelData]() {
-        Modeloader loader;
-        if (!loader.Load(filepath, pModelData.get())) {
+        LoadModelOption option;
+        if (!AssetManager::Instance().LoadModel(filepath, option, pModelData.get())) {
             Logger::Instance().AddLog(Logger::LogLevel::Error, "Failed to async load model: " + filepath);
         } else {
             pModelData->SetLoaded(true);

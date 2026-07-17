@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <wrl.h>
+#include <dxcapi.h>
 #include <d3d12.h>
 #include "../RootSignature/RootSignature.h"
 #include "../../../Graphics/Device/GraphicsDevice.h"
@@ -21,7 +22,7 @@ enum class PrimitiveTopologyType {
 };
 
 struct PipelineDesc {
-	std::vector<ID3DBlob*> pBlobs;
+	std::vector<IDxcBlob*> pBlobs;
 	std::vector<DXGI_FORMAT> Formats;
 	std::vector<InputLayout> InputLayouts;
 	RootSignature* pRootSignature = nullptr;

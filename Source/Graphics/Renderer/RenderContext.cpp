@@ -1,6 +1,6 @@
 #include "../../Pch.h"
 #include "RenderContext.h"
-#include "../../Framework/DirectX/GDF/GDF.h"
+#include "../GDF/GDF.h"
 
 void RenderContext::BindCamera(int slot)
 {

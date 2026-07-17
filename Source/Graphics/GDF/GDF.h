@@ -51,6 +51,6 @@ public:
 template<typename T>
 inline void GDF::BindCBuffer(int slot, const T& data)
 {
-	GraphicsDevice::Instance().GetCBufferAllocator()->BindAndAttachData(slot, data);
+	GraphicsDevice::Instance().GetFrameConstantBufferAllocator()->BindAndAttachData(slot, data);
 }
 

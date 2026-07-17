@@ -5,7 +5,7 @@
 //-------------------------------
 
 // ピクセルシェーダ
-PSOutput PS(VSOutput In) : SV_Target0
+PSOutput main(VSOutput In) : SV_Target0
 {
     PSOutput Out = (PSOutput) 0; //
     

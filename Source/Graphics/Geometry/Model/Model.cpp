@@ -1,12 +1,14 @@
 #include "../../../Pch.h"
-#include "ModelLoader.h"
+
 #include <assimp/scene.h>
+#include "../../../Framework/Manager/Asset/AssetManager.h"
+#include "../../../Framework/Manager/Asset/LoadModelOption.h"
 
 
 bool ModelData::Load(const std::string& filepath)
 {
-	Modeloader modelLoader;
-	if (!modelLoader.Load(filepath, this))
+	LoadModelOption option;
+	if (!AssetManager::Instance().LoadModel(filepath, option, this))
 	{
 		assert(0 && "ƒ‚ƒfƒ‹‚Ìƒ[ƒh‚É¸”s‚µ‚Ü‚µ‚½");
 		return false;

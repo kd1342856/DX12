@@ -1,81 +1,50 @@
 #include "../../Pch.h"
-#include "../Buffer/RenderTarget/RenderTarget.h"
+#include "ResourceUploader.h"
+#include "../GPUResource/RenderTarget/RenderTarget.h"
 #include "../../Framework/DirectX/Utility/Profiler.h"
-
+#include "GraphicsDevice.h"
+#include "../Shader/ShaderCompiler/ShaderCompiler.h"
+#include "../Shader/ShaderManager/ShaderManager.h"
 GraphicsDevice& GraphicsDevice::Instance()
 {
 	static GraphicsDevice instance;
 	return instance;
 }
-
 bool GraphicsDevice::Init(HWND  hWnd, int w, int h)
 {
-	if (!CreateFactory())
-	{
-		return false;
-	}
+	if (!CreateFactory()) return false;
 #ifdef _DEBUG
 	EnableDebugLayer();
 #endif
-	if (!CreateDevice())
-	{
-		return false;
-	}
-	if (!CreateCommandList())
-	{
-		return false;
-	}
-	if (!CreateSwapChain(hWnd, w, h))
-	{
-		return false;
-	}
-	m_pRTVHeap = std::make_unique<RTVHeap>();
-	if (!m_pRTVHeap->Create(this, HeapType::RTV, 100))
-	{
-		return false;
-	}
-	m_upCBVSRVUAVHeap	= std::make_unique<CBVSRVUAVHeap>();
-	if (!m_upCBVSRVUAVHeap->Create(this, HeapType::CBVSRVUAV, Math::Vector3(10000, 10000, 10000)))
-	{
-		return false;
-	}
+	if (!CreateDevice()) return false;
 
-	m_upCBufferAllocator = std::make_unique<CBufferAllocator>();
-	m_upCBufferAllocator->Create(this, m_upCBVSRVUAVHeap.get());
+	m_upQueueManager = std::make_unique<QueueManager>();
+	if (!m_upQueueManager->Init(m_pDevice.Get())) return false;
 
-	m_upDSVHeap = std::make_unique<DSVHeap>();
-	if (!m_upDSVHeap->Create(this, HeapType::DSV, 100))
-	{
-		return false;
-	}
+	m_upContextManager = std::make_unique<ContextManager>();
+	if (!m_upContextManager->Init(m_pDevice.Get())) return false;
+
+	m_upDescriptorHeapManager = std::make_unique<DescriptorHeapManager>();
+	if (!m_upDescriptorHeapManager->Init(m_pDevice.Get(), 100, 100, 30000, 100)) return false;
+
+	m_upFrameManager = std::make_unique<FrameManager>();
+	if (!m_upFrameManager->Init(this)) return false;
+
+	
+	m_upResourceUploader = std::make_unique<ResourceUploader>();
+	m_upResourceUploader->Init(this);
+
+	if (!CreateSwapChain(hWnd, w, h)) return false;
+
 	m_upDepthStencil = std::make_unique<DepthStencil>();
-	if(!m_upDepthStencil->Create(this, Math::Vector2(static_cast<float>(w), static_cast<float>(h))))
-	{
-		return false;
-	}
+	if (!m_upDepthStencil->Create(this, Math::Vector2(static_cast<float>(w), static_cast<float>(h)))) return false;
 
 	m_upShadowMap = std::make_unique<DepthStencil>();
-	if(!m_upShadowMap->Create(this, Math::Vector2(4096.0f, 4096.0f), DepthStencilFormat::DepthHighQuality, true))
-	{
-		return false;
-	}
-	// SpotShadowMap�͖��g�p�̂��ߍ폜
+	if(!m_upShadowMap->Create(this, Math::Vector2(4096.0f, 4096.0f), DepthStencilFormat::DepthHighQuality, true)) return false;
 
-	if (!CreateSwapChainRTV())
-	{
-		return false;
-	}
-	if (!CreateFence())
-	{
-		return false;
-	}
-	m_fenceEvent = CreateEvent(nullptr, false, false, nullptr);
-	if (!m_fenceEvent)
-	{
-		return false;
-	}
+	if (!CreateSwapChainRTV()) return false;
+	
 	m_graphicsMemory = std::make_unique<DirectX::GraphicsMemory>(m_pDevice.Get());
-
 	CreateDefaultTextures();
 	if (!InitImGui())
 	{
@@ -83,61 +52,38 @@ bool GraphicsDevice::Init(HWND  hWnd, int w, int h)
 	}
 	return true;
 }
-
 void GraphicsDevice::EndFrame()
 {
-	auto bbIdx = m_pSwapChain->GetCurrentBackBufferIndex();
+	auto cmdList = m_upContextManager->GetGraphicsContext()->GetCmdList();
 	RenderImGui();
-	SetResourceBarrier(m_pSwapchainBuffers[bbIdx].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
-
-	m_pCmdList->Close();
-	ID3D12CommandList* cmdlists[] = { m_pCmdList.Get() };
-	m_pCmdQueue->ExecuteCommandLists(1, cmdlists);
-
-	//	フレー�の転出番号を記録
-	const int frameIdx = m_frameIndex % kFrameCount;
-	m_frames[frameIdx].fenceValue = SignalQueue();
-
-	//	スワチE�Eチェインにプレゼント（�?�る�E�E
+	auto bbIdx = m_pSwapChain->GetCurrentBackBufferIndex();
+	m_upContextManager->GetGraphicsContext()->GetResourceStateTracker()->TransitionResource(m_pSwapchainBuffers[bbIdx].Get(), D3D12_RESOURCE_STATE_PRESENT);
+	m_upContextManager->GetGraphicsContext()->GetResourceStateTracker()->FlushResourceBarriers(cmdList);
+	m_upContextManager->GetGraphicsContext()->Close();
+	auto queue = m_upQueueManager->GetGraphicsQueue();
+	queue->Execute(m_upContextManager->GetGraphicsContext());
+	uint64_t fenceVal = queue->Signal();
+	m_upFrameManager->GetCurrentFrameResource().SetFenceValue(fenceVal);
 	m_pSwapChain->Present(0, 0);
-	m_graphicsMemory->Commit(m_pCmdQueue.Get());
-	++m_frameIndex;
+	m_graphicsMemory->Commit(queue->GetQueue());
+	m_upFrameManager->MoveNextFrame();
 }
-
 void GraphicsDevice::BeginFrame()
 {
 	Profiler::Instance().ResetPerFrameCounters();
-	//	Frame Begin
-	const int frameIdx = m_frameIndex % kFrameCount;
-	FrameContext& fr = m_frames[frameIdx];
-	WaitForFence(fr.fenceValue);
-	fr.allocator->Reset();
-	m_pCmdList->Reset(fr.allocator.Get(), nullptr);
-
-	m_upCBufferAllocator->ResetCurrentUseNumber();
-
+	FrameResource& fr = m_upFrameManager->AcquireFrame();
+	m_upContextManager->GetGraphicsContext()->Begin(fr);
+	auto cmdList = m_upContextManager->GetGraphicsContext()->GetCmdList();
 	auto bbIdx = m_pSwapChain->GetCurrentBackBufferIndex();
-	SetResourceBarrier(m_pSwapchainBuffers[bbIdx].Get(),
-		D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
-
-	auto rtvH = m_pRTVHeap->GetCPUHandle(bbIdx);
-
-	auto dsvH = m_upDSVHeap->GetCPUHandle(m_upDepthStencil->GetDSVNumber());
-
-	m_pCmdList->OMSetRenderTargets(1, &rtvH, false, &dsvH);
-
-	float clearColor[] = { 0.0f,0.0f,1.0f,1.0f };	//	靁E
-	m_pCmdList->ClearRenderTargetView(rtvH, clearColor, 0, nullptr);
-
+	m_upContextManager->GetGraphicsContext()->GetResourceStateTracker()->TransitionResource(m_pSwapchainBuffers[bbIdx].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET);
+	m_upContextManager->GetGraphicsContext()->GetResourceStateTracker()->FlushResourceBarriers(cmdList);
+	auto rtvH = m_upDescriptorHeapManager->GetRTVAllocator()->GetCPUHandle(bbIdx);
+	auto dsvH = m_upDescriptorHeapManager->GetDSVAllocator()->GetCPUHandle(m_upDepthStencil->GetDSVNumber());
+	cmdList->OMSetRenderTargets(1, &rtvH, false, &dsvH);
+	float clearColor[] = { 0.0f,0.0f,1.0f,1.0f };
+	cmdList->ClearRenderTargetView(rtvH, clearColor, 0, nullptr);
 	m_upDepthStencil->ClearBuffer();
-
 }
-
-void GraphicsDevice::WaitForCommandQueue()
-{
-	WaitForFence(SignalQueue());
-}
-
 bool GraphicsDevice::CreateFactory()
 {
 	UINT flagsDXGI = 0;
@@ -149,27 +95,21 @@ bool GraphicsDevice::CreateFactory()
 	}
 	return true;
 }
-
 bool GraphicsDevice::CreateDevice()
 {
 	ComPtr<IDXGIAdapter>				pSelectAdapter = nullptr;
 	std::vector<ComPtr<IDXGIAdapter>>	pAdapters;
 	std::vector<DXGI_ADAPTER_DESC>		descs;
-
-	//	使用中PCにあるGOUドライバ�Eを検索して、あれ�E格紁E
+	//	菴�E�逕ｨ荳�E�PC縺�E�縺めE��GOU繝峨Λ繧�E�繝�EE繧呈､懁E���E�縺励※縲√≠繧・E譬�E�?E
 	for (UINT index = 0; 1; ++index)
 	{
 		pAdapters.push_back(nullptr);
 		HRESULT ret = m_pDxgiFactory->EnumAdapters(index, &pAdapters[index]);
-
 		if (ret == DXGI_ERROR_NOT_FOUND) { break; }
-
 		descs.push_back({});
 		pAdapters[index]->GetDesc(&descs[index]);
 	}
-
 	GPUTier gpuTier = GPUTier::Kind;
-
 	for (int i = 0; i < descs.size(); ++i)
 	{
 		if (std::wstring(descs[i].Description).find(L"NVIDIA") != std::wstring::npos)
@@ -210,7 +150,6 @@ bool GraphicsDevice::CreateDevice()
 			}
 		}
 	}
-
 	D3D_FEATURE_LEVEL levels[] =
 	{
 		D3D_FEATURE_LEVEL_12_1,
@@ -218,70 +157,21 @@ bool GraphicsDevice::CreateDevice()
 		D3D_FEATURE_LEVEL_11_1,
 		D3D_FEATURE_LEVEL_11_0,
 	};
-
-	//	Direct3DチE��イスの初期匁E
+	//	Direct3D繝�E??繧�E�繧�E�縺�E�蛻晁E��蛹・
 	D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_11_0;
 	for (auto lv : levels)
 	{
 		if (D3D12CreateDevice(pSelectAdapter.Get(), lv, IID_PPV_ARGS(&m_pDevice)) == S_OK)
 		{
 			featureLevel = lv;
-			break;	//生�E可能なバ�Eジョンが見つかったらループ打ち刁E��
+			break;	//逕�EE蜿�E�閭�E�縺�E�繝�EE繧�E�繝ｧ繝ｳ縺瑚ｦ九▽縺九▲縺溘ｉ繝ｫ繝ｼ繝玲遠縺�E�?E??
 		}
 	}
 	pSelectAdapter.As(&m_pAdapter3);
 	return true;
 }
 
-bool GraphicsDevice::CreateCommandList()
-{
-	for (int i = 0; i < kFrameCount; ++i)
-	{
-		auto hr = m_pDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_frames[i].allocator));
-		if (FAILED(hr))
-		{
-			return false;
-		}
-		m_frames[i].fenceValue = 0;
-	}
-	auto hr = m_pDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_frames[0].allocator.Get(), nullptr, IID_PPV_ARGS(&m_pCmdList));
-	if (FAILED(hr))
-	{
-		return false;
-	}
-	m_pCmdList->Close();
 
-	D3D12_COMMAND_QUEUE_DESC cmdQueueDesc = {};
-	cmdQueueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-
-	//	キュー生�E
-	hr = m_pDevice->CreateCommandQueue(&cmdQueueDesc, IID_PPV_ARGS(&m_pCmdQueue));
-	if (FAILED(hr))
-	{
-		return false;
-	}
-
-	return true;
-}
-
-UINT64 GraphicsDevice::SignalQueue()
-{
-	auto hr = m_pCmdQueue->Signal(m_pFence.Get(), ++m_fenceVal);
-	if (FAILED(hr))
-	{
-		return false;
-	}
-	return m_fenceVal;
-}
-
-void GraphicsDevice::WaitForFence(UINT64 value)
-{
-	if (m_pFence->GetCompletedValue() < value)
-	{
-		m_pFence->SetEventOnCompletion(value, m_fenceEvent);
-		WaitForSingleObject(m_fenceEvent, INFINITE);
-	}
-}
 
 bool GraphicsDevice::CreateSwapChain(HWND hWnd, int width, int height)
 {
@@ -294,18 +184,16 @@ bool GraphicsDevice::CreateSwapChain(HWND hWnd, int width, int height)
 	swapchainDesc.BufferCount = 2;
 	swapchainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 	swapchainDesc.Flags = 0;
-	// まぁESwapChain1 として受けめE
+	// 縺�E�縺・SwapChain1 縺�E�縺励※蜿励�E�繧・
 	ComPtr<IDXGISwapChain1> swapChain1;
-	HRESULT hr = m_pDxgiFactory->CreateSwapChainForHwnd(m_pCmdQueue.Get(), hWnd, &swapchainDesc,
+	HRESULT hr = m_pDxgiFactory->CreateSwapChainForHwnd(m_upQueueManager->GetGraphicsQueue()->GetQueue(), hWnd, &swapchainDesc,
 		nullptr, nullptr, swapChain1.GetAddressOf()
 	);
-
 	if (FAILED(hr))
 	{
 		return false;
 	}
-
-	// SwapChain4 に昁E?�
+	// SwapChain4 縺�E�?E??
 	hr = swapChain1.As(&m_pSwapChain);
 	if (FAILED(hr))
 	{
@@ -313,100 +201,57 @@ bool GraphicsDevice::CreateSwapChain(HWND hWnd, int width, int height)
 	}
 	return true;
 }
-
 bool GraphicsDevice::CreateSwapChainRTV()
 {
 	for (int i = 0; i < (int)m_pSwapchainBuffers.size(); ++i)
 	{
 		auto hr = m_pSwapChain->GetBuffer(i, IID_PPV_ARGS(&m_pSwapchainBuffers[i]));
-
+		m_upContextManager->GetGraphicsContext()->GetResourceStateTracker()->AddResourceState(m_pSwapchainBuffers[i].Get(), D3D12_RESOURCE_STATE_PRESENT);
 		if (FAILED(hr))
 		{
 			return false;
 		}
-		m_pRTVHeap->CreateRTV(m_pSwapchainBuffers[i].Get());
+		CreateRTV(m_pSwapchainBuffers[i].Get());
 	}
-
 	return true;
 }
 
-bool GraphicsDevice::CreateFence()
-{
-	auto hr = m_pDevice->CreateFence(m_fenceVal, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_pFence));
-
-	if (FAILED(hr))
-	{
-		HRESULT removed = m_pDevice->GetDeviceRemovedReason();
-
-		wchar_t buf[256];
-		swprintf_s(buf,
-			L"[CreateFence] hr=0x%08X removed=0x%08X fenceVal=%llu\n",
-			(unsigned)hr, (unsigned)removed, (unsigned long long)m_fenceVal);
-		OutputDebugStringW(buf);
-		return false;
-	}
-
-	return true;
-}
-
-void GraphicsDevice::SetResourceBarrier(ID3D12Resource* pResource, D3D12_RESOURCE_STATES before, D3D12_RESOURCE_STATES after)
-{
-	D3D12_RESOURCE_BARRIER barrier = {};
-	barrier.Transition.pResource = pResource;
-	barrier.Transition.StateAfter = after;
-	barrier.Transition.StateBefore = before;
-	m_pCmdList->ResourceBarrier(1, &barrier);
-}
 
 void GraphicsDevice::EnableDebugLayer()
 {
 	ID3D12Debug* debugLayer = nullptr;
-
 	D3D12GetDebugInterface(IID_PPV_ARGS(&debugLayer));
 	debugLayer->EnableDebugLayer();
 	debugLayer->Release();
-
 }
 void GraphicsDevice::Shutdown()
 {
-	if (!m_pDevice || !m_pCmdQueue || !m_pFence) return;
+	if (!m_pDevice) return;
 
-	// GPU完亁E��E��
-	WaitForCommandQueue();
+	if (m_upQueueManager)
+		m_upQueueManager->GetGraphicsQueue()->Flush();
 
-	// ImGui解放�E�EPU征E��後に行う�E�E
+	ShaderCompiler::Terminate();
 	ShutdownImGui();
 
-	if (m_fenceEvent)
-	{
-		CloseHandle(m_fenceEvent);
-		m_fenceEvent = nullptr;
-	}
-	// ここから先で解放�E�EomPtr/unique_ptrを確実に落とす！E
 	m_pSwapchainBuffers.fill(nullptr);
-	m_pRTVHeap.reset();
 	m_pSwapChain.Reset();
 
-	m_pCmdList.Reset();
-	for (int i = 0; i < kFrameCount; ++i)
-	{
-		m_frames[i].allocator.Reset();
-		m_frames[i].fenceValue = 0;
-	}
-	m_pCmdQueue.Reset();
+	if (m_upFrameManager) m_upFrameManager->Shutdown();
+	if (m_upContextManager) m_upContextManager->Shutdown();
+	if (m_upQueueManager) m_upQueueManager->Shutdown();
+	if (m_upDescriptorHeapManager) m_upDescriptorHeapManager->Release();
 
-	m_pFence.Reset();
 	m_pDevice.Reset();
 	m_pDxgiFactory.Reset();
 }
-
 bool GraphicsDevice::CreateDefaultTextures()
 {
 	ComPtr<ID3D12Resource> uploadBufferWhite;
 	ComPtr<ID3D12Resource> uploadBufferBlack;
 	ComPtr<ID3D12Resource> uploadBufferNormal;
-
-	m_pCmdList->Reset(m_frames[0].allocator.Get(), nullptr);
+	m_upContextManager->GetGraphicsContext()->Begin(m_upFrameManager->GetCurrentFrameResource());
+	auto cmdList = m_upContextManager->GetGraphicsContext()->GetCmdList();
 	// White Tex
 	m_spWhiteTex = std::make_unique<Texture>();
 	{
@@ -422,7 +267,7 @@ bool GraphicsDevice::CreateDefaultTextures()
 		recDesc.SampleDesc.Count = 1;
 		
 		m_pDevice->CreateCommittedResource(&heapProp, D3D12_HEAP_FLAG_NONE, &recDesc,
-			D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&m_spWhiteTex->m_pBuffer));
+			D3D12_RESOURCE_STATE_COMMON, nullptr, IID_PPV_ARGS(&m_spWhiteTex->m_resource));
 		
 		heapProp.Type = D3D12_HEAP_TYPE_UPLOAD;
 		recDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
@@ -441,7 +286,7 @@ bool GraphicsDevice::CreateDefaultTextures()
 		uploadBufferWhite->Unmap(0, nullptr);
 		
 		D3D12_TEXTURE_COPY_LOCATION dst = {};
-		dst.pResource = m_spWhiteTex->m_pBuffer.Get();
+		dst.pResource = m_spWhiteTex->m_resource.Get();
 		dst.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
 		dst.SubresourceIndex = 0;
 		
@@ -455,12 +300,13 @@ bool GraphicsDevice::CreateDefaultTextures()
 		src.PlacedFootprint.Footprint.Depth = 1;
 		src.PlacedFootprint.Footprint.RowPitch = 256;
 		
-		m_pCmdList->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
+		cmdList->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
 		
-		SetResourceBarrier(m_spWhiteTex->m_pBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_GENERIC_READ);
+		m_upContextManager->GetGraphicsContext()->GetResourceStateTracker()->TransitionResource(m_spWhiteTex->m_resource.Get(), D3D12_RESOURCE_STATE_GENERIC_READ);
+		m_upContextManager->GetGraphicsContext()->GetResourceStateTracker()->FlushResourceBarriers(cmdList);
 		
-		m_spWhiteTex->m_srvNumber = m_upCBVSRVUAVHeap->CreateSRV(m_spWhiteTex->m_pBuffer.Get());
-		m_spWhiteTex->m_pGraphicsDevice = this;
+		m_spWhiteTex->m_srvNumber = CreateSRV(m_spWhiteTex->m_resource.Get());
+		m_spWhiteTex->m_device = this;
 	}
 	
 	// Black Tex
@@ -478,7 +324,7 @@ bool GraphicsDevice::CreateDefaultTextures()
 		recDesc.SampleDesc.Count = 1;
 		
 		m_pDevice->CreateCommittedResource(&heapProp, D3D12_HEAP_FLAG_NONE, &recDesc,
-			D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&m_spBlackTex->m_pBuffer));
+			D3D12_RESOURCE_STATE_COMMON, nullptr, IID_PPV_ARGS(&m_spBlackTex->m_resource));
 		
 		heapProp.Type = D3D12_HEAP_TYPE_UPLOAD;
 		recDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
@@ -497,7 +343,7 @@ bool GraphicsDevice::CreateDefaultTextures()
 		uploadBufferBlack->Unmap(0, nullptr);
 		
 		D3D12_TEXTURE_COPY_LOCATION dst = {};
-		dst.pResource = m_spBlackTex->m_pBuffer.Get();
+		dst.pResource = m_spBlackTex->m_resource.Get();
 		dst.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
 		dst.SubresourceIndex = 0;
 		
@@ -511,14 +357,14 @@ bool GraphicsDevice::CreateDefaultTextures()
 		src.PlacedFootprint.Footprint.Depth = 1;
 		src.PlacedFootprint.Footprint.RowPitch = 256;
 		
-		m_pCmdList->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
+		cmdList->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
 		
-		SetResourceBarrier(m_spBlackTex->m_pBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_GENERIC_READ);
+		m_upContextManager->GetGraphicsContext()->GetResourceStateTracker()->TransitionResource(m_spBlackTex->m_resource.Get(), D3D12_RESOURCE_STATE_GENERIC_READ);
+		m_upContextManager->GetGraphicsContext()->GetResourceStateTracker()->FlushResourceBarriers(cmdList);
 		
-		m_spBlackTex->m_srvNumber = m_upCBVSRVUAVHeap->CreateSRV(m_spBlackTex->m_pBuffer.Get());
-		m_spBlackTex->m_pGraphicsDevice = this;
+		m_spBlackTex->m_srvNumber = CreateSRV(m_spBlackTex->m_resource.Get());
+		m_spBlackTex->m_device = this;
 	}
-
 	// Normal Tex (RGB=127,127,255)
 	m_spNormalTex = std::make_unique<Texture>();
 	{
@@ -534,7 +380,7 @@ bool GraphicsDevice::CreateDefaultTextures()
 		recDesc.SampleDesc.Count = 1;
 		
 		m_pDevice->CreateCommittedResource(&heapProp, D3D12_HEAP_FLAG_NONE, &recDesc,
-			D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&m_spNormalTex->m_pBuffer));
+			D3D12_RESOURCE_STATE_COMMON, nullptr, IID_PPV_ARGS(&m_spNormalTex->m_resource));
 		
 		heapProp.Type = D3D12_HEAP_TYPE_UPLOAD;
 		recDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
@@ -553,7 +399,7 @@ bool GraphicsDevice::CreateDefaultTextures()
 		uploadBufferNormal->Unmap(0, nullptr);
 		
 		D3D12_TEXTURE_COPY_LOCATION dst = {};
-		dst.pResource = m_spNormalTex->m_pBuffer.Get();
+		dst.pResource = m_spNormalTex->m_resource.Get();
 		dst.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
 		dst.SubresourceIndex = 0;
 		
@@ -567,32 +413,27 @@ bool GraphicsDevice::CreateDefaultTextures()
 		src.PlacedFootprint.Footprint.Depth = 1;
 		src.PlacedFootprint.Footprint.RowPitch = 256;
 		
-		m_pCmdList->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
+		cmdList->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
 		
-		SetResourceBarrier(m_spNormalTex->m_pBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_GENERIC_READ);
+		m_upContextManager->GetGraphicsContext()->GetResourceStateTracker()->TransitionResource(m_spNormalTex->m_resource.Get(), D3D12_RESOURCE_STATE_GENERIC_READ);
+		m_upContextManager->GetGraphicsContext()->GetResourceStateTracker()->FlushResourceBarriers(cmdList);
 		
-		m_spNormalTex->m_srvNumber = m_upCBVSRVUAVHeap->CreateSRV(m_spNormalTex->m_pBuffer.Get());
-		m_spNormalTex->m_pGraphicsDevice = this;
-
-		m_pCmdList->Close();
-		ID3D12CommandList* cmdlists[] = { m_pCmdList.Get() };
-		m_pCmdQueue->ExecuteCommandLists(1, cmdlists);
-		WaitForCommandQueue();
-		m_frames[0].allocator->Reset();
-		m_pCmdList->Reset(m_frames[0].allocator.Get(), nullptr);
+		m_spNormalTex->m_srvNumber = CreateSRV(m_spNormalTex->m_resource.Get());
+		m_spNormalTex->m_device = this;
 	}
 
-	m_pCmdList->Close();
+	m_upContextManager->GetGraphicsContext()->Close();
+	m_upQueueManager->GetGraphicsQueue()->Execute(m_upContextManager->GetGraphicsContext());
+	m_upQueueManager->GetGraphicsQueue()->Flush();
+
 	return true;
 }
-
 // =============================================
-// GraphicsDevice.cpp (ImGui統合部刁E
+// GraphicsDevice.cpp (ImGui邨�E�蜷磯΁EE
 // =============================================
-
 bool GraphicsDevice::InitImGui()
 {
-	// ImGui用のSRVチE��クリプタヒ�Eプを作�E�E�フォントテクスチャ用�E�E
+	// ImGui逕ｨ縺�E�SRV繝�E??繧�E�繝ｪ繝励ち繝�EE繝励�E�菴・E?E?繝輔か繝ｳ繝医ユ繧�E�繧�E�繝�EΕ逕ｨ?E?E
 	D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
 	heapDesc.Type           = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	heapDesc.NumDescriptors = 100;
@@ -602,32 +443,28 @@ bool GraphicsDevice::InitImGui()
 	{
 		return false;
 	}
-
-	// ImGuiコンチE��スト生戁E
+	// ImGui繧�E�繝ｳ繝�E??繧�E�繝育函?E
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;	// ドッキング有効匁E
-
-	// スタイル設宁E
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;	// 繝峨ャ繧�E�繝ｳ繧�E�譛牙柑蛹・
+	// 繧�E�繧�E�繧�E�繝ｫ險�E�?E
 	ImGui::StyleColorsDark();
-
     // Load Japanese font
     io.Fonts->AddFontFromFileTTF("c:/Windows/Fonts/meiryo.ttc", 16.0f, nullptr, io.Fonts->GetGlyphRangesJapanese());
-
-	// Win32バックエンド�E初期化�EWin32Windowが持つhWndが忁E��なので
-	// ここでは ImGui_ImplDX12のみ初期化。Win32の初期化�Emain/Applicationに任せる、E
-	// ※ ImGui_ImplWin32_Init(hWnd) は Application::Init()等で呼ぶこと
+	// Win32繝�Eャ繧�E�繧�E�繝ｳ繝�EE蛻晁E��蛹・EWin32Window縺梧戟縺�E�hWnd縺・E??縺�E�縺�E�縺�E�
+	// 縺薙！E���E�縺�E� ImGui_ImplDX12縺�E�縺�E�蛻晁E��蛹悶�E�in32縺�E�蛻晁E��蛹・Emain/Application縺�E�莉ｻ縺帙ｋ縲・
+	// 窶�E� ImGui_ImplWin32_Init(hWnd) 縺�E� Application::Init()遲峨〒蜻�E�縺�E�縺薙�E
 	ImGui_ImplDX12_InitInfo initInfo = {};
 	initInfo.Device            = m_pDevice.Get();
-	initInfo.CommandQueue      = m_pCmdQueue.Get();
-	initInfo.NumFramesInFlight = kFrameCount;
+	initInfo.CommandQueue      = m_upQueueManager->GetGraphicsQueue()->GetQueue();
+	initInfo.NumFramesInFlight = FrameManager::kFrameCount;
 	initInfo.RTVFormat         = DXGI_FORMAT_R8G8B8A8_UNORM;
 	initInfo.SrvDescriptorHeap = m_upImGuiSRVHeap.Get();
 	initInfo.SrvDescriptorAllocFn = [](ImGui_ImplDX12_InitInfo*, D3D12_CPU_DESCRIPTOR_HANDLE* out_cpu, D3D12_GPU_DESCRIPTOR_HANDLE* out_gpu)
 	{
-		// 今�Eフォント用に1スロチE���?け固定で割り当て
+		// 莉�EE繝輔か繝ｳ繝育畑縺�E�1繧�E�繝ｭ繝�E????縺大崋螳壹〒蜑�E�繧雁E��薙※
 		auto& dev = GraphicsDevice::Instance();
 		int idx = dev.AllocateImGuiSRVIndex();
 		
@@ -641,61 +478,48 @@ bool GraphicsDevice::InitImGui()
 		*out_gpu = gpuHandle;
 	};
 	initInfo.SrvDescriptorFreeFn = [](ImGui_ImplDX12_InitInfo*, D3D12_CPU_DESCRIPTOR_HANDLE, D3D12_GPU_DESCRIPTOR_HANDLE) {};
-
 	if (!ImGui_ImplDX12_Init(&initInfo))
 	{
 		return false;
 	}
-
 	return true;
 }
-
 void GraphicsDevice::RenderImGui()
 {
-	// ImGui描画コマンドをコマンドリストに積�E
 	ImGui::Render();
-
-	// ImGui専用ヒ�EプをセチE��
 	ID3D12DescriptorHeap* ppHeaps[] = { m_upImGuiSRVHeap.Get() };
-	m_pCmdList->SetDescriptorHeaps(1, ppHeaps);
-
-	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), m_pCmdList.Get());
+	auto cmdList = m_upContextManager->GetGraphicsContext()->GetCmdList();
+	cmdList->SetDescriptorHeaps(1, ppHeaps);
+	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), cmdList);
 }
-
 void GraphicsDevice::ShutdownImGui()
 {
 	ImGui_ImplDX12_Shutdown();
-	// Win32バックエンド解放�E�EestroyContext前に忁E��呼ぶ�E�E
+	// Win32繝�Eャ繧�E�繧�E�繝ｳ繝芽�E��E�謾�E�?E?EestroyContext蜑阪ↁEE??蜻�E�縺�E�?E?E
 	ImGui_ImplWin32_Shutdown();
 	ImGui::DestroyContext();
 	m_upImGuiSRVHeap.Reset();
 }
-
 void GraphicsDevice::SetRenderTarget(RenderTarget* pRT)
 {
-	auto rtvH = m_pRTVHeap->GetCPUHandle(pRT->GetRTVIndex());
-	auto dsvH = m_upDSVHeap->GetCPUHandle(pRT->GetDSVIndex());
-
-	m_pCmdList->OMSetRenderTargets(1, &rtvH, false, &dsvH);
+	auto rtvH = m_upDescriptorHeapManager->GetRTVAllocator()->GetCPUHandle(pRT->GetRTVIndex());
+	auto dsvH = m_upDescriptorHeapManager->GetDSVAllocator()->GetCPUHandle(pRT->GetDSVIndex());
+	m_upContextManager->GetGraphicsContext()->GetCmdList()->OMSetRenderTargets(1, &rtvH, false, &dsvH);
 }
-
 void GraphicsDevice::SetBackBuffer()
 {
 	auto bbIdx = m_pSwapChain->GetCurrentBackBufferIndex();
-	auto rtvH = m_pRTVHeap->GetCPUHandle(bbIdx);
-	auto dsvH = m_upDSVHeap->GetCPUHandle(m_upDepthStencil->GetDSVNumber());
-
-	m_pCmdList->OMSetRenderTargets(1, &rtvH, false, &dsvH);
+	auto rtvH = m_upDescriptorHeapManager->GetRTVAllocator()->GetCPUHandle(bbIdx);
+	auto dsvH = m_upDescriptorHeapManager->GetDSVAllocator()->GetCPUHandle(m_upDepthStencil->GetDSVNumber());
+	m_upContextManager->GetGraphicsContext()->GetCmdList()->OMSetRenderTargets(1, &rtvH, false, &dsvH);
 }
-
 void GraphicsDevice::ClearBackBuffer(float r, float g, float b, float a)
 {
 	auto bbIdx = m_pSwapChain->GetCurrentBackBufferIndex();
-	auto rtvH = m_pRTVHeap->GetCPUHandle(bbIdx);
+	auto rtvH = m_upDescriptorHeapManager->GetRTVAllocator()->GetCPUHandle(bbIdx);
 	float clearColor[] = { r, g, b, a };
-	m_pCmdList->ClearRenderTargetView(rtvH, clearColor, 0, nullptr);
+	m_upContextManager->GetGraphicsContext()->GetCmdList()->ClearRenderTargetView(rtvH, clearColor, 0, nullptr);
 }
-
 int GraphicsDevice::AllocateImGuiSRV(ID3D12Resource* pBuffer)
 {
 	int index = m_imGuiSrvCount++;
@@ -703,7 +527,6 @@ int GraphicsDevice::AllocateImGuiSRV(ID3D12Resource* pBuffer)
 	
 	UINT incrementSize = m_pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 	handle.ptr += static_cast<SIZE_T>(index) * incrementSize;
-
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 	srvDesc.Format = pBuffer->GetDesc().Format;
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
@@ -713,7 +536,6 @@ int GraphicsDevice::AllocateImGuiSRV(ID3D12Resource* pBuffer)
 	m_pDevice->CreateShaderResourceView(pBuffer, &srvDesc, handle);
 	return index;
 }
-
 D3D12_GPU_DESCRIPTOR_HANDLE GraphicsDevice::GetImGuiSRVGPUHandle(int index)
 {
 	D3D12_GPU_DESCRIPTOR_HANDLE handle = m_upImGuiSRVHeap->GetGPUDescriptorHandleForHeapStart();
@@ -721,7 +543,6 @@ D3D12_GPU_DESCRIPTOR_HANDLE GraphicsDevice::GetImGuiSRVGPUHandle(int index)
 	handle.ptr += static_cast<SIZE_T>(index) * incrementSize;
 	return handle;
 }
-
 
 float GraphicsDevice::GetVRAMUsageMB()
 {
@@ -735,4 +556,54 @@ float GraphicsDevice::GetVRAMUsageMB()
 	}
 	return 0.0f;
 }
+
+GraphicsDevice::~GraphicsDevice() {}
+GraphicsDevice::GraphicsDevice() {}
+int GraphicsDevice::CreateSRV(ID3D12Resource* pBuffer)
+{
+    int index = m_upDescriptorHeapManager->GetCBVSRVUAVAllocator()->Allocate();
+    D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+    srvDesc.Format = pBuffer->GetDesc().Format;
+    if (srvDesc.Format == DXGI_FORMAT_R32_TYPELESS) srvDesc.Format = DXGI_FORMAT_R32_FLOAT;
+    if (srvDesc.Format == DXGI_FORMAT_R16_TYPELESS) srvDesc.Format = DXGI_FORMAT_R16_UNORM;
+    if (srvDesc.Format == DXGI_FORMAT_R24G8_TYPELESS) srvDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+    srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+    srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+    srvDesc.Texture2D.MipLevels = pBuffer->GetDesc().MipLevels;
+    m_pDevice->CreateShaderResourceView(pBuffer, &srvDesc, m_upDescriptorHeapManager->GetCBVSRVUAVAllocator()->GetCPUHandle(index));
+    return index;
+}
+
+int GraphicsDevice::CreateRTV(ID3D12Resource* pBuffer)
+{
+    int index = m_upDescriptorHeapManager->GetRTVAllocator()->Allocate();
+    m_pDevice->CreateRenderTargetView(pBuffer, nullptr, m_upDescriptorHeapManager->GetRTVAllocator()->GetCPUHandle(index));
+    return index;
+}
+
+int GraphicsDevice::CreateDSV(ID3D12Resource* pBuffer, DXGI_FORMAT format)
+{
+    int index = m_upDescriptorHeapManager->GetDSVAllocator()->Allocate();
+    D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
+    dsvDesc.Format = (format == DXGI_FORMAT_UNKNOWN) ? pBuffer->GetDesc().Format : format;
+    dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+    dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
+    m_pDevice->CreateDepthStencilView(pBuffer, &dsvDesc, m_upDescriptorHeapManager->GetDSVAllocator()->GetCPUHandle(index));
+    return index;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

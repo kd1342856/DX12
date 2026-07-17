@@ -1,6 +1,7 @@
 #pragma once
 #include "../Pipeline/Pipeline.h"
 #include "../RootSignature/RootSignature.h"
+#include "../ShaderManager/ShaderManager.h"
 #include "../../Renderer/RenderContext.h"
 #include "../../Renderer/DrawContext.h"
 #include "../../../Graphics/Device/GraphicsDevice.h"
@@ -8,7 +9,7 @@
 class ModelData;
 struct Node;
 class Mesh;
-struct Material;
+class Material;
 
 class GraphicsShader {
 public:
@@ -19,16 +20,9 @@ public:
 	virtual void Begin(RenderContext& context)
 	{
 		auto* cmd = m_pDevice->GetCmdList();
-		cmd->SetPipelineState(m_pipeline->GetPipeline());
-		cmd->SetGraphicsRootSignature(m_rootSignature->GetRootSignature());
-		
-		D3D12_PRIMITIVE_TOPOLOGY_TYPE topologyType = static_cast<D3D12_PRIMITIVE_TOPOLOGY_TYPE>(m_pipeline->GetTopologyType());
-		switch (topologyType) {
-		case D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT: cmd->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST); break;
-		case D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE: cmd->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINELIST); break;
-		case D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE: cmd->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST); break;
-		case D3D12_PRIMITIVE_TOPOLOGY_TYPE_PATCH: cmd->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_4_CONTROL_POINT_PATCHLIST); break;
-		}
+		if (m_pPipelineState) cmd->SetPipelineState(m_pPipelineState);
+		if (m_pProgram && m_pProgram->pRootSignature) cmd->SetGraphicsRootSignature(m_pProgram->pRootSignature->GetRootSignature());
+		cmd->IASetPrimitiveTopology(m_topology);
 	}
 
 	virtual void BeginModel(const ModelData& model, const DrawContext& drawContext) {}
@@ -40,6 +34,7 @@ public:
 
 protected:
 	GraphicsDevice* m_pDevice = nullptr;
-	std::unique_ptr<Pipeline> m_pipeline;
-	std::unique_ptr<RootSignature> m_rootSignature;
+	ShaderProgram* m_pProgram = nullptr;
+	ID3D12PipelineState* m_pPipelineState = nullptr;
+	D3D12_PRIMITIVE_TOPOLOGY m_topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 };

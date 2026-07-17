@@ -1,6 +1,7 @@
 #pragma once
 #include <assimp/matrix4x4.h>
 
+#include "../../../Framework/Manager/Asset/AssetHandle.h"
 class Mesh;
 struct AnimationData;
 class ModelData
@@ -13,7 +14,7 @@ public:
 		aiMatrix4x4							originalLocalTransform;
 		int									parentIndex = -1;
 		std::vector<int>					children;
-		std::vector<std::shared_ptr<Mesh>>	meshes;
+		std::vector<AssetHandle<Mesh>>		meshes;
 	};
 
 	struct BoneInfo

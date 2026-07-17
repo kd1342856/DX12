@@ -12,24 +12,24 @@ void Pipeline::Create(GraphicsDevice* pGraphicsDevice, const PipelineDesc& desc)
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC graphicsPipelineState = {};
 
 	if (desc.pBlobs.size() > 0 && desc.pBlobs[0]) {
-		graphicsPipelineState.VS.pShaderBytecode = desc.pBlobs[0]->GetBufferPointer();
-		graphicsPipelineState.VS.BytecodeLength = desc.pBlobs[0]->GetBufferSize();
+		graphicsPipelineState.VS.pShaderBytecode = desc.pBlobs[0] ? desc.pBlobs[0]->GetBufferPointer() : nullptr;
+		graphicsPipelineState.VS.BytecodeLength = desc.pBlobs[0] ? desc.pBlobs[0]->GetBufferSize() : 0;
 	}
 	if (desc.pBlobs.size() > 1 && desc.pBlobs[1]) {
-		graphicsPipelineState.HS.pShaderBytecode = desc.pBlobs[1]->GetBufferPointer();
-		graphicsPipelineState.HS.BytecodeLength = desc.pBlobs[1]->GetBufferSize();
+		graphicsPipelineState.HS.pShaderBytecode = desc.pBlobs[1] ? desc.pBlobs[1]->GetBufferPointer() : nullptr;
+		graphicsPipelineState.HS.BytecodeLength = desc.pBlobs[1] ? desc.pBlobs[1]->GetBufferSize() : 0;
 	}
 	if (desc.pBlobs.size() > 2 && desc.pBlobs[2]) {
-		graphicsPipelineState.DS.pShaderBytecode = desc.pBlobs[2]->GetBufferPointer();
-		graphicsPipelineState.DS.BytecodeLength = desc.pBlobs[2]->GetBufferSize();
+		graphicsPipelineState.DS.pShaderBytecode = desc.pBlobs[2] ? desc.pBlobs[2]->GetBufferPointer() : nullptr;
+		graphicsPipelineState.DS.BytecodeLength = desc.pBlobs[2] ? desc.pBlobs[2]->GetBufferSize() : 0;
 	}
 	if (desc.pBlobs.size() > 3 && desc.pBlobs[3]) {
-		graphicsPipelineState.GS.pShaderBytecode = desc.pBlobs[3]->GetBufferPointer();
-		graphicsPipelineState.GS.BytecodeLength = desc.pBlobs[3]->GetBufferSize();
+		graphicsPipelineState.GS.pShaderBytecode = desc.pBlobs[3] ? desc.pBlobs[3]->GetBufferPointer() : nullptr;
+		graphicsPipelineState.GS.BytecodeLength = desc.pBlobs[3] ? desc.pBlobs[3]->GetBufferSize() : 0;
 	}
 	if (desc.pBlobs.size() > 4 && desc.pBlobs[4]) {
-		graphicsPipelineState.PS.pShaderBytecode = desc.pBlobs[4]->GetBufferPointer();
-		graphicsPipelineState.PS.BytecodeLength = desc.pBlobs[4]->GetBufferSize();
+		graphicsPipelineState.PS.pShaderBytecode = desc.pBlobs[4] ? desc.pBlobs[4]->GetBufferPointer() : nullptr;
+		graphicsPipelineState.PS.BytecodeLength = desc.pBlobs[4] ? desc.pBlobs[4]->GetBufferSize() : 0;
 	}
 
 	graphicsPipelineState.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;
@@ -63,7 +63,7 @@ void Pipeline::Create(GraphicsDevice* pGraphicsDevice, const PipelineDesc& desc)
 	graphicsPipelineState.BlendState.RenderTarget[0] = blendDesc;
 
 	graphicsPipelineState.InputLayout.pInputElementDescs = inputLayouts.data();
-	graphicsPipelineState.InputLayout.NumElements = (int)desc.InputLayouts.size();
+	graphicsPipelineState.InputLayout.NumElements = (int)inputLayouts.size();
 
 	bool hasTessellation = (desc.pBlobs.size() > 2 && desc.pBlobs[1] && desc.pBlobs[2]);
 	graphicsPipelineState.PrimitiveTopologyType = hasTessellation ? D3D12_PRIMITIVE_TOPOLOGY_TYPE_PATCH : static_cast<D3D12_PRIMITIVE_TOPOLOGY_TYPE>(desc.TopologyType);
@@ -77,6 +77,10 @@ void Pipeline::Create(GraphicsDevice* pGraphicsDevice, const PipelineDesc& desc)
 	if (desc.pRootSignature) {
 		graphicsPipelineState.pRootSignature = desc.pRootSignature->GetRootSignature();
 	}
+
+	assert(graphicsPipelineState.VS.pShaderBytecode != nullptr);
+	assert(graphicsPipelineState.VS.BytecodeLength > 0);
+	OutputDebugStringA(graphicsPipelineState.VS.BytecodeLength ? "VS OK\n" : "VS NULL\n");
 
 	auto hr = m_pDevice->GetDevice()->CreateGraphicsPipelineState(&graphicsPipelineState, IID_PPV_ARGS(&m_pPipelineState));
 	if (FAILED(hr)) {

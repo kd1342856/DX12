@@ -1,33 +1,21 @@
 #include "../../../Pch.h"
 #include "ShadowShader.h"
-#include "../ShaderCompiler/ShaderCompiler.h"
-#include "../../../Framework/DirectX/GDF/GDF.h"
+
+#include "../../GDF/GDF.h"
 
 void ShadowShader::Create(GraphicsDevice* pGraphicsDevice)
 {
 	m_pDevice = pGraphicsDevice;
 
-	auto vsBlob = ShaderCompiler::CompileVS(L"Asset/Shader/LitShader/LitShader_VS.hlsl", "ShadowCasterVS");
-	auto psBlob = ShaderCompiler::CompilePS(L"Asset/Shader/LitShader/LitShader_PS.hlsl", "ShadowCasterPS");
-
-	std::vector<DescriptorRange> ranges = {
-		{ RangeType::CBV, 0, 1, 0 }, // cbCamera
-		{ RangeType::CBV, 1, 1, 0 }  // cbWorld
-	};
-
-	m_rootSignature = std::make_unique<RootSignature>();
-	m_rootSignature->Create(pGraphicsDevice, ranges);
+	m_pProgram = ShaderManager::Instance().LoadShader(L"Asset/Shader/LitShader/LitShader_VS.hlsl", L"Asset/Shader/LitShader/LitShader_PS.hlsl");
 
 	PipelineDesc desc;
-	desc.pBlobs = { vsBlob.Get(), nullptr, nullptr, nullptr, nullptr };
 	desc.InputLayouts = { InputLayout::POSITION, InputLayout::TEXCOORD, InputLayout::NORMAL, InputLayout::COLOR, InputLayout::TANGENT };
 	desc.Formats = {}; // Depth only
 	desc.CullMode = CullMode::None;
-	desc.pRootSignature = m_rootSignature.get();
-	desc.TopologyType = PrimitiveTopologyType::Triangle;
-
-	m_pipeline = std::make_unique<Pipeline>();
-	m_pipeline->Create(pGraphicsDevice, desc);
+	
+	m_topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+	m_pPipelineState = ShaderManager::Instance().GetPipelineState(m_pProgram, desc);
 }
 
 void ShadowShader::Begin(RenderContext& context)

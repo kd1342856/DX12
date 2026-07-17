@@ -5,6 +5,9 @@
 #include "../../../../Graphics/Shader/SkinningShader/SkinningShader.h"
 #include "../../../../Graphics/Renderer/ModelRenderer.h"
 #include "../../../../Graphics/Renderer/Renderer.h"
+#include "../../../../Graphics/Renderer/RenderManager.h"
+#include "../../../../Graphics/Descriptor/DescriptorHeapManager.h"
+#include "../../../Manager/Asset/MeshManager.h"
 
 // RenderSystem: Draws entities with Transform + ModelRenderData components
 class RenderSystem : public SystemBase
@@ -48,9 +51,10 @@ public:
 			pCmdList->RSSetViewports(1, &shadowViewport);
 			pCmdList->RSSetScissorRects(1, &shadowScissor);
 
-			pShadowMap->TransitionTo(pCmdList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+			pGraphicsDevice->GetContextManager()->GetGraphicsContext()->GetResourceStateTracker()->TransitionResource(pShadowMap->GetResource(), D3D12_RESOURCE_STATE_DEPTH_WRITE);
+			pGraphicsDevice->GetContextManager()->GetGraphicsContext()->GetResourceStateTracker()->FlushResourceBarriers(pCmdList);
 			pShadowMap->ClearBuffer();
-			auto dsvH = pGraphicsDevice->GetDSVHeap()->GetCPUHandle(pShadowMap->GetDSVNumber());
+			auto dsvH = pGraphicsDevice->GetDescriptorHeapManager()->GetDSVAllocator()->GetCPUHandle(pShadowMap->GetDSVNumber());
 			pCmdList->OMSetRenderTargets(0, nullptr, false, &dsvH);
 
 			Math::Vector3 camPos = Math::Vector3::Zero;
@@ -96,33 +100,26 @@ public:
 				auto& cModel = m_pCoordinator->GetComponent<ModelRenderData>(entity);
 				if (cModel.m_spModelData && cModel.m_spModelData->IsLoaded())
 				{
-					drawContext.SetWorld(cTransform.m_worldMatrix);
-
-					if (cModel.m_modelType == ModelType::Dynamic)
-					{
-						auto bones = cModel.m_spModelData->GetBoneMatrices();
-						drawContext.SetBones(&bones);
-						if (!isSkinningShadowBegun)
-						{
-							skinningShader.BeginShadow(context);
-							isSkinningShadowBegun = true;
-							isLitShadowBegun = false;
+					Math::Matrix world = cTransform.m_worldMatrix;
+					const auto& nodes = cModel.m_spModelData->GetNodes();
+					for (const auto& node : nodes) {
+						for (const auto& meshHandle : node.meshes) {
+							Mesh* pMesh = MeshManager::Instance().Get(meshHandle);
+							if (pMesh) {
+								RenderItem item;
+								item.mesh = pMesh;
+								item.material = const_cast<Material*>(&pMesh->GetMaterial());
+								item.world = world;
+								item.MakeSortKey(0, 0, 0); // Temporary
+								RenderManager::Instance().Submit(RenderPassType::Shadow, item);
+							}
 						}
-						skinningShader.DrawShadowModel(*cModel.m_spModelData, drawContext);
-					}
-					else
-					{
-						drawContext.SetBones(nullptr);
-						if (!isLitShadowBegun)
-						{
-							shadowShader.Begin(context);
-							isLitShadowBegun = true;
-							isSkinningShadowBegun = false;
-						}
-						ModelRenderer::Draw(shadowShader, *cModel.m_spModelData, drawContext);
 					}
 				}
 			}
+
+			// Execute Shadow pass
+			RenderManager::Instance().Execute(context, RenderPassType::Shadow);
 
 			// Restore
 			context.View = oldView;
@@ -132,7 +129,8 @@ public:
 			cbLight.DL_ShadowBias = 0.001f;
 			cbLight.DL_mLightVP[0] = mLightVP;
 
-			pShadowMap->TransitionTo(pCmdList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+			pGraphicsDevice->GetContextManager()->GetGraphicsContext()->GetResourceStateTracker()->TransitionResource(pShadowMap->GetResource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+			pGraphicsDevice->GetContextManager()->GetGraphicsContext()->GetResourceStateTracker()->FlushResourceBarriers(pCmdList);
 		}
 
 		RenderContext& context = Renderer::GetContext();
@@ -187,37 +185,31 @@ public:
 
 			if (cModel.m_spModelData && cModel.m_spModelData->IsLoaded())
 			{
-				drawContext.SetWorld(cTransform.m_worldMatrix);
-
-				if (cModel.m_modelType == ModelType::Dynamic)
-				{
-					auto bones = cModel.m_spModelData->GetBoneMatrices();
-						drawContext.SetBones(&bones);
-					if (!isSkinningBegun)
-					{
-						skinningShader.Begin(context);
-						isSkinningBegun = true;
-						isLitBegun = false;
+				Math::Matrix world = cTransform.m_worldMatrix;
+				const auto& nodes = cModel.m_spModelData->GetNodes();
+				for (const auto& node : nodes) {
+					for (const auto& meshHandle : node.meshes) {
+						Mesh* pMesh = MeshManager::Instance().Get(meshHandle);
+						if (pMesh) {
+							RenderItem item;
+							item.mesh = pMesh;
+							item.material = const_cast<Material*>(&pMesh->GetMaterial());
+							item.world = world;
+							item.MakeSortKey(0, 0, 0); // Temporary
+							RenderManager::Instance().Submit(RenderPassType::Opaque, item);
+						}
 					}
-					ModelRenderer::Draw(skinningShader, *cModel.m_spModelData, drawContext);
-				}
-				else
-				{
-					drawContext.SetBones(nullptr);
-					if (!isLitBegun)
-					{
-						litShader.Begin(context);
-						isLitBegun = true;
-						isSkinningBegun = false;
-					}
-					ModelRenderer::Draw(litShader, *cModel.m_spModelData, drawContext);
 				}
 			}
 		}
+
+		RenderManager::Instance().Execute(context, RenderPassType::Opaque);
+		RenderManager::Instance().Execute(context, RenderPassType::Transparent);
 	}
 
 private:
 	Entity m_cameraEntity = INVALID_ENTITY;
 	Math::Vector3 m_lightDirection = Math::Vector3(0.5f, -1.0f, 0.5f);
 };
+
 

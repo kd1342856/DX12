@@ -2,9 +2,12 @@
 #include "DrawContext.h"
 #include "../Geometry/Model/Model.h"
 
+#include "RenderQueue.h"
+
 class GraphicsShader;
 
 class ModelRenderer {
 public:
-	static void Draw(GraphicsShader& shader, const ModelData& model, const DrawContext& context);
+	// Transitional data container
+	const ModelData* pModelData = nullptr;
 };

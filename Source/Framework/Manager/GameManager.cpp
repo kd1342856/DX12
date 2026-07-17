@@ -1,7 +1,6 @@
 #include "../../Pch.h"
 #include "GameManager.h"
 #include "../../Graphics/Shader/ShaderLibrary.h"
-#include "../../Graphics/Shader/StandardShader/StandardShader.h"
 #include "../../Graphics/Shader/LitShader/LitShader.h"
 #include "../../Graphics/Shader/ShadowShader/ShadowShader.h"
 #include "../../Graphics/Shader/SkinningShader/SkinningShader.h"
@@ -96,7 +95,6 @@ void GameManager::Init()
         JobSystem::Instance().Init();
 
     auto* pDevice = &GDF::Instance().GetGraphicsDevice();
-    ShaderLibrary::Instance().Register<StandardShader>(pDevice);
     ShaderLibrary::Instance().Register<LitShader>(pDevice);
     ShaderLibrary::Instance().Register<ShadowShader>(pDevice);
     ShaderLibrary::Instance().Register<SkinningShader>(pDevice);
