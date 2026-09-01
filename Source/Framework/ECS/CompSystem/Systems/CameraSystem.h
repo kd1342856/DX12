@@ -1,0 +1,25 @@
+#pragma once
+
+class CameraSystem : public SystemBase
+{
+public:
+    void Update(float deltaTime) override
+    {
+        for (auto const& entity : m_entities)
+        {
+            auto& trans = m_pCoordinator->GetComponent<TransformData>(entity);
+            auto& camera = m_pCoordinator->GetComponent<CameraData>(entity);
+
+            // View Matrix (Inverse of World Matrix)
+            camera.m_viewMatrix = trans.m_worldMatrix.Invert();
+
+            // Projection Matrix
+            camera.m_projMatrix = DirectX::XMMatrixPerspectiveFovLH(
+                DirectX::XMConvertToRadians(camera.m_fov),
+                1280.0f / 720.0f,
+                camera.m_nearZ,
+                camera.m_farZ
+            );
+        }
+    }
+};

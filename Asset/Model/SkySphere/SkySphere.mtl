@@ -1,0 +1,6 @@
+newmtl SkyMaterial
+Ka 1.000000 1.000000 1.000000
+Kd 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+map_Kd ../../Texture/night_sky.jpg
+map_Ke ../../Texture/night_sky.jpg

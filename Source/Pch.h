@@ -1,0 +1,107 @@
+#pragma once
+// プリコンパイル済みヘッダー
+
+
+//	基本
+#pragma comment(lib, "winmm.lib")
+
+#define NOMINMAX
+#include<Windows.h>
+#include<iostream>
+#include<cassert>
+
+#undef assert
+#define assert(condition) \
+    do { \
+        if (!(condition)) { \
+            std::ofstream ofs("crash.log", std::ios::app); \
+            ofs << "Assertion failed: " << #condition << "\nFile: " << __FILE__ << "\nLine: " << __LINE__ << "\n\n"; \
+            ofs.close(); \
+            std::abort(); \
+        } \
+    } while (false)
+
+
+#include<wrl/client.h>
+
+//	STL
+#include<map>
+#include<unordered_map>
+#include<unordered_set>
+#include<string>
+#include<array>
+#include<vector>
+#include<stack>
+#include<list>
+#include<iterator>
+#include<queue>
+#include<algorithm>
+#include<memory>
+#include<random>
+#include<fstream>
+#include<sstream>
+#include<functional>
+#include<thread>
+#include<atomic>
+#include<mutex>
+#include<future>
+#include<filesystem>
+#include<chrono>
+#include<bitset>
+#include<set>
+#include<typeinfo>
+
+#define _USE_MATH_DEFINES
+#include<math.h>
+
+// Direct3D12
+
+#pragma comment(lib, "d3d12.lib")
+#pragma comment(lib, "dxgi.lib")
+#pragma comment(lib, "d3dcompiler.lib")
+
+#include<d3d12.h>
+#include<d3dcompiler.h>
+#include<dxgi1_6.h>
+
+#pragma comment(lib, "DirectXTK12.lib")
+#pragma comment(lib, "runtimeobject.lib") // RoGetActivationFactory用
+#include<SimpleMath.h>
+#include<Keyboard.h>
+#include<Mouse.h>
+
+#include "../Library/ImGui/imgui.h"
+#include "../Library/ImGui/imgui_impl_dx12.h"
+#include "../Library/ImGui/imgui_impl_win32.h"
+
+//	DirectXTex
+#pragma comment(lib, "DirectXTex.lib")
+#include<DirectXTex.h>
+
+#include"Framework/System.h"
+#include"Graphics/Graphics.h"
+
+//	InputシステムのInclude
+#include"Framework/DirectX/Utility/Input.h"
+#include"Framework/DirectX/Utility/Time.h"
+#include"Framework/DirectX/Utility/Logger.h"
+#include"Framework/DirectX/Utility/Random.h"
+
+//	GDF
+#include"Graphics/GDF/GDF.h"
+
+//	ECS（Editor.hより前に定義してGameObjectを完全解決する）
+#include"Framework/ECS/ECS.h"
+#include"Framework/Manager/GameManager.h"
+#include "Framework/Manager/Resource/ResourceManager.h"
+
+
+//#include"Framework/Manager/CollisionManager.h"
+
+#include "Framework/ImGuiEditor/Editor/Editor.h"
+#include "Framework/ECS/Components/Data/NativeScript.h"
+
+#include "Graphics/Graphics.h"
+
+
+

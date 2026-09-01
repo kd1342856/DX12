@@ -1,0 +1,19 @@
+#pragma once
+#include "../GPUResource/CBufferData/CBufferData.h"
+
+struct RenderContext
+{
+	Math::Matrix View;
+	Math::Matrix Projection;
+
+	Math::Matrix LightView;
+	Math::Matrix LightProjection;
+
+	void BindCamera(int slot = 0);
+	void BindLight(int slot);
+	void BindSystem(int slot);
+};
+
+
+
+

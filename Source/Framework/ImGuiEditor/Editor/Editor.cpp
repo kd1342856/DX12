@@ -1,0 +1,80 @@
+﻿#include "../../../Pch.h"
+#include "../../Manager/Scene/Scene.h"
+#include "../../Manager/Scene/SceneManager.h"
+#include "../../Manager/Collision/CollisionManager.h"
+#include "../../DirectX/Utility/Profiler.h"
+#include "../../System/JobSystem/JobSystem.h"
+#include "../../../Graphics/GPUResource/RenderTarget/RenderTarget.h"
+#include "../../DirectX/Utility/Input.h"
+#include "Editor.h"
+#include "../GameEditor/GameEditor.h"
+#include "../ShaderEditor/ShaderEditor.h"
+#include "../NavMeshEditor/NavMeshEditor.h"
+#include "../EditorContext.h"
+#include "../../../Graphics/Shader/ShaderManager/ShaderManager.h"
+
+// Resolve the GetCurrentScene issue
+static std::shared_ptr<Scene> GetCurrentScenePtr() {
+    return Editor::GetScene();
+}
+
+std::shared_ptr<GameObject> Editor::s_selectedObject = nullptr;
+std::string Editor::s_selectedAssetPath = "";
+std::string Editor::s_currentAssetDir = "Asset";
+bool Editor::s_editorMode = true;
+bool Editor::s_showEditor = true;
+
+std::shared_ptr<Scene> Editor::s_scene = nullptr;
+
+bool Editor::s_showGameEditor = false;
+bool Editor::s_showShaderEditor = false;
+bool Editor::s_showNavMeshEditor = false;
+
+void Editor::Init() {
+    s_scene = std::make_shared<Scene>();
+    s_scene->Init();
+}
+
+void Editor::Draw() 
+{
+    if (Input::Instance().IsKeyTrigger(DirectX::Keyboard::Keys::F1)) {
+        s_showEditor = !s_showEditor;
+    }
+
+    if (!s_showEditor) return;
+    if (!s_editorMode) return;
+
+    DrawDockSpace();
+    DrawMenuBar();
+    DrawToolbar();
+    DrawHierarchy();
+    DrawInspector();
+    DrawAssetBrowser();
+    DrawStatistics();
+    DrawConsole();
+
+    static GameEditor gameEditor;
+    static ShaderEditor shaderEditor;
+    static NavMeshEditor navMeshEditor;
+    static bool initialized = false;
+    if (!initialized) {
+        gameEditor.Initialize();
+        shaderEditor.Initialize();
+        navMeshEditor.Initialize();
+        initialized = true;
+    }
+
+    EditorContext ctx;
+    ctx.Renderer = &ShaderManager::Instance().GetRendererSettings();
+    ctx.Lighting = &ShaderManager::Instance().GetLightingSettings();
+    ctx.Shadow = &ShaderManager::Instance().GetShadowSettings();
+    ctx.IBL = &ShaderManager::Instance().GetIBLSettings();
+    ctx.PostProcess = &ShaderManager::Instance().GetPostProcessSettings();
+    ctx.Debug = &ShaderManager::Instance().GetDebugSettings();
+    ctx.Fog = &ShaderManager::Instance().GetFogSettings();
+    ctx.SelectedObject = s_selectedObject.get();
+
+    if (s_showGameEditor) gameEditor.Draw(ctx);
+    if (s_showShaderEditor) shaderEditor.Draw(ctx);
+    if (s_showNavMeshEditor) navMeshEditor.Draw(ctx);
+}

@@ -1,0 +1,515 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>$(Platform)\$(Configuration)\</OutDir>
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{4047c3f1-3b01-48b3-86e0-2334475f6aee}</ProjectGuid>
+    <RootNamespace>DX12Framework</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>IMGUI_DEFINE_MATH_OPERATORS;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>Pch.h</PrecompiledHeaderFile>
+      <ForcedIncludeFiles>Pch.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <AdditionalIncludeDirectories>Library\assimp\include;Library\recastnavigation\include;Library\ImGui</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>Library/assimp/build/lib/$(Configuration);Library/recastnavigation/build/lib/$(Configuration)</AdditionalLibraryDirectories>
+      <DelayLoadDLLs>assimp-vc143-mtd.dll</DelayLoadDLLs>
+      <AdditionalDependencies>Recast-d.lib;Detour-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>IMGUI_DEFINE_MATH_OPERATORS;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>Pch.h</PrecompiledHeaderFile>
+      <ForcedIncludeFiles>Pch.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <AdditionalIncludeDirectories>Library\assimp\include;Library\recastnavigation\include;Library\ImGui</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>Library/assimp/build/lib/$(Configuration);Library/recastnavigation/build/Recast/$(Configuration);Library/recastnavigation/build/Detour/$(Configuration)</AdditionalLibraryDirectories>
+      <DelayLoadDLLs>assimp-vc143-mt.dll</DelayLoadDLLs>
+      <AdditionalDependencies>Recast-d.lib;Detour-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>IMGUI_DEFINE_MATH_OPERATORS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>Pch.h</PrecompiledHeaderFile>
+      <ForcedIncludeFiles>Pch.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <AdditionalIncludeDirectories>Library\assimp\include;Library\recastnavigation\include;Library\ImGui</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>Library/assimp/build/lib/$(Configuration);Library/recastnavigation/build/lib/$(Configuration)</AdditionalLibraryDirectories>
+      <DelayLoadDLLs>assimp-vc143-mtd.dll</DelayLoadDLLs>
+      <AdditionalDependencies>Recast-d.lib;Detour-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>IMGUI_DEFINE_MATH_OPERATORS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>Pch.h</PrecompiledHeaderFile>
+      <ForcedIncludeFiles>Pch.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <AdditionalIncludeDirectories>Library\assimp\include;Library\recastnavigation\include;Library\ImGui</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>Library/assimp/build/lib/$(Configuration);Library/recastnavigation/build/lib/$(Configuration)</AdditionalLibraryDirectories>
+      <DelayLoadDLLs>assimp-vc143-mt.dll</DelayLoadDLLs>
+      <AdditionalDependencies>Recast.lib;Detour.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="Source\Application\Object\Script\Player\Player.h" />
+    <ClInclude Include="Source\Application\Object\Script\Item\ItemTypes.h" />
+    <ClInclude Include="Source\Application\Object\Script\Item\PickupItem.h" />
+    <ClInclude Include="Source\Application\Application.h" />
+    <ClInclude Include="Source\Application\Scene\GameScene\GameScene.h" />
+    <ClInclude Include="Source\Application\Scene\ResultScene\ResultScene.h" />
+    <ClInclude Include="Source\Application\Scene\TitleScene\TitleScene.h" />
+    <ClInclude Include="Source\Application\Scene\SceneBase.h" />
+    <ClInclude Include="Source\Framework\DirectX\Utility\ClassAssembly.h" />
+    <ClInclude Include="Source\Framework\DirectX\Utility\Input.h" />
+    <ClInclude Include="Source\Framework\DirectX\Utility\Logger.h" />
+    <ClInclude Include="Source\Framework\DirectX\Utility\Profiler.h" />
+    <ClInclude Include="Source\Framework\DirectX\Utility\Random.h" />
+    <ClInclude Include="Source\Framework\DirectX\Utility\Time.h" />
+    <ClInclude Include="Source\Framework\DirectX\Utility\Utility.h" />
+    <ClInclude Include="Source\Framework\ECS\ComponentManager.h" />
+    <ClInclude Include="Source\Framework\ECS\Components\Data\CameraData.h" />
+    <ClInclude Include="Source\Framework\ECS\Components\Data\ModelRenderData.h" />
+    <ClInclude Include="Source\Framework\ECS\Components\Data\ShaderData.h" />
+    <ClInclude Include="Source\Framework\ECS\Components\Data\TransformData.h" />
+    <ClInclude Include="Source\Framework\ECS\Components\Data\SpriteData.h" />
+    <ClInclude Include="Source\Framework\ECS\CompSystem\SpriteRenderSystem\SpriteRenderSystem.h" />
+    <ClInclude Include="Source\Framework\ECS\CompSystem\System.h" />
+    <ClInclude Include="Source\Framework\ECS\CompSystem\Systems\AnimationSystem.h" />
+    <ClInclude Include="Source\Framework\ECS\CompSystem\Systems\CameraSystem.h" />
+    <ClInclude Include="Source\Framework\ECS\CompSystem\Systems\LightSystem.h" />
+    <ClInclude Include="Source\Framework\ECS\CompSystem\Systems\RenderSystem.h" />
+    <ClInclude Include="Source\Framework\ECS\CompSystem\Systems\ScriptSystem.h" />
+    <ClInclude Include="Source\Framework\ECS\ComponentSerializerRegistry.h" />
+    <ClInclude Include="Source\Framework\ECS\ComponentSerializerRegistration.h" />
+    <ClInclude Include="Source\Framework\ECS\ECS.h" />
+    <ClInclude Include="Source\Framework\ECS\ECSCoordinator.h" />
+    <ClInclude Include="Source\Framework\ECS\ECSCommandBuffer.h" />
+    <ClInclude Include="Source\Framework\ECS\Entity\Entity.h" />
+    <ClInclude Include="Source\Framework\ImGuiEditor\EditorContext.h" />
+    <ClInclude Include="Source\Framework\ImGuiEditor\Editor\Editor.h" />
+    <ClInclude Include="Source\Framework\ImGuiEditor\GameEditor\GameEditor.h" />
+    <ClInclude Include="Source\Framework\ImGuiEditor\IEditorPanel.h" />
+    <ClInclude Include="Source\Framework\ImGuiEditor\NavMeshEditor\NavMeshEditor.h" />
+    <ClInclude Include="Source\Framework\ImGuiEditor\Panels\DebugPanel.h" />
+    <ClInclude Include="Source\Framework\ImGuiEditor\Panels\IBLPanel.h" />
+    <ClInclude Include="Source\Framework\ImGuiEditor\Panels\LightingPanel.h" />
+    <ClInclude Include="Source\Framework\ImGuiEditor\Panels\MaterialPanel.h" />
+    <ClInclude Include="Source\Framework\ImGuiEditor\Panels\PostProcessPanel.h" />
+    <ClInclude Include="Source\Framework\ImGuiEditor\Panels\FogPanel.h" />
+    <ClInclude Include="Source\Framework\ImGuiEditor\Panels\RendererPanel.h" />
+    <ClInclude Include="Source\Framework\ImGuiEditor\Panels\ShadowPanel.h" />
+    <ClInclude Include="Source\Framework\ImGuiEditor\ShaderEditor\ShaderEditor.h" />
+    <ClInclude Include="Source\Framework\Manager\Animation\AnimationManager.h" />
+    <ClInclude Include="Source\Framework\Manager\Audio\AudioManager.h" />
+    <ClInclude Include="Source\Framework\Manager\Collision\CollisionManager.h" />
+    <ClInclude Include="Source\Framework\Manager\Collision\CollisionShape.h" />
+    <ClInclude Include="Source\Framework\Manager\Collision\CollisionSolver.h" />
+    <ClInclude Include="Source\Framework\Manager\Collision\Octree.h" />
+    <ClInclude Include="Source\Framework\Manager\NavMesh\NavMeshManager.h" />
+    <ClInclude Include="Source\Framework\Manager\Resource\PrefabManager.h" />
+    <ClInclude Include="Source\Framework\Manager\Resource\ResourceManager.h" />
+    <ClInclude Include="Source\Framework\Manager\Scene\Scene.h" />
+    <ClInclude Include="Source\Framework\Manager\Scene\SceneBase.h" />
+    <ClInclude Include="Source\Framework\Manager\Scene\SceneManager.h" />
+    <ClInclude Include="Source\Framework\Memory\LinearAllocator.h" />
+    <ClInclude Include="Source\Framework\Memory\PoolAllocator.h" />
+    <ClInclude Include="Source\Framework\System\JobSystem\JobSystem.h" />
+    <ClInclude Include="Source\Framework\Manager\GameManager.h" />
+    <ClInclude Include="Source\Framework\Object\GameObject.h" />
+    <ClInclude Include="Source\Framework\Object\Object.h" />
+    <ClInclude Include="Source\Framework\System.h" />
+    <ClInclude Include="Source\Graphics\Device\GraphicsDevice.h" />
+    <ClInclude Include="Source\Graphics\Renderer\Renderer.h" />
+    <ClInclude Include="Source\Graphics\Renderer\ModelRenderer.h" />
+    <ClInclude Include="Source\Graphics\Renderer\RenderContext.h" />
+    <ClInclude Include="Source\Graphics\Renderer\DrawContext.h" />
+    <ClInclude Include="Source\Graphics\Geometry\Mesh\Mesh.h" />
+    <ClInclude Include="Source\Graphics\Geometry\Mesh\MeshData\MeshData.h" />
+    <ClInclude Include="Source\Graphics\Geometry\Model\Model.h" />
+    <ClInclude Include="Source\Graphics\Graphics.h" />
+    <ClInclude Include="Source\Graphics\Shader\BloomShader\BloomShader.h" />
+    <ClInclude Include="Source\Graphics\Shader\FogShader\FogShader.h" />
+    <ClInclude Include="Source\Graphics\Shader\LitShader\LitShader.h" />
+    <ClInclude Include="Source\Graphics\Shader\SkyShader\SkyShader.h" />
+    <ClInclude Include="Source\Graphics\Shader\ShaderSettings.h" />
+    <ClInclude Include="Source\Graphics\Shader\ShadowShader\ShadowShader.h" />
+    <ClInclude Include="Source\Graphics\Shader\SkinningShader\SkinningShader.h" />
+    <ClInclude Include="Source\Graphics\Shader\Pipeline\Pipeline.h" />
+    <ClInclude Include="Source\Graphics\Shader\PostProcessShader\PostProcessShader.h" />
+    <ClInclude Include="Source\Graphics\Shader\RootSignature\RootSignature.h" />
+    <ClInclude Include="Source\Graphics\Shader\ShaderCompiler\ShaderCompiler.h" />
+    <ClInclude Include="Source\Graphics\Shader\GraphicsShader\GraphicsShader.h" />
+    <ClInclude Include="Source\Graphics\Shader\ShaderLibrary.h" />
+    <ClInclude Include="Source\Pch.h" />
+    <ClInclude Include="Source\Framework\ECS\Components\Data\AnimationData.h" />
+    <ClInclude Include="Source\Framework\ECS\Components\Data\ColliderData.h" />
+    <ClInclude Include="Source\Framework\ECS\Components\Data\NativeScriptData.h" />
+    <ClInclude Include="Source\Framework\ECS\Components\Data\NativeScript.h" />
+    <ClInclude Include="Source\Framework\ECS\CompSystem\Systems\TransformSystem.h" />
+    <ClInclude Include="Source\Application\Object\Script\Ghost\GhostAI.h" />
+    <ClInclude Include="Source\Application\Object\Script\System\GameSequence.h" />
+    <ClInclude Include="Source\Application\Object\Script\System\RoomArea.h" />
+    <ClInclude Include="Source\Application\Object\Script\System\ReflectionComponent.h" />
+    <ClInclude Include="Source\Application\Object\Script\System\AutoMirrorComponent.h" />
+    <ClInclude Include="Source\Framework\Manager\Asset\AnimationAssetManager.h" />
+    <ClInclude Include="Source\Framework\Manager\Asset\AssetData.h" />
+    <ClInclude Include="Source\Framework\Manager\Asset\AssetHandle.h" />
+    <ClInclude Include="Source\Framework\Manager\Asset\AssetImporter.h" />
+    <ClInclude Include="Source\Framework\Manager\Asset\AssetManager.h" />
+    <ClInclude Include="Source\Framework\Manager\Asset\GltfImporter.h" />
+    <ClInclude Include="Source\Framework\Manager\Asset\LoadModelOption.h" />
+    <ClInclude Include="Source\Framework\Manager\Asset\MaterialManager.h" />
+    <ClInclude Include="Source\Framework\Manager\Asset\MeshManager.h" />
+    <ClInclude Include="Source\Framework\Manager\Asset\TextureManager.h" />
+    <ClInclude Include="Source\Framework\Window\Window.h" />
+    <ClInclude Include="Source\Graphics\Descriptor\DescriptorAllocator.h" />
+    <ClInclude Include="Source\Graphics\Descriptor\DescriptorHeapManager.h" />
+    <ClInclude Include="Source\Graphics\Device\Context\CommandContext.h" />
+    <ClInclude Include="Source\Graphics\Device\Context\ContextManager.h" />
+    <ClInclude Include="Source\Graphics\Device\Context\ContextPool.h" />
+    <ClInclude Include="Source\Graphics\Device\Context\GraphicsCommandContext.h" />
+    <ClInclude Include="Source\Graphics\Device\Context\ScopedCommandContext.h" />
+    <ClInclude Include="Source\Graphics\Device\Context\UploadCommandContext.h" />
+    <ClInclude Include="Source\Graphics\Device\Frame\FrameManager.h" />
+    <ClInclude Include="Source\Graphics\Device\Queue\CommandQueue.h" />
+    <ClInclude Include="Source\Graphics\Device\Queue\QueueManager.h" />
+    <ClInclude Include="Source\Graphics\Device\FrameResource.h" />
+    <ClInclude Include="Source\Graphics\Device\ResourceStateTracker.h" />
+    <ClInclude Include="Source\Graphics\Device\ResourceUploader.h" />
+    <ClInclude Include="Source\Graphics\GPUResource\ResourceLifetimeManager.h" />
+    <ClInclude Include="Source\Graphics\GDF\GDF.h" />
+    <ClInclude Include="Source\Graphics\GPUResource\Buffer\ConstantBuffer.h" />
+    <ClInclude Include="Source\Graphics\GPUResource\Buffer\GPUBuffer.h" />
+    <ClInclude Include="Source\Graphics\GPUResource\Buffer\IndexBuffer.h" />
+    <ClInclude Include="Source\Graphics\GPUResource\Buffer\VertexBuffer.h" />
+    <ClInclude Include="Source\Graphics\GPUResource\CBufferData\CBufferData.h" />
+    <ClInclude Include="Source\Graphics\GPUResource\DepthStencil\DepthStencil.h" />
+    <ClInclude Include="Source\Graphics\GPUResource\FrameConstantBufferAllocator\FrameConstantBufferAllocator.h" />
+    <ClInclude Include="Source\Graphics\GPUResource\Material\Material.h" />
+    <ClInclude Include="Source\Graphics\GPUResource\RenderTarget\RenderTarget.h" />
+    <ClInclude Include="Source\Graphics\GPUResource\Texture\Texture.h" />
+    <ClInclude Include="Source\Graphics\GPUResource\GPUResource.h" />
+    <ClInclude Include="Source\Graphics\GPUUploadQueue\GPUUploadQueue.h" />
+    <ClInclude Include="Source\Graphics\Renderer\RenderItem.h" />
+    <ClInclude Include="Source\Graphics\Renderer\RenderManager.h" />
+    <ClInclude Include="Source\Graphics\Renderer\RenderQueue.h" />
+    <ClInclude Include="Source\Graphics\Shader\ShaderManager\ShaderManager.h" />
+    <ClInclude Include="Source\Graphics\Shader\ShaderReflection\ShaderReflection.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Library\ImGui\imgui.cpp" />
+    <ClCompile Include="Library\ImGui\ImGuizmo.cpp" />
+    <ClCompile Include="Library\ImGui\imgui_demo.cpp" />
+    <ClCompile Include="Library\ImGui\imgui_draw.cpp" />
+    <ClCompile Include="Library\ImGui\imgui_impl_dx12.cpp" />
+    <ClCompile Include="Library\ImGui\imgui_impl_win32.cpp" />
+    <ClCompile Include="Library\ImGui\imgui_stdlib.cpp" />
+    <ClCompile Include="Library\ImGui\imgui_tables.cpp" />
+    <ClCompile Include="Library\ImGui\imgui_widgets.cpp" />
+    <ClCompile Include="Source\Application\Object\Script\Player\Player.cpp" />
+    <ClCompile Include="Source\Application\Object\Script\Item\PickupItem.cpp" />
+    <ClCompile Include="Source\Application\Application.cpp" />
+    <ClCompile Include="Source\Application\Scene\GameScene\GameScene.cpp" />
+    <ClCompile Include="Source\Application\Scene\ResultScene\ResultScene.cpp" />
+    <ClCompile Include="Source\Application\Scene\TitleScene\TitleScene.cpp" />
+    <ClCompile Include="Source\Framework\DirectX\Utility\ClassAssembly.cpp" />
+    <ClCompile Include="Source\Framework\DirectX\Utility\Input.cpp" />
+    <ClCompile Include="Source\Framework\DirectX\Utility\Logger.cpp" />
+    <ClCompile Include="Source\Framework\DirectX\Utility\Profiler.cpp" />
+    <ClCompile Include="Source\Framework\DirectX\Utility\Time.cpp" />
+    <ClCompile Include="Source\Framework\DirectX\Utility\Utility.cpp" />
+    <ClCompile Include="Source\Framework\ImGuiEditor\Editor\Editor.cpp" />
+    <ClCompile Include="Source\Framework\ImGuiEditor\Editor\HierarchyWindow.cpp" />
+    <ClCompile Include="Source\Framework\ImGuiEditor\Editor\InspectorWindow.cpp" />
+    <ClCompile Include="Source\Framework\ImGuiEditor\Editor\StatisticsWindow.cpp" />
+    <ClCompile Include="Source\Framework\ImGuiEditor\Editor\ConsoleWindow.cpp" />
+    <ClCompile Include="Source\Framework\ImGuiEditor\Editor\AssetBrowserWindow.cpp" />
+    <ClCompile Include="Source\Framework\ImGuiEditor\Editor\Toolbar.cpp" />
+    <ClCompile Include="Source\Framework\ImGuiEditor\GameEditor\GameEditor.cpp" />
+    <ClCompile Include="Source\Framework\ImGuiEditor\NavMeshEditor\NavMeshEditor.cpp" />
+    <ClCompile Include="Source\Framework\ImGuiEditor\Panels\DebugPanel.cpp" />
+    <ClCompile Include="Source\Framework\ImGuiEditor\Panels\IBLPanel.cpp" />
+    <ClCompile Include="Source\Framework\ImGuiEditor\Panels\LightingPanel.cpp" />
+    <ClCompile Include="Source\Framework\ImGuiEditor\Panels\MaterialPanel.cpp" />
+    <ClCompile Include="Source\Framework\ImGuiEditor\Panels\PostProcessPanel.cpp" />
+    <ClCompile Include="Source\Framework\ImGuiEditor\Panels\FogPanel.cpp" />
+    <ClCompile Include="Source\Framework\ImGuiEditor\Panels\RendererPanel.cpp" />
+    <ClCompile Include="Source\Framework\ImGuiEditor\Panels\ShadowPanel.cpp" />
+    <ClCompile Include="Source\Framework\ImGuiEditor\ShaderEditor\ShaderEditor.cpp" />
+    <ClCompile Include="Source\Framework\Manager\Animation\AnimationManager.cpp" />
+    <ClCompile Include="Source\Framework\Manager\Audio\AudioManager.cpp" />
+    <ClCompile Include="Source\Framework\Manager\Collision\CollisionManager.cpp" />
+    <ClCompile Include="Source\Framework\Manager\Collision\CollisionShape.cpp" />
+    <ClCompile Include="Source\Framework\Manager\Collision\CollisionSolver.cpp" />
+    <ClCompile Include="Source\Framework\Manager\Collision\Octree.cpp" />
+    <ClCompile Include="Source\Framework\Manager\NavMesh\NavMeshManager.cpp" />
+    <ClCompile Include="Source\Framework\Manager\Resource\PrefabManager.cpp" />
+    <ClCompile Include="Source\Framework\Manager\Resource\ResourceManager.cpp" />
+    <ClCompile Include="Source\Framework\Manager\Scene\Scene.cpp" />
+    <ClCompile Include="Source\Framework\Manager\Scene\SceneManager.cpp" />
+    <ClCompile Include="Source\Framework\System\JobSystem\JobSystem.cpp" />
+    <ClCompile Include="Source\Framework\ECS\ComponentSerializerRegistration.cpp" />
+    <ClCompile Include="Source\Framework\Manager\GameManager.cpp" />
+    <ClCompile Include="Source\Framework\ECS\CompSystem\SpriteRenderSystem\SpriteRenderSystem.cpp" />
+    <ClCompile Include="Source\Framework\ECS\ECSCommandBuffer.cpp" />
+    <ClCompile Include="Source\Framework\Object\GameObject.cpp" />
+    <ClCompile Include="Source\Graphics\Device\GraphicsDevice.cpp" />
+    <ClCompile Include="Source\Graphics\Renderer\Renderer.cpp" />
+    <ClCompile Include="Source\Graphics\Renderer\ModelRenderer.cpp" />
+    <ClCompile Include="Source\Graphics\Renderer\RenderContext.cpp" />
+    <ClCompile Include="Source\Graphics\Geometry\Mesh\Mesh.cpp" />
+    <ClCompile Include="Source\Graphics\Geometry\Model\Model.cpp" />
+    <ClCompile Include="Source\Graphics\Shader\BloomShader\BloomShader.cpp" />
+    <ClCompile Include="Source\Graphics\Shader\FogShader\FogShader.cpp" />
+    <ClCompile Include="Source\Graphics\Shader\LitShader\LitShader.cpp" />
+    <ClCompile Include="Source\Graphics\Shader\SkyShader\SkyShader.cpp" />
+    <ClCompile Include="Source\Graphics\Shader\ShadowShader\ShadowShader.cpp" />
+    <ClCompile Include="Source\Graphics\Shader\SkinningShader\SkinningShader.cpp" />
+    <ClCompile Include="Source\Graphics\Shader\Pipeline\Pipeline.cpp" />
+    <ClCompile Include="Source\Graphics\Shader\PostProcessShader\PostProcessShader.cpp" />
+    <ClCompile Include="Source\Graphics\Shader\RootSignature\RootSignature.cpp" />
+    <ClCompile Include="Source\Graphics\Shader\ShaderCompiler\ShaderCompiler.cpp" />
+    <ClCompile Include="Source\Pch.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Source\Application\Object\Script\Ghost\GhostAI.cpp" />
+    <ClCompile Include="Source\Application\Object\Script\System\GameSequence.cpp" />
+    <ClCompile Include="Source\Application\Object\Script\System\RoomArea.cpp" />
+    <ClCompile Include="Source\Application\Object\Script\System\ReflectionComponent.cpp" />
+    <ClCompile Include="Source\Application\Object\Script\System\AutoMirrorComponent.cpp" />
+    <ClCompile Include="Source\Framework\ImGuiEditor\Editor\GameViewWindow.cpp" />
+    <ClCompile Include="Source\Framework\Manager\Asset\AnimationAssetManager.cpp" />
+    <ClCompile Include="Source\Framework\Manager\Asset\AssetManager.cpp" />
+    <ClCompile Include="Source\Framework\Manager\Asset\GltfImporter.cpp" />
+    <ClCompile Include="Source\Framework\Manager\Asset\MaterialManager.cpp" />
+    <ClCompile Include="Source\Framework\Manager\Asset\MeshManager.cpp" />
+    <ClCompile Include="Source\Framework\Manager\Asset\TextureManager.cpp" />
+    <ClCompile Include="Source\Framework\Window\Window.cpp" />
+    <ClCompile Include="Source\Graphics\Descriptor\DescriptorAllocator.cpp" />
+    <ClCompile Include="Source\Graphics\Descriptor\DescriptorHeapManager.cpp" />
+    <ClCompile Include="Source\Graphics\Device\Context\ContextManager.cpp" />
+    <ClCompile Include="Source\Graphics\Device\Context\CommandContext.cpp" />
+    <ClCompile Include="Source\Graphics\Device\Context\GraphicsCommandContext.cpp" />
+    <ClCompile Include="Source\Graphics\Device\Context\UploadCommandContext.cpp" />
+    <ClCompile Include="Source\Graphics\Device\Frame\FrameManager.cpp" />
+    <ClCompile Include="Source\Graphics\Device\Queue\CommandQueue.cpp" />
+    <ClCompile Include="Source\Graphics\Device\Queue\QueueManager.cpp" />
+    <ClCompile Include="Source\Graphics\Device\FrameResource.cpp" />
+    <ClCompile Include="Source\Graphics\Device\ResourceStateTracker.cpp" />
+    <ClCompile Include="Source\Graphics\Device\ResourceUploader.cpp" />
+    <ClCompile Include="Source\Graphics\GPUResource\GPUResource.cpp" />
+    <ClCompile Include="Source\Graphics\GPUResource\ResourceLifetimeManager.cpp" />
+    <ClCompile Include="Source\Graphics\GDF\GDF.cpp" />
+    <ClCompile Include="Source\Graphics\GPUResource\Buffer\ConstantBuffer.cpp" />
+    <ClCompile Include="Source\Graphics\GPUResource\Buffer\IndexBuffer.cpp" />
+    <ClCompile Include="Source\Graphics\GPUResource\Buffer\VertexBuffer.cpp" />
+    <ClCompile Include="Source\Graphics\GPUResource\DepthStencil\DepthStencil.cpp" />
+    <ClCompile Include="Source\Graphics\GPUResource\FrameConstantBufferAllocator\FrameConstantBufferAllocator.cpp" />
+    <ClCompile Include="Source\Graphics\GPUResource\Material\Material.cpp" />
+    <ClCompile Include="Source\Graphics\GPUResource\RenderTarget\RenderTarget.cpp" />
+    <ClCompile Include="Source\Graphics\GPUResource\Texture\Texture.cpp" />
+    <ClCompile Include="Source\Graphics\GPUUploadQueue\GPUUploadQueue.cpp" />
+    <ClCompile Include="Source\Graphics\Renderer\RenderManager.cpp" />
+    <ClCompile Include="Source\Graphics\Renderer\RenderQueue.cpp" />
+    <ClCompile Include="Source\Graphics\Shader\ShaderManager\ShaderManager.cpp" />
+    <ClCompile Include="Source\Graphics\Shader\ShaderReflection\ShaderReflection.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Asset\Shader\inc_ShaderCore.hlsli" />
+    <None Include="Asset\Shader\LitShader\inc_PBRCommon.hlsli" />
+    <None Include="Asset\Shader\SkinningShader\inc_SkinningShader.hlsli" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Asset\Shader\LitShader\LitShader.hlsli" />
+    <None Include="Asset\Shader\LitShader\LitShader_VS.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Asset\Shader\LitShader\LitShader_PS.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Asset\Shader\SkyShader\SkyShader_VS.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Asset\Shader\SkyShader\SkyShader_PS.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Asset\Shader\PostProcessShader\PostProcessShader.hlsli" />
+    <None Include="Asset\Shader\PostProcessShader\PostProcessShader_VS.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Asset\Shader\PostProcessShader\PostProcessShader_PS.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Asset\Shader\PP_ToneMapping\PP_ToneMapping.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Asset\Shader\BloomShader\BloomBlur_PS.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Asset\Shader\BloomShader\BloomExtract_PS.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Asset\Shader\FogShader\FogShader_PS.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Asset\Shader\FogShader\FogShader_VS.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <FxCompile Include="Asset\Shader\SkinningShader\SkinningShader_PS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="Asset\Shader\SkinningShader\SkinningShader_VS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Asset\Shader\LitShader\temp_pbr.txt">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </None>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="packages\directxtex_desktop_2019.2025.10.28.1\build\native\directxtex_desktop_2019.targets" Condition="Exists('packages\directxtex_desktop_2019.2025.10.28.1\build\native\directxtex_desktop_2019.targets')" />
+    <Import Project="packages\directxtk12_desktop_2019.2025.10.28.1\build\native\directxtk12_desktop_2019.targets" Condition="Exists('packages\directxtk12_desktop_2019.2025.10.28.1\build\native\directxtk12_desktop_2019.targets')" />
+  </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>????v???W?F?N?g??A????R???s???[?^?[????? NuGet ?p?b?P?[?W??Q??????????B??????p?b?P?[?W??_?E?????[?h??????A[NuGet ?p?b?P?[?W?????] ??g?p??????B?????????Ahttp://go.microsoft.com/fwlink/?LinkID=322105 ??Q?????????????B??????????t?@?C???? {0} ????B</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('packages\directxtex_desktop_2019.2025.10.28.1\build\native\directxtex_desktop_2019.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\directxtex_desktop_2019.2025.10.28.1\build\native\directxtex_desktop_2019.targets'))" />
+    <Error Condition="!Exists('packages\directxtk12_desktop_2019.2025.10.28.1\build\native\directxtk12_desktop_2019.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\directxtk12_desktop_2019.2025.10.28.1\build\native\directxtk12_desktop_2019.targets'))" />
+  </Target>
+</Project>

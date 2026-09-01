@@ -1,0 +1,1003 @@
+[LOG] AudioManager: Initialized AudioEngine successfully.
+[LOG] Scene Loaded
+[LOG] TestSerialize.json Written
+[LOG] Ghost Room Selected: JPRoomF1
+[LOG] [GltfImporter] Material='Ofuda_Ink' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='Ofuda_Seal' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='Ofuda_Paper' AlphaMode=0 Procedural=0
+[LOG] Successfully async loaded model: Asset/Model/Item/Ofuda/Ofuda.gltf
+[LOG] [GltfImporter] Material='Smudge_Ember' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='Smudge_Leaf' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='Smudge_Leaf2' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='Smudge_String' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Anim='Burn' Duration=1875.00 TicksPerSec=1000.00
+[LOG] Successfully async loaded model: Asset/Model/Item/SmudgeStick/SmudgeStick.gltf
+[LOG] First Vertex Skin: Idx(0, 9, 10, 11) Weight(0.000000, 0.079697, 0.831274, 0.089029) Sum=1.000000
+[LOG] [GltfImporter] Material='weathered_brown_planks' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='OldGlass' AlphaMode=2 Procedural=3
+[LOG] [GltfImporter] Material='initialShadingGroup' AlphaMode=2 Procedural=0
+[LOG] Successfully async loaded model: Asset/Model/Item/Thermometer/Thermometer.gltf
+[LOG] [GltfImporter] Material='Body' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='SkyMaterial' AlphaMode=0 Procedural=0
+[LOG] Successfully async loaded model: Asset/Model/SkySphere/SkySphere.obj
+[LOG] [GltfImporter] Material='Trousers.002' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='Shoes.002' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='ShoeLace.001' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='ShoeLace.003' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='ShoeLace.002' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='wood_peeling_paint_weathered' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='DoorHandleMetal' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='Tshirt.001' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='wood_peeling_paint_weathered.002' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='Foot.002' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='Dress' AlphaMode=2 Procedural=0
+[LOG] [GltfImporter] Material='wood_peeling_paint_weathered.001' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='Face.002' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='tatami_mat' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='Hair.002' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='TeethnTognue.002' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='Eyebrows.001' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='Button.001' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='Button.003' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='Button.004' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='Button.002' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='Hair' AlphaMode=2 Procedural=0
+[LOG] [GltfImporter] Material='weathered_brown_planks.001' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='Hair' AlphaMode=2 Procedural=0
+[LOG] [GltfImporter] Anim='Armature|Stalking 3' Duration=4958.33 TicksPerSec=1000.00
+[LOG] [GltfImporter] Anim='Armature|Stalking 2' Duration=4958.33 TicksPerSec=1000.00
+[LOG] [GltfImporter] Anim='Armature|Stalking 1' Duration=4958.33 TicksPerSec=1000.00
+[LOG] [GltfImporter] Anim='Armature|Chasing' Duration=4958.33 TicksPerSec=1000.00
+[LOG] Successfully async loaded model: Asset/Model/Character/Enemy/scene.gltf
+[LOG] [GltfImporter] Material='roof_09' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='Hands.002' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='Eye.002' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='old_wood_floor' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='Eye.001' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Anim='Crouch' Duration=1666.67 TicksPerSec=1000.00
+[LOG] [GltfImporter] Anim='Crouch_Idle' Duration=3750.00 TicksPerSec=1000.00
+[LOG] [GltfImporter] Anim='CrouchWalk' Duration=1250.00 TicksPerSec=1000.00
+[LOG] [GltfImporter] Anim='Idle' Duration=3750.00 TicksPerSec=1000.00
+[LOG] [GltfImporter] Anim='Skeleton.001|Action.001' Duration=13916.67 TicksPerSec=1000.00
+[LOG] [GltfImporter] Anim='Skeleton.001|EnsaQotirgan' Duration=0.00 TicksPerSec=1000.00
+[LOG] [GltfImporter] Anim='UseItem_Crouch' Duration=1666.67 TicksPerSec=1000.00
+[LOG] [GltfImporter] Anim='UseItem_Crouch_Idle' Duration=3750.00 TicksPerSec=1000.00
+[LOG] [GltfImporter] Anim='UseItem_CrouchWalk' Duration=1250.00 TicksPerSec=1000.00
+[LOG] [GltfImporter] Anim='UseItem_Idle' Duration=3750.00 TicksPerSec=1000.00
+[LOG] [GltfImporter] Anim='UseItem_Walk' Duration=1250.00 TicksPerSec=1000.00
+[LOG] [GltfImporter] Anim='Walk' Duration=1250.00 TicksPerSec=1000.00
+[LOG] Successfully async loaded model: Asset/Model/Character/Player/Player.gltf
+[LOG] [GltfImporter] Material='brown_mud_leaves_01' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='Cobweb' AlphaMode=2 Procedural=2
+[LOG] [GltfImporter] Material='rusty_corrugated_iron' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='rusty_metal_04' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='BloodStain' AlphaMode=2 Procedural=1
+[LOG] [GltfImporter] Material='black_walnut_veneer_01' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='DoorHandleMetal' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='black_walnut_veneer_01' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='DoorHandleMetal' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='black_walnut_veneer_01' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='DoorHandleMetal' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='black_walnut_veneer_01' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='DoorHandleMetal' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='black_walnut_veneer_01' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='DoorHandleMetal' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='dark_wooden_planks' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='DoorHandleMetal' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='black_walnut_veneer_01' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='DoorHandleMetal' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='black_walnut_veneer_01' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='DoorHandleMetal' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='black_walnut_veneer_01' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Material='DoorHandleMetal' AlphaMode=0 Procedural=0
+[LOG] [GltfImporter] Anim='Door_2F_North_Hallway繧｢繧ｯ繧ｷ繝ｧ繝ｳ' Duration=3333.33 TicksPerSec=1000.00
+[LOG] [GltfImporter] Anim='Door_2F_North_West繧｢繧ｯ繧ｷ繝ｧ繝ｳ' Duration=3333.33 TicksPerSec=1000.00
+[LOG] [GltfImporter] Anim='Door_2F_West_Hallway繧｢繧ｯ繧ｷ繝ｧ繝ｳ' Duration=3333.33 TicksPerSec=1000.00
+[LOG] [GltfImporter] Anim='Door_Japanese_Living繧｢繧ｯ繧ｷ繝ｧ繝ｳ' Duration=3333.33 TicksPerSec=1000.00
+[LOG] [GltfImporter] Anim='Door_Japanese_Small1繧｢繧ｯ繧ｷ繝ｧ繝ｳ' Duration=3333.33 TicksPerSec=1000.00
+[LOG] [GltfImporter] Anim='Door_Living_Entrance繧｢繧ｯ繧ｷ繝ｧ繝ｳ' Duration=3333.33 TicksPerSec=1000.00
+[LOG] [GltfImporter] Anim='Door_Small1_Living繧｢繧ｯ繧ｷ繝ｧ繝ｳ' Duration=3333.33 TicksPerSec=1000.00
+[LOG] [GltfImporter] Anim='Door_Small1_Small2繧｢繧ｯ繧ｷ繝ｧ繝ｳ' Duration=3333.33 TicksPerSec=1000.00
+[LOG] [GltfImporter] Anim='Door_Small2_Living繧｢繧ｯ繧ｷ繝ｧ繝ｳ' Duration=3333.33 TicksPerSec=1000.00
+[LOG] Successfully async loaded model: Asset/Model/Map/House/House1.gltf
+[LOG] Successfully async loaded texture: Asset/Texture/UI/interact_prompt_f.png
+[LOG] Successfully async loaded texture: Asset/Texture/UI/ofuda_icon.png
+[LOG] Successfully async loaded texture: Asset/Texture/UI/thermometer_icon.png
+[LOG] Successfully async loaded texture: Asset/Texture/UI/smudgestick_icon.png
+[LOG] [GameScene] Room bounds: JPRoomF1 min=(-4.40,0.00,2.40) max=(4.60,4.00,6.60)
+[LOG] [GameScene] Room bounds: JPRoomF2 min=(-4.40,4.30,2.40) max=(4.60,8.30,6.60)
+[LOG] [GameScene] Room bounds: RoomF2 min=(-4.30,4.40,-4.30) max=(-0.20,8.20,2.20)
+[LOG] [GameScene] Room bounds: Room2 min=(-4.30,0.00,-0.90) max=(-0.20,4.00,2.10)
+[LOG] [GameScene] Room bounds: Room1 min=(-4.40,0.00,-4.40) max=(0.00,4.00,-1.20)
+[LOG] [GameScene] Room bounds: LivingRoom min=(0.00,0.00,-4.50) max=(4.50,4.00,2.25)
+[LOG] [GameScene] Room bounds: Hallway2F min=(-0.11,4.05,-4.61) max=(4.61,8.40,2.36)
+[LOG] [GameScene] Room bounds: Stairs min=(3.00,0.00,-5.36) max=(4.50,4.35,-0.36)
+[LOG] NavMesh (manual): Z-connector Room2 <-> JPRoomF1
+[LOG] NavMesh (manual): Z-connector LivingRoom <-> JPRoomF1
+[LOG] NavMesh (manual): Z-connector RoomF2 <-> JPRoomF2
+[LOG] NavMesh (manual): Z-connector Hallway2F <-> JPRoomF2
+[LOG] NavMesh (manual): X-connector RoomF2 <-> Hallway2F
+[LOG] NavMesh (manual): Z-connector Room1 <-> Room2
+[LOG] NavMesh (manual): X-connector Room2 <-> LivingRoom
+[LOG] NavMesh (manual): X-connector Room1 <-> LivingRoom
+[LOG] NavMesh (manual): split JPRoomF1 into 2 sub-quads along its south side (multiple neighbors share that wall)
+[LOG] NavMesh (manual): split JPRoomF2 into 2 sub-quads along its south side (multiple neighbors share that wall)
+[LOG] NavMesh (manual): split LivingRoom into 2 sub-quads along its west side (multiple neighbors share that wall)
+[LOG] NavMesh (manual): stair-bridge Stairs(bottom) <-> Stairs(top)
+[LOG] NavMesh (manual): overlap-link Stairs(bottom) <-> LivingRoom (ok)
+[LOG] NavMesh (manual): overlap-link Stairs(top) <-> Hallway2F (ok)
+[LOG] NavMesh (manual) built successfully! Rooms: 9 Polys: 21 (rooms=12 connectors=9)
+[LOG] [GameScene] NavMesh (manual, room-based) built.
+[LOG] IsReachable: snappedStart=(0.10,0.00,4.50) snappedEnd=(0.10,4.30,4.50) pathPolyCount=10 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(0.10,0.00,4.50) snappedEnd=(-2.25,4.40,-1.05) pathPolyCount=10 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(0.10,0.00,4.50) snappedEnd=(-2.25,0.00,0.60) pathPolyCount=4 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(0.10,0.00,4.50) snappedEnd=(-2.20,0.00,-2.80) pathPolyCount=6 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(0.10,0.00,4.50) snappedEnd=(2.25,0.00,-1.12) pathPolyCount=4 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(0.10,0.00,4.50) snappedEnd=(2.25,4.06,-1.13) pathPolyCount=8 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(0.10,0.00,4.50) snappedEnd=(3.75,2.18,-2.86) pathPolyCount=6 lastPolyIsEnd=1
+[LOG] [GameScene] NavMesh room reachability: JPRoomF1 (y=2.0) -> [JPRoomF2, RoomF2, Room2, Room1, LivingRoom, Hallway2F, Stairs]
+[LOG] IsReachable: snappedStart=(0.10,4.30,4.50) snappedEnd=(0.10,0.00,4.50) pathPolyCount=10 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(0.10,4.30,4.50) snappedEnd=(-2.25,4.40,-1.05) pathPolyCount=4 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(0.10,4.30,4.50) snappedEnd=(-2.25,0.00,0.60) pathPolyCount=10 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(0.10,4.30,4.50) snappedEnd=(-2.20,0.00,-2.80) pathPolyCount=9 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(0.10,4.30,4.50) snappedEnd=(2.25,0.00,-1.12) pathPolyCount=7 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(0.10,4.30,4.50) snappedEnd=(2.25,4.06,-1.13) pathPolyCount=3 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(0.10,4.30,4.50) snappedEnd=(3.75,2.18,-2.86) pathPolyCount=5 lastPolyIsEnd=1
+[LOG] [GameScene] NavMesh room reachability: JPRoomF2 (y=6.3) -> [JPRoomF1, RoomF2, Room2, Room1, LivingRoom, Hallway2F, Stairs]
+[LOG] IsReachable: snappedStart=(-2.25,4.40,-1.05) snappedEnd=(0.10,0.00,4.50) pathPolyCount=10 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(-2.25,4.40,-1.05) snappedEnd=(0.10,4.30,4.50) pathPolyCount=4 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(-2.25,4.40,-1.05) snappedEnd=(-2.25,0.00,0.60) pathPolyCount=10 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(-2.25,4.40,-1.05) snappedEnd=(-2.20,0.00,-2.80) pathPolyCount=9 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(-2.25,4.40,-1.05) snappedEnd=(2.25,0.00,-1.12) pathPolyCount=7 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(-2.25,4.40,-1.05) snappedEnd=(2.25,4.06,-1.13) pathPolyCount=3 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(-2.25,4.40,-1.05) snappedEnd=(3.75,2.18,-2.86) pathPolyCount=5 lastPolyIsEnd=1
+[LOG] [GameScene] NavMesh room reachability: RoomF2 (y=6.3) -> [JPRoomF1, JPRoomF2, Room2, Room1, LivingRoom, Hallway2F, Stairs]
+[LOG] IsReachable: snappedStart=(-2.25,0.00,0.60) snappedEnd=(0.10,0.00,4.50) pathPolyCount=4 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(-2.25,0.00,0.60) snappedEnd=(0.10,4.30,4.50) pathPolyCount=10 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(-2.25,0.00,0.60) snappedEnd=(-2.25,4.40,-1.05) pathPolyCount=10 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(-2.25,0.00,0.60) snappedEnd=(-2.20,0.00,-2.80) pathPolyCount=3 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(-2.25,0.00,0.60) snappedEnd=(2.25,0.00,-1.12) pathPolyCount=4 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(-2.25,0.00,0.60) snappedEnd=(2.25,4.06,-1.13) pathPolyCount=8 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(-2.25,0.00,0.60) snappedEnd=(3.75,2.18,-2.86) pathPolyCount=6 lastPolyIsEnd=1
+[LOG] [GameScene] NavMesh room reachability: Room2 (y=2.0) -> [JPRoomF1, JPRoomF2, RoomF2, Room1, LivingRoom, Hallway2F, Stairs]
+[LOG] IsReachable: snappedStart=(-2.20,0.00,-2.80) snappedEnd=(0.10,0.00,4.50) pathPolyCount=6 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(-2.20,0.00,-2.80) snappedEnd=(0.10,4.30,4.50) pathPolyCount=9 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(-2.20,0.00,-2.80) snappedEnd=(-2.25,4.40,-1.05) pathPolyCount=9 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(-2.20,0.00,-2.80) snappedEnd=(-2.25,0.00,0.60) pathPolyCount=3 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(-2.20,0.00,-2.80) snappedEnd=(2.25,0.00,-1.12) pathPolyCount=3 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(-2.20,0.00,-2.80) snappedEnd=(2.25,4.06,-1.13) pathPolyCount=7 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(-2.20,0.00,-2.80) snappedEnd=(3.75,2.18,-2.86) pathPolyCount=5 lastPolyIsEnd=1
+[LOG] [GameScene] NavMesh room reachability: Room1 (y=2.0) -> [JPRoomF1, JPRoomF2, RoomF2, Room2, LivingRoom, Hallway2F, Stairs]
+[LOG] IsReachable: snappedStart=(2.25,0.00,-1.12) snappedEnd=(0.10,0.00,4.50) pathPolyCount=4 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(2.25,0.00,-1.12) snappedEnd=(0.10,4.30,4.50) pathPolyCount=7 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(2.25,0.00,-1.12) snappedEnd=(-2.25,4.40,-1.05) pathPolyCount=7 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(2.25,0.00,-1.12) snappedEnd=(-2.25,0.00,0.60) pathPolyCount=4 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(2.25,0.00,-1.12) snappedEnd=(-2.20,0.00,-2.80) pathPolyCount=3 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(2.25,0.00,-1.12) snappedEnd=(2.25,4.06,-1.13) pathPolyCount=5 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(2.25,0.00,-1.12) snappedEnd=(3.75,2.18,-2.86) pathPolyCount=3 lastPolyIsEnd=1
+[LOG] [GameScene] NavMesh room reachability: LivingRoom (y=2.0) -> [JPRoomF1, JPRoomF2, RoomF2, Room2, Room1, Hallway2F, Stairs]
+[LOG] IsReachable: snappedStart=(2.25,4.06,-1.13) snappedEnd=(0.10,0.00,4.50) pathPolyCount=8 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(2.25,4.06,-1.13) snappedEnd=(0.10,4.30,4.50) pathPolyCount=3 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(2.25,4.06,-1.13) snappedEnd=(-2.25,4.40,-1.05) pathPolyCount=3 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(2.25,4.06,-1.13) snappedEnd=(-2.25,0.00,0.60) pathPolyCount=8 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(2.25,4.06,-1.13) snappedEnd=(-2.20,0.00,-2.80) pathPolyCount=7 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(2.25,4.06,-1.13) snappedEnd=(2.25,0.00,-1.12) pathPolyCount=5 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(2.25,4.06,-1.13) snappedEnd=(3.75,2.18,-2.86) pathPolyCount=3 lastPolyIsEnd=1
+[LOG] [GameScene] NavMesh room reachability: Hallway2F (y=6.2) -> [JPRoomF1, JPRoomF2, RoomF2, Room2, Room1, LivingRoom, Stairs]
+[LOG] IsReachable: snappedStart=(3.75,2.18,-2.86) snappedEnd=(0.10,0.00,4.50) pathPolyCount=6 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(3.75,2.18,-2.86) snappedEnd=(0.10,4.30,4.50) pathPolyCount=5 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(3.75,2.18,-2.86) snappedEnd=(-2.25,4.40,-1.05) pathPolyCount=5 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(3.75,2.18,-2.86) snappedEnd=(-2.25,0.00,0.60) pathPolyCount=6 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(3.75,2.18,-2.86) snappedEnd=(-2.20,0.00,-2.80) pathPolyCount=5 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(3.75,2.18,-2.86) snappedEnd=(2.25,0.00,-1.12) pathPolyCount=3 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(3.75,2.18,-2.86) snappedEnd=(2.25,4.06,-1.13) pathPolyCount=3 lastPolyIsEnd=1
+[LOG] [GameScene] NavMesh room reachability: Stairs (y=2.2) -> [JPRoomF1, JPRoomF2, RoomF2, Room2, Room1, LivingRoom, Hallway2F]
+[LOG] [GhostAI] EnsureStairsRoom: found stairs at (3.0,0.0,-5.4)-(4.5,4.3,-0.4)
+[LOG] Bone 0 Offset Raw:
+[LOG] [-101.712799, 0.000000, -0.000009, -0.000000]
+[LOG] [-0.000000, 101.712814, 0.000027, 0.000000]
+[LOG] [0.000009, 0.000003, -101.712814, 0.000000]
+[LOG] [-0.000000, -95.689148, 1.225003, 1.000000]
+[LOG] Bone 0 Global Raw:
+[LOG] [-0.009832, -0.000000, 0.000000, 0.000000]
+[LOG] [-0.000000, 0.009832, 0.000000, 0.000000]
+[LOG] [-0.000000, 0.000000, -0.009832, 0.000000]
+[LOG] [-0.000000, 0.940778, 0.012044, 1.000000]
+[LOG] --- All Bones Final Scales ---
+[LOG] Bone 0: Scale(1.000, 1.000, 1.000) Trans(-0.000, 0.000, 0.000)
+[LOG] Bone 1: Scale(1.000, 1.000, 1.000) Trans(0.000, -0.000, 0.000)
+[LOG] Bone 2: Scale(1.000, 1.000, 1.000) Trans(0.000, -0.000, 0.000)
+[LOG] Bone 3: Scale(1.000, 1.000, 1.000) Trans(0.000, -0.000, -0.000)
+[LOG] Bone 4: Scale(1.000, 1.000, 1.000) Trans(0.000, -0.000, -0.000)
+[LOG] Bone 5: Scale(1.000, 1.000, 1.000) Trans(-0.000, -0.000, 0.000)
+[LOG] Bone 6: Scale(1.000, 1.000, 1.000) Trans(-0.000, -0.000, 0.000)
+[LOG] Bone 7: Scale(1.000, 1.000, 1.000) Trans(0.000, -0.000, -0.000)
+[LOG] Bone 8: Scale(1.000, 1.000, 1.000) Trans(-0.000, -0.000, -0.000)
+[LOG] Bone 9: Scale(1.000, 1.000, 1.000) Trans(0.000, -0.000, 0.000)
+[LOG] Bone 10: Scale(1.000, 1.000, 1.000) Trans(-0.000, -0.000, 0.000)
+[LOG] Bone 11: Scale(1.000, 1.000, 1.000) Trans(-0.000, -0.000, 0.000)
+[LOG] Bone 12: Scale(1.000, 1.000, 1.000) Trans(-0.000, -0.000, -0.000)
+[LOG] Bone 13: Scale(1.000, 1.000, 1.000) Trans(-0.000, -0.000, -0.000)
+[LOG] Bone 14: Scale(1.000, 1.000, 1.000) Trans(-0.000, 0.000, 0.000)
+[LOG] Bone 15: Scale(1.000, 1.000, 1.000) Trans(0.000, -0.000, 0.000)
+[LOG] Bone 16: Scale(1.000, 1.000, 1.000) Trans(0.000, -0.000, 0.000)
+[LOG] Bone 17: Scale(1.000, 1.000, 1.000) Trans(-0.000, -0.000, -0.000)
+[LOG] Bone 18: Scale(1.000, 1.000, 1.000) Trans(1.128, 1.571, -0.000)
+[LOG] Bone 19: Scale(1.000, 1.000, 1.000) Trans(1.128, 1.571, -0.000)
+[LOG] Bone 20: Scale(1.000, 1.000, 1.000) Trans(0.000, -0.000, -0.000)
+[LOG] Bone 21: Scale(1.000, 1.000, 1.000) Trans(-0.000, -0.000, -0.000)
+[LOG] Bone 22: Scale(1.000, 1.000, 1.000) Trans(-0.369, 2.338, 0.716)
+[LOG] Bone 23: Scale(1.000, 1.000, 1.000) Trans(0.441, 2.222, -0.816)
+[LOG] Bone 24: Scale(1.000, 1.000, 1.000) Trans(0.000, -0.000, 0.000)
+[LOG] Bone 25: Scale(1.000, 1.000, 1.000) Trans(0.000, 0.000, 0.000)
+[LOG] Bone 26: Scale(1.000, 1.000, 1.000) Trans(0.000, 0.000, 0.000)
+[LOG] Bone 27: Scale(1.000, 1.000, 1.000) Trans(0.000, 0.000, 0.000)
+[LOG] Bone 28: Scale(1.000, 1.000, 1.000) Trans(0.000, 0.000, -0.000)
+[LOG] Bone 29: Scale(1.000, 1.000, 1.000) Trans(0.000, 0.000, -0.000)
+[LOG] Bone 30: Scale(1.000, 1.000, 1.000) Trans(0.000, -0.000, 0.000)
+[LOG] Bone 31: Scale(1.000, 1.000, 1.000) Trans(-0.000, 0.000, -0.000)
+[LOG] Bone 32: Scale(1.000, 1.000, 1.000) Trans(-0.000, 0.000, -0.000)
+[LOG] Bone 33: Scale(1.000, 1.000, 1.000) Trans(-0.000, -0.000, -0.000)
+[LOG] Bone 34: Scale(1.000, 1.000, 1.000) Trans(-0.000, 0.000, -0.000)
+[LOG] Bone 35: Scale(1.000, 1.000, 1.000) Trans(0.000, 0.000, -0.000)
+[LOG] Bone 36: Scale(1.000, 1.000, 1.000) Trans(-0.000, 0.000, -0.000)
+[LOG] Bone 37: Scale(1.000, 1.000, 1.000) Trans(-0.000, 0.000, -0.000)
+[LOG] Bone 38: Scale(1.000, 1.000, 1.000) Trans(-0.000, 0.000, -0.000)
+[LOG] Bone 39: Scale(1.000, 1.000, 1.000) Trans(0.000, 0.000, -0.000)
+[LOG] Bone 40: Scale(1.000, 1.000, 1.000) Trans(0.000, 0.000, -0.000)
+[LOG] Bone 41: Scale(1.000, 1.000, 1.000) Trans(0.000, 0.000, -0.000)
+[LOG] Bone 42: Scale(1.000, 1.000, 1.000) Trans(-0.000, 0.000, -0.000)
+[LOG] Bone 43: Scale(1.000, 1.000, 1.000) Trans(-0.000, 0.000, -0.000)
+[LOG] Bone 44: Scale(1.000, 1.000, 1.000) Trans(-0.000, 0.000, -0.000)
+[LOG] Bone 45: Scale(1.000, 1.000, 1.000) Trans(0.000, 0.000, -0.000)
+[LOG] Bone 46: Scale(1.000, 1.000, 1.000) Trans(0.000, 0.000, -0.000)
+[LOG] Bone 47: Scale(1.000, 1.000, 1.000) Trans(0.000, 0.000, -0.000)
+[LOG] Bone 48: Scale(1.000, 1.000, 1.000) Trans(0.000, 0.000, -0.000)
+[LOG] Bone 49: Scale(1.000, 1.000, 1.000) Trans(-0.000, -0.000, -0.000)
+[LOG] Bone 50: Scale(1.000, 1.000, 1.000) Trans(0.000, 0.000, -0.000)
+[LOG] Bone 51: Scale(1.000, 1.000, 1.000) Trans(0.000, 0.000, -0.000)
+[LOG] Bone 52: Scale(1.000, 1.000, 1.000) Trans(0.000, 0.000, -0.000)
+[LOG] Bone 53: Scale(1.000, 1.000, 1.000) Trans(-0.000, 0.000, -0.000)
+[LOG] Bone 54: Scale(1.000, 1.000, 1.000) Trans(-0.000, 0.000, -0.000)
+[LOG] Bone 55: Scale(1.000, 1.000, 1.000) Trans(0.000, 0.000, -0.000)
+[LOG] Bone 56: Scale(1.000, 1.000, 1.000) Trans(0.000, 0.000, -0.000)
+[LOG] Bone 57: Scale(1.000, 1.000, 1.000) Trans(0.000, 0.000, -0.000)
+[LOG] Bone 58: Scale(1.000, 1.000, 1.000) Trans(-0.000, 0.000, -0.000)
+[LOG] Bone 59: Scale(1.000, 1.000, 1.000) Trans(-0.000, 0.000, -0.000)
+[LOG] Bone 60: Scale(1.000, 1.000, 1.000) Trans(0.000, -0.000, -0.000)
+[LOG] Bone 61: Scale(1.000, 1.000, 1.000) Trans(0.000, 0.000, 0.000)
+[LOG] Bone 62: Scale(1.000, 1.000, 1.000) Trans(-0.000, 0.000, 0.000)
+[LOG] Bone 63: Scale(1.000, 1.000, 1.000) Trans(-0.000, 0.000, 0.000)
+[LOG] Bone 64: Scale(1.000, 1.000, 1.000) Trans(-0.000, 0.000, -0.000)
+[LOG] Bone 65: Scale(1.000, 1.000, 1.000) Trans(0.000, 0.000, -0.000)
+[LOG] Bone 66: Scale(1.000, 1.000, 1.000) Trans(-0.000, 0.000, -0.000)
+[LOG] Bone 67: Scale(1.000, 1.000, 1.000) Trans(0.000, 0.000, -0.000)
+[LOG] Bone 68: Scale(1.000, 1.000, 1.000) Trans(-0.000, -0.000, -0.000)
+[LOG] Bone 69: Scale(1.000, 1.000, 1.000) Trans(0.000, -0.000, -0.000)
+[LOG] Bone 70: Scale(1.000, 1.000, 1.000) Trans(-0.000, 0.000, -0.000)
+[LOG] Bone 71: Scale(1.000, 1.000, 1.000) Trans(0.000, -0.000, 0.000)
+[LOG] Bone 72: Scale(1.000, 1.000, 1.000) Trans(-0.000, -0.000, 0.000)
+[LOG] Bone 73: Scale(1.000, 1.000, 1.000) Trans(0.000, -0.000, 0.000)
+[LOG] Bone 74: Scale(1.000, 1.000, 1.000) Trans(-0.000, 0.000, -0.000)
+[LOG] Bone 75: Scale(1.000, 1.000, 1.000) Trans(0.000, 0.000, 0.000)
+[LOG] Bone 76: Scale(1.000, 1.000, 1.000) Trans(0.000, -0.000, -0.000)
+[LOG] Bone 77: Scale(1.000, 1.000, 1.000) Trans(0.000, -0.000, -0.000)
+[LOG] Bone 78: Scale(1.000, 1.000, 1.000) Trans(-0.000, 0.000, -0.000)
+[LOG] Bone 79: Scale(1.000, 1.000, 1.000) Trans(0.000, -0.000, -0.000)
+[LOG] Bone 80: Scale(1.000, 1.000, 1.000) Trans(0.000, 0.000, -0.000)
+[LOG] Bone 81: Scale(1.000, 1.000, 1.000) Trans(-0.000, 0.000, -0.000)
+[LOG] Bone 82: Scale(1.000, 1.000, 1.000) Trans(0.000, 0.000, -0.000)
+[LOG] Bone 83: Scale(1.000, 1.000, 1.000) Trans(0.000, 0.000, 0.000)
+[LOG] Bone 84: Scale(1.000, 1.000, 1.000) Trans(1.128, 1.571, -0.000)
+[LOG] Bone 85: Scale(1.000, 1.000, 1.000) Trans(1.128, 1.571, -0.000)
+[LOG] Bone 86: Scale(1.000, 1.000, 1.000) Trans(1.128, 1.571, 0.000)
+[LOG] Bone 87: Scale(1.000, 1.000, 1.000) Trans(1.128, 1.571, 0.000)
+[LOG] Bone 88: Scale(1.000, 1.000, 1.000) Trans(1.128, 1.571, -0.000)
+[LOG] Bone 89: Scale(1.000, 1.000, 1.000) Trans(1.128, 1.571, -0.000)
+[LOG] Bone 90: Scale(1.000, 1.000, 1.000) Trans(1.128, 1.571, -0.000)
+[LOG] Bone 91: Scale(1.000, 1.000, 1.000) Trans(1.128, 1.571, -0.000)
+[LOG] Bone 92: Scale(1.000, 1.000, 1.000) Trans(1.128, 1.571, -0.000)
+[LOG] Bone 93: Scale(1.000, 1.000, 1.000) Trans(1.128, 1.571, 0.000)
+[LOG] Bone 94: Scale(1.000, 1.000, 1.000) Trans(1.128, 1.571, -0.000)
+[LOG] Bone 95: Scale(1.000, 1.000, 1.000) Trans(1.128, 1.571, -0.000)
+[LOG] Bone 96: Scale(1.000, 1.000, 1.000) Trans(1.128, 1.571, -0.000)
+[LOG] Bone 97: Scale(1.000, 1.000, 1.000) Trans(1.128, 1.571, 0.000)
+[LOG] Bone 98: Scale(1.000, 1.000, 1.000) Trans(1.128, 1.571, 0.000)
+[LOG] Bone 99: Scale(1.000, 1.000, 1.000) Trans(1.128, 1.571, 0.000)
+[LOG] Bone 100: Scale(1.000, 1.000, 1.000) Trans(-0.156, 2.166, -0.783)
+[LOG] Bone 101: Scale(1.000, 1.000, 1.000) Trans(0.709, 1.790, -0.946)
+[LOG] Bone 102: Scale(1.000, 1.000, 1.000) Trans(1.564, 1.137, -0.338)
+[LOG] Bone 103: Scale(1.000, 1.000, 1.000) Trans(1.681, 0.693, 0.529)
+[LOG] Bone 104: Scale(1.000, 1.000, 1.000) Trans(0.850, 1.760, -0.902)
+[LOG] Bone 105: Scale(1.000, 1.000, 1.000) Trans(1.654, 0.981, -0.117)
+[LOG] Bone 106: Scale(1.000, 1.000, 1.000) Trans(1.537, 0.518, 0.894)
+[LOG] Bone 107: Scale(1.000, 1.000, 1.000) Trans(0.744, 1.864, -0.906)
+[LOG] Bone 108: Scale(1.000, 1.000, 1.000) Trans(1.572, 1.156, -0.333)
+[LOG] Bone 109: Scale(1.000, 1.000, 1.000) Trans(1.651, 0.622, 0.478)
+[LOG] Bone 110: Scale(1.000, 1.000, 1.000) Trans(0.855, 1.773, -0.897)
+[LOG] Bone 111: Scale(1.000, 1.000, 1.000) Trans(1.655, 0.984, -0.122)
+[LOG] Bone 112: Scale(1.000, 1.000, 1.000) Trans(1.539, 0.516, 0.884)
+[LOG] Bone 113: Scale(1.000, 1.000, 1.000) Trans(0.107, 2.013, -0.940)
+[LOG] Bone 114: Scale(1.000, 1.000, 1.000) Trans(0.614, 1.793, -0.992)
+[LOG] Bone 115: Scale(1.000, 1.000, 1.000) Trans(1.012, 1.654, -0.858)
+[LOG] ------------------------------
+[LOG] [RenderSystem] === RenderScene 開始 エンティティ数: 7 ===
+[LOG] [RenderSystem] Entity=2 Type=Static Bones=0 Nodes=28 TotalMeshes=33
+[LOG]   Mesh[0] Node=$MergedNode_9 AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[1] Node=$MergedNode_9 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[2] Node=$MergedNode_9 AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[3] Node=$MergedNode_9 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[4] Node=$MergedNode_9 AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[5] Node=$MergedNode_9 AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[6] Node=$MergedNode_9 AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[7] Node=$MergedNode_9 AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[8] Node=$MergedNode_9 AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[9] Node=$MergedNode_9 AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[10] Node=$MergedNode_9 AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[11] Node=$MergedNode_9 AlbedoValid=1 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[12] Node=$MergedNode_9 AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[13] Node=$MergedNode_9 AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[14] Node=$MergedNode_9 AlbedoValid=1 NormalValid=1 MetalRoughValid=1
+[LOG]   Mesh[15] Node=Door_2F_North_Hallway AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[16] Node=$MergedNode_0 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[17] Node=Door_2F_North_West AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[18] Node=$MergedNode_1 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[19] Node=Door_2F_West_Hallway AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[20] Node=$MergedNode_2 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[21] Node=Door_Japanese_Living AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[22] Node=$MergedNode_3 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[23] Node=Door_Japanese_Small1 AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[24] Node=$MergedNode_4 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[25] Node=Door_Living_Entrance AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[26] Node=$MergedNode_5 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[27] Node=Door_Small1_Living AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[28] Node=$MergedNode_6 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[29] Node=Door_Small1_Small2 AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[30] Node=$MergedNode_7 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[31] Node=Door_Small2_Living AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[32] Node=$MergedNode_8 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG] [RenderSystem] Entity=5 Type=Dynamic(Skinned) Bones=116 Nodes=256 TotalMeshes=18
+[LOG]   Mesh[0] Node=Object_9 AlbedoValid=1 NormalValid=1 MetalRoughValid=0
+[LOG]   Mesh[1] Node=Object_214 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[2] Node=Object_216 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[3] Node=Object_218 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[4] Node=Object_220 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[5] Node=Object_222 AlbedoValid=1 NormalValid=1 MetalRoughValid=0
+[LOG]   Mesh[6] Node=Object_224 AlbedoValid=1 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[7] Node=Object_226 AlbedoValid=1 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[8] Node=Object_228 AlbedoValid=1 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[9] Node=Object_230 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[10] Node=Object_232 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[11] Node=Object_234 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[12] Node=Object_236 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[13] Node=Object_238 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[14] Node=Object_240 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[15] Node=Object_242 AlbedoValid=1 NormalValid=1 MetalRoughValid=0
+[LOG]   Mesh[16] Node=Sphere.003_Eye.002_0 AlbedoValid=1 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[17] Node=Sphere.004_Eye.001_0 AlbedoValid=1 NormalValid=0 MetalRoughValid=0
+[LOG] [RenderSystem] Entity=8 Type=Static Bones=0 Nodes=1 TotalMeshes=1
+[LOG]   Mesh[0] Node=Object_2.003 AlbedoValid=1 NormalValid=1 MetalRoughValid=1
+[LOG] [RenderSystem] Entity=9 モデルスキップ HasData=1 IsLoaded=1
+[LOG] [RenderSystem] Entity=10 モデルスキップ HasData=1 IsLoaded=1
+[LOG] [RenderSystem] Entity=15 Type=Static Bones=0 Nodes=1 TotalMeshes=1
+[LOG]   Mesh[0] Node=SkySphere AlbedoValid=1 NormalValid=0 MetalRoughValid=0
+[LOG] [RenderSystem] Entity=23 モデルスキップ HasData=1 IsLoaded=1
+[LOG] [Player] TryInteractDoor: playerPos=(1.38, -0.32, -8.31)
+[LOG]   -> Door Anim 0 (Door_2F_North_Hallway繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(1.65, 5.85, 2.25), dist=12.23
+[LOG]   -> Door Anim 1 (Door_2F_North_West繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(-2.85, 5.85, 2.25), dist=12.94
+[LOG]   -> Door Anim 2 (Door_2F_West_Hallway繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(0.00, 5.85, -1.72), dist=9.13
+[LOG]   -> Door Anim 3 (Door_Japanese_Living繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(1.65, 1.50, 2.25), dist=10.71
+[LOG]   -> Door Anim 4 (Door_Japanese_Small1繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(-2.85, 1.50, 2.25), dist=11.52
+[LOG]   -> Door Anim 5 (Door_Living_Entrance繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(0.60, 1.50, -6.97), dist=2.39
+[LOG]   -> Door Anim 6 (Door_Small1_Living繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(0.00, 1.50, -0.04), dist=8.58
+[LOG]   -> Door Anim 7 (Door_Small1_Small2繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(-2.85, 1.50, -1.12), dist=8.53
+[LOG]   -> Door Anim 8 (Door_Small2_Living繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(0.00, 1.50, -3.41), dist=5.40
+[LOG] [Player] Interacting with entity 2, animIdx 5
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=20.36/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=47.85/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=69.20/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=90.29/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=111.58/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=133.41/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=155.10/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=177.99/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=198.94/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=220.28/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=241.14/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=261.62/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=283.11/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=304.28/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=324.80/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=345.56/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=366.50/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=387.58/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=408.39/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=429.65/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=450.58/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=472.44/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=493.81/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=514.58/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=535.23/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=556.86/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=579.06/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=599.86/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=620.61/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=641.07/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=661.61/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=682.30/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=704.37/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=725.17/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=746.19/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=767.49/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=790.27/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=811.30/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=832.76/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=854.56/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=876.41/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=898.35/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=919.70/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=941.32/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=961.86/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=984.10/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=1005.46/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=1026.18/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=1046.68/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=1067.38/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=1089.35/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=1110.97/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=1131.92/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=1152.75/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=1174.00/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=1195.14/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=1215.81/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=1236.60/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=1257.01/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=1277.73/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=1298.41/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=1318.94/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=1340.17/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=1361.76/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=1384.05/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=1405.39/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=1426.72/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=1447.61/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=1468.72/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=1489.39/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=1509.86/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=1531.43/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=1553.78/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=1574.79/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=1595.68/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=1617.83/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=1640.51/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=1661.91/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=5 Progress=1666.67/3333.33 Speed=1.00 IsPlaying=0
+[LOG] [Player] TryInteractDoor: playerPos=(0.77, 0.00, -3.91)
+[LOG]   -> Door Anim 0 (Door_2F_North_Hallway繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(1.65, 5.85, 2.25), dist=8.54
+[LOG]   -> Door Anim 1 (Door_2F_North_West繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(-2.85, 5.85, 2.25), dist=9.24
+[LOG]   -> Door Anim 2 (Door_2F_West_Hallway繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(0.00, 5.85, -1.72), dist=6.29
+[LOG]   -> Door Anim 3 (Door_Japanese_Living繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(1.65, 1.50, 2.25), dist=6.41
+[LOG]   -> Door Anim 4 (Door_Japanese_Small1繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(-2.85, 1.50, 2.25), dist=7.30
+[LOG]   -> Door Anim 5 (Door_Living_Entrance繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(0.60, 1.50, -6.97), dist=3.41
+[LOG]   -> Door Anim 6 (Door_Small1_Living繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(0.00, 1.50, -0.04), dist=4.23
+[LOG]   -> Door Anim 7 (Door_Small1_Small2繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(-2.85, 1.50, -1.12), dist=4.81
+[LOG]   -> Door Anim 8 (Door_Small2_Living繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(0.00, 1.50, -3.41), dist=1.76
+[LOG] [Player] Interacting with entity 2, animIdx 8
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=20.97/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=49.81/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=70.73/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=91.86/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=112.83/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=134.06/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=156.49/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=177.82/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=198.44/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=219.39/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=240.25/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=260.92/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=281.70/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=302.37/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=323.40/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=344.32/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=365.79/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=387.25/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=408.12/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=429.44/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=450.54/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=472.13/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=493.07/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=513.99/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=534.74/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=555.82/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=577.00/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=597.50/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=618.12/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=639.45/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=660.03/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=680.77/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=701.84/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=722.84/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=744.01/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=764.84/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=785.73/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=807.11/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=828.33/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=850.53/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=871.82/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=893.67/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=914.10/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=934.82/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=955.82/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=977.57/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=998.28/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=1019.08/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=1040.44/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=1062.01/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=1083.11/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=1104.76/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=1126.24/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=1146.72/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=1167.15/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=1187.99/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=1209.03/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=1229.93/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=1250.75/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=1272.00/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=1292.96/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=1313.92/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=1334.91/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=1355.92/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=1376.54/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=1397.41/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=1418.60/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=1441.60/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=1462.39/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=1483.84/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=1505.62/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=1527.02/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=1547.87/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=1568.72/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=1589.76/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=1610.49/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=1631.85/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=1652.68/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=8 Progress=1666.67/3333.33 Speed=1.00 IsPlaying=0
+[LOG] IsReachable: snappedStart=(-2.11,0.00,6.10) snappedEnd=(0.10,4.30,4.50) pathPolyCount=11 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(-2.11,0.00,6.10) snappedEnd=(-2.25,4.40,-1.05) pathPolyCount=12 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(-2.11,0.00,6.10) snappedEnd=(-2.25,0.00,0.60) pathPolyCount=3 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(-2.11,0.00,6.10) snappedEnd=(-2.20,0.00,-2.80) pathPolyCount=5 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(-2.11,0.00,6.10) snappedEnd=(2.25,0.00,-1.12) pathPolyCount=5 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(-2.11,0.00,6.10) snappedEnd=(2.25,4.06,-1.13) pathPolyCount=9 lastPolyIsEnd=1
+[LOG] [GhostAI] StartHouseWander -> target=(-2.2, 6.3, -1.1) NavMeshBuilt=1
+[LOG] [Player] TryInteractDoor: playerPos=(-2.96, 0.00, -2.03)
+[LOG]   -> Door Anim 0 (Door_2F_North_Hallway繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(1.65, 5.85, 2.25), dist=8.59
+[LOG]   -> Door Anim 1 (Door_2F_North_West繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(-2.85, 5.85, 2.25), dist=7.25
+[LOG]   -> Door Anim 2 (Door_2F_West_Hallway繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(0.00, 5.85, -1.72), dist=6.56
+[LOG]   -> Door Anim 3 (Door_Japanese_Living繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(1.65, 1.50, 2.25), dist=6.46
+[LOG]   -> Door Anim 4 (Door_Japanese_Small1繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(-2.85, 1.50, 2.25), dist=4.54
+[LOG]   -> Door Anim 5 (Door_Living_Entrance繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(0.60, 1.50, -6.97), dist=6.27
+[LOG]   -> Door Anim 6 (Door_Small1_Living繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(0.00, 1.50, -0.04), dist=3.87
+[LOG]   -> Door Anim 7 (Door_Small1_Small2繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(-2.85, 1.50, -1.12), dist=1.75
+[LOG]   -> Door Anim 8 (Door_Small2_Living繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(0.00, 1.50, -3.41), dist=3.59
+[LOG] [Player] Interacting with entity 2, animIdx 7
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=20.70/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=48.48/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=70.41/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=91.95/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=114.22/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=139.93/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=160.75/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=182.01/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=202.75/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=224.23/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=245.80/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=266.75/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=287.06/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=307.80/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=329.53/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=352.69/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=376.61/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=401.30/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=421.82/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=442.66/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=463.76/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=484.38/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=505.11/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=526.48/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=547.79/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=568.24/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=588.46/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=609.10/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=630.39/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=654.83/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=675.14/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=696.02/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=717.25/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=739.60/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=760.41/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=781.12/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=802.07/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=823.14/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=843.60/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=869.51/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=895.54/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=926.00/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=952.49/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=980.62/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=1006.63/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=1032.62/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=1058.02/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=1084.11/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=1109.95/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=1135.74/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=1161.74/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=1190.63/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=1216.11/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=1240.65/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=1265.77/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=1291.16/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=1316.54/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=1341.89/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=1367.86/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=1392.82/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=1417.26/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=1446.22/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=1471.77/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=1498.16/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=1523.29/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=1548.99/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=1575.60/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=1602.48/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=1628.43/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=1654.73/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=7 Progress=1666.67/3333.33 Speed=1.00 IsPlaying=0
+[LOG] [GhostAI] Opening door (entity=2, animIdx=3, dist=1.89)
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=23.83/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=49.59/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=71.35/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=92.67/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=113.79/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=134.85/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=156.64/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=177.71/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=199.43/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=220.61/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=243.31/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=264.65/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=286.05/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=311.56/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=333.94/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=356.43/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=377.64/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=398.84/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=420.48/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=442.59/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=464.00/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=485.52/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=507.11/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=528.33/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=550.04/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=575.28/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=596.61/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=618.52/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=640.80/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=663.91/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=684.72/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=706.19/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=727.13/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=748.85/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=770.99/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=792.10/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=812.95/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=837.79/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=859.38/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=881.45/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=903.33/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=924.67/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=946.16/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=967.13/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=988.67/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=1009.85/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=1030.95/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=1053.07/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=1075.78/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=1100.79/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=1122.67/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=1143.56/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=1164.76/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=1185.60/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=1207.18/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=1228.47/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=1249.37/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=1270.90/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=1292.78/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=1314.44/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=1335.70/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=1360.86/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=1382.25/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=1403.26/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=1424.54/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=1445.27/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=1466.70/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=1488.37/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=1510.51/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=1532.14/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=1553.98/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=1576.71/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=1598.27/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=1624.52/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=1646.39/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=3 Progress=1666.67/3333.33 Speed=1.00 IsPlaying=0
+[LOG] Space pressed!
+[LOG] [GhostAI] StartStairsCrossing: start=(1.98,0.00,0.94) end=(3.75,4.35,1.04) duration=4.70
+[LOG] [Player] TryInteractDoor: playerPos=(2.13, 4.35, 1.04)
+[LOG]   -> Door Anim 0 (Door_2F_North_Hallway繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(1.65, 5.85, 2.25), dist=1.99
+[LOG]   -> Door Anim 1 (Door_2F_North_West繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(-2.85, 5.85, 2.25), dist=5.34
+[LOG]   -> Door Anim 2 (Door_2F_West_Hallway繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(0.00, 5.85, -1.72), dist=3.79
+[LOG]   -> Door Anim 3 (Door_Japanese_Living繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(1.65, 1.50, 2.25), dist=3.13
+[LOG]   -> Door Anim 4 (Door_Japanese_Small1繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(-2.85, 1.50, 2.25), dist=5.86
+[LOG]   -> Door Anim 5 (Door_Living_Entrance繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(0.60, 1.50, -6.97), dist=8.64
+[LOG]   -> Door Anim 6 (Door_Small1_Living繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(0.00, 1.50, -0.04), dist=3.71
+[LOG]   -> Door Anim 7 (Door_Small1_Small2繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(-2.85, 1.50, -1.12), dist=6.13
+[LOG]   -> Door Anim 8 (Door_Small2_Living繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(0.00, 1.50, -3.41), dist=5.69
+[LOG] [Player] Interacting with entity 2, animIdx 0
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=19.81/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=46.89/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=66.89/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=88.73/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=109.74/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=131.50/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=156.23/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=177.70/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=198.66/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=219.12/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=239.07/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=259.18/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=279.34/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=300.01/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=320.30/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=340.36/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=360.24/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=380.43/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=400.72/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=424.19/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=444.50/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=465.37/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=485.52/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=505.83/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=525.75/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=545.97/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=566.43/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=586.90/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=607.02/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=628.25/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=647.90/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=668.11/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=692.85/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=713.69/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=734.25/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=754.74/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=775.51/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=795.83/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=816.76/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=837.00/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=857.28/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=877.79/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=898.33/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=918.80/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=942.78/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=963.11/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=983.72/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=1006.76/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=1028.81/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=1050.30/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=1071.80/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=1093.69/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=1115.09/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=1136.95/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=1158.33/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=1179.41/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=1203.91/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=1226.76/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=1248.42/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=1270.30/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=1291.82/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=1314.26/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=1335.20/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=1356.64/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=1378.20/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=1399.43/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=1421.78/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=1443.06/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=1468.24/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=1489.37/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=1510.83/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=1532.30/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=1553.48/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=1574.97/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=1596.36/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=1617.89/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=1640.10/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=1661.54/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=0 Progress=1666.67/3333.33 Speed=1.00 IsPlaying=0
+[LOG] [Player] TryInteractDoor: playerPos=(-1.03, 4.35, 3.68)
+[LOG]   -> Door Anim 0 (Door_2F_North_Hallway繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(1.65, 5.85, 2.25), dist=3.39
+[LOG]   -> Door Anim 1 (Door_2F_North_West繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(-2.85, 5.85, 2.25), dist=2.76
+[LOG]   -> Door Anim 2 (Door_2F_West_Hallway繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(0.00, 5.85, -1.72), dist=5.70
+[LOG]   -> Door Anim 3 (Door_Japanese_Living繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(1.65, 1.50, 2.25), dist=4.16
+[LOG]   -> Door Anim 4 (Door_Japanese_Small1繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(-2.85, 1.50, 2.25), dist=3.67
+[LOG]   -> Door Anim 5 (Door_Living_Entrance繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(0.60, 1.50, -6.97), dist=11.15
+[LOG]   -> Door Anim 6 (Door_Small1_Living繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(0.00, 1.50, -0.04), dist=4.80
+[LOG]   -> Door Anim 7 (Door_Small1_Small2繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(-2.85, 1.50, -1.12), dist=5.88
+[LOG]   -> Door Anim 8 (Door_Small2_Living繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(0.00, 1.50, -3.41), dist=7.71
+[LOG] [Player] Interacting with entity 2, animIdx 1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=20.49/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=47.74/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=73.08/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=94.63/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=115.45/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=136.66/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=158.46/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=179.85/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=201.38/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=222.32/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=243.29/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=264.27/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=285.91/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=307.50/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=332.09/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=354.38/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=375.67/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=396.98/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=417.91/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=439.11/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=460.22/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=481.35/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=502.87/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=524.19/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=546.04/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=568.65/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=594.20/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=615.61/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=636.55/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=657.81/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=679.18/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=700.37/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=721.82/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=743.70/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=764.96/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=786.58/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=808.11/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=829.97/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=856.30/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=878.10/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=899.70/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=921.05/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=942.98/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=964.91/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=986.12/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=1008.13/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=1029.48/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=1050.84/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=1072.33/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=1093.54/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=1118.97/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=1140.06/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=1162.34/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=1183.48/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=1204.52/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=1226.88/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=1248.15/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=1269.45/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=1290.95/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=1312.68/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=1336.30/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=1357.39/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=1382.86/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=1404.48/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=1426.68/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=1448.78/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=1470.39/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=1491.89/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=1512.90/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=1534.18/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=1555.91/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=1577.66/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=1599.03/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=1620.66/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=1646.65/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=1 Progress=1666.67/3333.33 Speed=1.00 IsPlaying=0
+[LOG] [Player] TryInteractDoor: playerPos=(-0.95, 4.35, 0.18)
+[LOG]   -> Door Anim 0 (Door_2F_North_Hallway繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(1.65, 5.85, 2.25), dist=3.65
+[LOG]   -> Door Anim 1 (Door_2F_North_West繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(-2.85, 5.85, 2.25), dist=3.19
+[LOG]   -> Door Anim 2 (Door_2F_West_Hallway繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(0.00, 5.85, -1.72), dist=2.60
+[LOG]   -> Door Anim 3 (Door_Japanese_Living繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(1.65, 1.50, 2.25), dist=4.38
+[LOG]   -> Door Anim 4 (Door_Japanese_Small1繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(-2.85, 1.50, 2.25), dist=4.00
+[LOG]   -> Door Anim 5 (Door_Living_Entrance繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(0.60, 1.50, -6.97), dist=7.86
+[LOG]   -> Door Anim 6 (Door_Small1_Living繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(0.00, 1.50, -0.04), dist=3.01
+[LOG]   -> Door Anim 7 (Door_Small1_Small2繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(-2.85, 1.50, -1.12), dist=3.67
+[LOG]   -> Door Anim 8 (Door_Small2_Living繧｢繧ｯ繧ｷ繝ｧ繝ｳ), pos=(0.00, 1.50, -3.41), dist=4.68
+[LOG] [Player] Interacting with entity 2, animIdx 2
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=22.14/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=51.15/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=74.82/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=96.61/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=118.39/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=139.71/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=161.46/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=183.90/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=209.81/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=231.12/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=252.58/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=276.16/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=297.72/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=319.38/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=341.66/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=363.25/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=384.70/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=406.22/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=428.51/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=450.01/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=475.56/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=497.25/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=518.70/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=540.29/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=561.87/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=583.16/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=604.99/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=626.76/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=648.41/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=669.52/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=691.76/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=713.45/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=738.94/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=760.84/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=782.38/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=804.56/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=826.92/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=848.06/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=869.36/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=891.70/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=913.64/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=936.44/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=958.46/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=980.30/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=1005.86/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=1027.87/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=1049.46/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=1071.19/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=1093.97/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=1115.48/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=1137.56/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=1159.40/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=1180.49/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=1201.76/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=1223.45/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=1245.39/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=1270.91/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=1292.87/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=1314.23/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=1335.29/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=1356.38/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=1384.30/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=1406.92/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=1430.28/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=1451.08/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=1472.00/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=1492.87/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=1514.06/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=1538.80/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=1559.86/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=1580.75/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=1602.80/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=1624.52/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=1645.76/3333.33 Speed=1.00 IsPlaying=1
+[LOG] [AnimSys] Entity=2 AnimIdx=2 Progress=1666.67/3333.33 Speed=1.00 IsPlaying=0
+[LOG] [GhostAI] UpdateHouseWander: stuck for 5.0s at (-1.93,4.35,-0.95) moveTarget=(-2.25,6.30,-1.05) heading to (-2.2, 6.3, -1.1), giving up this destination.
+[LOG] IsReachable: snappedStart=(-1.93,4.40,-0.95) snappedEnd=(0.10,4.30,4.50) pathPolyCount=4 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(-1.93,4.40,-0.95) snappedEnd=(-2.25,4.40,-1.05) pathPolyCount=1 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(-1.93,4.40,-0.95) snappedEnd=(-2.25,0.00,0.60) pathPolyCount=10 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(-1.93,4.40,-0.95) snappedEnd=(-2.20,0.00,-2.80) pathPolyCount=9 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(-1.93,4.40,-0.95) snappedEnd=(2.25,0.00,-1.12) pathPolyCount=7 lastPolyIsEnd=1
+[LOG] IsReachable: snappedStart=(-1.93,4.40,-0.95) snappedEnd=(2.25,4.06,-1.13) pathPolyCount=3 lastPolyIsEnd=1
+[LOG] [GhostAI] StartStairsCrossing: start=(1.71,4.35,-2.18) end=(3.75,0.00,-6.76) duration=6.64
