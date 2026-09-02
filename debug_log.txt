@@ -5138,3 +5138,225 @@
 [LOG] [RenderSystem] Entity=10 モデルスキップ HasData=1 IsLoaded=1
 [LOG] [RenderSystem] Entity=15 モデルスキップ HasData=1 IsLoaded=0
 [LOG] [RenderSystem] Entity=23 モデルスキップ HasData=1 IsLoaded=1
+[LOG] [Profiler] GPU timing initialized. frequency=1000000000 Hz, frameCount=3
+[LOG] AudioManager: Initialized AudioEngine successfully.
+[LOG] Scene Loaded
+[LOG] TestSerialize.json Written
+[LOG] Ghost Room Selected: RoomF2
+[LOG] Assimp Error: Unable to open file "Asset/Model/SkySphere/SkySphere.obj".
+[LOG] Failed to async load model: Asset/Model/SkySphere/SkySphere.obj
+[LOG] Successfully async loaded model: Asset/Model/Item/Ofuda/Ofuda.gltf
+[LOG] Successfully async loaded model: Asset/Model/Item/SmudgeStick/SmudgeStick.gltf
+[LOG] Successfully async loaded model: Asset/Model/Item/Thermometer/Thermometer.gltf
+[LOG] Successfully async loaded model: Asset/Model/Character/Enemy/scene.gltf
+[LOG] Successfully async loaded model: Asset/Model/Character/Player/Player.gltf
+[LOG] Successfully async loaded model: Asset/Model/Map/House/House1.gltf
+[LOG] Successfully async loaded texture: Asset/Texture/UI/interact_prompt_f.png
+[LOG] Successfully async loaded texture: Asset/Texture/UI/smudgestick_icon.png
+[LOG] Successfully async loaded texture: Asset/Texture/UI/thermometer_icon.png
+[LOG] Successfully async loaded texture: Asset/Texture/UI/ofuda_icon.png
+[LOG] [GameScene] Room bounds: JPRoomF1 min=(-4.40,0.00,2.40) max=(4.60,4.00,6.60)
+[LOG] [GameScene] Room bounds: JPRoomF2 min=(-4.40,4.30,2.40) max=(4.60,8.30,6.60)
+[LOG] [GameScene] Room bounds: RoomF2 min=(-4.30,4.40,-4.30) max=(-0.20,8.20,2.20)
+[LOG] [GameScene] Room bounds: Room2 min=(-4.30,0.00,-0.90) max=(-0.20,4.00,2.10)
+[LOG] [GameScene] Room bounds: Room1 min=(-4.40,0.00,-4.40) max=(0.00,4.00,-1.20)
+[LOG] [GameScene] Room bounds: LivingRoom min=(0.00,0.00,-4.50) max=(4.50,4.00,2.25)
+[LOG] [GameScene] Room bounds: Hallway2F min=(-0.11,4.05,-4.61) max=(4.61,8.40,2.36)
+[LOG] [GameScene] Room bounds: Stairs min=(3.00,0.00,-5.36) max=(4.50,4.35,-0.36)
+[LOG] NavMesh (manual): Z-connector Room2 <-> JPRoomF1
+[LOG] NavMesh (manual): Z-connector LivingRoom <-> JPRoomF1
+[LOG] NavMesh (manual): Z-connector RoomF2 <-> JPRoomF2
+[LOG] NavMesh (manual): Z-connector Hallway2F <-> JPRoomF2
+[LOG] NavMesh (manual): X-connector RoomF2 <-> Hallway2F
+[LOG] NavMesh (manual): Z-connector Room1 <-> Room2
+[LOG] NavMesh (manual): X-connector Room2 <-> LivingRoom
+[LOG] NavMesh (manual): X-connector Room1 <-> LivingRoom
+[LOG] NavMesh (manual): split JPRoomF1 into 2 sub-quads along its south side (multiple neighbors share that wall)
+[LOG] NavMesh (manual): split JPRoomF2 into 2 sub-quads along its south side (multiple neighbors share that wall)
+[LOG] NavMesh (manual): split LivingRoom into 2 sub-quads along its west side (multiple neighbors share that wall)
+[LOG] NavMesh (manual): stair-bridge Stairs(bottom) <-> Stairs(top)
+[LOG] NavMesh (manual): overlap-link Stairs(bottom) <-> LivingRoom (ok)
+[LOG] NavMesh (manual): overlap-link Stairs(top) <-> Hallway2F (ok)
+[LOG] NavMesh (manual) built successfully! Rooms: 9 Polys: 21 (rooms=12 connectors=9)
+[LOG] [GameScene] NavMesh (manual, room-based) built.
+[LOG] [GameScene] NavMesh room reachability: JPRoomF1 (y=2.0) -> [JPRoomF2, RoomF2, Room2, Room1, LivingRoom, Hallway2F, Stairs]
+[LOG] [GameScene] NavMesh room reachability: JPRoomF2 (y=6.3) -> [JPRoomF1, RoomF2, Room2, Room1, LivingRoom, Hallway2F, Stairs]
+[LOG] [GameScene] NavMesh room reachability: RoomF2 (y=6.3) -> [JPRoomF1, JPRoomF2, Room2, Room1, LivingRoom, Hallway2F, Stairs]
+[LOG] [GameScene] NavMesh room reachability: Room2 (y=2.0) -> [JPRoomF1, JPRoomF2, RoomF2, Room1, LivingRoom, Hallway2F, Stairs]
+[LOG] [GameScene] NavMesh room reachability: Room1 (y=2.0) -> [JPRoomF1, JPRoomF2, RoomF2, Room2, LivingRoom, Hallway2F, Stairs]
+[LOG] [GameScene] NavMesh room reachability: LivingRoom (y=2.0) -> [JPRoomF1, JPRoomF2, RoomF2, Room2, Room1, Hallway2F, Stairs]
+[LOG] [GameScene] NavMesh room reachability: Hallway2F (y=6.2) -> [JPRoomF1, JPRoomF2, RoomF2, Room2, Room1, LivingRoom, Stairs]
+[LOG] [GameScene] NavMesh room reachability: Stairs (y=2.2) -> [JPRoomF1, JPRoomF2, RoomF2, Room2, Room1, LivingRoom, Hallway2F]
+[LOG] [GhostAI] EnsureStairsRoom: found stairs at (3.0,0.0,-5.4)-(4.5,4.3,-0.4)
+[LOG] --- All Bones Final Scales ---
+[LOG] ------------------------------
+[LOG] [RenderSystem] === RenderScene 開始 エンティティ数: 7 ===
+[LOG]   Mesh[0] Node=$MergedNode_9 AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[1] Node=$MergedNode_9 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[2] Node=$MergedNode_9 AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[3] Node=$MergedNode_9 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[4] Node=$MergedNode_9 AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[5] Node=$MergedNode_9 AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[6] Node=$MergedNode_9 AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[7] Node=$MergedNode_9 AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[8] Node=$MergedNode_9 AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[9] Node=$MergedNode_9 AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[10] Node=$MergedNode_9 AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[11] Node=$MergedNode_9 AlbedoValid=1 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[12] Node=$MergedNode_9 AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[13] Node=$MergedNode_9 AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[14] Node=$MergedNode_9 AlbedoValid=1 NormalValid=1 MetalRoughValid=1
+[LOG]   Mesh[15] Node=Door_2F_North_Hallway AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[16] Node=$MergedNode_0 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[17] Node=Door_2F_North_West AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[18] Node=$MergedNode_1 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[19] Node=Door_2F_West_Hallway AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[20] Node=$MergedNode_2 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[21] Node=Door_Japanese_Living AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[22] Node=$MergedNode_3 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[23] Node=Door_Japanese_Small1 AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[24] Node=$MergedNode_4 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[25] Node=Door_Living_Entrance AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[26] Node=$MergedNode_5 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[27] Node=Door_Small1_Living AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[28] Node=$MergedNode_6 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[29] Node=Door_Small1_Small2 AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[30] Node=$MergedNode_7 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[31] Node=Door_Small2_Living AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[32] Node=$MergedNode_8 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[0] Node=Object_9 AlbedoValid=1 NormalValid=1 MetalRoughValid=0
+[LOG]   Mesh[1] Node=Object_214 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[2] Node=Object_216 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[3] Node=Object_218 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[4] Node=Object_220 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[5] Node=Object_222 AlbedoValid=1 NormalValid=1 MetalRoughValid=0
+[LOG]   Mesh[6] Node=Object_224 AlbedoValid=1 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[7] Node=Object_226 AlbedoValid=1 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[8] Node=Object_228 AlbedoValid=1 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[9] Node=Object_230 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[10] Node=Object_232 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[11] Node=Object_234 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[12] Node=Object_236 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[13] Node=Object_238 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[14] Node=Object_240 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[15] Node=Object_242 AlbedoValid=1 NormalValid=1 MetalRoughValid=0
+[LOG]   Mesh[16] Node=Sphere.003_Eye.002_0 AlbedoValid=1 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[17] Node=Sphere.004_Eye.001_0 AlbedoValid=1 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[0] Node=Object_2.003 AlbedoValid=1 NormalValid=1 MetalRoughValid=1
+[LOG] [RenderSystem] Entity=9 モデルスキップ HasData=1 IsLoaded=1
+[LOG] [RenderSystem] Entity=10 モデルスキップ HasData=1 IsLoaded=1
+[LOG] [RenderSystem] Entity=15 モデルスキップ HasData=1 IsLoaded=0
+[LOG] [RenderSystem] Entity=23 モデルスキップ HasData=1 IsLoaded=1
+[LOG] [Profiler] GPU timing initialized. frequency=1000000000 Hz, frameCount=3
+[LOG] AudioManager: Initialized AudioEngine successfully.
+[LOG] Scene Loaded
+[LOG] TestSerialize.json Written
+[LOG] Ghost Room Selected: JPRoomF2
+[LOG] Assimp Error: Unable to open file "Asset/Model/SkySphere/SkySphere.obj".
+[LOG] Failed to async load model: Asset/Model/SkySphere/SkySphere.obj
+[LOG] Successfully async loaded model: Asset/Model/Item/Ofuda/Ofuda.gltf
+[LOG] Successfully async loaded model: Asset/Model/Item/SmudgeStick/SmudgeStick.gltf
+[LOG] Successfully async loaded model: Asset/Model/Item/Thermometer/Thermometer.gltf
+[LOG] Successfully async loaded model: Asset/Model/Character/Enemy/scene.gltf
+[LOG] Successfully async loaded model: Asset/Model/Character/Player/Player.gltf
+[LOG] Successfully async loaded model: Asset/Model/Map/House/House1.gltf
+[LOG] Successfully async loaded texture: Asset/Texture/UI/thermometer_icon.png
+[LOG] Successfully async loaded texture: Asset/Texture/UI/interact_prompt_f.png
+[LOG] Successfully async loaded texture: Asset/Texture/UI/ofuda_icon.png
+[LOG] Successfully async loaded texture: Asset/Texture/UI/smudgestick_icon.png
+[LOG] [GameScene] Room bounds: JPRoomF1 min=(-4.40,0.00,2.40) max=(4.60,4.00,6.60)
+[LOG] [GameScene] Room bounds: JPRoomF2 min=(-4.40,4.30,2.40) max=(4.60,8.30,6.60)
+[LOG] [GameScene] Room bounds: RoomF2 min=(-4.30,4.40,-4.30) max=(-0.20,8.20,2.20)
+[LOG] [GameScene] Room bounds: Room2 min=(-4.30,0.00,-0.90) max=(-0.20,4.00,2.10)
+[LOG] [GameScene] Room bounds: Room1 min=(-4.40,0.00,-4.40) max=(0.00,4.00,-1.20)
+[LOG] [GameScene] Room bounds: LivingRoom min=(0.00,0.00,-4.50) max=(4.50,4.00,2.25)
+[LOG] [GameScene] Room bounds: Hallway2F min=(-0.11,4.05,-4.61) max=(4.61,8.40,2.36)
+[LOG] [GameScene] Room bounds: Stairs min=(3.00,0.00,-5.36) max=(4.50,4.35,-0.36)
+[LOG] NavMesh (manual): Z-connector Room2 <-> JPRoomF1
+[LOG] NavMesh (manual): Z-connector LivingRoom <-> JPRoomF1
+[LOG] NavMesh (manual): Z-connector RoomF2 <-> JPRoomF2
+[LOG] NavMesh (manual): Z-connector Hallway2F <-> JPRoomF2
+[LOG] NavMesh (manual): X-connector RoomF2 <-> Hallway2F
+[LOG] NavMesh (manual): Z-connector Room1 <-> Room2
+[LOG] NavMesh (manual): X-connector Room2 <-> LivingRoom
+[LOG] NavMesh (manual): X-connector Room1 <-> LivingRoom
+[LOG] NavMesh (manual): split JPRoomF1 into 2 sub-quads along its south side (multiple neighbors share that wall)
+[LOG] NavMesh (manual): split JPRoomF2 into 2 sub-quads along its south side (multiple neighbors share that wall)
+[LOG] NavMesh (manual): split LivingRoom into 2 sub-quads along its west side (multiple neighbors share that wall)
+[LOG] NavMesh (manual): stair-bridge Stairs(bottom) <-> Stairs(top)
+[LOG] NavMesh (manual): overlap-link Stairs(bottom) <-> LivingRoom (ok)
+[LOG] NavMesh (manual): overlap-link Stairs(top) <-> Hallway2F (ok)
+[LOG] NavMesh (manual) built successfully! Rooms: 9 Polys: 21 (rooms=12 connectors=9)
+[LOG] [GameScene] NavMesh (manual, room-based) built.
+[LOG] [GameScene] NavMesh room reachability: JPRoomF1 (y=2.0) -> [JPRoomF2, RoomF2, Room2, Room1, LivingRoom, Hallway2F, Stairs]
+[LOG] [GameScene] NavMesh room reachability: JPRoomF2 (y=6.3) -> [JPRoomF1, RoomF2, Room2, Room1, LivingRoom, Hallway2F, Stairs]
+[LOG] [GameScene] NavMesh room reachability: RoomF2 (y=6.3) -> [JPRoomF1, JPRoomF2, Room2, Room1, LivingRoom, Hallway2F, Stairs]
+[LOG] [GameScene] NavMesh room reachability: Room2 (y=2.0) -> [JPRoomF1, JPRoomF2, RoomF2, Room1, LivingRoom, Hallway2F, Stairs]
+[LOG] [GameScene] NavMesh room reachability: Room1 (y=2.0) -> [JPRoomF1, JPRoomF2, RoomF2, Room2, LivingRoom, Hallway2F, Stairs]
+[LOG] [GameScene] NavMesh room reachability: LivingRoom (y=2.0) -> [JPRoomF1, JPRoomF2, RoomF2, Room2, Room1, Hallway2F, Stairs]
+[LOG] [GameScene] NavMesh room reachability: Hallway2F (y=6.2) -> [JPRoomF1, JPRoomF2, RoomF2, Room2, Room1, LivingRoom, Stairs]
+[LOG] [GameScene] NavMesh room reachability: Stairs (y=2.2) -> [JPRoomF1, JPRoomF2, RoomF2, Room2, Room1, LivingRoom, Hallway2F]
+[LOG] [GhostAI] EnsureStairsRoom: found stairs at (3.0,0.0,-5.4)-(4.5,4.3,-0.4)
+[LOG] --- All Bones Final Scales ---
+[LOG] ------------------------------
+[LOG] [RenderSystem] === RenderScene ・ｽJ・ｽn ・ｽG・ｽ・ｽ・ｽe・ｽB・ｽe・ｽB・ｽ・ｽ: 7 ===
+[LOG]   Mesh[0] Node=$MergedNode_9 AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[1] Node=$MergedNode_9 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[2] Node=$MergedNode_9 AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[3] Node=$MergedNode_9 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[4] Node=$MergedNode_9 AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[5] Node=$MergedNode_9 AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[6] Node=$MergedNode_9 AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[7] Node=$MergedNode_9 AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[8] Node=$MergedNode_9 AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[9] Node=$MergedNode_9 AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[10] Node=$MergedNode_9 AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[11] Node=$MergedNode_9 AlbedoValid=1 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[12] Node=$MergedNode_9 AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[13] Node=$MergedNode_9 AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[14] Node=$MergedNode_9 AlbedoValid=1 NormalValid=1 MetalRoughValid=1
+[LOG]   Mesh[15] Node=Door_2F_North_Hallway AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[16] Node=$MergedNode_0 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[17] Node=Door_2F_North_West AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[18] Node=$MergedNode_1 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[19] Node=Door_2F_West_Hallway AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[20] Node=$MergedNode_2 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[21] Node=Door_Japanese_Living AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[22] Node=$MergedNode_3 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[23] Node=Door_Japanese_Small1 AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[24] Node=$MergedNode_4 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[25] Node=Door_Living_Entrance AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[26] Node=$MergedNode_5 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[27] Node=Door_Small1_Living AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[28] Node=$MergedNode_6 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[29] Node=Door_Small1_Small2 AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[30] Node=$MergedNode_7 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[31] Node=Door_Small2_Living AlbedoValid=1 NormalValid=0 MetalRoughValid=1
+[LOG]   Mesh[32] Node=$MergedNode_8 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[0] Node=Object_9 AlbedoValid=1 NormalValid=1 MetalRoughValid=0
+[LOG]   Mesh[1] Node=Object_214 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[2] Node=Object_216 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[3] Node=Object_218 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[4] Node=Object_220 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[5] Node=Object_222 AlbedoValid=1 NormalValid=1 MetalRoughValid=0
+[LOG]   Mesh[6] Node=Object_224 AlbedoValid=1 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[7] Node=Object_226 AlbedoValid=1 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[8] Node=Object_228 AlbedoValid=1 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[9] Node=Object_230 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[10] Node=Object_232 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[11] Node=Object_234 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[12] Node=Object_236 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[13] Node=Object_238 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[14] Node=Object_240 AlbedoValid=0 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[15] Node=Object_242 AlbedoValid=1 NormalValid=1 MetalRoughValid=0
+[LOG]   Mesh[16] Node=Sphere.003_Eye.002_0 AlbedoValid=1 NormalValid=0 MetalRoughValid=0
+[LOG]   Mesh[17] Node=Sphere.004_Eye.001_0 AlbedoValid=1 NormalValid=0 MetalRoughValid=0
+[LOG] [RenderSystem] Entity=9 ・ｽ・ｽ・ｽf・ｽ・ｽ・ｽX・ｽL・ｽb・ｽv HasData=1 IsLoaded=1
+[LOG] [RenderSystem] Entity=10 ・ｽ・ｽ・ｽf・ｽ・ｽ・ｽX・ｽL・ｽb・ｽv HasData=1 IsLoaded=1
+[LOG] [RenderSystem] Entity=15 ・ｽ・ｽ・ｽf・ｽ・ｽ・ｽX・ｽL・ｽb・ｽv HasData=1 IsLoaded=0
+[LOG] [RenderSystem] Entity=23 ・ｽ・ｽ・ｽf・ｽ・ｽ・ｽX・ｽL・ｽb・ｽv HasData=1 IsLoaded=1
+[LOG] [GhostAI] StartHouseWander -> target=(0.1, 2.0, 4.5) NavMeshBuilt=1
+[LOG] [GhostAI] StartStairsCrossing: start=(3.87,4.35,0.94) end=(3.75,0.00,-6.76) duration=8.84
+[LOG] [GhostAI] UpdateHouseWander: stuck for 5.1s at (0.22,0.01,4.18) moveTarget=(0.10,2.00,4.50) heading to (0.1, 2.0, 4.5), giving up this destination.
+[LOG] [GhostAI] StartStairsCrossing: start=(1.85,0.00,0.94) end=(3.75,0.00,-6.76) duration=4.40
+[LOG] [GhostAI] UpdateHouseWander: stuck for 5.0s at (3.75,0.00,-6.76) moveTarget=(3.75,4.35,-2.86) heading to (0.1, 6.3, 4.5), giving up this destination.

@@ -95,6 +95,8 @@ void Editor::DrawStatistics()
         historyIdx = (historyIdx + 1) % 120;
 
         ImGui::Text("--- Rendering ---");
+        ImGui::Text("Entities: %u visible / %u culled", Profiler::Instance().GetEntitiesVisible(), Profiler::Instance().GetEntitiesCulled());
+        ImGui::Text("Meshes:   %u visible / %u culled", Profiler::Instance().GetMeshesVisible(), Profiler::Instance().GetMeshesCulled());
         ImGui::Text("Draw Calls: %u", drawCalls);
         if (ImGui::IsItemHovered())
         {

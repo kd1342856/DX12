@@ -46,10 +46,22 @@ public:
 	const std::vector<AnimationData>& GetAnimations() const { return m_animations; }
 	std::vector<AnimationData>& GetAnimationsRef() { return m_animations; }
 
+	// Aggregate bind-pose bounds across every mesh in the model, in the same space as
+	// each mesh's own local AABB (i.e. what "node.animDeltaTransform * entityWorld" maps
+	// to the world - see Mesh::GetLocalAABB()). Used for frustum-culling the whole entity
+	// before descending to per-mesh culling. Computed lazily and cached once every
+	// referenced mesh has its GPU data (and local AABB) ready.
+	// Returns false (and leaves outBounds untouched) if any mesh isn't ready yet - callers
+	// should treat that as "don't cull, just draw it" rather than guess a wrong box.
+	bool TryGetLocalBounds(DirectX::BoundingBox& outBounds) const;
+
 private:
 	std::atomic<bool> m_isLoaded{false};
 	std::vector<Node> m_nodes;
 	std::vector<BoneInfo> m_bones;
 	std::unordered_map<std::string, int> m_boneNameToIndex;
 	std::vector<AnimationData> m_animations;
+
+	mutable bool m_localBoundsComputed = false;
+	mutable DirectX::BoundingBox m_localBounds;
 };

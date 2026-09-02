@@ -31,6 +31,10 @@ public:
         m_instanceBreakdown.clear();
         m_dispatchCount = 0;
         m_cpuTimings.clear();
+        m_entitiesVisible = 0;
+        m_entitiesCulled = 0;
+        m_meshesVisible = 0;
+        m_meshesCulled = 0;
     }
 
     void AddDrawCall(const std::string& name, uint32_t instanceCount = 1)
@@ -51,6 +55,14 @@ public:
     const std::unordered_map<std::string, uint32_t>& GetInstanceBreakdown() const { return m_instanceBreakdown; }
     uint32_t GetDispatchCount() const { return m_dispatchCount; }
     const std::unordered_map<std::string, uint32_t>& GetDrawCallBreakdown() const { return m_drawCallBreakdown; }
+
+    // Frustum culling stats (RenderSystem::RenderScene), reset every frame.
+    void AddEntityCullResult(bool culled) { if (culled) m_entitiesCulled++; else m_entitiesVisible++; }
+    void AddMeshCullResult(bool culled) { if (culled) m_meshesCulled++; else m_meshesVisible++; }
+    uint32_t GetEntitiesVisible() const { return m_entitiesVisible; }
+    uint32_t GetEntitiesCulled() const { return m_entitiesCulled; }
+    uint32_t GetMeshesVisible() const { return m_meshesVisible; }
+    uint32_t GetMeshesCulled() const { return m_meshesCulled; }
 
     // Memory query
     float GetSystemRAMUsageMB() const;
@@ -144,6 +156,12 @@ private:
     uint32_t m_instanceCount = 0;
     std::unordered_map<std::string, uint32_t> m_instanceBreakdown;
     uint32_t m_dispatchCount = 0;
+
+    // Frustum culling stats
+    uint32_t m_entitiesVisible = 0;
+    uint32_t m_entitiesCulled = 0;
+    uint32_t m_meshesVisible = 0;
+    uint32_t m_meshesCulled = 0;
 
     // CPU timings
     std::unordered_map<std::string, float> m_cpuTimings;

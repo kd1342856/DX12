@@ -11,6 +11,7 @@
 #include "../../../../Graphics/Descriptor/DescriptorHeapManager.h"
 #include "../../../Manager/Asset/MeshManager.h"
 #include "../../../DirectX/Utility/Logger.h"
+#include "../../../DirectX/Utility/Profiler.h"
 #include "../../../../Graphics/GPUResource/RenderTarget/RenderTarget.h"
 #include "../../../../Graphics/GPUResource/DepthStencil/DepthStencil.h"
 #include "../../../Manager/GameManager.h"
@@ -164,66 +165,66 @@ public:
 		Math::Vector3 p, n;
 		for (auto& scriptData : ecs.GetComponentArray<NativeScriptData>()) {
 			if (auto* ref = dynamic_cast<class ReflectionComponent*>(scriptData.Instance.get())) {
-				if (!ref->IsActive()) continue; // •”‰®‚ÉƒvƒŒƒCƒ„[‚ª‚¢‚È‚¢‚Í–³Œø‚È‚Ì‚ÅƒXƒLƒbƒv
+				if (!ref->IsActive()) continue; // ï¿½ï¿½ï¿½ï¿½ï¿½Éƒvï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½È‚ï¿½ï¿½ï¿½ï¿½Í–ï¿½ï¿½ï¿½ï¿½È‚Ì‚ÅƒXï¿½Lï¿½bï¿½v
 				p = ref->m_worldPlanePoint;
 				n = ref->m_worldPlaneNormal;
 				hasReflection = true;
-				break; // ƒAƒNƒeƒBƒu‚È‚à‚Ì‚Ì’†‚ÅÅ‰‚ÉŒ©‚Â‚©‚Á‚½‚à‚Ì‚ğg‚¤(”½ËƒeƒNƒXƒ`ƒƒ‚Í1–‡‚µ‚©‚½‚È‚¢)
+				break; // ï¿½Aï¿½Nï¿½eï¿½Bï¿½uï¿½È‚ï¿½ï¿½Ì‚Ì’ï¿½ï¿½ÅÅï¿½ï¿½ÉŒï¿½ï¿½Â‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì‚ï¿½ï¿½gï¿½ï¿½(ï¿½ï¿½ï¿½Ëƒeï¿½Nï¿½Xï¿½`ï¿½ï¿½ï¿½ï¿½1ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È‚ï¿½)
 			}
 		}
 
 		if (!hasReflection) {
 			pGraphicsDevice->SetRenderTarget(pRT);
 			pRT->Clear(0.0f, 0.0f, 0.0f, 1.0f);
-			// “K“–‚È•‚É‚µ‚Ä‚¨‚­u¡ƒtƒŒ[ƒ€‚Í—LŒø‚È”½Ë‚ª‚È‚¢v‚±‚Æ‚ğ¦‚·
+			// ï¿½Kï¿½ï¿½ï¿½Èï¿½ï¿½É‚ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½ï¿½uï¿½ï¿½ï¿½tï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½Í—Lï¿½ï¿½ï¿½È”ï¿½ï¿½Ë‚ï¿½ï¿½È‚ï¿½ï¿½vï¿½ï¿½ï¿½Æ‚ï¿½ï¿½ï¿½ï¿½ï¿½
 			ShaderManager::Instance().SetReflectionData(Math::Matrix::Identity, false);
 			return;
 		}
 
-		// ˆê“I‚ÈƒRƒ“ƒeƒLƒXƒgƒI[ƒo[ƒ‰ƒCƒh
+		// ï¿½êï¿½Iï¿½ÈƒRï¿½ï¿½ï¿½eï¿½Lï¿½Xï¿½gï¿½Iï¿½[ï¿½oï¿½[ï¿½ï¿½ï¿½Cï¿½h
 		RenderContext& context = Renderer::GetContext();
 		Math::Matrix oldView = context.View;
 		Math::Matrix oldProj = context.Projection;
 
-		// –{—ˆ‚ÌƒJƒƒ‰ƒ[ƒ‹ƒhs—ñ‚©‚çˆÊ’u‚Æ•ûŒü‚ğ’Šo
+		// ï¿½{ï¿½ï¿½ï¿½ÌƒJï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½hï¿½sï¿½ñ‚©‚ï¿½Ê’uï¿½Æ•ï¿½ï¿½ï¿½ï¿½ğ’Šo
 		Math::Matrix camWorld = oldView.Invert();
 		Math::Vector3 camPos = camWorld.Translation();
-		// ’ˆÓ: SimpleMath‚ÌMatrix::Forward()‚Íƒ[ƒJƒ‹Z-(‰œ)‚ğ•Ô‚·‚ªA
-		// ‚±‚ÌƒvƒƒWƒFƒNƒg‚Ìu‘O•ûv‚Íƒ[ƒJƒ‹+Z(Še‰ÓŠ‚ÅTransformNormal(Vector3(0,0,1), rot)‚ÅŒvZ)B
-		// Forward()‚ğg‚¤‚ÆÀÛ‚Æ‚Í‹t•ûŒü‚ÌƒxƒNƒgƒ‹‚É‚È‚èA”½ËƒJƒƒ‰‚ª‹t•ûŒü‚ğŒü‚¢‚Ä‚µ‚Ü‚¤
-		// (‹¾‚ğ³–Ê‚©‚çŒ©‚½‚Æ‚«‚ÉŠî€‚Å‚Í‚È‚­ã‰º”½“]‚µ‚½ƒ‚ƒfƒ‹‚ªs—ñ‚ÌŒ‹‰Ê‚ğ•\‚·)B
-		// SimpleMath‚ÌBackward()(+Z)‚ª‚±‚ÌƒvƒƒWƒFƒNƒg‚Ì‘O•ûŒü‚Æˆê’v‚·‚éB
+		// ï¿½ï¿½ï¿½ï¿½: SimpleMathï¿½ï¿½Matrix::Forward()ï¿½Íƒï¿½ï¿½[ï¿½Jï¿½ï¿½Z-(ï¿½ï¿½)ï¿½ï¿½Ô‚ï¿½ï¿½ï¿½ï¿½A
+		// ï¿½ï¿½ï¿½Ìƒvï¿½ï¿½ï¿½Wï¿½Fï¿½Nï¿½gï¿½Ìuï¿½Oï¿½ï¿½ï¿½vï¿½Íƒï¿½ï¿½[ï¿½Jï¿½ï¿½+Z(ï¿½eï¿½Óï¿½ï¿½ï¿½TransformNormal(Vector3(0,0,1), rot)ï¿½ÅŒvï¿½Z)ï¿½B
+		// Forward()ï¿½ï¿½ï¿½gï¿½ï¿½ï¿½Æï¿½ï¿½Û‚Æ‚Í‹tï¿½ï¿½ï¿½ï¿½ï¿½Ìƒxï¿½Nï¿½gï¿½ï¿½ï¿½É‚È‚ï¿½Aï¿½ï¿½ï¿½ËƒJï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½tï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½Ü‚ï¿½
+		// (ï¿½ï¿½ï¿½ğ³–Ê‚ï¿½ï¿½çŒ©ï¿½ï¿½ï¿½Æ‚ï¿½ï¿½ÉŠî€ï¿½Å‚Í‚È‚ï¿½ï¿½ã‰ºï¿½ï¿½ï¿½]ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½fï¿½ï¿½ï¿½ï¿½ï¿½sï¿½ï¿½ÌŒï¿½ï¿½Ê‚ï¿½\ï¿½ï¿½)ï¿½B
+		// SimpleMathï¿½ï¿½Backward()(+Z)ï¿½ï¿½ï¿½ï¿½ï¿½Ìƒvï¿½ï¿½ï¿½Wï¿½Fï¿½Nï¿½gï¿½Ì‘Oï¿½ï¿½ï¿½ï¿½ï¿½Æˆï¿½vï¿½ï¿½ï¿½ï¿½B
 		Math::Vector3 camForward = camWorld.Backward();
 		Math::Vector3 camUp = camWorld.Up();
 
-		// ”½Ës—ñ‚ÌŒvZ
+		// ï¿½ï¿½ï¿½Ësï¿½ï¿½ÌŒvï¿½Z
 		Math::Plane plane(p, n);
 		Math::Matrix reflectionMatrix = Math::Matrix::CreateReflection(plane);
 
-		// ˆÊ’uAForwardAUp‚·‚×‚Ä‚ğ”½Ë‚³‚¹‚é
+		// ï¿½Ê’uï¿½AForwardï¿½AUpï¿½ï¿½ï¿½×‚Ä‚ğ”½Ë‚ï¿½ï¿½ï¿½ï¿½ï¿½
 		Math::Vector3 refCamPos = Math::Vector3::Transform(camPos, reflectionMatrix);
 		Math::Vector3 refCamForward = Math::Vector3::TransformNormal(camForward, reflectionMatrix);
 		Math::Vector3 refCamUp = Math::Vector3::TransformNormal(camUp, reflectionMatrix);
 
 		Math::Vector3 refCamTarget = refCamPos + refCamForward;
 
-		// ”½Ë‚³‚ê‚½ˆÊ’u‚Æ•ûŒü‚©‚çV‚µ‚¢Views—ñ‚ğ\’z‚·‚é(‹óŠÔ‘S‘Ì‚Í— •Ô‚é‚ªA‹“_©‘Ì‚Í”½Ë‘¤‚Ì•ûŒü‚ğŒü‚­)
+		// ï¿½ï¿½ï¿½Ë‚ï¿½ï¿½ê‚½ï¿½Ê’uï¿½Æ•ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Vï¿½ï¿½ï¿½ï¿½Viewï¿½sï¿½ï¿½ï¿½ï¿½\ï¿½zï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½Ô‘Sï¿½Ì‚Í—ï¿½ï¿½Ô‚é‚ªï¿½Aï¿½ï¿½ï¿½_ï¿½ï¿½ï¿½Ì‚Í”ï¿½ï¿½Ë‘ï¿½ï¿½Ì•ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½)
 		Math::Matrix refView = Math::Matrix::CreateLookAt(refCamPos, refCamTarget, refCamUp);
 		context.View = refView;
 
-		// ”½ËƒeƒNƒXƒ`ƒƒ‚Í³•ûŒ`(1024x1024)‚È‚Ì‚ÅAƒAƒXƒyƒNƒg”ä1:1‚ÌProjection‚ğ•Ê“r‘g‚ŞB
-		// (‚±‚±‚Åcontext.Projection‚ğXV‚µ‚È‚¢‚ÆA‘OƒtƒŒ[ƒ€‚Ì16:9ƒJƒƒ‰—pProjection‚ª
-		//  c’·‚Ì‚Ü‚Ü‚É‚È‚èA³•ûŒ`‚ÌƒŒƒ“ƒ_[ƒ^[ƒQƒbƒg‚É•`‰æ‚·‚é‚Æ˜c‚ñ‚Å‚µ‚Ü‚¤)
+		// ï¿½ï¿½ï¿½Ëƒeï¿½Nï¿½Xï¿½`ï¿½ï¿½ï¿½Íï¿½ï¿½ï¿½ï¿½`(1024x1024)ï¿½È‚Ì‚ÅAï¿½Aï¿½Xï¿½yï¿½Nï¿½gï¿½ï¿½1:1ï¿½ï¿½Projectionï¿½ï¿½Ê“rï¿½gï¿½ŞB
+		// (ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½context.Projectionï¿½ï¿½ï¿½Xï¿½Vï¿½ï¿½ï¿½È‚ï¿½ï¿½ÆAï¿½Oï¿½tï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½16:9ï¿½Jï¿½ï¿½ï¿½ï¿½ï¿½pProjectionï¿½ï¿½
+		//  ï¿½cï¿½ï¿½ï¿½Ì‚Ü‚Ü‚É‚È‚ï¿½Aï¿½ï¿½ï¿½ï¿½ï¿½`ï¿½Ìƒï¿½ï¿½ï¿½ï¿½_ï¿½[ï¿½^ï¿½[ï¿½Qï¿½bï¿½gï¿½É•`ï¿½æ‚·ï¿½ï¿½Æ˜cï¿½ï¿½Å‚ï¿½ï¿½Ü‚ï¿½)
 		Math::Matrix refProj = DirectX::XMMatrixPerspectiveFovLH(
 			DirectX::XMConvertToRadians(cCamera.m_fov), 1.0f, cCamera.m_nearZ, cCamera.m_farZ);
 		context.Projection = refProj;
 
-		// ‹¾‚Ì’†‚Å‚±‚ÌƒsƒNƒZƒ‹‚Ìƒ[ƒ‹ƒhÀ•W‚ğÄ“Š‰e‚µ‚Ä³‚µ‚¢”½Ë—p‚ÌUV‚ğ‹‚ß‚ç‚ê‚é‚æ‚¤‚ÉA
-		// ”½ËƒJƒƒ‰‚ÌView*Projs—ñ‚ğ“n‚µ‚Ä‚¨‚­
-		// (ƒƒCƒ“ƒJƒƒ‰‚ÌƒXƒNƒŠ[ƒ“UV‚ğ‚»‚Ì‚Ü‚Üg‚¢‰ñ‚·‚ÆA•ÊƒJƒƒ‰‚Å•`‚¢‚½ŠG‚Æ‚Í‘Î‰‚µ‚È‚¢‚½‚ß‚±‚ê‚Í‘å–)
+		// ï¿½ï¿½ï¿½Ì’ï¿½ï¿½Å‚ï¿½ï¿½Ìƒsï¿½Nï¿½Zï¿½ï¿½ï¿½Ìƒï¿½ï¿½[ï¿½ï¿½ï¿½hï¿½ï¿½ï¿½Wï¿½ï¿½ï¿½Ä“ï¿½ï¿½eï¿½ï¿½ï¿½Äï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ë—pï¿½ï¿½UVï¿½ï¿½ï¿½ï¿½ï¿½ß‚ï¿½ï¿½ï¿½æ‚¤ï¿½ÉA
+		// ï¿½ï¿½ï¿½ËƒJï¿½ï¿½ï¿½ï¿½ï¿½ï¿½View*Projï¿½sï¿½ï¿½ï¿½nï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½
+		// (ï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½Jï¿½ï¿½ï¿½ï¿½ï¿½ÌƒXï¿½Nï¿½ï¿½ï¿½[ï¿½ï¿½UVï¿½ï¿½ï¿½ï¿½ï¿½Ì‚Ü‚Ügï¿½ï¿½ï¿½ñ‚·‚ÆAï¿½ÊƒJï¿½ï¿½ï¿½ï¿½ï¿½Å•`ï¿½ï¿½ï¿½ï¿½ï¿½Gï¿½Æ‚Í‘Î‰ï¿½ï¿½ï¿½ï¿½È‚ï¿½ï¿½ï¿½ï¿½ß‚ï¿½ï¿½ï¿½Í‘å–)
 		ShaderManager::Instance().SetReflectionData(refView * refProj, true);
 
-		// ’Êí‚ÌOpaqueƒpƒX‚Ì‚İ‚ğ•`‰æ
+		// ï¿½Êï¿½ï¿½Opaqueï¿½pï¿½Xï¿½Ì‚İ‚ï¿½`ï¿½ï¿½
 		pGraphicsDevice->SetRenderTarget(pRT);
 		pRT->Clear(0.0f, 0.0f, 0.0f, 1.0f);
 		Renderer::BindViewport(pRT);
@@ -273,8 +274,8 @@ public:
 							if (pMesh) {
 								bool isMeshBlend = (pMesh->GetMaterial().Constants.alphaMode == 2); // 2: Blend
 								if (isMeshBlend == isBlendPass) {
-									// ”½ËƒpƒX‚Å‚Í”½“]‚µ‚Ä‚¢‚é‚½‚ßCull Mode‚ğ‹t‚É‚·‚é‚Ì‚ª—˜_“I‚¾‚ªA
-									// ¡‰ñ‚Í‚»‚Ì‚Ü‚Ü•`‰æ‚µAShader‘¤‚Å‘Îˆ‚·‚é‚©‚à‚µ‚ê‚È‚¢
+									// ï¿½ï¿½ï¿½Ëƒpï¿½Xï¿½Å‚Í”ï¿½ï¿½]ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½é‚½ï¿½ï¿½Cull Modeï¿½ï¿½ï¿½tï¿½É‚ï¿½ï¿½ï¿½Ì‚ï¿½ï¿½ï¿½ï¿½_ï¿½Iï¿½ï¿½ï¿½ï¿½ï¿½A
+									// ï¿½ï¿½ï¿½ï¿½Í‚ï¿½ï¿½Ì‚Ü‚Ü•`ï¿½æ‚µï¿½AShaderï¿½ï¿½ï¿½Å‘Îï¿½ï¿½ï¿½ï¿½é‚©ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È‚ï¿½
 									if (isSkinned) skinningShader.BeforeDrawMesh(*pMesh, pMesh->GetMaterial());
 									else if (isSky) skyShader.BeforeDrawMesh(*pMesh, pMesh->GetMaterial());
 									else litShader.BeforeDrawMesh(*pMesh, pMesh->GetMaterial());
@@ -287,7 +288,7 @@ public:
 			}
 		};
 
-		// [“xƒoƒbƒtƒ@‚ğƒNƒŠƒA‚µ‚Äg—p
+		// ï¿½[ï¿½xï¿½oï¿½bï¿½tï¿½@ï¿½ï¿½ï¿½Nï¿½ï¿½ï¿½Aï¿½ï¿½ï¿½Ägï¿½p
 		auto* pDepthBuffer = pGraphicsDevice->GetDepthStencil();
 		auto dsvH = pGraphicsDevice->GetDescriptorHeapManager()->GetDSVAllocator()->GetCPUHandle(pDepthBuffer->GetDSVNumber());
 		auto rtvH = pGraphicsDevice->GetDescriptorHeapManager()->GetRTVAllocator()->GetCPUHandle(pRT->GetRTVIndex());
@@ -297,9 +298,9 @@ public:
 		pDepthBuffer->ClearBuffer();
 		pGraphicsDevice->GetCmdList()->OMSetRenderTargets(1, &rtvH, false, &dsvH);
 
-		drawEntities(false); // Opaque ‚Ì‚İ
+		drawEntities(false); // Opaque ï¿½Ì‚ï¿½
 
-		// •œŒ³
+		// ï¿½ï¿½ï¿½ï¿½
 		context.View = oldView;
 		context.Projection = oldProj;
 
@@ -339,15 +340,22 @@ public:
 		context.View = cCamera.m_viewMatrix;
 		context.Projection = cCamera.m_projMatrix;
 
+		// Camera-space frustum from the projection, moved into world space by the camera's
+		// world transform (inverse of the view matrix) - used below to skip draw commands
+		// for anything outside the view instead of recording+drawing everything every frame.
+		DirectX::BoundingFrustum frustum;
+		DirectX::BoundingFrustum::CreateFromMatrix(frustum, cCamera.m_projMatrix);
+		frustum.Transform(frustum, cCamera.m_viewMatrix.Invert());
+
 		auto& litShader = ShaderLibrary::Instance().Get<LitShader>();
 		auto& skinningShader = ShaderLibrary::Instance().Get<SkinningShader>();
 
-		// ƒfƒoƒbƒO: Å‰‚ÌƒtƒŒ[ƒ€‚Ì‚İImGui‚ÉƒGƒ“ƒeƒBƒeƒB‚Ì•`‰æ”‚ğo—Í‚·‚é
+		// ï¿½fï¿½oï¿½bï¿½O: ï¿½Åï¿½ï¿½Ìƒtï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½Ì‚ï¿½ImGuiï¿½ÉƒGï¿½ï¿½ï¿½eï¿½Bï¿½eï¿½Bï¿½Ì•`ï¿½æ”ï¿½ï¿½ï¿½oï¿½Í‚ï¿½ï¿½ï¿½
 		bool bFirstFrame = (m_debugLogFrameCount == 0);
 		if (bFirstFrame)
 		{
 			Logger::Instance().AddLog(Logger::LogLevel::Info,
-				"[RenderSystem] === RenderScene ŠJn ƒGƒ“ƒeƒBƒeƒB”: %d ===", (int)m_entities.size());
+				"[RenderSystem] === RenderScene ï¿½Jï¿½n ï¿½Gï¿½ï¿½ï¿½eï¿½Bï¿½eï¿½Bï¿½ï¿½: %d ===", (int)m_entities.size());
 		}
 		m_debugLogFrameCount++;
 
@@ -362,9 +370,28 @@ public:
 					bool isSkinned = (cModel.m_modelType == ModelType::Dynamic);
 					bool isSky = (cModel.m_modelType == ModelType::Sky);
 
-					if (isSky && isBlendPass) continue; // Sky‚Í OpaqueƒpƒX‚Ì‚İ
+					if (isSky && isBlendPass) continue; // Skyï¿½ï¿½ Opaqueï¿½pï¿½Xï¿½Ì‚ï¿½
 
-					// ƒfƒoƒbƒOƒƒO: 1ƒtƒŒ[ƒ€–Ú‚Ì‚İÚ×î•ñ‚ğo—Í (OpaqueƒpƒX‚Ì‚İ)
+					// Entity-level frustum cull. Sky is exempt - it's meant to always
+					// surround the camera, and its own "bounds" don't mean much culled.
+					// Reported to the Profiler once (opaque pass only) to avoid double-
+					// counting the same entity when the blend pass runs the same check.
+					if (!isSky)
+					{
+						DirectX::BoundingBox entityBoundsLocal;
+						if (cModel.m_spModelData->TryGetLocalBounds(entityBoundsLocal))
+						{
+							DirectX::BoundingBox entityBoundsWorld;
+							entityBoundsLocal.Transform(entityBoundsWorld, cTransform.m_worldMatrix);
+							bool culled = !frustum.Intersects(entityBoundsWorld);
+							if (!isBlendPass) Profiler::Instance().AddEntityCullResult(culled);
+							if (culled) continue;
+						}
+						// else: bounds not ready yet (assets still streaming in) - draw
+						// unconditionally rather than guess wrong and hide something.
+					}
+
+					// ï¿½fï¿½oï¿½bï¿½Oï¿½ï¿½ï¿½O: 1ï¿½tï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½Ú‚Ì‚İÚ×ï¿½ï¿½ï¿½ï¿½oï¿½ï¿½ (Opaqueï¿½pï¿½Xï¿½ï¿½ï¿½Ì‚ï¿½)
 					if (bFirstFrame && !isBlendPass)
 					{
 						const auto& boneMatricesDbg = cModel.m_spModelData->GetBoneMatrices();
@@ -428,11 +455,30 @@ public:
 							litShader.BeginNode(node, nodeWorld);
 						}
 
+						// Same nodeWorld transform used above for the static (lit) case -
+						// recomputed here since it's local to the branch above.
+						Math::Matrix staticNodeWorld = node.animDeltaTransform * world;
+
 						for (const auto& meshHandle : node.meshes) {
 							Mesh* pMesh = MeshManager::Instance().Get(meshHandle);
 							if (pMesh) {
 								bool isMeshBlend = (pMesh->GetMaterial().Constants.alphaMode == 2);
 								if (isBlendPass != isMeshBlend) continue;
+
+								// Mesh-level frustum cull - only for the static/lit path.
+								// This is what actually matters for something like the house
+								// model, where dozens of room/door meshes share one entity:
+								// the entity-level box above covers the whole house and can't
+								// reject individual rooms, but this can. Skinned/sky meshes
+								// are left alone (few of them, and a skinned mesh's bind-pose
+								// AABB doesn't reliably bound the animated pose anyway).
+								if (!isSkinned && !isSky) {
+									DirectX::BoundingBox meshWorldBounds;
+									pMesh->GetLocalAABB().Transform(meshWorldBounds, staticNodeWorld);
+									bool meshCulled = !frustum.Intersects(meshWorldBounds);
+									if (!isBlendPass) Profiler::Instance().AddMeshCullResult(meshCulled);
+									if (meshCulled) continue;
+								}
 
 								if (isSkinned) skinningShader.BeforeDrawMesh(*pMesh, pMesh->GetMaterial());
 								else if (isSky) {
@@ -451,18 +497,18 @@ public:
 					bool hasData = (cModel.m_spModelData != nullptr);
 					bool isLoaded = hasData && cModel.m_spModelData->IsLoaded();
 					Logger::Instance().AddLog(Logger::LogLevel::Warning,
-						"[RenderSystem] Entity=%u ƒ‚ƒfƒ‹ƒXƒLƒbƒv HasData=%d IsLoaded=%d",
+						"[RenderSystem] Entity=%u ï¿½ï¿½ï¿½fï¿½ï¿½ï¿½Xï¿½Lï¿½bï¿½v HasData=%d IsLoaded=%d",
 						(uint32_t)entity, (int)hasData, (int)isLoaded);
 				}
 			}
 		};
 
-		// ƒpƒX1: Opaque & Mask
+		// ï¿½pï¿½X1: Opaque & Mask
 		drawEntities(false);
 
 		auto* pGraphicsContext = pGraphicsDevice->GetContextManager()->GetGraphicsContext();
 
-		// OpaqueƒpƒX‚ÌŒ‹‰Ê‚ğ Refraction —p‚ÉƒRƒs[
+		// Opaqueï¿½pï¿½Xï¿½ÌŒï¿½ï¿½Ê‚ï¿½ Refraction ï¿½pï¿½ÉƒRï¿½sï¿½[
 		if (pRT)
 		{
 			auto* pDestRT = Renderer::GetSceneOpaqueCopyRenderTarget();
@@ -471,29 +517,29 @@ public:
 				auto* pSrcBuffer = pRT->GetResource();
 				auto* pDestBuffer = pDestRT->GetResource();
 
-				// ó‘Ô‘JˆÚ: Src‚ÍCOPY_SOURCE‚Ö, Dest‚ÍCOPY_DEST‚Ö
+				// ï¿½ï¿½Ô‘Jï¿½ï¿½: Srcï¿½ï¿½COPY_SOURCEï¿½ï¿½, Destï¿½ï¿½COPY_DESTï¿½ï¿½
 				pGraphicsContext->TransitionResource(pSrcBuffer, D3D12_RESOURCE_STATE_COPY_SOURCE);
 				pGraphicsContext->TransitionResource(pDestBuffer, D3D12_RESOURCE_STATE_COPY_DEST);
 				pGraphicsContext->FlushResourceBarriers();
 
 				pCmdList->CopyResource(pDestBuffer, pSrcBuffer);
 
-				// ó‘Ô‘JˆÚ: Src‚ÍRENDER_TARGET‚É–ß‚·, Dest‚ÍSRV(ShaderResource)‚Ö
+				// ï¿½ï¿½Ô‘Jï¿½ï¿½: Srcï¿½ï¿½RENDER_TARGETï¿½É–ß‚ï¿½, Destï¿½ï¿½SRV(ShaderResource)ï¿½ï¿½
 				pGraphicsContext->TransitionResource(pSrcBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET);
 				pGraphicsContext->TransitionResource(pDestBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 				pGraphicsContext->FlushResourceBarriers();
 			}
 		}
 
-		// Depth Buffer ‚ğ SRV ‚É Transition
+		// Depth Buffer ï¿½ï¿½ SRV ï¿½ï¿½ Transition
 		auto* pDepthBuffer = pGraphicsDevice->GetDepthStencil()->GetBuffer();
 		pGraphicsContext->TransitionResource(pDepthBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 		pGraphicsContext->FlushResourceBarriers();
 
-		// ƒpƒX2: Blend & Decal
+		// ï¿½pï¿½X2: Blend & Decal
 		drawEntities(true);
 
-		// Depth Buffer ‚ğ ‘‚«‚İ—p‚É–ß‚·
+		// Depth Buffer ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½İ—pï¿½É–ß‚ï¿½
 		pGraphicsDevice->GetContextManager()->GetGraphicsContext()->TransitionResource(pDepthBuffer, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 		pGraphicsDevice->GetContextManager()->GetGraphicsContext()->FlushResourceBarriers();
 	}
@@ -501,7 +547,7 @@ public:
 private:
 	Entity m_cameraEntity = INVALID_ENTITY;
 	Math::Vector3 m_lightDirection = Math::Vector3(0.5f, -1.0f, 0.5f);
-	// ƒfƒoƒbƒO: 1ƒtƒŒ[ƒ€–Ú‚Ì‚İƒƒO‚ğo—Í‚·‚é‚½‚ß‚ÌƒJƒEƒ“ƒ^
+	// ï¿½fï¿½oï¿½bï¿½O: 1ï¿½tï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½Ú‚Ì‚İƒï¿½ï¿½Oï¿½ï¿½ï¿½oï¿½Í‚ï¿½ï¿½é‚½ï¿½ß‚ÌƒJï¿½Eï¿½ï¿½ï¿½^
 	int m_debugLogFrameCount = 0;
 };
 

@@ -2,7 +2,9 @@
 
 #include "../../../Framework/Manager/Asset/AssetManager.h"
 #include "../../../Framework/Manager/Asset/LoadModelOption.h"
+#include "../../../Framework/Manager/Asset/MeshManager.h"
 #include "../../../Framework/DirectX/Utility/Logger.h"
+#include "../../Geometry/Mesh/Mesh.h"
 
 
 bool ModelData::Load(const std::string& filepath)
@@ -10,10 +12,48 @@ bool ModelData::Load(const std::string& filepath)
 	LoadModelOption option;
 	if (!AssetManager::Instance().LoadModel(filepath, option, this))
 	{
-		OutputDebugStringA(("ƒ‚ƒfƒ‹‚Ìƒ[ƒh‚ÉŽ¸”s‚µ‚Ü‚µ‚½: " + filepath + "\n").c_str());
+		OutputDebugStringA(("ï¿½ï¿½ï¿½fï¿½ï¿½ï¿½Ìƒï¿½ï¿½[ï¿½hï¿½ÉŽï¿½ï¿½sï¿½ï¿½ï¿½Ü‚ï¿½ï¿½ï¿½: " + filepath + "\n").c_str());
 		return false;
 	}
 	SetLoaded(true);
+	return true;
+}
+
+bool ModelData::TryGetLocalBounds(DirectX::BoundingBox& outBounds) const
+{
+	if (m_localBoundsComputed)
+	{
+		outBounds = m_localBounds;
+		return true;
+	}
+
+	bool any = false;
+	DirectX::BoundingBox merged;
+	for (const auto& node : m_nodes)
+	{
+		for (const auto& meshHandle : node.meshes)
+		{
+			Mesh* pMesh = MeshManager::Instance().Get(meshHandle);
+			if (!pMesh || !pMesh->IsReady()) return false; // some mesh not ready - try again next frame
+
+			const DirectX::BoundingBox& meshBounds = pMesh->GetLocalAABB();
+			if (!any)
+			{
+				merged = meshBounds;
+				any = true;
+			}
+			else
+			{
+				DirectX::BoundingBox::CreateMerged(merged, merged, meshBounds);
+			}
+		}
+	}
+
+	if (!any) return false; // no meshes at all (yet?) - nothing to cull against
+
+	m_localBounds = merged;
+	m_localBoundsComputed = true;
+	outBounds = m_localBounds;
 	return true;
 }
 
@@ -81,7 +121,7 @@ std::vector<Math::Matrix> ModelData::GetBoneMatrices() const
 		for (size_t i = 0; i < boneMatrices.size(); ++i) {
 			Math::Vector3 s, t;
 			Math::Quaternion q;
-			// boneMatrices‚Í‚»‚Ì‚Ü‚ÜDecompose‚Å‚«‚é‚Í‚¸‚¾‚ªADirectXMathŠî€(Row-Major)‚È‚Ì‚Å‚»‚Ì‚Ü‚Ü“n‚·
+			// boneMatricesï¿½Í‚ï¿½ï¿½Ì‚Ü‚ï¿½Decomposeï¿½Å‚ï¿½ï¿½ï¿½Í‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ADirectXMathï¿½î€(Row-Major)ï¿½È‚Ì‚Å‚ï¿½ï¿½Ì‚Ü‚Ü“nï¿½ï¿½
 			boneMatrices[i].Decompose(s, q, t);
 			//Logger::Instance().AddLog(Logger::LogLevel::Info, "Bone %zu: Scale(%.3f, %.3f, %.3f) Trans(%.3f, %.3f, %.3f)", i, s.x, s.y, s.z, t.x, t.y, t.z);
 		}
@@ -113,12 +153,12 @@ void ModelData::UpdateAnimation(int animationIndex, float ticks)
 			continue;
 		}
 
-		// Œ³‚Ìƒ[ƒJƒ‹•ÏŒ`‚©‚ç‰Šú’l‚ðŽæ“¾‚µ‚Ä‚¨‚­
+		// ï¿½ï¿½ï¿½Ìƒï¿½ï¿½[ï¿½Jï¿½ï¿½ï¿½ÏŒ`ï¿½ï¿½ï¿½ç‰ï¿½ï¿½ï¿½lï¿½ï¿½ï¿½æ“¾ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½
 		Math::Vector3 defScale, defPos;
 		Math::Quaternion defRot;
 		m_nodes[targetNodeIdx].originalLocalTransform.Decompose(defScale, defRot, defPos);
 
-		// 1. ˆÊ’u(Position)‚Ì•âŠÔ
+		// 1. ï¿½Ê’u(Position)ï¿½Ì•ï¿½ï¿½
 		Math::Vector3 finalPos = defPos;
 		if (!channel.positionKeys.empty()) {
 			if (channel.positionKeys.size() == 1 || ticks <= channel.positionKeys[0].time) {
@@ -139,7 +179,7 @@ void ModelData::UpdateAnimation(int animationIndex, float ticks)
 			}
 		}
 
-		// 2. ‰ñ“](Rotation)‚Ì•âŠÔ
+		// 2. ï¿½ï¿½](Rotation)ï¿½Ì•ï¿½ï¿½
 		Math::Quaternion finalRot = defRot;
 		if (!channel.rotationKeys.empty()) {
 			if (channel.rotationKeys.size() == 1 || ticks <= channel.rotationKeys[0].time) {
@@ -160,7 +200,7 @@ void ModelData::UpdateAnimation(int animationIndex, float ticks)
 			}
 		}
 
-		// 3. ƒXƒP[ƒ‹(Scale)‚Ì•âŠÔ
+		// 3. ï¿½Xï¿½Pï¿½[ï¿½ï¿½(Scale)ï¿½Ì•ï¿½ï¿½
 		Math::Vector3 finalScale = defScale;
 		if (!channel.scalingKeys.empty()) {
 			if (channel.scalingKeys.size() == 1 || ticks <= channel.scalingKeys[0].time) {
