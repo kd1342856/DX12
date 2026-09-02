@@ -12,6 +12,7 @@
 #include "../../../Manager/Asset/MeshManager.h"
 #include "../../../DirectX/Utility/Logger.h"
 #include "../../../DirectX/Utility/Profiler.h"
+#include "../../../Manager/NavMesh/RoomVisibilityManager.h"
 #include "../../../../Graphics/GPUResource/RenderTarget/RenderTarget.h"
 #include "../../../../Graphics/GPUResource/DepthStencil/DepthStencil.h"
 #include "../../../Manager/GameManager.h"
@@ -27,6 +28,11 @@ public:
 
 	Entity GetCameraEntity() const { return m_cameraEntity; }
 	void SetCameraEntity(Entity cameraEntity) { m_cameraEntity = cameraEntity; }
+
+	// Runtime toggles for RendererPanel - flip these off to A/B test whether a rendering
+	// glitch is caused by culling (frustum and/or portal/room) or is unrelated to it.
+	static inline bool s_enableFrustumCulling = true;
+	static inline bool s_enableRoomCulling = true;
 
 	void RenderShadow()
 	{
@@ -343,9 +349,15 @@ public:
 		// Camera-space frustum from the projection, moved into world space by the camera's
 		// world transform (inverse of the view matrix) - used below to skip draw commands
 		// for anything outside the view instead of recording+drawing everything every frame.
+		Math::Matrix camWorld = cCamera.m_viewMatrix.Invert();
 		DirectX::BoundingFrustum frustum;
 		DirectX::BoundingFrustum::CreateFromMatrix(frustum, cCamera.m_projMatrix);
-		frustum.Transform(frustum, cCamera.m_viewMatrix.Invert());
+		frustum.Transform(frustum, camWorld);
+
+		// Portal/room culling on top of the frustum test - see RoomVisibilityManager for why
+		// frustum culling alone isn't enough (a room can be inside the view frustum and still
+		// hidden behind a wall).
+		RoomVisibilityManager::Instance().UpdateVisibleRooms(camWorld.Translation());
 
 		auto& litShader = ShaderLibrary::Instance().Get<LitShader>();
 		auto& skinningShader = ShaderLibrary::Instance().Get<SkinningShader>();
@@ -376,7 +388,7 @@ public:
 					// surround the camera, and its own "bounds" don't mean much culled.
 					// Reported to the Profiler once (opaque pass only) to avoid double-
 					// counting the same entity when the blend pass runs the same check.
-					if (!isSky)
+					if (!isSky && s_enableFrustumCulling)
 					{
 						DirectX::BoundingBox entityBoundsLocal;
 						if (cModel.m_spModelData->TryGetLocalBounds(entityBoundsLocal))
@@ -475,7 +487,21 @@ public:
 								if (!isSkinned && !isSky) {
 									DirectX::BoundingBox meshWorldBounds;
 									pMesh->GetLocalAABB().Transform(meshWorldBounds, staticNodeWorld);
-									bool meshCulled = !frustum.Intersects(meshWorldBounds);
+									bool meshCulled = s_enableFrustumCulling && !frustum.Intersects(meshWorldBounds);
+									// Room culling caches a mesh's room assignment the first time
+									// it's queried and never re-evaluates it - wrong for anything
+									// that actually moves (a door swinging open/closed), so
+									// animated nodes are exempt and rely on the frustum test only.
+									// Small props (a handful of meshes) get essentially no benefit
+									// from room culling but are more exposed to its boundary edge
+									// cases (e.g. a pickup item sitting near a doorway) - only
+									// apply it to models with enough meshes to actually matter.
+									constexpr int kRoomCullingMinMeshCount = 6;
+									if (!meshCulled && s_enableRoomCulling
+										&& !cModel.m_spModelData->IsNodeAnimated(node.name)
+										&& cModel.m_spModelData->GetTotalMeshCount() >= kRoomCullingMinMeshCount) {
+										meshCulled = !RoomVisibilityManager::Instance().IsMeshInVisibleRoom(pMesh, staticNodeWorld);
+									}
 									if (!isBlendPass) Profiler::Instance().AddMeshCullResult(meshCulled);
 									if (meshCulled) continue;
 								}

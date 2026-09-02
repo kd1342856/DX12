@@ -2,6 +2,7 @@
 #include "../EditorContext.h"
 #include "../../../../Library/ImGui/imgui.h"
 #include "../../../Graphics/Device/GraphicsDevice.h"
+#include "../../ECS/CompSystem/Systems/RenderSystem.h"
 
 #ifdef _DEBUG
 namespace
@@ -54,8 +55,27 @@ void RendererPanel::Draw(EditorContext& ctx)
             }
         }
 
+        ImGui::Separator();
+        ImGui::Text("Culling (debug)");
+        ImGui::Checkbox("Frustum Culling", &RenderSystem::s_enableFrustumCulling);
+        ImGui::Checkbox("Room Culling", &RenderSystem::s_enableRoomCulling);
+        ImGui::SameLine();
+        ImGui::TextDisabled("(?)");
+        if (ImGui::IsItemHovered())
+        {
+            ImGui::SetTooltip(
+                "Turn these off to check whether something disappearing/not rendering is\n"
+                "caused by culling or is unrelated to it. Takes effect immediately.");
+        }
+
 #ifdef _DEBUG
         ImGui::Separator();
+        // Ground truth for what's actually running *this* session, decided once in
+        // GraphicsDevice::Init() - independent of the checkbox below, so there's no need to
+        // infer it from fps. If this doesn't match the checkbox, the checkbox reflects what
+        // will happen on the *next* launch (see the tooltip) - it never applies live.
+        ImGui::Text("Debug Layer Active This Session: %s", GraphicsDevice::IsDebugLayerActive() ? "ON" : "OFF");
+
         static bool s_debugLayerRequested = GraphicsDevice::IsDebugLayerRequested();
         bool debugLayerChanged = ImGui::Checkbox("D3D12 Debug Layer", &s_debugLayerRequested);
         if (debugLayerChanged)

@@ -341,8 +341,10 @@ void GameScene::Render()
         renderSystem->RenderShadow();
     }
 
-    if (m_fullscreenGame)
+    if (m_fullscreenGame) {
         RenderGame();
+        Editor::DrawProfilerOverlay(); // F3 toggles this - editor mode already shows it via RenderEditor()'s full UI
+    }
     else
         RenderEditor();
 

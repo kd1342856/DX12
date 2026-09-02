@@ -387,6 +387,9 @@
     <ClCompile Include="Source\Framework\Manager\NavMesh\NavMeshManager.cpp">
       <Filter>Source\Framework\Manager\NavMesh</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Framework\Manager\NavMesh\RoomVisibilityManager.cpp">
+      <Filter>Source\Framework\Manager\NavMesh</Filter>
+    </ClCompile>
     <ClCompile Include="Source\Framework\Manager\Resource\PrefabManager.cpp">
       <Filter>Source\Framework\Manager\Resource</Filter>
     </ClCompile>
@@ -754,6 +757,9 @@
       <Filter>Source\Framework\Manager</Filter>
     </ClInclude>
     <ClInclude Include="Source\Framework\Manager\NavMesh\NavMeshManager.h">
+      <Filter>Source\Framework\Manager\NavMesh</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\Manager\NavMesh\RoomVisibilityManager.h">
       <Filter>Source\Framework\Manager\NavMesh</Filter>
     </ClInclude>
     <ClInclude Include="Source\Framework\Manager\Resource\PrefabManager.h">

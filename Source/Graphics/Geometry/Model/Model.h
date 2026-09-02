@@ -1,5 +1,6 @@
 #pragma once
 
+#include <unordered_set>
 #include "../../../Framework/Manager/Asset/AssetHandle.h"
 class Mesh;
 struct AnimationData;
@@ -55,6 +56,21 @@ public:
 	// should treat that as "don't cull, just draw it" rather than guess a wrong box.
 	bool TryGetLocalBounds(DirectX::BoundingBox& outBounds) const;
 
+	// Whether any animation channel targets this node - i.e. it can move (a door swinging
+	// open, etc.) as opposed to being permanently fixed relative to the model root. Room
+	// culling (RoomVisibilityManager) treats these specially: it caches a mesh's room
+	// assignment forever the first time it's queried, which is wrong for something whose
+	// world position changes - so animated nodes are exempted from room culling.
+	bool IsNodeAnimated(const std::string& nodeName) const;
+
+	// Total mesh count across every node. Room culling is only worth the risk for a model
+	// like the house (dozens of meshes spanning many rooms, where per-room rejection saves
+	// real draw calls) - a small prop (a single pickup item mesh, say) gets essentially no
+	// benefit from it and is more exposed to the boundary/padding edge cases room assignment
+	// has (see RoomVisibilityManager), so callers should skip room culling below some
+	// threshold and rely on frustum culling alone.
+	int GetTotalMeshCount() const;
+
 private:
 	std::atomic<bool> m_isLoaded{false};
 	std::vector<Node> m_nodes;
@@ -64,4 +80,10 @@ private:
 
 	mutable bool m_localBoundsComputed = false;
 	mutable DirectX::BoundingBox m_localBounds;
+
+	mutable bool m_animatedNodeNamesBuilt = false;
+	mutable std::unordered_set<std::string> m_animatedNodeNames;
+
+	mutable bool m_totalMeshCountComputed = false;
+	mutable int m_totalMeshCount = 0;
 };

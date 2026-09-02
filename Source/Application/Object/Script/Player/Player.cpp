@@ -10,6 +10,7 @@
 #include "../System/RoomArea.h"
 #include "../Ghost/GhostAI.h"
 #include "../Item/PickupItem.h"
+#include "../../../../Framework/DirectX/Utility/Profiler.h"
 #include <functional>
 
 REGISTER_COMPONENT(Player);
@@ -224,10 +225,18 @@ void Player::UpdateInteractionTarget(const Math::Vector3& playerPos, const Math:
     const float kInteractRange = 2.0f;
 
     float doorDist = FLT_MAX;
-    bool hasDoor = FindNearestDoor(playerPos, forward, kInteractRange, doorDist);
+    bool hasDoor;
+    {
+        PROFILE_CPU_SCOPE("Player::FindNearestDoor");
+        hasDoor = FindNearestDoor(playerPos, forward, kInteractRange, doorDist);
+    }
 
     float pickupDist = FLT_MAX;
-    Entity pickupEntity = FindNearestPickup(playerPos, forward, kInteractRange, pickupDist);
+    Entity pickupEntity;
+    {
+        PROFILE_CPU_SCOPE("Player::FindNearestPickup");
+        pickupEntity = FindNearestPickup(playerPos, forward, kInteractRange, pickupDist);
+    }
 
     if (hasDoor && (pickupEntity == INVALID_ENTITY || doorDist <= pickupDist))
     {
@@ -256,11 +265,10 @@ void Player::UpdateInteractPrompt()
     }
 }
 
-bool Player::FindNearestDoor(const Math::Vector3& playerPos, const Math::Vector3& forward, float maxRange, float& outDist) const
+void Player::RebuildDoorCandidateCache() const
 {
     auto& ecs = GameManager::Instance().GetECS();
-    bool found = false;
-    outDist = FLT_MAX;
+    m_doorCandidateCache.clear();
 
     for (Entity entity = 0; entity < MAX_ENTITIES; ++entity)
     {
@@ -272,15 +280,12 @@ bool Player::FindNearestDoor(const Math::Vector3& playerPos, const Math::Vector3
         const auto& anims = pModel->m_spModelData->GetAnimations();
         if (anims.empty()) continue;
 
-        Math::Vector3 entityPos = pTransform->m_position;
-        if ((playerPos - entityPos).Length() > 50.0f) continue;
-
         for (int i = 0; i < (int)anims.size(); ++i)
         {
             const std::string& animName = anims[i].name;
             if (animName.find("Door") == std::string::npos && animName.find("door") == std::string::npos) continue;
 
-            Math::Vector3 doorPos = entityPos;
+            Math::Vector3 doorPos = pTransform->m_position;
             if (!anims[i].channels.empty())
             {
                 const std::string& doorNodeName = anims[i].channels[0].nodeName;
@@ -298,17 +303,32 @@ bool Player::FindNearestDoor(const Math::Vector3& playerPos, const Math::Vector3
                 }
             }
 
-            Math::Vector3 toDoor = doorPos - playerPos;
-            float dist = toDoor.Length();
-            if (dist >= maxRange) continue;
-            if (dist > 0.001f)
-            {
-                Math::Vector3 dir = toDoor;
-                dir.Normalize();
-                if (dir.Dot(forward) < 0.5f) continue; // outside the facing cone (60 degree half-angle)
-            }
-            if (dist < outDist) { outDist = dist; found = true; }
+            m_doorCandidateCache.push_back({ entity, i, doorPos });
         }
+    }
+
+    m_doorCandidateCacheBuilt = true;
+}
+
+bool Player::FindNearestDoor(const Math::Vector3& playerPos, const Math::Vector3& forward, float maxRange, float& outDist) const
+{
+    if (!m_doorCandidateCacheBuilt) RebuildDoorCandidateCache();
+
+    bool found = false;
+    outDist = FLT_MAX;
+
+    for (const auto& door : m_doorCandidateCache)
+    {
+        Math::Vector3 toDoor = door.worldPos - playerPos;
+        float dist = toDoor.Length();
+        if (dist >= maxRange) continue;
+        if (dist > 0.001f)
+        {
+            Math::Vector3 dir = toDoor;
+            dir.Normalize();
+            if (dir.Dot(forward) < 0.5f) continue; // outside the facing cone (60 degree half-angle)
+        }
+        if (dist < outDist) { outDist = dist; found = true; }
     }
     return found;
 }
@@ -498,7 +518,11 @@ void Player::Update(float deltaTime)
     // --- Ground check via raycast ---
     Math::Vector3 origin = cTrans.m_position + Math::Vector3(0, 0.5f, 0);
     Math::Vector3 rayDir(0, -1, 0);
-    RaycastHit hit = CollisionManager::Instance().RaycastAgainstMesh(origin, rayDir, 1000.0f, "Stage");
+    RaycastHit hit;
+    {
+        PROFILE_CPU_SCOPE("Player::GroundRaycast");
+        hit = CollisionManager::Instance().RaycastAgainstMesh(origin, rayDir, 1000.0f, "Stage");
+    }
 
     if (hit.hit && hit.distance <= 0.6f)
     {
@@ -515,7 +539,10 @@ void Player::Update(float deltaTime)
     }
 
     // --- F key: open/close nearest door, or pick up the nearest item in view ---
-    UpdateInteractionTarget(cTrans.m_position, forward);
+    {
+        PROFILE_CPU_SCOPE("Player::UpdateInteractionTarget");
+        UpdateInteractionTarget(cTrans.m_position, forward);
+    }
     UpdateInteractPrompt();
 
     static float interactCooldown = 0.0f;

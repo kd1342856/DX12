@@ -94,6 +94,12 @@ public:
     // GetMoveDirection), for debug visualization. Returns nullptr if there's no cache entry yet.
     const std::vector<Math::Vector3>* GetCachedPath(int entityID) const;
 
+    // How many times MoveToward has kicked off a background path recompute (JobSystem), total
+    // for the process's lifetime. On a navmesh this small, findPath finishes in well under a
+    // frame, so "Active Jobs" in the Statistics window flickering to 1 is easy to miss just by
+    // eye - this counter is a way to actually confirm the async path is being exercised at all.
+    int GetAsyncRecomputeCount() const { return m_asyncRecomputeCount.load(); }
+
 private:
     NavMeshManager();
     ~NavMeshManager();
@@ -103,14 +109,39 @@ private:
     bool m_debugDrawEnabled = false;
     std::vector<std::vector<Math::Vector3>> m_manualPolygons;
 
+    // Shared staging area for one entity's in-flight background path recompute
+    // (see MoveToward). Kept alive by shared_ptr independent of PathCache/m_pathCache's own
+    // lifetime, so it's always safe for the JobSystem worker to write into even if the
+    // entity's cache entry gets erased (ClearPath, entity destroyed) while the job is still
+    // running - the result just ends up uncollected instead of touching freed memory.
+    struct AsyncPathResult
+    {
+        std::mutex mutex;
+        bool ready = false;
+        std::vector<Math::Vector3> waypoints;
+    };
+
     struct PathCache
     {
         std::vector<Math::Vector3> waypoints;
         float timer = 0.0f;
         Math::Vector3 lastTarget = { 0, 0, 0 };
         bool hasTarget = false;
+
+        // Async recompute state - see MoveToward. Lazily created on first use.
+        std::shared_ptr<std::atomic<bool>> computing;
+        std::shared_ptr<AsyncPathResult> pending;
     };
     std::unordered_map<int, PathCache> m_pathCache;
+
+    // Guards every dtNavMeshQuery call (findNearestPoly/findPath/findStraightPath all mutate
+    // the query object's internal working buffers, so it's not safe to call into the same
+    // dtNavMeshQuery from more than one thread at once). FindPath() now runs on a JobSystem
+    // worker (see MoveToward), while IsReachable() etc. can still be called from the main
+    // thread at the same time - this makes that safe without needing a second query object.
+    std::mutex m_navQueryMutex;
+
+    std::atomic<int> m_asyncRecomputeCount{0};
 
     rcHeightfield*        m_solid   = nullptr;
     rcCompactHeightfield* m_chf     = nullptr;

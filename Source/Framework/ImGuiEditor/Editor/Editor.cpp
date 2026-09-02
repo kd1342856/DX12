@@ -23,6 +23,7 @@ std::string Editor::s_selectedAssetPath = "";
 std::string Editor::s_currentAssetDir = "Asset";
 bool Editor::s_editorMode = true;
 bool Editor::s_showEditor = true;
+bool Editor::s_showProfilerOverlay = false;
 
 std::shared_ptr<Scene> Editor::s_scene = nullptr;
 
@@ -77,4 +78,19 @@ void Editor::Draw()
     if (s_showGameEditor) gameEditor.Draw(ctx);
     if (s_showShaderEditor) shaderEditor.Draw(ctx);
     if (s_showNavMeshEditor) navMeshEditor.Draw(ctx);
+}
+
+void Editor::DrawProfilerOverlay()
+{
+    if (Input::Instance().IsKeyTrigger(DirectX::Keyboard::Keys::F3)) {
+        s_showProfilerOverlay = !s_showProfilerOverlay;
+    }
+
+    if (!s_showProfilerOverlay) return;
+
+    // Callers only reach this from the fullscreen/player render path (GameScene::Render()),
+    // which never also calls the full editor UI (Draw() above, with its own Statistics
+    // window) in the same frame - so there's no double-draw risk to guard against here.
+    ImGui::SetNextWindowPos(ImVec2(10.0f, 10.0f), ImGuiCond_Always);
+    DrawStatistics();
 }

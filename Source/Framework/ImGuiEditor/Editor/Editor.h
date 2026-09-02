@@ -12,6 +12,11 @@ public:
     static void Draw();
     static bool GetEditorMode() { return s_editorMode; }
 
+    // F3-toggled Statistics/Profiler window, independent of the full editor UI (which is
+    // only drawn in editor mode - see RenderEditor()). Call this from the fullscreen/player
+    // render path so the profiler stays available without dropping into editor mode.
+    static void DrawProfilerOverlay();
+
     // s_showEditor is the flag F1 toggles in Draw(); it's a global that survives scene changes, so
     // scenes that want the debug windows hidden by default on entry (e.g. ResultScene) need to be
     // able to force it off explicitly rather than just hoping it happened to be off already.
@@ -48,6 +53,7 @@ private:
 
     static bool s_editorMode;
     static bool s_showEditor;
+    static bool s_showProfilerOverlay;
 
     static std::shared_ptr<Scene> s_scene;
 

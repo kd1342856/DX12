@@ -4,6 +4,8 @@
 #include "../../Manager/Collision/CollisionManager.h"
 #include "../../DirectX/Utility/Profiler.h"
 #include "../../System/JobSystem/JobSystem.h"
+#include "../../Manager/NavMesh/NavMeshManager.h"
+#include "../../../Graphics/Device/GraphicsDevice.h"
 
 // Resolve the GetCurrentScene issue
 static std::shared_ptr<Scene> GetCurrentScenePtr() {
@@ -15,6 +17,12 @@ void Editor::DrawStatistics()
     if (ImGui::Begin("Statistics"))
     {
         ImGui::Text("FPS: %.1f (%.3f ms/frame)", ImGui::GetIO().Framerate, 1000.0f / ImGui::GetIO().Framerate);
+#ifdef _DEBUG
+        // Ground truth for this session, decided once in GraphicsDevice::Init() - see
+        // RendererPanel's checkbox for the persisted request (next-launch), which can
+        // legitimately differ from this until you restart.
+        ImGui::Text("D3D12 Debug Layer: %s", GraphicsDevice::IsDebugLayerActive() ? "ON" : "OFF");
+#endif
 
         // Present-to-Present frame time history (this is what the player experiences,
         // as opposed to ImGui's own smoothed Framerate above).
@@ -126,6 +134,10 @@ void Editor::DrawStatistics()
         ImGui::Text("Workers: %zu", workerCount);
         ImGui::Text("Active Jobs: %d", activeJobs);
         ImGui::Text("Queued Jobs: %zu", JobSystem::Instance().GetQueuedJobCount());
+        // On a small navmesh, findPath finishes in well under a frame - "Active Jobs" flickering
+        // to 1 is easy to miss just by eye. This total keeps counting up as long as async path
+        // recomputes (NavMeshManager::MoveToward) are actually happening.
+        ImGui::Text("Async Path Recomputes: %d", NavMeshManager::Instance().GetAsyncRecomputeCount());
 
         std::vector<bool> workerStatuses = JobSystem::Instance().GetWorkerStatuses();
         static std::vector<std::vector<float>> workerHistories;

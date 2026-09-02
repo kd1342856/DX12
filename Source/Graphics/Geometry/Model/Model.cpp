@@ -57,6 +57,33 @@ bool ModelData::TryGetLocalBounds(DirectX::BoundingBox& outBounds) const
 	return true;
 }
 
+int ModelData::GetTotalMeshCount() const
+{
+	if (!m_totalMeshCountComputed)
+	{
+		m_totalMeshCount = 0;
+		for (const auto& node : m_nodes) m_totalMeshCount += static_cast<int>(node.meshes.size());
+		m_totalMeshCountComputed = true;
+	}
+	return m_totalMeshCount;
+}
+
+bool ModelData::IsNodeAnimated(const std::string& nodeName) const
+{
+	if (!m_animatedNodeNamesBuilt)
+	{
+		for (const auto& anim : m_animations)
+		{
+			for (const auto& channel : anim.channels)
+			{
+				m_animatedNodeNames.insert(channel.nodeName);
+			}
+		}
+		m_animatedNodeNamesBuilt = true;
+	}
+	return m_animatedNodeNames.count(nodeName) != 0;
+}
+
 std::vector<Math::Matrix> ModelData::GetBoneMatrices() const
 {
 	std::vector<Math::Matrix> globalTransforms(m_nodes.size());

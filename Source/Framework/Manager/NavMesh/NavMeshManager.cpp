@@ -3,6 +3,7 @@
 #include "../Asset/MeshManager.h"
 #include "../../../Application/Object/Script/System/RoomArea.h"
 #include "../../Object/GameObject.h"
+#include "../../System/JobSystem/JobSystem.h"
 #include "Recast/Recast.h"
 #include "Detour/DetourNavMesh.h"
 #include "Detour/DetourNavMeshBuilder.h"
@@ -991,6 +992,13 @@ bool NavMeshManager::FindPath(
     outPath.clear();
     if (!m_navQuery || !m_navMesh) return false;
 
+    // FindPath can now run on a JobSystem worker thread (see MoveToward) while the main
+    // thread is still free to call IsReachable() etc. - both touch the same dtNavMeshQuery,
+    // which isn't safe to use from more than one thread concurrently, hence the lock here
+    // and in IsReachable(). Held for the whole function; findPath itself is fast enough
+    // on a navmesh this size that serializing it isn't a real cost.
+    std::lock_guard<std::mutex> lock(m_navQueryMutex);
+
     // Vertical extent must stay well under the ~4.3m floor-to-floor gap in this house - too large
     // (this used to be 4.0f) and a query point near one floor can snap to the nearest poly on the
     // *other* floor instead (e.g. Hunt targeting the player's position while both ghost and player
@@ -1076,6 +1084,23 @@ Math::Vector3 NavMeshManager::MoveToward(
     float nodeReachThreshold)
 {
     PathCache& cache = m_pathCache[entityID];
+    if (!cache.computing) cache.computing = std::make_shared<std::atomic<bool>>(false);
+    if (!cache.pending) cache.pending = std::make_shared<AsyncPathResult>();
+
+    // Absorb a finished background recompute, if one's ready, before deciding whether to
+    // start another. The mover just keeps following the *previous* cache.waypoints while a
+    // recompute is in flight - no stall, no snap, exactly "walk toward the waypoint already
+    // known while the next one is worked out in the background".
+    {
+        std::lock_guard<std::mutex> lock(cache.pending->mutex);
+        if (cache.pending->ready)
+        {
+            cache.waypoints = std::move(cache.pending->waypoints);
+            cache.pending->waypoints.clear();
+            cache.pending->ready = false;
+            cache.computing->store(false, std::memory_order_release);
+        }
+    }
 
     // Recompute only when there's an actual reason to: no path yet, the target has genuinely moved
     // (a live Hunt target, say), or a long safety-net interval has passed in case something else
@@ -1088,12 +1113,41 @@ Math::Vector3 NavMeshManager::MoveToward(
     const float kTargetMovedThreshold = 1.0f;
     bool targetMoved = cache.hasTarget && (target - cache.lastTarget).LengthSquared() > (kTargetMovedThreshold * kTargetMovedThreshold);
     cache.timer -= deltaTime;
-    if (cache.waypoints.empty() || targetMoved || cache.timer <= 0.0f)
+    // "waypoints.empty()" only forces an immediate recompute the first time we're ever asked
+    // for this target (hasTarget false) - once we've already computed for it, an empty list
+    // just means we arrived, not "try again right now". Without the !hasTarget guard this
+    // re-fires every single frame while sitting at the destination waiting for a new order
+    // (visible as Async Path Recomputes climbing rapidly while idle - a job that immediately
+    // starts, finishes, and gets re-triggered next frame, forever, until the target changes).
+    bool needsRecompute = (cache.waypoints.empty() && !cache.hasTarget) || targetMoved || cache.timer <= 0.0f;
+
+    if (needsRecompute && !cache.computing->load(std::memory_order_acquire))
     {
-        FindPath(current, target, cache.waypoints);
+        cache.computing->store(true, std::memory_order_release);
         cache.timer = pathUpdateInterval;
         cache.lastTarget = target;
         cache.hasTarget = true;
+
+        // pending/computing are shared_ptrs, kept alive by this lambda independent of
+        // PathCache/m_pathCache's own lifetime - safe even if ClearPath() erases this
+        // entity's cache entry while the job is still running (see AsyncPathResult's comment).
+        auto pending = cache.pending;
+        auto computing = cache.computing;
+        Math::Vector3 startCopy = current;
+        Math::Vector3 targetCopy = target;
+
+        JobSystem::Instance().Execute([this, startCopy, targetCopy, pending, computing]() {
+            std::vector<Math::Vector3> result;
+            FindPath(startCopy, targetCopy, result); // internally locks m_navQueryMutex
+            m_asyncRecomputeCount.fetch_add(1, std::memory_order_relaxed);
+
+            std::lock_guard<std::mutex> lock(pending->mutex);
+            pending->waypoints = std::move(result);
+            pending->ready = true;
+            // 'computing' is intentionally left true here - MoveToward's absorb step above
+            // clears it once it actually picks up this result, so a second job can't start
+            // (and overwrite 'pending' mid-read) before that happens.
+        });
     }
 
     Math::Vector3 nextPos = AdvanceAlongPath(cache, current, speed, deltaTime, nodeReachThreshold);
@@ -1170,6 +1224,10 @@ bool NavMeshManager::IsReachable(const Math::Vector3& start, const Math::Vector3
     // for "walk toward but stop at the wall" behavior). For a yes/no reachability check we need
     // to explicitly verify the path actually terminates at the destination polygon.
     if (!m_navQuery || !m_navMesh) return false;
+
+    // See the lock in FindPath() - the same dtNavMeshQuery can now be touched concurrently
+    // by a background path recompute (MoveToward) and this (still main-thread) call.
+    std::lock_guard<std::mutex> lock(m_navQueryMutex);
 
     // Kept in sync with FindPath()'s extents - see its comment for why the vertical component must
     // stay small relative to the floor-to-floor gap.

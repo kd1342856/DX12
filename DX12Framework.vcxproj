@@ -227,6 +227,7 @@ xcopy /y /d "$(ProjectDir)dxil.dll" "$(OutDir)"</Command>
     <ClInclude Include="Source\Framework\Manager\Collision\CollisionSolver.h" />
     <ClInclude Include="Source\Framework\Manager\Collision\Octree.h" />
     <ClInclude Include="Source\Framework\Manager\NavMesh\NavMeshManager.h" />
+    <ClInclude Include="Source\Framework\Manager\NavMesh\RoomVisibilityManager.h" />
     <ClInclude Include="Source\Framework\Manager\Resource\PrefabManager.h" />
     <ClInclude Include="Source\Framework\Manager\Resource\ResourceManager.h" />
     <ClInclude Include="Source\Framework\Manager\Scene\Scene.h" />
@@ -364,6 +365,7 @@ xcopy /y /d "$(ProjectDir)dxil.dll" "$(OutDir)"</Command>
     <ClCompile Include="Source\Framework\Manager\Collision\CollisionSolver.cpp" />
     <ClCompile Include="Source\Framework\Manager\Collision\Octree.cpp" />
     <ClCompile Include="Source\Framework\Manager\NavMesh\NavMeshManager.cpp" />
+    <ClCompile Include="Source\Framework\Manager\NavMesh\RoomVisibilityManager.cpp" />
     <ClCompile Include="Source\Framework\Manager\Resource\PrefabManager.cpp" />
     <ClCompile Include="Source\Framework\Manager\Resource\ResourceManager.cpp" />
     <ClCompile Include="Source\Framework\Manager\Scene\Scene.cpp" />
