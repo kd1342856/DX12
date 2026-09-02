@@ -1198,11 +1198,14 @@ bool NavMeshManager::IsReachable(const Math::Vector3& start, const Math::Vector3
         return false;
     }
 
-    bool ok = (path[pathCount - 1] == endRef);
-    Logger::Instance().AddLog(Logger::LogLevel::Info,
-        "IsReachable: snappedStart=(%.2f,%.2f,%.2f) snappedEnd=(%.2f,%.2f,%.2f) pathPolyCount=%d lastPolyIsEnd=%d",
-        startPt[0], startPt[1], startPt[2], endPt[0], endPt[1], endPt[2], pathCount, (int)ok);
-    return ok;
+    // NOTE: this used to unconditionally log every call here. IsReachable() is called
+    // frequently (e.g. GhostAI filtering candidate rooms every time it picks a new
+    // wander target), and each Logger::AddLog() call is a synchronous disk write -
+    // that was adding real per-frame cost for a result callers already get as the
+    // return value. Keep this call silent on the (expected, common) success/failure
+    // path; the two branches above still log the genuinely unexpected cases (no
+    // nearby polygon, findPath returning nothing).
+    return path[pathCount - 1] == endRef;
 }
 
 const std::vector<Math::Vector3>* NavMeshManager::GetCachedPath(int entityID) const

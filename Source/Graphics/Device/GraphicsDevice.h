@@ -18,29 +18,29 @@ class ResourceLifetimeManager;
 
 class GraphicsDevice {
 public:
-	// I—¹ˆ—‚ªn‚Ü‚Á‚½‚©‚Ç‚¤‚©B’Pƒ‚Èstatic bool‚È‚Ì‚ÅAGraphicsDevice‚Ì
-	// ƒCƒ“ƒXƒ^ƒ“ƒX©‘Ì‚ª(Ã“I”jŠü‡˜‚Ì“s‡“™‚Å)Šù‚É‰ó‚ê‚Ä‚¢‚Ä‚à‚±‚±‚¾‚¯‚ÍˆÀ‘S‚É“Ç‚ß‚éB
-	// GPUResource‚ÌƒfƒXƒgƒ‰ƒNƒ^“™AI—¹ˆ—‚ÌŒã‚É‚Ç‚Ìƒ^ƒCƒ~ƒ“ƒO‚ÅŒÄ‚Î‚ê‚é‚©
-	// Šm’è‚Å‚«‚È‚¢‰ÓŠ‚©‚çAm_device‚ÉG‚é‘O‚É•K‚¸‚±‚ê‚ğŠm”F‚·‚é‚±‚ÆB
+	// ï¿½Iï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½nï¿½Ü‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç‚ï¿½ï¿½ï¿½ï¿½Bï¿½Pï¿½ï¿½ï¿½ï¿½static boolï¿½È‚Ì‚ÅAGraphicsDeviceï¿½ï¿½
+	// ï¿½Cï¿½ï¿½ï¿½Xï¿½^ï¿½ï¿½ï¿½Xï¿½ï¿½ï¿½Ì‚ï¿½(ï¿½Ã“Iï¿½jï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì“sï¿½ï¿½ï¿½ï¿½ï¿½ï¿½)ï¿½ï¿½ï¿½É‰ï¿½ï¿½Ä‚ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Íˆï¿½ï¿½Sï¿½É“Ç‚ß‚ï¿½B
+	// GPUResourceï¿½Ìƒfï¿½Xï¿½gï¿½ï¿½ï¿½Nï¿½^ï¿½ï¿½ï¿½Aï¿½Iï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÌŒï¿½É‚Ç‚Ìƒ^ï¿½Cï¿½~ï¿½ï¿½ï¿½Oï¿½ÅŒÄ‚Î‚ï¿½é‚©
+	// ï¿½mï¿½ï¿½Å‚ï¿½ï¿½È‚ï¿½ï¿½Óï¿½ï¿½ï¿½ï¿½ï¿½Am_deviceï¿½ÉGï¿½ï¿½Oï¿½É•Kï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½mï¿½Fï¿½ï¿½ï¿½é‚±ï¿½ÆB
 	static bool IsShuttingDown() { return s_isShuttingDown; }
 
-	// ‰Šú‰»
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	bool Init(HWND hWnd, int w, int h);
 	
-	// •`‰æI—¹
+	// ï¿½`ï¿½ï¿½Iï¿½ï¿½
 	void EndFrame();
 
-	// •`‰æŠJn
+	// ï¿½`ï¿½ï¿½Jï¿½n
 	void BeginFrame();
 
 	
-	// ƒŒƒ“ƒ_[ƒ^[ƒQƒbƒgİ’è
+	// ï¿½ï¿½ï¿½ï¿½ï¿½_ï¿½[ï¿½^ï¿½[ï¿½Qï¿½bï¿½gï¿½İ’ï¿½
 	void SetRenderTarget(RenderTarget* pRT);
 	void TransitionToSRV(RenderTarget* pRT);
 	void SetBackBuffer();
 	void ClearBackBuffer(float r, float g, float b, float a);
 
-	// ImGui•`‰æ(EndFrame‘O‚ÉŒÄ‚Ô)
+	// ImGuiï¿½`ï¿½ï¿½(EndFrameï¿½Oï¿½ÉŒÄ‚ï¿½)
 	void RenderImGui();
 
 	// Getter
@@ -75,13 +75,23 @@ public:
 	// SpriteBatch
 	DirectX::SpriteBatch* GetSpriteBatch() const { return m_spSpriteBatch.get(); }
 
-	// I—¹ˆ—
+	// ï¿½Iï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	void Shutdown();
 	void EnableDebugLayer();
 
+	// Persisted toggle for the D3D12 debug layer (Debug builds only). It can only be
+	// enabled/disabled before the device is created, so this doesn't take effect until
+	// the next launch - see the checkbox in RendererPanel and the comment in Init().
+	static bool IsDebugLayerRequested();
+	static void SetDebugLayerRequested(bool enabled);
+	// Whether the debug layer is actually active *this* run (decided once, in Init()) -
+	// as opposed to IsDebugLayerRequested(), which reflects the checkbox and may already
+	// differ if the user just toggled it and hasn't restarted yet.
+	static bool IsDebugLayerActive() { return s_debugLayerActive; }
+
 	ID3D12DescriptorHeap* GetImGuiSRVHeap() const { return m_upImGuiSRVHeap.Get(); }
 
-	// SpotShadowMap‚Í–¢g—p‚Ì‚½‚ßíœÏ‚İ
+	// SpotShadowMapï¿½Í–ï¿½ï¿½gï¿½pï¿½Ì‚ï¿½ï¿½ßíœï¿½Ï‚ï¿½
 	int m_imGuiSrvCount = 1;
 
 	std::unique_ptr<DirectX::SpriteBatch> m_spSpriteBatch;
@@ -104,14 +114,14 @@ public:
 		Kind,
 	};
 
-	// ƒfƒoƒCƒX
+	// ï¿½fï¿½oï¿½Cï¿½X
 	Microsoft::WRL::ComPtr<ID3D12Device8>					m_pDevice = nullptr;
 	Microsoft::WRL::ComPtr<IDXGIFactory6>					m_pDxgiFactory = nullptr;
 	Microsoft::WRL::ComPtr<IDXGIAdapter3>					m_pAdapter3 = nullptr;
 
-	// ƒRƒ}ƒ“ƒh
+	// ï¿½Rï¿½}ï¿½ï¿½ï¿½h
 			
-	// ƒXƒƒbƒvƒ`ƒF[ƒ“
+	// ï¿½Xï¿½ï¿½ï¿½bï¿½vï¿½`ï¿½Fï¿½[ï¿½ï¿½
 	Microsoft::WRL::ComPtr<IDXGISwapChain4>					m_pSwapChain = nullptr;
 
 	// Number of swap chain back buffers. 3 lets the CPU run ahead of the GPU.
@@ -139,7 +149,7 @@ public:
 	std::unique_ptr<Texture> m_spBlackTex = nullptr;
 	std::unique_ptr<Texture> m_spNormalTex = nullptr;
 
-	// ImGui—pSRV—pƒq[ƒv
+	// ImGuiï¿½pSRVï¿½pï¿½qï¿½[ï¿½v
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>			m_upImGuiSRVHeap = nullptr;
 	std::unique_ptr<DirectX::GraphicsMemory> m_graphicsMemory = nullptr;
 	float GetVRAMUsageMB();
@@ -150,9 +160,9 @@ private:
 	bool CreateSwapChainRTV();
 		bool CreateDefaultTextures();
 
-	// SpotShadowMap: –¢g—p‚Ì‚½‚ßíœÏ‚İ
+	// SpotShadowMap: ï¿½ï¿½ï¿½gï¿½pï¿½Ì‚ï¿½ï¿½ßíœï¿½Ï‚ï¿½
 
-	// ImGui‰Šú‰»
+	// ImGuiï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	bool InitImGui();
 	void ShutdownImGui();
 
@@ -163,6 +173,7 @@ public:
 
 private:
 	static inline bool s_isShuttingDown = false;
+	static inline bool s_debugLayerActive = false;
 public:
 
 };

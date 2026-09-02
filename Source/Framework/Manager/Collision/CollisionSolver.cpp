@@ -173,7 +173,7 @@ bool CheckCollisionShape(CollisionResult& result,
     std::vector<Math::Vector3> hitPushes;
 
     for (const auto &node : meshShape->m_model->GetNodes()) {
-      // C³: ƒAƒjƒ[ƒVƒ‡ƒ“•ÏŒ`‚ðl—¶
+      // ï¿½Cï¿½ï¿½: ï¿½Aï¿½jï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½ÏŒ`ï¿½ï¿½ï¿½lï¿½ï¿½
       Math::Matrix nodeWorld = node.animDeltaTransform * worldB_withOffset; 
       DirectX::XMMATRIX mNodeWorld = DirectX::XMLoadFloat4x4(&nodeWorld);
 
@@ -187,6 +187,16 @@ bool CheckCollisionShape(CollisionResult& result,
       for (const auto &meshHandle : node.meshes) {
         Mesh* mesh = MeshManager::Instance().Get(meshHandle);
         if (!mesh) continue;
+
+        // Broad-phase: reject this whole mesh with one box test instead of transforming
+        // every vertex of every triangle just to find out none of them are anywhere near
+        // shapeA. This is what made mesh colliders (e.g. level geometry) cost time
+        // proportional to their total triangle count on every check, regardless of how
+        // small/far away shapeA actually was.
+        DirectX::BoundingBox worldMeshAABB;
+        mesh->GetLocalAABB().Transform(worldMeshAABB, mNodeWorld);
+        if (!worldMeshAABB.Intersects(shapeA->m_worldAABB)) continue;
+
         const auto& verts = mesh->GetVertices();
         for (const auto &face : mesh->GetFaces()) {
           Math::Vector3 v0 = verts[face.Idx[0]].Position;

@@ -22,6 +22,22 @@ void Mesh::CreateGPU(GraphicsDevice* pDevice,
     m_faces         = faces;
     m_instanceCount = static_cast<UINT>(faces.size() * 3);
 
+    // Local-space AABB, used by mesh-collider checks to reject this whole mesh with one
+    // box test instead of transforming every vertex just to find nothing is close.
+    if (!m_vertices.empty())
+    {
+        DirectX::XMFLOAT3 minP = m_vertices[0].Position;
+        DirectX::XMFLOAT3 maxP = m_vertices[0].Position;
+        for (const auto& v : m_vertices)
+        {
+            minP.x = std::min(minP.x, v.Position.x); maxP.x = std::max(maxP.x, v.Position.x);
+            minP.y = std::min(minP.y, v.Position.y); maxP.y = std::max(maxP.y, v.Position.y);
+            minP.z = std::min(minP.z, v.Position.z); maxP.z = std::max(maxP.z, v.Position.z);
+        }
+        DirectX::BoundingBox::CreateFromPoints(m_localAABB,
+            DirectX::XMLoadFloat3(&minP), DirectX::XMLoadFloat3(&maxP));
+    }
+
     // Create GPU buffers (empty, to be filled by upload)
     m_vertexBuffer.Create(
         pDevice,

@@ -372,13 +372,13 @@ public:
 						int totalMeshes = 0;
 						for (const auto& nd : nodesDbg) totalMeshes += (int)nd.meshes.size();
 
-						Logger::Instance().AddLog(Logger::LogLevel::Info,
-							"[RenderSystem] Entity=%u Type=%s Bones=%d Nodes=%d TotalMeshes=%d",
-							(uint32_t)entity,
-							isSkinned ? "Dynamic(Skinned)" : "Static",
-							(int)boneMatricesDbg.size(),
-							(int)nodesDbg.size(),
-							totalMeshes);
+						//Logger::Instance().AddLog(Logger::LogLevel::Info,
+						//	"[RenderSystem] Entity=%u Type=%s Bones=%d Nodes=%d TotalMeshes=%d",
+						//	(uint32_t)entity,
+						//	isSkinned ? "Dynamic(Skinned)" : "Static",
+						//	(int)boneMatricesDbg.size(),
+						//	(int)nodesDbg.size(),
+						//	totalMeshes);
 
 						int meshIdx = 0;
 						for (const auto& nd : nodesDbg)

@@ -53,17 +53,17 @@ std::vector<Math::Matrix> ModelData::GetBoneMatrices() const
 					s_logged = true;
 					const auto& offset = m_bones[i].offsetMatrix;
 					const auto& global = globalTransforms[nodeIndex];
-					Logger::Instance().AddLog(Logger::LogLevel::Info, "Bone 0 Offset Raw:");
-					Logger::Instance().AddLog(Logger::LogLevel::Info, "[%f, %f, %f, %f]", offset._11, offset._12, offset._13, offset._14);
-					Logger::Instance().AddLog(Logger::LogLevel::Info, "[%f, %f, %f, %f]", offset._21, offset._22, offset._23, offset._24);
-					Logger::Instance().AddLog(Logger::LogLevel::Info, "[%f, %f, %f, %f]", offset._31, offset._32, offset._33, offset._34);
-					Logger::Instance().AddLog(Logger::LogLevel::Info, "[%f, %f, %f, %f]", offset._41, offset._42, offset._43, offset._44);
-					
-					Logger::Instance().AddLog(Logger::LogLevel::Info, "Bone 0 Global Raw:");
-					Logger::Instance().AddLog(Logger::LogLevel::Info, "[%f, %f, %f, %f]", global._11, global._12, global._13, global._14);
-					Logger::Instance().AddLog(Logger::LogLevel::Info, "[%f, %f, %f, %f]", global._21, global._22, global._23, global._24);
-					Logger::Instance().AddLog(Logger::LogLevel::Info, "[%f, %f, %f, %f]", global._31, global._32, global._33, global._34);
-					Logger::Instance().AddLog(Logger::LogLevel::Info, "[%f, %f, %f, %f]", global._41, global._42, global._43, global._44);
+					//Logger::Instance().AddLog(Logger::LogLevel::Info, "Bone 0 Offset Raw:");
+					//Logger::Instance().AddLog(Logger::LogLevel::Info, "[%f, %f, %f, %f]", offset._11, offset._12, offset._13, offset._14);
+					//Logger::Instance().AddLog(Logger::LogLevel::Info, "[%f, %f, %f, %f]", offset._21, offset._22, offset._23, offset._24);
+					//Logger::Instance().AddLog(Logger::LogLevel::Info, "[%f, %f, %f, %f]", offset._31, offset._32, offset._33, offset._34);
+					//Logger::Instance().AddLog(Logger::LogLevel::Info, "[%f, %f, %f, %f]", offset._41, offset._42, offset._43, offset._44);
+					//
+					//Logger::Instance().AddLog(Logger::LogLevel::Info, "Bone 0 Global Raw:");
+					//Logger::Instance().AddLog(Logger::LogLevel::Info, "[%f, %f, %f, %f]", global._11, global._12, global._13, global._14);
+					//Logger::Instance().AddLog(Logger::LogLevel::Info, "[%f, %f, %f, %f]", global._21, global._22, global._23, global._24);
+					//Logger::Instance().AddLog(Logger::LogLevel::Info, "[%f, %f, %f, %f]", global._31, global._32, global._33, global._34);
+					//Logger::Instance().AddLog(Logger::LogLevel::Info, "[%f, %f, %f, %f]", global._41, global._42, global._43, global._44);
 				}
 			}
 		}
@@ -83,7 +83,7 @@ std::vector<Math::Matrix> ModelData::GetBoneMatrices() const
 			Math::Quaternion q;
 			// boneMatricesÇÕÇªÇÃÇ‹Ç‹DecomposeÇ≈Ç´ÇÈÇÕÇ∏ÇæÇ™ÅADirectXMathäÓèÄ(Row-Major)Ç»ÇÃÇ≈ÇªÇÃÇ‹Ç‹ìnÇ∑
 			boneMatrices[i].Decompose(s, q, t);
-			Logger::Instance().AddLog(Logger::LogLevel::Info, "Bone %zu: Scale(%.3f, %.3f, %.3f) Trans(%.3f, %.3f, %.3f)", i, s.x, s.y, s.z, t.x, t.y, t.z);
+			//Logger::Instance().AddLog(Logger::LogLevel::Info, "Bone %zu: Scale(%.3f, %.3f, %.3f) Trans(%.3f, %.3f, %.3f)", i, s.x, s.y, s.z, t.x, t.y, t.z);
 		}
 		Logger::Instance().AddLog(Logger::LogLevel::Info, "------------------------------");
 	}

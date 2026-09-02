@@ -20,11 +20,14 @@ public:
 		std::string debugStr = "[LOG] " + message + "\n";
 		OutputDebugStringA(debugStr.c_str());
 
-		FILE* f;
-		fopen_s(&f, "debug_log.txt", "a");
-		if (f) {
-			fprintf(f, "%s", debugStr.c_str());
-			fclose(f);
+		// Keep the file open for the lifetime of the process instead of doing an
+		// fopen/fclose per call - that pair is disk I/O + OS handle setup/teardown
+		// every single time, which gets very expensive when something logs every
+		// frame (pathfinding queries, per-entity debug output, etc.). fflush still
+		// makes sure nothing is lost if the process crashes.
+		if (m_logFile) {
+			fwrite(debugStr.data(), 1, debugStr.size(), m_logFile);
+			fflush(m_logFile);
 		}
 	}
 
@@ -109,8 +112,8 @@ public:
 	}
 
 private:
-	Logger() {}
-	~Logger() {}
+	Logger() { fopen_s(&m_logFile, "debug_log.txt", "a"); }
+	~Logger() { if (m_logFile) { fclose(m_logFile); m_logFile = nullptr; } }
 	Logger(const Logger&) = delete;
 	Logger& operator=(const Logger&) = delete;
 
@@ -122,4 +125,5 @@ private:
 	std::vector<LogEntry> m_logs;
 	std::mutex m_mutex;
 	bool m_scrollToBottom = true;
+	FILE* m_logFile = nullptr;
 };

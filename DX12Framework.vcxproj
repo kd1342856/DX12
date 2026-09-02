@@ -160,6 +160,17 @@
       <AdditionalDependencies>Recast.lib;Detour.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup>
+    <!-- dxcompiler.dll/dxil.dll are implicit link dependencies (ShaderCompiler.cpp links
+         dxcompiler.lib) but aren't shipped by the Windows SDK next to the exe, and the repo
+         only keeps copies at the project root. The app directory is always first in the DLL
+         search order regardless of current working directory, so keep them mirrored into
+         the output directory on every build instead of relying on CWD-based resolution. -->
+    <PostBuildEvent>
+      <Command>xcopy /y /d "$(ProjectDir)dxcompiler.dll" "$(OutDir)"
+xcopy /y /d "$(ProjectDir)dxil.dll" "$(OutDir)"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Source\Application\Object\Script\Player\Player.h" />
     <ClInclude Include="Source\Application\Object\Script\Item\ItemTypes.h" />

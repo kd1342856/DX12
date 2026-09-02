@@ -15,6 +15,19 @@ void Editor::DrawStatistics()
     if (ImGui::Begin("Statistics"))
     {
         ImGui::Text("FPS: %.1f (%.3f ms/frame)", ImGui::GetIO().Framerate, 1000.0f / ImGui::GetIO().Framerate);
+
+        // Present-to-Present frame time history (this is what the player experiences,
+        // as opposed to ImGui's own smoothed Framerate above).
+        {
+            const auto& frameHistory = Profiler::Instance().GetFrameTimeHistory();
+            float frameTimes[Profiler::kFrameHistorySize];
+            std::copy(frameHistory.begin(), frameHistory.end(), frameTimes);
+            float maxMs = 0.0f;
+            for (float v : frameTimes) maxMs = std::max(maxMs, v);
+            ImGui::PlotLines("##FrameTimeMs", frameTimes, Profiler::kFrameHistorySize,
+                Profiler::Instance().GetFrameTimeHistoryIndex(), nullptr, 0.0f,
+                std::max(maxMs, 1.0f) * 1.1f, ImVec2(-FLT_MIN, 60));
+        }
         ImGui::Separator();
 
         ImGui::Text("--- Memory ---");
@@ -22,7 +35,50 @@ void Editor::DrawStatistics()
         ImGui::Text("VRAM Usage: %.2f MB", GraphicsDevice::Instance().GetVRAMUsageMB());
         ImGui::Separator();
 
-        // —š—ğ—pƒoƒbƒtƒ@i–ˆƒtƒŒ[ƒ€‹L˜^j
+        ImGui::Text("--- Pass Timing (ms) ---");
+        // GPU timings lag a couple frames behind CPU timings (results are read back once
+        // the frame-in-flight slot they were recorded into is safe to reuse) but line up
+        // by pass name, so a simple side-by-side table is enough to spot the hot pass.
+        if (ImGui::BeginTable("PassTiming", 3, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
+        {
+            ImGui::TableSetupColumn("Pass");
+            ImGui::TableSetupColumn("CPU");
+            ImGui::TableSetupColumn("GPU");
+            ImGui::TableHeadersRow();
+
+            const auto& cpuTimings = Profiler::Instance().GetCPUTimings();
+            const auto& gpuTimings = Profiler::Instance().GetGPUTimings();
+
+            // Union of names seen on either side, so a pass missing from one side still shows up.
+            std::vector<std::string> names;
+            names.reserve(cpuTimings.size() + gpuTimings.size());
+            for (const auto& pair : cpuTimings) names.push_back(pair.first);
+            for (const auto& pair : gpuTimings)
+            {
+                if (std::find(names.begin(), names.end(), pair.first) == names.end())
+                    names.push_back(pair.first);
+            }
+            std::sort(names.begin(), names.end());
+
+            for (const auto& name : names)
+            {
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Text("%s", name.c_str());
+                ImGui::TableNextColumn();
+                auto cpuIt = cpuTimings.find(name);
+                if (cpuIt != cpuTimings.end()) ImGui::Text("%.3f", cpuIt->second);
+                else ImGui::TextUnformatted("-");
+                ImGui::TableNextColumn();
+                auto gpuIt = gpuTimings.find(name);
+                if (gpuIt != gpuTimings.end()) ImGui::Text("%.3f", gpuIt->second);
+                else ImGui::TextUnformatted("-");
+            }
+            ImGui::EndTable();
+        }
+        ImGui::Separator();
+
+        // ï¿½ï¿½ï¿½ï¿½pï¿½oï¿½bï¿½tï¿½@ï¿½iï¿½ï¿½ï¿½tï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½Lï¿½^ï¿½j
         static float drawCallHistory[120] = {};
         static float instanceHistory[120] = {};
         static float activeJobHistory[120] = {};

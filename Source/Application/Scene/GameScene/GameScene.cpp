@@ -17,6 +17,7 @@
 #include "../../../Graphics/Shader/ShaderLibrary.h"
 #include "../../../Graphics/Shader/PostProcessShader/PostProcessShader.h"
 #include "../../../Graphics/Shader/BloomShader/BloomShader.h"
+#include "../../../Framework/DirectX/Utility/Profiler.h"
 
 void GameScene::Init()
 {
@@ -331,8 +332,12 @@ void GameScene::Render()
 {
     Renderer::BeginFrame();
 
+    auto* pCmdList = GraphicsDevice::Instance().GetCmdList();
+
     auto renderSystem = GameManager::Instance().GetRenderSystem();
     if (renderSystem) {
+        PROFILE_CPU_SCOPE("Shadow");
+        PROFILE_GPU_SCOPE(pCmdList, "Shadow");
         renderSystem->RenderShadow();
     }
 
@@ -352,22 +357,41 @@ void GameScene::RenderGame()
 
     if (m_gameCameraEntity != INVALID_ENTITY)
     {
+        auto* pCmdList = GraphicsDevice::Instance().GetCmdList();
+
         auto* pSceneHDR = Renderer::GetSceneHDRRenderTarget();
         GraphicsDevice::Instance().SetRenderTarget(pSceneHDR);
         pSceneHDR->Clear(0.0f, 0.0f, 0.0f, 1.0f);
 
-        renderSystem->RenderReflection(m_gameCameraEntity);
-        renderSystem->RenderScene(m_gameCameraEntity, pSceneHDR);
-        spriteRenderSystem->Render();
+        {
+            PROFILE_CPU_SCOPE("Reflection");
+            PROFILE_GPU_SCOPE(pCmdList, "Reflection");
+            renderSystem->RenderReflection(m_gameCameraEntity);
+        }
+        {
+            PROFILE_CPU_SCOPE("Scene");
+            PROFILE_GPU_SCOPE(pCmdList, "Scene");
+            renderSystem->RenderScene(m_gameCameraEntity, pSceneHDR);
+        }
+        {
+            PROFILE_CPU_SCOPE("Sprite");
+            PROFILE_GPU_SCOPE(pCmdList, "Sprite");
+            spriteRenderSystem->Render();
+        }
 
         // Script Draw (Player UI, GameClear/Over ?\?????)
         // ?? DebugWire??Q?[?????[?h????\??
         auto scriptSystem = GameManager::Instance().GetScriptSystem();
         if (scriptSystem) {
+            PROFILE_CPU_SCOPE("ScriptDraw");
+            PROFILE_GPU_SCOPE(pCmdList, "ScriptDraw");
             scriptSystem->Draw();
         }
 
         // Phase 4: PostProcess (Bloom & ToneMapping)
+        PROFILE_CPU_SCOPE("PostProcess");
+        PROFILE_GPU_SCOPE(pCmdList, "PostProcess");
+
         auto& bloomShader = ShaderLibrary::Instance().Get<BloomShader>();
         auto& postProcessShader = ShaderLibrary::Instance().Get<PostProcessShader>();
 
@@ -412,47 +436,68 @@ void GameScene::RenderEditor()
     GraphicsDevice::Instance().SetRenderTarget(pSceneHDR);
     pSceneHDR->Clear(0.1f, 0.1f, 0.2f, 1.0f);
 
+    auto* pCmdList = GraphicsDevice::Instance().GetCmdList();
+
     if (m_editorCameraEntity != INVALID_ENTITY)
     {
-        renderSystem->RenderScene(m_editorCameraEntity, pSceneHDR);
-        spriteRenderSystem->Render();
+        {
+            PROFILE_CPU_SCOPE("Scene");
+            PROFILE_GPU_SCOPE(pCmdList, "Scene");
+            renderSystem->RenderScene(m_editorCameraEntity, pSceneHDR);
+        }
+        {
+            PROFILE_CPU_SCOPE("Sprite");
+            PROFILE_GPU_SCOPE(pCmdList, "Sprite");
+            spriteRenderSystem->Render();
+        }
 
         // Script Draw (?f?o?b?O???C???[???)
         auto scriptSystem = GameManager::Instance().GetScriptSystem();
         if (scriptSystem) {
+            PROFILE_CPU_SCOPE("ScriptDraw");
+            PROFILE_GPU_SCOPE(pCmdList, "ScriptDraw");
             scriptSystem->PreDraw();
             scriptSystem->Draw();
         }
-        NavMeshManager::Instance().DrawDebugMesh();
-        CollisionManager::Instance().DrawDebugWires(0, 0, 1280.0f, 720.0f, m_editorCameraEntity);
+        {
+            PROFILE_CPU_SCOPE("DebugDraw");
+            PROFILE_GPU_SCOPE(pCmdList, "DebugDraw");
+            NavMeshManager::Instance().DrawDebugMesh();
+            CollisionManager::Instance().DrawDebugWires(0, 0, 1280.0f, 720.0f, m_editorCameraEntity);
+        }
     }
 
     // Post Process to Back Buffer
-    auto& bloomShader = ShaderLibrary::Instance().Get<BloomShader>();
-    auto& postProcessShader = ShaderLibrary::Instance().Get<PostProcessShader>();
+    {
+        PROFILE_CPU_SCOPE("PostProcess");
+        PROFILE_GPU_SCOPE(pCmdList, "PostProcess");
 
-    auto* pExtractRT = Renderer::GetBloomExtractRenderTarget();
-    auto* pBlurRT0 = Renderer::GetBloomBlurRenderTarget(0);
-    auto* pBlurRT1 = Renderer::GetBloomBlurRenderTarget(1);
+        auto& bloomShader = ShaderLibrary::Instance().Get<BloomShader>();
+        auto& postProcessShader = ShaderLibrary::Instance().Get<PostProcessShader>();
 
-    const auto& postProcessData = ShaderManager::Instance().GetPostProcessData();
+        auto* pExtractRT = Renderer::GetBloomExtractRenderTarget();
+        auto* pBlurRT0 = Renderer::GetBloomBlurRenderTarget(0);
+        auto* pBlurRT1 = Renderer::GetBloomBlurRenderTarget(1);
 
-    // 1. Bloom Extract
-    GraphicsDevice::Instance().TransitionToSRV(pSceneHDR);
-    bloomShader.DrawExtract(pSceneHDR, pExtractRT, postProcessData);
+        const auto& postProcessData = ShaderManager::Instance().GetPostProcessData();
 
-    // 2. Bloom Blur (Horizontal then Vertical)
-    GraphicsDevice::Instance().TransitionToSRV(pExtractRT);
-    bloomShader.DrawBlur(pExtractRT, pBlurRT0, postProcessData, 1.0f, 0.0f);
-    GraphicsDevice::Instance().TransitionToSRV(pBlurRT0);
-    bloomShader.DrawBlur(pBlurRT0, pBlurRT1, postProcessData, 0.0f, 1.0f);
+        // 1. Bloom Extract
+        GraphicsDevice::Instance().TransitionToSRV(pSceneHDR);
+        bloomShader.DrawExtract(pSceneHDR, pExtractRT, postProcessData);
 
-    // 3. Composite
-    GraphicsDevice::Instance().TransitionToSRV(pBlurRT1);
-    GraphicsDevice::Instance().SetBackBuffer();
-    Renderer::BindDefaultViewport();
-    GraphicsDevice::Instance().ClearBackBuffer(0.1f, 0.1f, 0.2f, 1.0f);
-    postProcessShader.Draw(pSceneHDR, pBlurRT1, postProcessData);
+        // 2. Bloom Blur (Horizontal then Vertical)
+        GraphicsDevice::Instance().TransitionToSRV(pExtractRT);
+        bloomShader.DrawBlur(pExtractRT, pBlurRT0, postProcessData, 1.0f, 0.0f);
+        GraphicsDevice::Instance().TransitionToSRV(pBlurRT0);
+        bloomShader.DrawBlur(pBlurRT0, pBlurRT1, postProcessData, 0.0f, 1.0f);
+
+        // 3. Composite
+        GraphicsDevice::Instance().TransitionToSRV(pBlurRT1);
+        GraphicsDevice::Instance().SetBackBuffer();
+        Renderer::BindDefaultViewport();
+        GraphicsDevice::Instance().ClearBackBuffer(0.1f, 0.1f, 0.2f, 1.0f);
+        postProcessShader.Draw(pSceneHDR, pBlurRT1, postProcessData);
+    }
 
     Editor::Draw();
 }

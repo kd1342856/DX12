@@ -2,7 +2,7 @@
 #include "MeshData/MeshData.h"
 #include "../../GPUResource/Buffer/VertexBuffer.h"
 #include "../../GPUResource/Buffer/IndexBuffer.h"
-// AssetState ‚Ì‚İ•K—viGPUUploadQueue.h‚ğ’¼ÚƒCƒ“ƒNƒ‹[ƒh‚·‚é‚ÆzŠÂQÆ‚É‚È‚éj
+// AssetState ï¿½Ì‚İ•Kï¿½vï¿½iGPUUploadQueue.hï¿½ğ’¼ÚƒCï¿½ï¿½ï¿½Nï¿½ï¿½ï¿½[ï¿½hï¿½ï¿½ï¿½ï¿½Æzï¿½ÂQï¿½Æ‚É‚È‚ï¿½j
 #include "../../../Framework/Manager/Asset/AssetState.h"
 
 class Texture;
@@ -15,15 +15,15 @@ struct MeshFace
 
 // ============================================================
 // Mesh
-// GPU ƒoƒbƒtƒ@‚Ì¶¬‚Í CreateGPU() ‚ÅƒƒCƒ“ƒXƒŒƒbƒh‚Ì‚İÀs‚·‚é
-// Begin()/End() ‚Í GPUUploadQueue::Process() ‚ªŠO‘¤‚ÅŠÇ—‚·‚é‚½‚ß
-// CreateGPU() “à‚Å‚ÍŒÄ‚Î‚È‚¢
+// GPU ï¿½oï¿½bï¿½tï¿½@ï¿½Ìï¿½ï¿½ï¿½ï¿½ï¿½ CreateGPU() ï¿½Åƒï¿½ï¿½Cï¿½ï¿½ï¿½Xï¿½ï¿½ï¿½bï¿½hï¿½Ì‚İï¿½ï¿½sï¿½ï¿½ï¿½ï¿½
+// Begin()/End() ï¿½ï¿½ GPUUploadQueue::Process() ï¿½ï¿½ï¿½Oï¿½ï¿½ï¿½ÅŠÇ—ï¿½ï¿½ï¿½ï¿½é‚½ï¿½ï¿½
+// CreateGPU() ï¿½ï¿½ï¿½Å‚ÍŒÄ‚Î‚È‚ï¿½
 // ============================================================
 class Mesh
 {
 public:
-	// ƒƒCƒ“ƒXƒŒƒbƒhê—pFCPUƒf[ƒ^ ¨ GPU ƒoƒbƒtƒ@¶¬{ƒRƒ}ƒ“ƒh‹L˜^
-	// Begin()/End() ‚ÍŠO‘¤‚Ì GPUUploadQueue::Process() ‚ªŠÇ—‚·‚é
+	// ï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½Xï¿½ï¿½ï¿½bï¿½hï¿½ï¿½pï¿½FCPUï¿½fï¿½[ï¿½^ ï¿½ï¿½ GPU ï¿½oï¿½bï¿½tï¿½@ï¿½ï¿½ï¿½ï¿½ï¿½{ï¿½Rï¿½}ï¿½ï¿½ï¿½hï¿½Lï¿½^
+	// Begin()/End() ï¿½ÍŠOï¿½ï¿½ï¿½ï¿½ GPUUploadQueue::Process() ï¿½ï¿½ï¿½Ç—ï¿½ï¿½ï¿½ï¿½ï¿½
 	void CreateGPU(GraphicsDevice* pDevice,
 		const std::vector<MeshVertex>& vertices,
 		const std::vector<MeshFace>&   faces,
@@ -38,7 +38,12 @@ public:
 	const std::vector<MeshVertex>& GetVertices() const { return m_vertices; }
 	const std::vector<MeshFace>&   GetFaces()    const { return m_faces; }
 
-	// AssetStateF•`‰æ‘O‚É IsReady() ‚ğŠm”F‚·‚é‚±‚Æ
+	// Local-space bounding box, computed once in CreateGPU(). Lets mesh-collider checks
+	// (CollisionSolver's Mesh case) reject a whole mesh with one box test instead of
+	// transforming every vertex of every triangle just to find out none of them are close.
+	const DirectX::BoundingBox& GetLocalAABB() const { return m_localAABB; }
+
+	// AssetStateï¿½Fï¿½`ï¿½ï¿½Oï¿½ï¿½ IsReady() ï¿½ï¿½ï¿½mï¿½Fï¿½ï¿½ï¿½é‚±ï¿½ï¿½
 	AssetState GetState() const { return m_state; }
 	void SetState(AssetState state) { m_state = state; }
 	bool IsReady() const { return m_state == AssetState::Ready; }
@@ -54,6 +59,7 @@ private:
 
 	UINT     m_instanceCount = 0;
 	Material m_material;
+	DirectX::BoundingBox m_localAABB;
 
 	AssetState m_state = AssetState::LoadingCPU;
 };

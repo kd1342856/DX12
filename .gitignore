@@ -19,6 +19,7 @@ project
 *.inc
 
 imgui.ini
+EngineSettings.ini
 
 #バイナリ・ビルド成果物
 *.dll

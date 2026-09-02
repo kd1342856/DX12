@@ -4,6 +4,7 @@
 #include "ResourceUploader.h"
 #include "../GPUResource/RenderTarget/RenderTarget.h"
 #include "../../Framework/DirectX/Utility/Profiler.h"
+#include "../../Framework/DirectX/Utility/EngineSettings.h"
 #include "GraphicsDevice.h"
 #include "../Shader/ShaderCompiler/ShaderCompiler.h"
 #include "../Shader/ShaderManager/ShaderManager.h"
@@ -19,16 +20,34 @@ GraphicsDevice& GraphicsDevice::Instance()
 	static GraphicsDevice instance;
 	return instance;
 }
+bool GraphicsDevice::IsDebugLayerRequested()
+{
+	// Default true so behavior is unchanged until someone actually unchecks it.
+	return EngineSettings::GetBool("EnableD3D12DebugLayer", true);
+}
+void GraphicsDevice::SetDebugLayerRequested(bool enabled)
+{
+	EngineSettings::SetBool("EnableD3D12DebugLayer", enabled);
+}
 bool GraphicsDevice::Init(HWND  hWnd, int w, int h)
 {
 	if (!CreateFactory()) return false;
 #ifdef _DEBUG
-	EnableDebugLayer();
+	// The D3D12 debug layer can only be turned on before the device is created - it can't
+	// be toggled live. IsDebugLayerRequested() reads a value persisted by the ImGui
+	// checkbox (see RendererPanel), so flipping that checkbox takes effect on next launch.
+	if (GraphicsDevice::IsDebugLayerRequested())
+	{
+		EnableDebugLayer();
+		s_debugLayerActive = true;
+	}
 #endif
 	if (!CreateDevice()) return false;
 
 	m_upQueueManager = std::make_unique<QueueManager>();
 	if (!m_upQueueManager->Init(m_pDevice.Get())) return false;
+
+	Profiler::Instance().InitGPU(m_pDevice.Get(), m_upQueueManager->GetGraphicsQueue()->GetQueue(), FrameManager::kFrameCount);
 
 	m_upContextManager = std::make_unique<ContextManager>();
 	if (!m_upContextManager->Init(m_pDevice.Get())) return false;
@@ -54,7 +73,7 @@ bool GraphicsDevice::Init(HWND  hWnd, int w, int h)
 	if (!m_upDepthStencil->Create(this, Math::Vector2(static_cast<float>(w), static_cast<float>(h)), DepthStencilFormat::DepthHighQuality, true)) return false;
 
 	m_upShadowMap = std::make_unique<DepthStencil>();
-	if(!m_upShadowMap->Create(this, Math::Vector2(4096.0f, 4096.0f), DepthStencilFormat::DepthHighQuality, true)) return false;
+	if(!m_upShadowMap->Create(this, Math::Vector2(2048.0f, 2048.0f), DepthStencilFormat::DepthHighQuality, true)) return false;
 
 	if (!CreateSwapChainRTV()) return false;
 	
@@ -95,6 +114,7 @@ void GraphicsDevice::EndFrame()
 	auto bbIdx = m_pSwapChain->GetCurrentBackBufferIndex();
 	m_upContextManager->GetGraphicsContext()->TransitionResource(m_pSwapchainBuffers[bbIdx].Get(), D3D12_RESOURCE_STATE_PRESENT);
 	m_upContextManager->GetGraphicsContext()->FlushResourceBarriers();
+	Profiler::Instance().EndGPUFrame(cmdList);
 	m_upContextManager->GetGraphicsContext()->Close();
 	auto queue = m_upQueueManager->GetGraphicsQueue();
 	queue->Execute(m_upContextManager->GetGraphicsContext());
@@ -107,7 +127,13 @@ void GraphicsDevice::EndFrame()
 void GraphicsDevice::BeginFrame()
 {
 	Profiler::Instance().ResetPerFrameCounters();
-	
+
+	// Present-to-Present wall clock time, i.e. what the player actually experiences as fps.
+	static auto s_lastBeginFrameTime = std::chrono::high_resolution_clock::now();
+	auto now = std::chrono::high_resolution_clock::now();
+	Profiler::Instance().AddFrameTime(std::chrono::duration<float, std::milli>(now - s_lastBeginFrameTime).count());
+	s_lastBeginFrameTime = now;
+
 	// Process deferred deletion queue before acquiring the new frame
 	uint64_t completedFence = m_upQueueManager->GetGraphicsQueue()->GetFence()->GetCompletedValue();
 	m_upResourceLifetimeManager->ProcessDeleteQueue(completedFence);
@@ -115,7 +141,8 @@ void GraphicsDevice::BeginFrame()
 	FrameResource& fr = m_upFrameManager->AcquireFrame();
 	m_upContextManager->GetGraphicsContext()->Begin(fr);
 	auto cmdList = m_upContextManager->GetGraphicsContext()->GetCmdList();
-	
+	Profiler::Instance().BeginGPUFrame(cmdList);
+
 	ID3D12DescriptorHeap* ppHeaps[] = { m_upDescriptorHeapManager->GetCBVSRVUAVAllocator()->GetHeap() };
 	cmdList->SetDescriptorHeaps(1, ppHeaps);
 
@@ -311,7 +338,10 @@ void GraphicsDevice::Shutdown()
 	if (m_upQueueManager)
 		m_upQueueManager->GetGraphicsQueue()->Flush();
 
-	if (m_upResourceLifetimeManager) 
+	// Release query heap / readback buffers before the device goes away.
+	Profiler::Instance().ShutdownGPU();
+
+	if (m_upResourceLifetimeManager)
 		m_upResourceLifetimeManager->ForceReleaseAll();
 
 	ShaderCompiler::Terminate();

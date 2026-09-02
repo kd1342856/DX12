@@ -17,6 +17,7 @@
 #include "../ECS/CompSystem/Systems/AnimationSystem.h"
 #include "../ECS/CompSystem/Systems/ScriptSystem.h"
 #include "../ECS/ComponentSerializerRegistration.h"
+#include "../DirectX/Utility/Profiler.h"
 
 // GameManager の static メンバ変数の定義
 bool GameManager::s_alive = true;
@@ -122,27 +123,49 @@ void GameManager::Update(float deltaTime, class Scene* pScene)
 
     if (!pScene) return;
 
-    m_spScriptSystem->Update(deltaTime);
+    {
+        // Player/Ghost/etc. script logic - includes GhostAI's pathfinding (NavMesh queries).
+        PROFILE_CPU_SCOPE("ScriptSystem::Update");
+        m_spScriptSystem->Update(deltaTime);
+    }
 
-    m_spAnimationSystem->Update(deltaTime);
+    {
+        PROFILE_CPU_SCOPE("AnimationSystem::Update");
+        m_spAnimationSystem->Update(deltaTime);
+    }
 
     // Transform: ルートオブジェクトから階層更新
     std::vector<std::shared_ptr<class GameObject>> roots;
     for (auto& obj : pScene->GetGameObjects()) {
         if (!obj->GetParent()) roots.push_back(obj);
     }
-    m_spTransformSystem->Update(roots);
+    {
+        PROFILE_CPU_SCOPE("TransformSystem::Update");
+        m_spTransformSystem->Update(roots);
+    }
 
     // Collision
-    CollisionManager::Instance().SetScene(pScene);
-    CollisionManager::Instance().ClearDebugLines();
-    CollisionManager::Instance().Solve(pScene);
+    {
+        PROFILE_CPU_SCOPE("CollisionManager::Solve");
+        CollisionManager::Instance().SetScene(pScene);
+        CollisionManager::Instance().ClearDebugLines();
+        CollisionManager::Instance().Solve(pScene);
+    }
 
     // 衝突後の Transform 再更新
-    m_spTransformSystem->Update(roots);
+    {
+        PROFILE_CPU_SCOPE("TransformSystem::Update");
+        m_spTransformSystem->Update(roots);
+    }
 
-    m_spCameraSystem->Update(deltaTime);
-    m_spScriptSystem->PostUpdate();
+    {
+        PROFILE_CPU_SCOPE("CameraSystem::Update");
+        m_spCameraSystem->Update(deltaTime);
+    }
+    {
+        PROFILE_CPU_SCOPE("ScriptSystem::PostUpdate");
+        m_spScriptSystem->PostUpdate();
+    }
 
     GetECS().FlushCommands();
 }

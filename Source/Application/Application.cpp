@@ -11,6 +11,7 @@
 #include "../Framework/Manager/Scene/SceneManager.h"
 #include "../Framework/Manager/Scene/Scene.h"
 #include "../Framework/System/JobSystem/JobSystem.h"
+#include "../Framework/DirectX/Utility/Profiler.h"
 
 // ImGui �� Win32 ���b�Z�[�W�n���h����]������
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -104,9 +105,18 @@ void Application::Execute()
 
 
 		auto* pScene = dynamic_cast<Scene*>(SceneManager::Instance().GetCurrentScene());
-		GameManager::Instance().Update(GameTimer::Instance().DeltaTime(), pScene);
+		{
+			PROFILE_CPU_SCOPE("GameManager::Update");
+			GameManager::Instance().Update(GameTimer::Instance().DeltaTime(), pScene);
+		}
 
-		SceneManager::Instance().Update();
+		{
+			// SceneManager::Update() also runs the active scene's Render(), which already has
+			// its own finer-grained scopes (Shadow/Scene/PostProcess/...) - this just shows how
+			// much of the frame that whole chunk (game-side Update + Render) accounts for.
+			PROFILE_CPU_SCOPE("SceneManager::Update");
+			SceneManager::Instance().Update();
+		}
 		SceneManager::Instance().DrawFade();
 
 		GDF::Instance().EndFrame();

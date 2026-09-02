@@ -122,10 +122,10 @@ public:
                     }
                 }
 
-                char msg[256];
-                sprintf_s(msg, "[AnimSys] Entity=%d AnimIdx=%d Progress=%.2f/%.2f Speed=%.2f IsPlaying=%d",
-                          entity, animIdx, data.ProgressTime, animInfo.duration, data.Speed, data.IsPlaying);
-                Logger::Instance().AddLog(Logger::LogLevel::Info, msg);
+                //char msg[256];
+                //sprintf_s(msg, "[AnimSys] Entity=%d AnimIdx=%d Progress=%.2f/%.2f Speed=%.2f IsPlaying=%d",
+                //          entity, animIdx, data.ProgressTime, animInfo.duration, data.Speed, data.IsPlaying);
+                //Logger::Instance().AddLog(Logger::LogLevel::Info, msg);
 
                 modelData.m_spModelData->UpdateAnimation(animIdx, data.ProgressTime);
                 anyUpdated = true;

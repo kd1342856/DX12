@@ -728,9 +728,6 @@ void GhostAI::TryOpenNearbyDoor(const Math::Vector3& ghostPos, float deltaTime)
 
     if (bestEntity == INVALID_ENTITY || bestAnimIdx < 0) return;
 
-    Logger::Instance().AddLog(Logger::LogLevel::Info,
-        "[GhostAI] Opening door (entity=%d, animIdx=%d, dist=%.2f)", bestEntity, bestAnimIdx, bestDist);
-
     animMgr.PlayMultiAnimation(bestEntity, bestAnimIdx, false, 1.0f);
 
     // While the door swings open, its collider is briefly non-static and can physically shove the

@@ -212,10 +212,10 @@ bool Player::CalibrateHeldItemOffset(const Math::Vector3& playerPos, float playe
     m_heldItemOffset = Math::Vector3::TransformNormal(worldPos - playerPos, invYaw);
     m_heldItemOffsetCalibrated = true;
 
-    char msg[160];
-    sprintf_s(msg, "[Player] Held item offset calibrated from Attach_RightHand: (%.3f, %.3f, %.3f)",
-        m_heldItemOffset.x, m_heldItemOffset.y, m_heldItemOffset.z);
-    Logger::Instance().AddLog(Logger::LogLevel::Info, msg);
+    //char msg[160];
+    //sprintf_s(msg, "[Player] Held item offset calibrated from Attach_RightHand: (%.3f, %.3f, %.3f)",
+    //    m_heldItemOffset.x, m_heldItemOffset.y, m_heldItemOffset.z);
+    //Logger::Instance().AddLog(Logger::LogLevel::Info, msg);
     return true;
 }
 
@@ -561,10 +561,6 @@ void Player::TryInteractDoor(const Math::Vector3& playerPos)
     int    bestAnimIdx = -1;
     float  bestDist = FLT_MAX;
 
-    char msg[256];
-    sprintf_s(msg, "[Player] TryInteractDoor: playerPos=(%.2f, %.2f, %.2f)", playerPos.x, playerPos.y, playerPos.z);
-    Logger::Instance().AddLog(Logger::LogLevel::Info, msg);
-
     // Scan all entities for ModelRenderData + TransformData
     for (Entity entity = 0; entity < MAX_ENTITIES; ++entity)
     {
@@ -589,12 +585,6 @@ void Player::TryInteractDoor(const Math::Vector3& playerPos)
         // Rough distance check against entity position
         Math::Vector3 entityPos = pTransform->m_position;
         float entityDist = (playerPos - entityPos).Length();
-        if (entityDist > 50.0f)
-        {
-            sprintf_s(msg, "  -> Entity %d skipped, dist=%.2f > 50", entity, entityDist);
-            Logger::Instance().AddLog(Logger::LogLevel::Info, msg);
-            continue;
-        }
 
         // Find animations whose name contains "Door"
         for (int i = 0; i < (int)anims.size(); ++i)
@@ -626,8 +616,6 @@ void Player::TryInteractDoor(const Math::Vector3& playerPos)
             }
 
             float dist = (playerPos - doorPos).Length();
-            sprintf_s(msg, "  -> Door Anim %d (%s), pos=(%.2f, %.2f, %.2f), dist=%.2f", i, animName.c_str(), doorPos.x, doorPos.y, doorPos.z, dist);
-            Logger::Instance().AddLog(Logger::LogLevel::Info, msg);
 
             if (dist < kDoorInteractRange && dist < bestDist)
             {
@@ -640,9 +628,6 @@ void Player::TryInteractDoor(const Math::Vector3& playerPos)
 
     if (bestEntity != INVALID_ENTITY && bestAnimIdx >= 0)
     {
-        sprintf_s(msg, "[Player] Interacting with entity %d, animIdx %d", bestEntity, bestAnimIdx);
-        Logger::Instance().AddLog(Logger::LogLevel::Info, msg);
-
         auto* pAnim = ecs.TryGetComponent<AnimationDataComponent>(bestEntity);
         if (!pAnim) return;
 

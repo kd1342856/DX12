@@ -86,9 +86,9 @@ bool GltfImporter::ImportModel(const std::string& filepath, const LoadModelOptio
 			animData.ticksPerSecond = tps;
 			animData.duration = (float)pAnim->mDuration;
 
-			char msg[256];
-			sprintf_s(msg, "[GltfImporter] Anim='%s' Duration=%.2f TicksPerSec=%.2f", animData.name.c_str(), animData.duration, animData.ticksPerSecond);
-			Logger::Instance().AddLog(Logger::LogLevel::Info, msg);
+			//char msg[256];
+			//sprintf_s(msg, "[GltfImporter] Anim='%s' Duration=%.2f TicksPerSec=%.2f", animData.name.c_str(), animData.duration, animData.ticksPerSecond);
+			//Logger::Instance().AddLog(Logger::LogLevel::Info, msg);
 
 			for (unsigned int c = 0; c < pAnim->mNumChannels; ++c) {
 				aiNodeAnim* pChannel = pAnim->mChannels[c];
@@ -299,10 +299,10 @@ static AssetHandle<Mesh> ParseMesh(const aiScene* pScene, const aiMesh* pMesh, c
 				s_weightLogged = true;
 				float s = meshData.vertices[v].SkinWeight[0] + meshData.vertices[v].SkinWeight[1] + 
 				          meshData.vertices[v].SkinWeight[2] + meshData.vertices[v].SkinWeight[3];
-				Logger::Instance().AddLog(Logger::LogLevel::Info, "First Vertex Skin: Idx(%u, %u, %u, %u) Weight(%f, %f, %f, %f) Sum=%f",
-					meshData.vertices[v].SkinIndex[0], meshData.vertices[v].SkinIndex[1], meshData.vertices[v].SkinIndex[2], meshData.vertices[v].SkinIndex[3],
-					meshData.vertices[v].SkinWeight[0], meshData.vertices[v].SkinWeight[1], meshData.vertices[v].SkinWeight[2], meshData.vertices[v].SkinWeight[3],
-					sum);
+				//Logger::Instance().AddLog(Logger::LogLevel::Info, "First Vertex Skin: Idx(%u, %u, %u, %u) Weight(%f, %f, %f, %f) Sum=%f",
+				//	meshData.vertices[v].SkinIndex[0], meshData.vertices[v].SkinIndex[1], meshData.vertices[v].SkinIndex[2], meshData.vertices[v].SkinIndex[3],
+				//	meshData.vertices[v].SkinWeight[0], meshData.vertices[v].SkinWeight[1], meshData.vertices[v].SkinWeight[2], meshData.vertices[v].SkinWeight[3],
+				//	sum);
 			}
 		}
 	}
@@ -426,7 +426,7 @@ static AssetHandle<Material> ParseMaterial(const aiMaterial* pMaterial, const As
 		matData.alphaMode = 2;      // Force blend mode for glass
 	}
 
-	Logger::Instance().AddLog(Logger::LogLevel::Info, "[GltfImporter] Material='%s' AlphaMode=%d Procedural=%d", matData.name.c_str(), matData.alphaMode, matData.proceduralType);
+	//Logger::Instance().AddLog(Logger::LogLevel::Info, "[GltfImporter] Material='%s' AlphaMode=%d Procedural=%d", matData.name.c_str(), matData.alphaMode, matData.proceduralType);
 
 	return MaterialManager::Instance().CreateMaterial(matData);
 }
