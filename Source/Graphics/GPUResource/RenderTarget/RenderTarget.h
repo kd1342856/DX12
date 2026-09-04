@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "../GPUResource.h"
 class RenderTarget : public GPUResource
 {
@@ -15,6 +15,10 @@ public:
 	int GetSRVIndex() const			{ return m_srvIndex; }
 	int GetImGuiSRVIndex() const	{ return m_imGuiSrvIndex; }
 	int GetDSVIndex() const			{ return m_dsvIndex; }
+	// このRenderTarget専用の深度バッファをシェーダーから読むためのSRV
+	// (DOF/SSAO/SSR等、"このRTに実際に書き込まれた深度"を後段パスで参照する用途)。
+	int GetDepthSRVIndex() const		{ return m_depthSrvIndex; }
+	ID3D12Resource* GetDepthResource() const { return m_pDepthBuffer.Get(); }
 	ID3D12Resource* GetResource() const { return m_resource.Get(); }
 
 	void Clear(float r = 0.0f, float g = 0.0f, float b = 1.0f, float a = 1.0f);
@@ -27,6 +31,7 @@ private:
 	int m_srvIndex		= -1;
 	int m_imGuiSrvIndex = -1;
 	int m_dsvIndex		= -1;
+	int m_depthSrvIndex = -1;
 
 	Microsoft::WRL::ComPtr<ID3D12Resource> m_pDepthBuffer;
 };

@@ -19,6 +19,12 @@
     <Filter Include="Asset\Shader\SkinningShader">
       <UniqueIdentifier>{63777E1A-12CC-4CBD-AD36-589CB9994BEA}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Asset\Shader\FogShader">
+      <UniqueIdentifier>{2D7871BD-84E9-4D8A-B028-27A8A8004861}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Asset\Shader\SkyShader">
+      <UniqueIdentifier>{FC8FA74A-A54B-4E06-8AD2-E83B4C7FE610}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Library">
       <UniqueIdentifier>{8F49F858-D903-4FF3-9840-D8F3624E112A}</UniqueIdentifier>
     </Filter>
@@ -57,6 +63,9 @@
     </Filter>
     <Filter Include="Source\Application\Scene\TitleScene">
       <UniqueIdentifier>{9B8933D7-D682-4075-B60B-6483C7342EFD}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Application\Scene\ResultScene">
+      <UniqueIdentifier>{BA09542C-2639-4A1C-9752-16A5C97E6B8F}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Framework">
       <UniqueIdentifier>{47202139-D20F-4C59-894F-1A2D521D00C1}</UniqueIdentifier>
@@ -202,6 +211,12 @@
     <Filter Include="Source\Graphics\Shader\GraphicsShader">
       <UniqueIdentifier>{5390DF90-0532-43A1-A5B3-A52FA24ED007}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Graphics\Shader\SkyShader">
+      <UniqueIdentifier>{D60FCBD5-A212-4E6E-9632-AAA8C03D05C6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Graphics\Shader\FogShader">
+      <UniqueIdentifier>{5492FD81-7869-43A4-8649-20C0428F8B74}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source\Graphics\Shader\LitShader">
       <UniqueIdentifier>{59581BE5-A704-4F26-A0F4-4FD10D06B967}</UniqueIdentifier>
     </Filter>
@@ -293,6 +308,9 @@
     </ClCompile>
     <ClCompile Include="Source\Application\Scene\TitleScene\TitleScene.cpp">
       <Filter>Source\Application\Scene\TitleScene</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Application\Scene\ResultScene\ResultScene.cpp">
+      <Filter>Source\Application\Scene\ResultScene</Filter>
     </ClCompile>
     <ClCompile Include="Source\Framework\DirectX\Utility\ClassAssembly.cpp">
       <Filter>Source\Framework\DirectX\Utility</Filter>
@@ -534,6 +552,9 @@
     <ClCompile Include="Source\Graphics\Shader\SkinningShader\SkinningShader.cpp">
       <Filter>Source\Graphics\Shader\SkinningShader</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Graphics\Shader\FogShader\FogShader.cpp">
+      <Filter>Source\Graphics\Shader\FogShader</Filter>
+    </ClCompile>
     <ClCompile Include="Source\Pch.cpp">
       <Filter>Source</Filter>
     </ClCompile>
@@ -570,10 +591,18 @@
     <ClCompile Include="Source\Framework\ImGuiEditor\Panels\FogPanel.cpp">
       <Filter>Source\Framework\ImGuiEditor\Panels</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Graphics\Shader\SkyShader\SkyShader.cpp" />
-    <ClCompile Include="Source\Application\Object\Script\System\RoomArea.cpp" />
-    <ClCompile Include="Source\Application\Object\Script\System\ReflectionComponent.cpp" />
-    <ClCompile Include="Source\Application\Object\Script\System\AutoMirrorComponent.cpp" />
+    <ClCompile Include="Source\Graphics\Shader\SkyShader\SkyShader.cpp">
+      <Filter>Source\Graphics\Shader\SkyShader</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Application\Object\Script\System\RoomArea.cpp">
+      <Filter>Source\Application\Object\Script\System</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Application\Object\Script\System\ReflectionComponent.cpp">
+      <Filter>Source\Application\Object\Script\System</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Application\Object\Script\System\AutoMirrorComponent.cpp">
+      <Filter>Source\Application\Object\Script\System</Filter>
+    </ClCompile>
     <ClCompile Include="Source\Application\Object\Script\Item\PickupItem.cpp">
       <Filter>Source\Application\Object\Script\Item</Filter>
     </ClCompile>
@@ -608,6 +637,9 @@
     </ClInclude>
     <ClInclude Include="Source\Application\Scene\TitleScene\TitleScene.h">
       <Filter>Source\Application\Scene\TitleScene</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Application\Scene\ResultScene\ResultScene.h">
+      <Filter>Source\Application\Scene\ResultScene</Filter>
     </ClInclude>
     <ClInclude Include="Source\Framework\DirectX\Utility\ClassAssembly.h">
       <Filter>Source\Framework\DirectX\Utility</Filter>
@@ -951,6 +983,9 @@
     <ClInclude Include="Source\Graphics\Shader\SkinningShader\SkinningShader.h">
       <Filter>Source\Graphics\Shader\SkinningShader</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Graphics\Shader\FogShader\FogShader.h">
+      <Filter>Source\Graphics\Shader\FogShader</Filter>
+    </ClInclude>
     <ClInclude Include="Source\Pch.h">
       <Filter>Source</Filter>
     </ClInclude>
@@ -996,15 +1031,29 @@
     <ClInclude Include="Source\Framework\ImGuiEditor\Panels\FogPanel.h">
       <Filter>Source\Framework\ImGuiEditor\Panels</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Graphics\Shader\SkyShader\SkyShader.h" />
-    <ClInclude Include="Source\Application\Object\Script\System\RoomArea.h" />
-    <ClInclude Include="Source\Application\Object\Script\System\ReflectionComponent.h" />
-    <ClInclude Include="Source\Application\Object\Script\System\AutoMirrorComponent.h" />
+    <ClInclude Include="Source\Graphics\Shader\SkyShader\SkyShader.h">
+      <Filter>Source\Graphics\Shader\SkyShader</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Application\Object\Script\System\RoomArea.h">
+      <Filter>Source\Application\Object\Script\System</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Application\Object\Script\System\ReflectionComponent.h">
+      <Filter>Source\Application\Object\Script\System</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Application\Object\Script\System\AutoMirrorComponent.h">
+      <Filter>Source\Application\Object\Script\System</Filter>
+    </ClInclude>
     <ClInclude Include="Source\Framework\ImGuiEditor\NavMeshEditor\NavMeshEditor.h">
       <Filter>Source\Framework\ImGuiEditor\NavMeshEditor</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Asset\Shader\FogShader\FogShader_PS.hlsl">
+      <Filter>Asset\Shader\FogShader</Filter>
+    </None>
+    <None Include="Asset\Shader\FogShader\FogShader_VS.hlsl">
+      <Filter>Asset\Shader\FogShader</Filter>
+    </None>
     <FxCompile Include="Asset\Shader\SkinningShader\SkinningShader_PS.hlsl">
       <Filter>Asset\Shader\SkinningShader</Filter>
     </FxCompile>
@@ -1053,7 +1102,11 @@
     <None Include="Asset\Shader\BloomShader\BloomExtract_PS.hlsl">
       <Filter>Asset\Shader\BloomShader</Filter>
     </None>
-    <None Include="Asset\Shader\SkyShader\SkyShader_VS.hlsl" />
-    <None Include="Asset\Shader\SkyShader\SkyShader_PS.hlsl" />
+    <None Include="Asset\Shader\SkyShader\SkyShader_VS.hlsl">
+      <Filter>Asset\Shader\SkyShader</Filter>
+    </None>
+    <None Include="Asset\Shader\SkyShader\SkyShader_PS.hlsl">
+      <Filter>Asset\Shader\SkyShader</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -81,10 +81,67 @@ float LinearizeDepth(float depth)
     return viewSpace.z / viewSpace.w;
 }
 
+//------------------------------------------
+// SSR (スクリーンスペース反射)
+//------------------------------------------
+// 平面反射(g_planarReflectionMap)が無い場合のフォールバック。専用のG-Bufferパスを
+// 増やさず、Opaqueパスの深度(g_opaqueDepth)とカラー(g_refractionMap)だけをビュー空間で
+// レイマーチして反射先を探す。ガラス等、Blendパスの材質にのみ使う想定(Opaque材質は
+// 自分自身がまだ描画されていないため、フォワードレンダラーではこの手法は使えない)。
+bool TraceSSR(float3 viewPos, float3 viewNormal, out float3 hitColor)
+{
+    hitColor = 0;
+
+    float3 viewDir = normalize(viewPos); // カメラ(視点空間原点)から表面へ向かう方向
+    float3 reflectDir = reflect(viewDir, viewNormal);
+    // 正面から見た窓ほど、反射はカメラ側(Zが小さくなる方向)へ跳ね返るのが正しい - これを
+    // 「カメラの裏側へ抜けるレイ」と誤判定して弾いていたのが元のバグ(反射が全く曲がらず
+    // 素通りして見えていた原因)。実際に弾くべきなのは、マーチ中にカメラを通り過ぎてしまう
+    // ケースだけなので、それはループ内のZチェックで扱う。
+
+    const int kMaxSteps = 24;
+    const float kStepSize = g_SSRStepSize;
+    float3 rayPos = viewPos;
+
+    [loop]
+    for (int i = 0; i < kMaxSteps; i++)
+    {
+        rayPos += reflectDir * kStepSize;
+        if (rayPos.z <= 0.01) break; // カメラを通り過ぎた(視錐台の裏側に出た)
+
+        float4 clip = mul(float4(rayPos, 1.0), g_mP);
+        if (clip.w <= 0.0001) break;
+        float2 ndc = clip.xy / clip.w;
+        float2 uv = ndc * float2(0.5, -0.5) + 0.5;
+        if (any(uv < 0.0) || any(uv > 1.0)) break;
+
+        float sceneDepthNdc = g_opaqueDepth.Load(int3(uv * float2(g_ScreenWidth, g_ScreenHeight), 0)).r;
+        float sceneViewZ = LinearizeDepth(sceneDepthNdc);
+
+        // 左手系: Zが大きいほど奥。マーチ中の点が実際のシーン表面より奥まで進んだら
+        // そこにヒットしたとみなす。
+        if (rayPos.z >= sceneViewZ)
+        {
+            // 画面端でのブツ切れを避けるため、UVの端でフェードアウトさせる
+            float2 edgeFade = saturate((0.5 - abs(uv - 0.5)) * 8.0);
+            float fade = edgeFade.x * edgeFade.y;
+            if (fade <= 0.0) return false;
+
+            hitColor = g_refractionMap.Sample(g_ss_linear_clamp, uv).rgb * fade;
+            return true;
+        }
+    }
+    return false;
+}
+
 // ピクセルシェーダ
 PSOutput main(VSOutput In) : SV_Target0
 {
     PSOutput Out = (PSOutput) 0; //
+
+    // Dissolve用: ディゾルブの縁が発光する量(0=無し)。プロシージャル分岐内で設定し、
+    // エミッシブと同じタイミングで加算する(影の中でも光って見えるように)。
+    float dissolveEdgeGlow = 0;
     
     // カメラへの方向
     float3 vCam = g_CamPos - In.wPos;
@@ -176,6 +233,20 @@ PSOutput main(VSOutput In) : SV_Target0
         metallic = 0.0;
         roughness = 0.8;
     }
+    else if (g_proceduralType == 4) // Dissolve (幽霊の実体化/消滅、焼失演出等)
+    {
+        // 2周波数のノイズを重ねて焦げたような不規則な境界にする
+        float n1 = Noise2D(In.UV * 18.0);
+        float n2 = Noise2D(In.UV * 60.0 + 11.3);
+        float noise = saturate(n1 * 0.7 + n2 * 0.3);
+
+        // dissolveAmountが上がるほど、ノイズ値の低い部分から順に消えていく
+        clip(noise - g_dissolveAmount);
+
+        // 消える境界だけ発光させる(ノイズ値がdissolveAmount直上のごく狭い帯)
+        const float edgeWidth = 0.08;
+        dissolveEdgeGlow = 1.0 - smoothstep(0.0, edgeWidth, noise - g_dissolveAmount);
+    }
 
     // アルファテスト（0.1未満なら破棄: MASKモードのみ）
     if (g_alphaMode == 1)
@@ -191,6 +262,10 @@ PSOutput main(VSOutput In) : SV_Target0
     // 最終的な色
     float3 color = 0;
     
+    // 平行光(月/太陽)の可視率。直射光だけでなく、Ambient/IBLの間接光にも使い、
+    // 「光源が届かない場所は現実のように暗くなる」を実現する(g_IndirectShadowFloorが下限)。
+    float moonVisibility = 1;
+
     //------------------
     // 平行光
     //------------------
@@ -256,6 +331,10 @@ PSOutput main(VSOutput In) : SV_Target0
 
         // 光を加算
         color += NdotL * g_DL_Color * (diffuse + specular) * shadow;
+
+        // 間接光(Ambient/IBL)側で使う可視率。下限をg_IndirectShadowFloorで確保し、
+        // 完全な真っ暗にはせず、現実のバウンス光程度の明るさを残す。
+        moonVisibility = max(shadow, g_IndirectShadowFloor);
     }
     
     //------------------
@@ -291,17 +370,92 @@ PSOutput main(VSOutput In) : SV_Target0
         color += NdotL_SL * g_SL[i].Color * (diff_SL + spec_SL) * attenuation * coneAtt * spotShadow;
     }
 
-    // オクルージョン (R channel)
+    //------------------
+    // Point Lights (ロウソク/裸電球等。フリッカーはColorに反映済みのためここでは考慮不要)
+    //------------------
+    for (int j = 0; j < g_PL_Count; j++)
+    {
+        float3 L_PL = g_PL[j].Pos - In.wPos;
+        float d_PL = length(L_PL);
+        L_PL = L_PL / max(d_PL, 0.0001);
+
+        float attenuation_PL = saturate(1.0 - (d_PL / max(g_PL[j].Range, 0.0001)));
+        attenuation_PL *= attenuation_PL; // Phase3でシャドウを追加する余地を残し、シンプルな二乗減衰のみ
+
+        float NdotL_PL = saturate(dot(wN, L_PL));
+        float3 H_PL = normalize(L_PL + vCam);
+        float LdotH_PL = saturate(dot(L_PL, H_PL));
+        float NdotH_PL = saturate(dot(wN, H_PL));
+
+        float3 diff_PL = Diffuse_Burley(baseDiffuse, NdotL_PL, NdotV, LdotH_PL, roughness);
+        float3 spec_PL = Specular_BRDF(roughness2, baseSpecular, NdotV, NdotL_PL, LdotH_PL, NdotH_PL);
+
+        // 影(最も近い1灯[j==0]のみ。単一パースペクティブの簡易シャドウなので、
+        // ライトの背後・視錐台の外は影無しとして扱う - Phase4以降で真のキューブシャドウに
+        // 拡張する余地を残してある)
+        float shadow_PL = 1;
+        if (j == 0 && g_PL0_ShadowEnabled != 0)
+        {
+            float4 plPos = mul(float4(In.wPos, 1), g_PL0_ShadowVP);
+            plPos.xyz /= plPos.w;
+            if (plPos.w > 0 && abs(plPos.x) <= 1 && abs(plPos.y) <= 1 && plPos.z <= 1)
+            {
+                float2 uv = plPos.xy * float2(1, -1) * 0.5 + 0.5;
+                // 斜めの面ほど深度の変化が急になり、固定バイアスだけだと縞状のアクネが出るので、
+                // 光と法線のなす角に応じてバイアスを増やす(スロープスケールバイアス)。
+                float slopeBias = g_PL0_ShadowBias * lerp(1.0, 8.0, 1.0 - saturate(NdotL_PL));
+                float z = plPos.z - slopeBias;
+
+                float2 pxSize;
+                float levels;
+                g_pointLightShadowMap.GetDimensions(0, pxSize.x, pxSize.y, levels);
+                pxSize.x = max(pxSize.x, 1.0);
+                pxSize.y = max(pxSize.y, 1.0);
+
+                float noise = InterleavedGradientNoise(In.Pos.xy + 7.0);
+                float s = sin(noise * 6.28318530718);
+                float c = cos(noise * 6.28318530718);
+                float2x2 rot = float2x2(c, -s, s, c);
+
+                // FOV120度の単一パースペクティブで壁を斜めから照らすと、深度バッファの精度が
+                // 遠いほど急激に粗くなり、固定バイアスでは消せない縞状のバンディングが出る。
+                // フィルタ半径を広げて(6texel相当)ぼかすことで、バンディングを目立たなくする。
+                const float kFilterRadiusTexels = 6.0;
+                shadow_PL = 0;
+                for (int k = 0; k < 4; k++)
+                {
+                    float2 offset = mul(g_poissonDisk16[k], rot) * kFilterRadiusTexels / pxSize;
+                    shadow_PL += g_pointLightShadowMap.SampleCmpLevelZero(g_ss_comparison, uv + offset, z);
+                }
+                shadow_PL /= 4.0;
+            }
+        }
+
+        color += NdotL_PL * g_PL[j].Color * (diff_PL + spec_PL) * attenuation_PL * shadow_PL;
+    }
+
+    // オクルージョン (R channel: マテリアルのベイク済みAOマップ)
     float occTex = g_occlusionMap_white.Sample(g_ss_aniso_wrap, In.UV).r;
     float occlusion = lerp(1.0, occTex, g_occlusionStrength);
-    
-    color += g_AmbientLight * baseColor.rgb * baseColor.a * occlusion;
+
+    // SSAO (画面空間、ジオメトリ同士の隙間等をリアルタイムに近似)
+    float2 screenUV = In.Pos.xy / float2(g_ScreenWidth, g_ScreenHeight);
+    float ssao = g_ssaoMap.Sample(g_ss_linear_clamp, screenUV).r;
+
+    color += g_AmbientLight * baseColor.rgb * baseColor.a * occlusion * ssao * moonVisibility;
     
     //------------------
     // エミッシブ
     //------------------
     float3 emissiveColor = g_emissiveMap_white.Sample(g_ss_aniso_wrap, In.UV).rgb * g_emissiveFactor;
     color += emissiveColor * g_emissiveStrength;
+
+    // Dissolveの縁の発光(影の中でも見えるように、ライティング計算とは独立に加算)
+    if (dissolveEdgeGlow > 0)
+    {
+        const float3 kDissolveEdgeColor = float3(1.0, 0.45, 0.08); // 焼け焦げるようなオレンジ
+        color += kDissolveEdgeColor * dissolveEdgeGlow * 4.0;
+    }
     
     //------------------
     // IBL (Dummy Env)
@@ -312,13 +466,13 @@ PSOutput main(VSOutput In) : SV_Target0
     // 拡散
     float envWeight = wN.y * 0.5 + 0.5;
     float3 envDiff = lerp(groundColor, skyColor, envWeight) * 1.5;
-    color += envDiff * baseDiffuse.rgb / 3.141592;
+    color += envDiff * baseDiffuse.rgb / 3.141592 * moonVisibility;
 
     // 鏡面
     float3 vRef = reflect(-vCam, wN);
     float specWeight = vRef.y * 0.5 + 0.5;
     float3 envSpec = lerp(groundColor, skyColor, specWeight) * 2.0;
-    color += envSpec * baseSpecular;
+    color += envSpec * baseSpecular * moonVisibility;
 
     //------------------------------------------
     // 距離フォグ
@@ -459,7 +613,19 @@ PSOutput main(VSOutput In) : SV_Target0
                 reflectionColor = g_planarReflectionMap.Sample(g_ss_linear_clamp, saturate(reflectionUV)).rgb;
             }
         }
-        
+        else if (g_EnableSSR != 0)
+        {
+            // 平面反射(専用の反射カメラ設定が要る)が無い場合のフォールバック。
+            // Opaqueパスの深度+カラーだけでレイマーチするSSRを試す。
+            float3 viewPos = mul(float4(In.wPos, 1.0), g_mV).xyz;
+            float3 viewNormal = normalize(mul(wN, (float3x3) g_mV));
+            float3 ssrColor;
+            if (TraceSSR(viewPos, viewNormal, ssrColor))
+            {
+                reflectionColor = ssrColor;
+            }
+        }
+
         // 反射色と環境マップベースカラーをブレンド（環境マップはぼんやり全体に、平面反射はくっきり）
         // 完全な黒（反射対象がない部分）を避けるため
         float3 finalReflection = lerp(color, reflectionColor, 0.8);

@@ -161,11 +161,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup>
-    <!-- dxcompiler.dll/dxil.dll are implicit link dependencies (ShaderCompiler.cpp links
-         dxcompiler.lib) but aren't shipped by the Windows SDK next to the exe, and the repo
-         only keeps copies at the project root. The app directory is always first in the DLL
-         search order regardless of current working directory, so keep them mirrored into
-         the output directory on every build instead of relying on CWD-based resolution. -->
+    <!-- dxcompiler.dll/dxil.dllは暗黙のリンク依存(ShaderCompiler.cppがdxcompiler.libを
+         リンクしている)だが、Windows SDKからexeの隣に配置されるわけではなく、リポジトリには
+         プロジェクトルートにしかコピーが無い。アプリのディレクトリはカレントディレクトリに
+         関係なく常にDLL検索順で最優先されるので、CWDベースの解決に頼らず、
+         ビルドのたびに出力ディレクトリへミラーリングしておく。 -->
     <PostBuildEvent>
       <Command>xcopy /y /d "$(ProjectDir)dxcompiler.dll" "$(OutDir)"
 xcopy /y /d "$(ProjectDir)dxil.dll" "$(OutDir)"</Command>
@@ -193,6 +193,8 @@ xcopy /y /d "$(ProjectDir)dxil.dll" "$(OutDir)"</Command>
     <ClInclude Include="Source\Framework\ECS\Components\Data\ShaderData.h" />
     <ClInclude Include="Source\Framework\ECS\Components\Data\TransformData.h" />
     <ClInclude Include="Source\Framework\ECS\Components\Data\SpriteData.h" />
+    <ClInclude Include="Source\Framework\ECS\Components\Data\PointLightData.h" />
+    <ClInclude Include="Source\Framework\ECS\CompSystem\Systems\LightSystem.h" />
     <ClInclude Include="Source\Framework\ECS\CompSystem\SpriteRenderSystem\SpriteRenderSystem.h" />
     <ClInclude Include="Source\Framework\ECS\CompSystem\System.h" />
     <ClInclude Include="Source\Framework\ECS\CompSystem\Systems\AnimationSystem.h" />
@@ -250,6 +252,9 @@ xcopy /y /d "$(ProjectDir)dxil.dll" "$(OutDir)"</Command>
     <ClInclude Include="Source\Graphics\Geometry\Model\Model.h" />
     <ClInclude Include="Source\Graphics\Graphics.h" />
     <ClInclude Include="Source\Graphics\Shader\BloomShader\BloomShader.h" />
+    <ClInclude Include="Source\Graphics\Shader\GodRaysShader\GodRaysShader.h" />
+    <ClInclude Include="Source\Graphics\Shader\NormalPrepassShader\NormalPrepassShader.h" />
+    <ClInclude Include="Source\Graphics\Shader\SSAOShader\SSAOShader.h" />
     <ClInclude Include="Source\Graphics\Shader\FogShader\FogShader.h" />
     <ClInclude Include="Source\Graphics\Shader\LitShader\LitShader.h" />
     <ClInclude Include="Source\Graphics\Shader\SkyShader\SkyShader.h" />
@@ -383,6 +388,9 @@ xcopy /y /d "$(ProjectDir)dxil.dll" "$(OutDir)"</Command>
     <ClCompile Include="Source\Graphics\Geometry\Mesh\Mesh.cpp" />
     <ClCompile Include="Source\Graphics\Geometry\Model\Model.cpp" />
     <ClCompile Include="Source\Graphics\Shader\BloomShader\BloomShader.cpp" />
+    <ClCompile Include="Source\Graphics\Shader\GodRaysShader\GodRaysShader.cpp" />
+    <ClCompile Include="Source\Graphics\Shader\NormalPrepassShader\NormalPrepassShader.cpp" />
+    <ClCompile Include="Source\Graphics\Shader\SSAOShader\SSAOShader.cpp" />
     <ClCompile Include="Source\Graphics\Shader\FogShader\FogShader.cpp" />
     <ClCompile Include="Source\Graphics\Shader\LitShader\LitShader.cpp" />
     <ClCompile Include="Source\Graphics\Shader\SkyShader\SkyShader.cpp" />
@@ -473,6 +481,24 @@ xcopy /y /d "$(ProjectDir)dxil.dll" "$(OutDir)"</Command>
       <FileType>Document</FileType>
     </None>
     <None Include="Asset\Shader\BloomShader\BloomBlur_PS.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Asset\Shader\GodRaysShader\GodRays_PS.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Asset\Shader\NormalPrepassShader\NormalPrepass_VS.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Asset\Shader\NormalPrepassShader\NormalPrepass_PS.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Asset\Shader\NormalPrepassShader\NormalPrepass.hlsli">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Asset\Shader\SSAOShader\SSAO_VS.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Asset\Shader\SSAOShader\SSAO_PS.hlsl">
       <FileType>Document</FileType>
     </None>
     <None Include="Asset\Shader\BloomShader\BloomExtract_PS.hlsl">

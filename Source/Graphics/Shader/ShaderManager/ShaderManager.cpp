@@ -31,7 +31,9 @@ void ShaderManager::InitializeShaderSettings()
 
 	m_LightData = {};
 	m_LightData.SL_Count = 0;
+	m_LightData.PL_Count = 0;
 	m_LightData.AmbientLight = { 0.35f, 0.35f, 0.35f };
+	m_LightData.IndirectShadowFloor = 0.05f;
 	m_LightData.DL_Dir = { 0.0f, -1.0f, 1.0f };
 	m_LightData.DL_ShadowBias = 0.001f;
 	m_LightData.DL_Color = { 0.6f, 0.6f, 0.65f };
@@ -62,6 +64,9 @@ void ShaderManager::UpdateRendererCB()
 {
 	if (m_RendererSettings.IsDirty)
 	{
+		m_SystemData.EnableSSR = m_RendererSettings.EnableSSR ? 1 : 0;
+		m_SystemData.SSRStepSize = m_RendererSettings.SSRStepSize;
+
 		m_RendererSettings.IsDirty = false;
 	}
 }
@@ -74,6 +79,7 @@ void ShaderManager::UpdateLightingCB()
 		// re-derives m_LightData.AmbientLight/DL_Color from these every frame, scaled by the
 		// hunt-darken multiplier, so a stale write here can't fight with that.
 		m_baseAmbientLight = { m_LightingSettings.AmbientLight.x, m_LightingSettings.AmbientLight.y, m_LightingSettings.AmbientLight.z };
+		m_LightData.IndirectShadowFloor = m_LightingSettings.IndirectShadowFloor;
 
 		float dx = m_LightingSettings.DirectionalLightDir.x;
 		float dy = m_LightingSettings.DirectionalLightDir.y;
@@ -134,9 +140,34 @@ void ShaderManager::UpdatePostProcessCB()
 		m_PostProcessData.Gamma = m_PostProcessSettings.Gamma;
 		m_PostProcessData.BloomThreshold = m_PostProcessSettings.BloomThreshold;
 		m_PostProcessData.BloomIntensity = m_PostProcessSettings.BloomIntensity;
-		
+		m_PostProcessData.BlurRadius = m_PostProcessSettings.BloomRadius;
+
+		m_PostProcessData.VignetteIntensity = m_PostProcessSettings.EnableVignette ? m_PostProcessSettings.VignetteIntensity : 0.0f;
+		m_PostProcessData.VignetteSmoothness = m_PostProcessSettings.VignetteSmoothness;
+
+		m_PostProcessData.FilmGrainIntensity = m_PostProcessSettings.EnableFilmGrain ? m_PostProcessSettings.FilmGrainIntensity : 0.0f;
+
+		m_PostProcessData.ChromaticAberrationIntensity = m_PostProcessSettings.EnableChromaticAberration ? m_PostProcessSettings.ChromaticAberrationIntensity : 0.0f;
+
+		m_PostProcessData.EnableDOF = m_PostProcessSettings.EnableDOF ? 1 : 0;
+		m_PostProcessData.DOFFocusDistance = m_PostProcessSettings.DOFFocusDistance;
+		m_PostProcessData.DOFFocusRange = m_PostProcessSettings.DOFFocusRange;
+
+		m_PostProcessData.GodRaysDensity = m_PostProcessSettings.GodRaysDensity;
+		m_PostProcessData.GodRaysDecay = m_PostProcessSettings.GodRaysDecay;
+		m_PostProcessData.GodRaysWeight = m_PostProcessSettings.GodRaysWeight;
+		m_PostProcessData.GodRaysExposure = m_PostProcessSettings.GodRaysExposure;
+		m_PostProcessData.GodRaysIntensity = m_PostProcessSettings.GodRaysIntensity;
+		m_PostProcessData.GodRaysNumSamples = static_cast<uint32_t>(std::max(1, m_PostProcessSettings.GodRaysNumSamples));
+
+		// EnableGodRays自体はSetGodRaysLightScreenPos側で毎フレーム確定させる(このIsDirtyブロックは
+		// 設定変更時にしか通らないため、ここで書くと光源位置の更新と1フレームずれてしまう)。
+
 		m_PostProcessSettings.IsDirty = false;
 	}
+
+	// フィルムグレインのアニメーション用に経過時間を毎フレーム進める(IsDirtyに関係なく)。
+	m_PostProcessData.Time += GameTimer::Instance().DeltaTime();
 }
 
 void ShaderManager::UpdateDebugCB()

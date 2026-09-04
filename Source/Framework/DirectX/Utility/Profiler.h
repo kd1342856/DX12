@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <cstdint>
 #include <string>
@@ -56,7 +56,7 @@ public:
     uint32_t GetDispatchCount() const { return m_dispatchCount; }
     const std::unordered_map<std::string, uint32_t>& GetDrawCallBreakdown() const { return m_drawCallBreakdown; }
 
-    // Frustum culling stats (RenderSystem::RenderScene), reset every frame.
+    // フラスタムカリング統計(RenderSystem::RenderScene)、毎フレームリセットされる。
     void AddEntityCullResult(bool culled) { if (culled) m_entitiesCulled++; else m_entitiesVisible++; }
     void AddMeshCullResult(bool culled) { if (culled) m_meshesCulled++; else m_meshesVisible++; }
     uint32_t GetEntitiesVisible() const { return m_entitiesVisible; }
@@ -64,15 +64,15 @@ public:
     uint32_t GetMeshesVisible() const { return m_meshesVisible; }
     uint32_t GetMeshesCulled() const { return m_meshesCulled; }
 
-    // Memory query
+    // メモリ使用量の問い合わせ
     float GetSystemRAMUsageMB() const;
 
     // ---------------------------------------------------------------
-    // CPU section timing (ResetPerFrameCounters clears this every frame)
+    // CPU区間計測（ResetPerFrameCountersで毎フレームクリアされる）
     // ---------------------------------------------------------------
     void AddCPUTiming(const std::string& name, float ms)
     {
-        // Same name used more than once in a frame (e.g. called per-camera) accumulates.
+        // 同じ名前が1フレームで複数回使われた場合(カメラごとに呼ばれる等)は加算していく。
         m_cpuTimings[name] += ms;
     }
     const std::unordered_map<std::string, float>& GetCPUTimings() const { return m_cpuTimings; }
@@ -96,24 +96,24 @@ public:
     };
 
     // ---------------------------------------------------------------
-    // GPU section timing (D3D12 timestamp queries).
-    // The queue may still be executing a scope's commands kFrameCount-1
-    // frames after it was recorded, so results are read back once the
-    // frame-in-flight slot is known to be safe to reuse (same rule the
-    // rest of the frame-resource system already follows).
+    // GPU区間計測（D3D12タイムスタンプクエリ）。
+    // キューは、記録されてからkFrameCount-1フレーム後でもまだそのスコープの
+    // コマンドを実行している可能性があるため、フレームインフライトのスロットが
+    // 再利用しても安全だと分かった時点で結果を読み戻す
+    // (フレームリソース管理の他の部分と同じルール)。
     // ---------------------------------------------------------------
     static constexpr uint32_t kMaxGPUScopesPerFrame = 32;
 
     void InitGPU(ID3D12Device* pDevice, ID3D12CommandQueue* pQueue, uint32_t frameCount);
     void ShutdownGPU();
 
-    // Call once at the very start of the frame, before recording any GPU scopes.
+    // GPUスコープを記録し始める前、フレームの一番最初に1回だけ呼ぶ。
     void BeginGPUFrame(ID3D12GraphicsCommandList* pCmdList);
-    // Call once at the very end of the frame (still inside the same command list used above).
+    // フレームの一番最後に1回だけ呼ぶ(上と同じコマンドリストの中で)。
     void EndGPUFrame(ID3D12GraphicsCommandList* pCmdList);
 
-    // Returns a handle to pass to EndGPUScope. Returns UINT32_MAX if GPU timing isn't
-    // initialized or the per-frame scope budget (kMaxGPUScopesPerFrame) is exhausted.
+    // EndGPUScopeに渡すハンドルを返す。GPU計測が未初期化、またはフレームあたりの
+    // スコープ数上限(kMaxGPUScopesPerFrame)に達している場合はUINT32_MAXを返す。
     uint32_t BeginGPUScope(ID3D12GraphicsCommandList* pCmdList, const std::string& name);
     void EndGPUScope(ID3D12GraphicsCommandList* pCmdList, uint32_t scopeHandle);
 
@@ -137,7 +137,7 @@ public:
     };
 
     // ---------------------------------------------------------------
-    // Frame time history (ms), ring buffer for graphing.
+    // フレーム時間の履歴(ms)、グラフ表示用のリングバッファ。
     // ---------------------------------------------------------------
     static constexpr int kFrameHistorySize = 120;
 
@@ -157,35 +157,35 @@ private:
     std::unordered_map<std::string, uint32_t> m_instanceBreakdown;
     uint32_t m_dispatchCount = 0;
 
-    // Frustum culling stats
+    // フラスタムカリング統計
     uint32_t m_entitiesVisible = 0;
     uint32_t m_entitiesCulled = 0;
     uint32_t m_meshesVisible = 0;
     uint32_t m_meshesCulled = 0;
 
-    // CPU timings
+    // CPU計測
     std::unordered_map<std::string, float> m_cpuTimings;
 
-    // GPU timings
+    // GPU計測
     uint64_t m_gpuFrequency = 0;
     uint32_t m_gpuFrameCount = 0;
     uint32_t m_gpuCurrentSlot = 0;
     uint32_t m_gpuScopeCounter = 0;
     Microsoft::WRL::ComPtr<ID3D12QueryHeap> m_spQueryHeap;
-    std::vector<Microsoft::WRL::ComPtr<ID3D12Resource>> m_gpuReadbackBuffers; // one per frame-in-flight slot
-    std::vector<std::vector<std::string>> m_gpuScopeNamesPerSlot;            // scope names recorded into each slot
-    std::vector<uint32_t> m_gpuScopeCountPerSlot;                            // how many scopes were recorded into each slot
+    std::vector<Microsoft::WRL::ComPtr<ID3D12Resource>> m_gpuReadbackBuffers; // フレームインフライトのスロットごとに1つ
+    std::vector<std::vector<std::string>> m_gpuScopeNamesPerSlot;            // 各スロットに記録されたスコープ名
+    std::vector<uint32_t> m_gpuScopeCountPerSlot;                            // 各スロットに記録されたスコープ数
     std::unordered_map<std::string, float> m_gpuTimings;
 
-    // Frame time history
+    // フレーム時間の履歴
     std::array<float, kFrameHistorySize> m_frameTimeHistory = {};
     int m_frameTimeHistoryIdx = 0;
 };
 
-// Usage: PROFILE_CPU_SCOPE("Shadow"); at the top of the block being timed.
+// 使い方: 計測したいブロックの先頭で PROFILE_CPU_SCOPE("Shadow"); のように呼ぶ。
 #define PROFILE_CPU_SCOPE_CONCAT_INNER(a, b) a##b
 #define PROFILE_CPU_SCOPE_CONCAT(a, b) PROFILE_CPU_SCOPE_CONCAT_INNER(a, b)
 #define PROFILE_CPU_SCOPE(name) Profiler::ScopedCPUTimer PROFILE_CPU_SCOPE_CONCAT(cpuScope_, __LINE__)(name)
 
-// Usage: PROFILE_GPU_SCOPE(cmdList, "Shadow"); at the top of the block being timed.
+// 使い方: 計測したいブロックの先頭で PROFILE_GPU_SCOPE(cmdList, "Shadow"); のように呼ぶ。
 #define PROFILE_GPU_SCOPE(cmdList, name) Profiler::ScopedGPUTimer PROFILE_CPU_SCOPE_CONCAT(gpuScope_, __LINE__)(cmdList, name)

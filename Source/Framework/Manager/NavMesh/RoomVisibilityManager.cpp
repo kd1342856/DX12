@@ -1,4 +1,4 @@
-#include "../../../Pch.h"
+﻿#include "../../../Pch.h"
 #include "RoomVisibilityManager.h"
 #include "../../../Application/Object/Script/System/GameSequence.h"
 #include "../../../Application/Object/Script/System/RoomArea.h"
@@ -37,19 +37,19 @@ void RoomVisibilityManager::RebuildRoomGraphIfNeeded()
     }
 
     const auto& liveRooms = gs->GetRooms();
-    // Cheap staleness check - room count changing (level (re)load, editor add/remove)
-    // is the only time this actually needs to happen.
+    // 軽い変化チェック - 部屋数が変わる（レベルの(再)ロード、エディタでの追加/削除）
+    // 時だけ実際に再構築が必要になる。
     if (m_graphBuilt && liveRooms.size() == m_rooms.size()) return;
 
     m_rooms = liveRooms;
     m_adjacency.assign(m_rooms.size(), {});
     m_edgeDoors.clear();
-    m_meshRoomIndices.clear(); // room indices are about to be redefined - stale cache
+    m_meshRoomIndices.clear(); // 部屋インデックスの意味が変わるので、キャッシュは古くなる
 
-    // Rooms are padded outward by this margin for every containment/overlap test below -
-    // approximates "there's an opening in the shared wall" for adjacency, catches a door or
-    // window embedded in wall thickness for mesh assignment, etc. Small enough to not bridge
-    // rooms that are merely near each other.
+    // 以下の内包/重なり判定は全て、この余白の分だけ部屋を外側にパディングして行う。
+    // 隣接判定では「共有する壁に開口部がある」ことの近似になり、メッシュ割り当てでは
+    // 壁の厚みに埋まったドアや窓を拾える。単に近いだけの部屋同士を繋げてしまわない
+    // 程度に小さい値にしている。
     constexpr float kTouchEpsilon = 0.5f;
 
     m_paddedRoomBoxes.assign(m_rooms.size(), DirectX::BoundingBox());
@@ -82,10 +82,10 @@ void RoomVisibilityManager::RebuildRoomGraphIfNeeded()
 
 void RoomVisibilityManager::DiscoverDoorLinks()
 {
-    // Same detection Player::TryInteractDoor uses: any entity with a Model that has an
-    // animation whose name contains "Door"/"door". We only need the door's world position
-    // (from its first channel's node) to figure out which two rooms it sits between - the
-    // actual open/closed check happens later, per-frame, in IsDoorOpen().
+    // Player::TryInteractDoor が使っているのと同じ検出方法: Modelを持ち、名前に
+    // "Door"/"door" を含むアニメーションを持つエンティティを探す。ドアがどの2部屋の
+    // 間にあるかを判定するにはワールド座標（最初のチャンネルのノードから取得）だけ
+    // あればよい - 実際の開閉判定は後で毎フレーム IsDoorOpen() 側で行う。
     auto& ecs = GameManager::Instance().GetECS();
 
     for (Entity entity = 0; entity < MAX_ENTITIES; ++entity)
@@ -122,8 +122,8 @@ void RoomVisibilityManager::DiscoverDoorLinks()
             }
             if (!foundNode) continue;
 
-            // Which rooms' (padded) AABBs contain the door's position? A door sitting in
-            // a shared wall should fall inside both neighbors' padded boxes.
+            // ドアの位置を含む（パディング済み）部屋のAABBはどれか？ 共有する壁にある
+            // ドアなら、両隣のパディング済みボックスの両方に入っているはず。
             int roomsFound[2] = { -1, -1 };
             int roomCount = 0;
             for (size_t r = 0; r < m_paddedRoomBoxes.size() && roomCount < 2; ++r)
@@ -150,18 +150,18 @@ bool RoomVisibilityManager::IsDoorOpen(const DoorLink& link) const
     auto& ecs = GameManager::Instance().GetECS();
 
     auto* pAnimComp = ecs.TryGetComponent<AnimationDataComponent>(link.entity);
-    if (!pAnimComp) return true; // no runtime animation state yet - assume passable
+    if (!pAnimComp) return true; // まだ実行時アニメーション状態が無い - 通行可能とみなす
 
     auto it = pAnimComp->multiAnims.find(link.animIndex);
-    if (it == pAnimComp->multiAnims.end()) return true; // never interacted with - treat as open rather than permanently hiding the room
+    if (it == pAnimComp->multiAnims.end()) return true; // 一度も操作されていない - 部屋を永久に隠すよりは開いている扱いにする
 
     auto* pModel = ecs.TryGetComponent<ModelRenderData>(link.entity);
     if (!pModel || !pModel->m_spModelData) return true;
     const auto& anims = pModel->m_spModelData->GetAnimations();
     if (link.animIndex < 0 || link.animIndex >= static_cast<int>(anims.size())) return true;
 
-    // Matches AnimationSystem's own definition of "fully open" (duration * 0.5, see
-    // AnimationSystem.h) - a door counts as passable once it's at least halfway there.
+    // AnimationSystem自身の「全開」の定義（duration * 0.5、AnimationSystem.h参照）に
+    // 合わせている - 半分以上開いていればドアは通行可能とみなす。
     float targetTime = anims[link.animIndex].duration * 0.5f;
     if (targetTime <= 0.0f) return true;
 
@@ -186,9 +186,8 @@ void RoomVisibilityManager::UpdateVisibleRooms(const Math::Vector3& viewerPos)
 
     if (currentRoom < 0)
     {
-        // Camera isn't inside any known room (FreeCam pulled outside the house, no room
-        // data yet, etc.) - fail safe and don't cull anything rather than risk hiding
-        // the whole level.
+        // カメラがどの既知の部屋にも入っていない（FreeCamで家の外に出た、部屋データが
+        // まだ無い等）- 安全側に倒して、レベル全体を誤って隠すよりはカリングしない。
         m_allVisible = true;
         return;
     }
@@ -224,7 +223,7 @@ bool RoomVisibilityManager::IsMeshInVisibleRoom(Mesh* pMesh, const Math::Matrix&
         it = m_meshRoomIndices.emplace(pMesh, std::move(rooms)).first;
     }
 
-    if (it->second.empty()) return true; // couldn't place it in any room - don't guess, don't cull
+    if (it->second.empty()) return true; // どの部屋にも属さなかった - 推測せず、カリングもしない
 
     for (int roomIdx : it->second)
     {

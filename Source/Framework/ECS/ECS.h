@@ -10,7 +10,7 @@
 #include "CompSystem/System.h"
 #include "ECSCoordinator.h"
 
-// ƒRƒ“ƒ|[ƒlƒ“ƒgƒf[ƒ^’è‹`iRenderSystem.h‚æ‚è‘O‚ÉƒCƒ“ƒNƒ‹[ƒhj
+// ï¿½Rï¿½ï¿½ï¿½|ï¿½[ï¿½lï¿½ï¿½ï¿½gï¿½fï¿½[ï¿½^ï¿½ï¿½`ï¿½iRenderSystem.hï¿½ï¿½ï¿½Oï¿½ÉƒCï¿½ï¿½ï¿½Nï¿½ï¿½ï¿½[ï¿½hï¿½j
 #include "Components/Data/TransformData.h"
 #include "Components/Data/ModelRenderData.h"
 #include "Components/Data/CameraData.h"
@@ -19,5 +19,6 @@
 #include "Components/Data/SpriteData.h"
 #include "Components/Data/ColliderData.h"
 #include "Components/Data/NativeScriptData.h"
+#include "Components/Data/PointLightData.h"
 
 #include "CompSystem/Systems/RenderSystem.h"

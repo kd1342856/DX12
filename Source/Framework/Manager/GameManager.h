@@ -8,6 +8,7 @@ class TransformSystem;
 class CameraSystem;
 class AnimationSystem;
 class ScriptSystem;
+class LightSystem;
 class Scene;
 
 // =============================================
@@ -42,6 +43,7 @@ public:
     std::shared_ptr<SpriteRenderSystem> GetSpriteRenderSystem() const { return m_spSpriteRenderSystem; }
     std::shared_ptr<CameraSystem>       GetCameraSystem()       const { return m_spCameraSystem; }
     std::shared_ptr<ScriptSystem>       GetScriptSystem()       const { return m_spScriptSystem; }
+    std::shared_ptr<LightSystem>        GetLightSystem()        const { return m_spLightSystem; }
 
     void Shutdown();
 
@@ -60,6 +62,7 @@ private:
     std::shared_ptr<AnimationSystem>    m_spAnimationSystem;
     std::shared_ptr<RenderSystem>       m_spRenderSystem;
     std::shared_ptr<SpriteRenderSystem> m_spSpriteRenderSystem;
+    std::shared_ptr<LightSystem>        m_spLightSystem;
 
     // �V���b�g�_�E���̓�d�A�N�Z�X�h�~�t���O
     static bool s_alive;

@@ -65,6 +65,11 @@ static std::unique_ptr<RenderTarget> s_sceneOpaqueCopy;
 static std::unique_ptr<RenderTarget> s_planarReflection;
 static std::unique_ptr<RenderTarget> s_bloomExtract;
 static std::unique_ptr<RenderTarget> s_bloomBlur[2];
+static std::unique_ptr<RenderTarget> s_dofBlur[2];
+static std::unique_ptr<RenderTarget> s_godRays;
+static std::unique_ptr<RenderTarget> s_normalPrepass;
+static std::unique_ptr<RenderTarget> s_ssao;
+static std::unique_ptr<RenderTarget> s_ssaoBlur;
 
 void Renderer::InitializeRenderTargets(int width, int height)
 {
@@ -80,15 +85,40 @@ void Renderer::InitializeRenderTargets(int width, int height)
 	s_planarReflection = std::make_unique<RenderTarget>();
 	s_planarReflection->Create(1024, 1024, DXGI_FORMAT_R16G16B16A16_FLOAT);
 
-	// Bloom Extract (Half resolution, also HDR)
+	// Bloom Extract (1/4解像度, HDR)。以前は1/2解像度+固定ぼかし半径5texelだったため、
+	// Intensityをいじってもほぼ変化が無かった。1/4解像度化＋可変半径＋複数回ブラーの
+	// 組み合わせで、ちゃんと画面全体に広がる"ふわっと漏れる光"にする。
 	s_bloomExtract = std::make_unique<RenderTarget>();
-	s_bloomExtract->Create(width / 2, height / 2, DXGI_FORMAT_R16G16B16A16_FLOAT);
+	s_bloomExtract->Create(width / 4, height / 4, DXGI_FORMAT_R16G16B16A16_FLOAT);
 
-	// Bloom Blur Ping-Pong (Half resolution)
+	// Bloom Blur Ping-Pong (1/4解像度)
 	s_bloomBlur[0] = std::make_unique<RenderTarget>();
-	s_bloomBlur[0]->Create(width / 2, height / 2, DXGI_FORMAT_R16G16B16A16_FLOAT);
+	s_bloomBlur[0]->Create(width / 4, height / 4, DXGI_FORMAT_R16G16B16A16_FLOAT);
 	s_bloomBlur[1] = std::make_unique<RenderTarget>();
-	s_bloomBlur[1]->Create(width / 2, height / 2, DXGI_FORMAT_R16G16B16A16_FLOAT);
+	s_bloomBlur[1]->Create(width / 4, height / 4, DXGI_FORMAT_R16G16B16A16_FLOAT);
+
+	// Depth of Field用: シーン全体(閾値なし)をコピーしてぼかしたバッファ。
+	// BloomExtract/Blurのパスをそのまま(閾値0で)使い回すので専用シェーダーは不要。
+	s_dofBlur[0] = std::make_unique<RenderTarget>();
+	s_dofBlur[0]->Create(width / 4, height / 4, DXGI_FORMAT_R16G16B16A16_FLOAT);
+	s_dofBlur[1] = std::make_unique<RenderTarget>();
+	s_dofBlur[1]->Create(width / 4, height / 4, DXGI_FORMAT_R16G16B16A16_FLOAT);
+
+	// God Rays(光条)結果 (1/4解像度。ラジアルブラーなので低解像度でも十分)
+	s_godRays = std::make_unique<RenderTarget>();
+	s_godRays->Create(width / 4, height / 4, DXGI_FORMAT_R16G16B16A16_FLOAT);
+
+	// SSAO/SSR用のビュー空間法線プリパス(等倍解像度。深度はこのRT自身の専用DepthBufferを使う)
+	s_normalPrepass = std::make_unique<RenderTarget>();
+	s_normalPrepass->Create(width, height, DXGI_FORMAT_R8G8B8A8_UNORM);
+
+	// SSAO結果 + ぼかし用ピンポン (等倍だとノイズが目立つので半解像度)。
+	// フォーマットはBloomのブラーパイプライン(DrawBlur)をそのまま流用するため、
+	// BloomShaderのPSOと同じR16G16B16A16_FLOATに合わせてある。
+	s_ssao = std::make_unique<RenderTarget>();
+	s_ssao->Create(width / 2, height / 2, DXGI_FORMAT_R16G16B16A16_FLOAT);
+	s_ssaoBlur = std::make_unique<RenderTarget>();
+	s_ssaoBlur->Create(width / 2, height / 2, DXGI_FORMAT_R16G16B16A16_FLOAT);
 }
 
 RenderTarget* Renderer::GetSceneHDRRenderTarget() { return s_sceneHDR.get(); }
@@ -96,3 +126,7 @@ RenderTarget* Renderer::GetSceneOpaqueCopyRenderTarget() { return s_sceneOpaqueC
 RenderTarget* Renderer::GetPlanarReflectionRenderTarget() { return s_planarReflection.get(); }
 RenderTarget* Renderer::GetBloomExtractRenderTarget() { return s_bloomExtract.get(); }
 RenderTarget* Renderer::GetBloomBlurRenderTarget(int index) { return s_bloomBlur[index % 2].get(); }
+RenderTarget* Renderer::GetDOFBlurRenderTarget(int index) { return s_dofBlur[index % 2].get(); }
+RenderTarget* Renderer::GetGodRaysRenderTarget() { return s_godRays.get(); }
+RenderTarget* Renderer::GetNormalPrepassRenderTarget() { return s_normalPrepass.get(); }
+RenderTarget* Renderer::GetSSAORenderTarget(int index) { return index == 0 ? s_ssao.get() : s_ssaoBlur.get(); }

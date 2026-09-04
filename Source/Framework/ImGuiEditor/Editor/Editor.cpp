@@ -71,6 +71,7 @@ void Editor::Draw()
     ctx.Shadow = &ShaderManager::Instance().GetShadowSettings();
     ctx.IBL = &ShaderManager::Instance().GetIBLSettings();
     ctx.PostProcess = &ShaderManager::Instance().GetPostProcessSettings();
+    ctx.SSAO = &ShaderManager::Instance().GetSSAOSettings();
     ctx.Debug = &ShaderManager::Instance().GetDebugSettings();
     ctx.Fog = &ShaderManager::Instance().GetFogSettings();
     ctx.SelectedObject = s_selectedObject.get();
@@ -88,9 +89,9 @@ void Editor::DrawProfilerOverlay()
 
     if (!s_showProfilerOverlay) return;
 
-    // Callers only reach this from the fullscreen/player render path (GameScene::Render()),
-    // which never also calls the full editor UI (Draw() above, with its own Statistics
-    // window) in the same frame - so there's no double-draw risk to guard against here.
+    // 呼び出し元はフルスクリーン/プレイヤー視点のレンダーパス(GameScene::Render())からのみ
+    // ここに到達し、同じフレームでフルエディタUI(上のDraw()、独自のStatisticsウィンドウ
+    // 持ち)が同時に呼ばれることは無い - なのでここでは二重描画のリスクをガードする必要がない。
     ImGui::SetNextWindowPos(ImVec2(10.0f, 10.0f), ImGuiCond_Always);
     DrawStatistics();
 }

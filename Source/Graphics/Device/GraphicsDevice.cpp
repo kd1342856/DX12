@@ -1,4 +1,4 @@
-#include "../../Pch.h"
+﻿#include "../../Pch.h"
 #include "../GPUResource/ResourceLifetimeManager.h"
 #include "ResourceStateTracker.h"
 #include "ResourceUploader.h"
@@ -22,7 +22,7 @@ GraphicsDevice& GraphicsDevice::Instance()
 }
 bool GraphicsDevice::IsDebugLayerRequested()
 {
-	// Default true so behavior is unchanged until someone actually unchecks it.
+	// 誰かが実際にチェックを外すまでは挙動を変えないよう、デフォルトはtrue。
 	return EngineSettings::GetBool("EnableD3D12DebugLayer", true);
 }
 void GraphicsDevice::SetDebugLayerRequested(bool enabled)
@@ -33,9 +33,9 @@ bool GraphicsDevice::Init(HWND  hWnd, int w, int h)
 {
 	if (!CreateFactory()) return false;
 #ifdef _DEBUG
-	// The D3D12 debug layer can only be turned on before the device is created - it can't
-	// be toggled live. IsDebugLayerRequested() reads a value persisted by the ImGui
-	// checkbox (see RendererPanel), so flipping that checkbox takes effect on next launch.
+	// D3D12デバッグレイヤーはデバイス作成前にしか有効化できず、ライブ切り替えは
+	// できない。IsDebugLayerRequested()はImGuiのチェックボックス(RendererPanel参照)が
+	// 永続化した値を読むので、そのチェックボックスの切り替えは次回起動時に反映される。
 	if (GraphicsDevice::IsDebugLayerRequested())
 	{
 		EnableDebugLayer();
@@ -74,6 +74,12 @@ bool GraphicsDevice::Init(HWND  hWnd, int w, int h)
 
 	m_upShadowMap = std::make_unique<DepthStencil>();
 	if(!m_upShadowMap->Create(this, Math::Vector2(2048.0f, 2048.0f), DepthStencilFormat::DepthHighQuality, true)) return false;
+
+	// Point light shadow (nearest/strongest point light only, single perspective shadow - not a
+	// true 6-face cube shadow. Aimed toward the viewer each frame, which is a reasonable
+	// approximation for a single room-scale point light such as a candle/bulb near the player.
+	m_upPointLightShadowMap = std::make_unique<DepthStencil>();
+	if (!m_upPointLightShadowMap->Create(this, Math::Vector2(1024.0f, 1024.0f), DepthStencilFormat::DepthHighQuality, true)) return false;
 
 	if (!CreateSwapChainRTV()) return false;
 	
@@ -128,7 +134,7 @@ void GraphicsDevice::BeginFrame()
 {
 	Profiler::Instance().ResetPerFrameCounters();
 
-	// Present-to-Present wall clock time, i.e. what the player actually experiences as fps.
+	// Present～Present間の実時間、つまりプレイヤーが体感するfpsそのもの。
 	static auto s_lastBeginFrameTime = std::chrono::high_resolution_clock::now();
 	auto now = std::chrono::high_resolution_clock::now();
 	Profiler::Instance().AddFrameTime(std::chrono::duration<float, std::milli>(now - s_lastBeginFrameTime).count());
@@ -338,7 +344,7 @@ void GraphicsDevice::Shutdown()
 	if (m_upQueueManager)
 		m_upQueueManager->GetGraphicsQueue()->Flush();
 
-	// Release query heap / readback buffers before the device goes away.
+	// デバイスが無くなる前にクエリヒープ/読み戻しバッファを解放する。
 	Profiler::Instance().ShutdownGPU();
 
 	if (m_upResourceLifetimeManager)
@@ -629,6 +635,20 @@ void GraphicsDevice::TransitionToSRV(RenderTarget* pRT)
 {
 	if(!pRT) return;
 	m_upContextManager->GetGraphicsContext()->TransitionResource(pRT->GetResource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	m_upContextManager->GetGraphicsContext()->FlushResourceBarriers();
+}
+
+void GraphicsDevice::TransitionDepthToSRV(RenderTarget* pRT)
+{
+	if (!pRT || !pRT->GetDepthResource()) return;
+	m_upContextManager->GetGraphicsContext()->TransitionResource(pRT->GetDepthResource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	m_upContextManager->GetGraphicsContext()->FlushResourceBarriers();
+}
+
+void GraphicsDevice::TransitionDepthToWrite(RenderTarget* pRT)
+{
+	if (!pRT || !pRT->GetDepthResource()) return;
+	m_upContextManager->GetGraphicsContext()->TransitionResource(pRT->GetDepthResource(), D3D12_RESOURCE_STATE_DEPTH_WRITE);
 	m_upContextManager->GetGraphicsContext()->FlushResourceBarriers();
 }
 void GraphicsDevice::SetBackBuffer()

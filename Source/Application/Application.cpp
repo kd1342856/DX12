@@ -1,4 +1,4 @@
-#include "../Pch.h"
+﻿#include "../Pch.h"
 
 #include "../Framework/DirectX/Utility/ClassAssembly.h"
 
@@ -111,9 +111,9 @@ void Application::Execute()
 		}
 
 		{
-			// SceneManager::Update() also runs the active scene's Render(), which already has
-			// its own finer-grained scopes (Shadow/Scene/PostProcess/...) - this just shows how
-			// much of the frame that whole chunk (game-side Update + Render) accounts for.
+			// SceneManager::Update()は現在のシーンのRender()も実行しており、そちらは
+			// 既にもっと細かいスコープ(Shadow/Scene/PostProcess等)を持っている - これは
+			// その塊全体(ゲーム側のUpdate+Render)がフレームのどれくらいを占めるかを示すだけ。
 			PROFILE_CPU_SCOPE("SceneManager::Update");
 			SceneManager::Instance().Update();
 		}

@@ -1,4 +1,4 @@
-#include "../../../../Pch.h"
+﻿#include "../../../../Pch.h"
 #include "Player.h"
 #include "../../../../Framework/Object/GameObject.h"
 #include "../../../../Framework/Manager/Collision/CollisionManager.h"
@@ -326,7 +326,7 @@ bool Player::FindNearestDoor(const Math::Vector3& playerPos, const Math::Vector3
         {
             Math::Vector3 dir = toDoor;
             dir.Normalize();
-            if (dir.Dot(forward) < 0.5f) continue; // outside the facing cone (60 degree half-angle)
+            if (dir.Dot(forward) < 0.5f) continue; // 正面方向の円錐の外(半角60度)
         }
         if (dist < outDist) { outDist = dist; found = true; }
     }
@@ -355,7 +355,7 @@ Entity Player::FindNearestPickup(const Math::Vector3& playerPos, const Math::Vec
         {
             Math::Vector3 dir = toItem;
             dir.Normalize();
-            if (dir.Dot(forward) < 0.5f) continue; // outside the facing cone (60 degree half-angle)
+            if (dir.Dot(forward) < 0.5f) continue; // 正面方向の円錐の外(半角60度)
         }
         if (dist < outDist) { outDist = dist; best = obj->GetEntityID(); }
     }

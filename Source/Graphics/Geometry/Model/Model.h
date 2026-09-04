@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <unordered_set>
 #include "../../../Framework/Manager/Asset/AssetHandle.h"
@@ -47,28 +47,28 @@ public:
 	const std::vector<AnimationData>& GetAnimations() const { return m_animations; }
 	std::vector<AnimationData>& GetAnimationsRef() { return m_animations; }
 
-	// Aggregate bind-pose bounds across every mesh in the model, in the same space as
-	// each mesh's own local AABB (i.e. what "node.animDeltaTransform * entityWorld" maps
-	// to the world - see Mesh::GetLocalAABB()). Used for frustum-culling the whole entity
-	// before descending to per-mesh culling. Computed lazily and cached once every
-	// referenced mesh has its GPU data (and local AABB) ready.
-	// Returns false (and leaves outBounds untouched) if any mesh isn't ready yet - callers
-	// should treat that as "don't cull, just draw it" rather than guess a wrong box.
+	// モデル内の全メッシュを合算したバインドポーズのバウンズ。各メッシュ自身のローカル
+	// AABBと同じ空間(つまり「node.animDeltaTransform * entityWorld」がワールドへ写す先 -
+	// Mesh::GetLocalAABB()参照)。メッシュ単位のカリングに進む前に、エンティティ全体を
+	// フラスタムカリングするのに使う。参照している全メッシュのGPUデータ(とローカルAABB)が
+	// 揃った時点で遅延計算・キャッシュされる。
+	// いずれかのメッシュがまだ準備できていない場合はfalseを返す(outBoundsは変更しない) -
+	// 呼び出し側は、誤ったボックスで推測するより「カリングせずそのまま描く」扱いにすること。
 	bool TryGetLocalBounds(DirectX::BoundingBox& outBounds) const;
 
-	// Whether any animation channel targets this node - i.e. it can move (a door swinging
-	// open, etc.) as opposed to being permanently fixed relative to the model root. Room
-	// culling (RoomVisibilityManager) treats these specially: it caches a mesh's room
-	// assignment forever the first time it's queried, which is wrong for something whose
-	// world position changes - so animated nodes are exempted from room culling.
+	// このノードを対象とするアニメーションチャンネルがあるか、つまり動く可能性がある
+	// ノード(開閉するドア等)かどうか。モデルルートに対して常に固定なノードとは区別する。
+	// ルームカリング(RoomVisibilityManager)はこれを特別扱いする: 初回問い合わせ時に
+	// メッシュの部屋割り当てを永久にキャッシュしてしまうため、ワールド位置が変化するもの
+	// には不適切 - なので動くノードはルームカリングの対象外にしている。
 	bool IsNodeAnimated(const std::string& nodeName) const;
 
-	// Total mesh count across every node. Room culling is only worth the risk for a model
-	// like the house (dozens of meshes spanning many rooms, where per-room rejection saves
-	// real draw calls) - a small prop (a single pickup item mesh, say) gets essentially no
-	// benefit from it and is more exposed to the boundary/padding edge cases room assignment
-	// has (see RoomVisibilityManager), so callers should skip room culling below some
-	// threshold and rely on frustum culling alone.
+	// 全ノードを合計したメッシュ数。ルームカリングにリスクを冒す価値があるのは、家の
+	// ように多くの部屋にまたがる何十個ものメッシュを持つモデルだけ(部屋単位で除外できれば
+	// 実際にドローコールを削減できる) - ピックアップアイテム1メッシュのような小物では
+	// 恩恵がほぼ無い上に、部屋割り当ての境界/パディングの問題(RoomVisibilityManager参照)の
+	// 影響を受けやすいので、呼び出し側はある閾値未満ならルームカリングをスキップして
+	// フラスタムカリングのみに頼ること。
 	int GetTotalMeshCount() const;
 
 private:

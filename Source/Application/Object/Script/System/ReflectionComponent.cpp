@@ -4,8 +4,6 @@
 #include "../../../../Framework/Manager/GameManager.h"
 #include "../../../../Framework/Manager/Collision/CollisionManager.h"
 #include "../../../../Framework/Object/GameObject.h"
-#include "../../../../Framework/Object/GameObject.h"
-#include "RoomArea.h"
 #include "../Player/Player.h"
 
 REGISTER_COMPONENT(ReflectionComponent);
@@ -16,6 +14,7 @@ void ReflectionComponent::Serialize(nlohmann::json& out) const
     out["planePoint"] = { m_planePoint.x, m_planePoint.y, m_planePoint.z };
     out["debugSize"] = m_debugSize;
     out["roomName"] = m_roomName;
+    out["activationDistance"] = m_activationDistance;
 }
 
 void ReflectionComponent::Deserialize(const nlohmann::json& in)
@@ -34,6 +33,9 @@ void ReflectionComponent::Deserialize(const nlohmann::json& in)
     if (in.contains("roomName")) {
         m_roomName = in["roomName"].get<std::string>();
     }
+    if (in.contains("activationDistance")) {
+        m_activationDistance = in["activationDistance"];
+    }
 }
 
 void ReflectionComponent::ImGuiUpdate()
@@ -42,52 +44,49 @@ void ReflectionComponent::ImGuiUpdate()
     ImGui::DragFloat3("Normal", &m_planeNormal.x, 0.01f, -1.0f, 1.0f);
     ImGui::DragFloat3("Point", &m_planePoint.x, 0.1f);
     ImGui::DragFloat("Debug Size", &m_debugSize, 0.1f, 0.1f, 100.0f);
+    ImGui::DragFloat("Activation Distance", &m_activationDistance, 0.1f, 0.5f, 50.0f);
+    ImGui::TextDisabled("Reflection is active while the player is within this distance of the mirror plane.");
 
-    // 法線は常に正規化しておく
+    // Normal must always stay unit length
     m_planeNormal.Normalize();
 
-    char buf[128];
-    strncpy_s(buf, m_roomName.c_str(), sizeof(buf) - 1);
-    if (ImGui::InputText("Room Name", buf, sizeof(buf))) {
-        m_roomName = buf;
-    }
-    ImGui::TextDisabled("(RoomAreaのGameObject名。空なら常時アクティブ)");
     ImGui::Text("Active: %s", m_isActive ? "true" : "false");
 }
 
 void ReflectionComponent::Update(float deltaTime)
 {
-    if (m_roomName.empty()) {
-        // 部屋指定が無ければ常にアクティブ(従来通りの挙動)
-        m_isActive = true;
-        return;
-    }
-
     auto& ecs = GameManager::Instance().GetECS();
-    RoomArea* pRoom = nullptr;
     Player* pPlayer = nullptr;
     for (auto& scriptData : ecs.GetComponentArray<NativeScriptData>()) {
-        auto* pInstance = scriptData.Instance.get();
-        if (!pRoom) {
-            if (auto* pCandidate = dynamic_cast<RoomArea*>(pInstance)) {
-                if (pCandidate->GetGameObject() && pCandidate->GetGameObject()->GetName() == m_roomName) {
-                    pRoom = pCandidate;
-                }
-            }
+        if (auto* pCandidate = dynamic_cast<Player*>(scriptData.Instance.get())) {
+            pPlayer = pCandidate;
+            break;
         }
-        if (!pPlayer) {
-            pPlayer = dynamic_cast<Player*>(pInstance);
-        }
-        if (pRoom && pPlayer) break;
     }
 
-    if (!pRoom || !pPlayer || !pPlayer->GetGameObject()) {
+    if (!pPlayer || !pPlayer->GetGameObject()) {
         m_isActive = false;
         return;
     }
 
     auto* cPlayerTrans = ecs.TryGetComponent<TransformData>(pPlayer->GetGameObject()->GetEntityID());
-    m_isActive = (cPlayerTrans != nullptr) && pRoom->IsInside(cPlayerTrans->m_position);
+    if (!cPlayerTrans) {
+        m_isActive = false;
+        return;
+    }
+
+    // Compute the world-space plane point right here rather than relying on PreDraw()'s cached
+    // m_worldPlanePoint: Update() runs before PreDraw() each frame, so reading the cached value
+    // here would always be one frame stale (harmless for a static mirror, but wrong in general).
+    Math::Vector3 worldPlanePoint = m_planePoint;
+    if (m_pGameObject) {
+        if (auto* cTrans = ecs.TryGetComponent<TransformData>(m_pGameObject->GetEntityID())) {
+            worldPlanePoint = Math::Vector3::Transform(m_planePoint, cTrans->m_worldMatrix);
+        }
+    }
+
+    float distSq = Math::Vector3::DistanceSquared(cPlayerTrans->m_position, worldPlanePoint);
+    m_isActive = distSq <= (m_activationDistance * m_activationDistance);
 }
 
 void ReflectionComponent::PreDraw()
@@ -122,7 +121,7 @@ void ReflectionComponent::PreDraw()
         Math::Vector3 p2 = m_worldPlanePoint + extR + extU;
         Math::Vector3 p3 = m_worldPlanePoint - extR + extU;
 
-        // アクティブなら緑、非アクティブなら灰色で見分けられるようにする
+        // Active -> green, inactive -> gray, so it's easy to spot at a glance
         ImU32 colYellow = m_isActive ? IM_COL32(80, 255, 80, 255) : IM_COL32(150, 150, 150, 150);
         ImU32 colRed = IM_COL32(255, 0, 0, 255);
 

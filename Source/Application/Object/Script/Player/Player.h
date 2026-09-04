@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "../Item/ItemTypes.h"
 
 class Player : public NativeScript {
@@ -104,11 +104,12 @@ private:
     bool FindNearestDoor(const Math::Vector3& playerPos, const Math::Vector3& forward, float maxRange, float& outDist) const;
     Entity FindNearestPickup(const Math::Vector3& playerPos, const Math::Vector3& forward, float maxRange, float& outDist) const;
 
-    // FindNearestDoor used to re-scan every entity's every animation (and, for the door ones,
-    // walk the model's whole node list doing a Decompose) every single frame just to answer
-    // "is a door nearby" - profiled at ~5ms in Debug. A door's hinge doesn't translate as it
-    // swings open (only rotates), so its world position is stable and only needs computing
-    // once - cache it lazily instead and just do the cheap distance+facing check per frame.
+    // FindNearestDoorは以前、「近くにドアがあるか」に答えるためだけに、毎フレーム全
+    // エンティティの全アニメーションを再スキャンし(ドアだった場合はさらにモデルの
+    // ノードリスト全体を辿ってDecomposeまでして)いた - Debugで計測すると約5ms。
+    // ドアの蝶番は開閉時に平行移動せず(回転するだけ)、そのワールド位置は不変なので
+    // 一度計算すれば十分 - 遅延キャッシュしておき、毎フレームは距離+向きの安い判定
+    // だけを行うようにする。
     struct DoorCandidate { Entity entity; int animIndex; Math::Vector3 worldPos; };
     mutable std::vector<DoorCandidate> m_doorCandidateCache;
     mutable bool m_doorCandidateCacheBuilt = false;

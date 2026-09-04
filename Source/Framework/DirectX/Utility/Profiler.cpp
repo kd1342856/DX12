@@ -1,4 +1,4 @@
-#include "../../../Pch.h"
+﻿#include "../../../Pch.h"
 #include "Profiler.h"
 #include "Logger.h"
 #include <windows.h>
@@ -25,7 +25,7 @@ float Profiler::GetSystemRAMUsageMB() const
 }
 
 // ---------------------------------------------------------------
-// GPU section timing
+// GPU区間計測
 // ---------------------------------------------------------------
 void Profiler::InitGPU(ID3D12Device* pDevice, ID3D12CommandQueue* pQueue, uint32_t frameCount)
 {
@@ -42,9 +42,9 @@ void Profiler::InitGPU(ID3D12Device* pDevice, ID3D12CommandQueue* pQueue, uint32
     if (FAILED(hr))
     {
         LogGPUProfilerHResultFailure("GetTimestampFrequency", hr);
-        // Fall through and still create the heap/buffers - freq==0 just means timings
-        // stay unreported (ReadGPUResultsForSlot guards on m_gpuFrequency != 0), but at
-        // least the rest of GPU profiling can be diagnosed independently of this.
+        // 失敗してもそのままヒープ/バッファは作る - freq==0の場合は計測結果が
+        // 報告されないだけ(ReadGPUResultsForSlotがm_gpuFrequency != 0でガードしている)
+        // だが、少なくともGPUプロファイリングの他の部分はこれとは独立して診断できる。
     }
     m_gpuFrequency = freq;
     if (freq == 0)
@@ -144,9 +144,10 @@ void Profiler::BeginGPUFrame(ID3D12GraphicsCommandList* pCmdList)
 {
     if (!m_spQueryHeap) return;
 
-    // The slot we're about to (re)use was last written kFrameCount frames ago; by the
-    // frame-resource fencing rules the GPU is guaranteed to be done with it by now, so
-    // it's safe to read its results before overwriting it with this frame's queries.
+    // これから(再)使おうとしているスロットは、kFrameCountフレーム前に最後に書き込まれた
+    // ものであり、フレームリソースのフェンス管理のルールにより、GPUは既にそれを使い終えて
+    // いることが保証されている。なので、このフレームのクエリで上書きする前に結果を
+    // 読んでも安全。
     ReadGPUResultsForSlot(m_gpuCurrentSlot);
 
     m_gpuScopeCounter = 0;
@@ -188,7 +189,7 @@ void Profiler::EndGPUScope(ID3D12GraphicsCommandList* pCmdList, uint32_t scopeHa
 }
 
 // ---------------------------------------------------------------
-// Frame time history
+// フレーム時間の履歴
 // ---------------------------------------------------------------
 void Profiler::AddFrameTime(float ms)
 {

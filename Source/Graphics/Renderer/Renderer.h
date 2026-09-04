@@ -24,4 +24,8 @@ public:
 	static RenderTarget* GetSceneOpaqueCopyRenderTarget();
 	static RenderTarget* GetBloomExtractRenderTarget();
 	static RenderTarget* GetBloomBlurRenderTarget(int index);
+	static RenderTarget* GetDOFBlurRenderTarget(int index);
+	static RenderTarget* GetGodRaysRenderTarget();
+	static RenderTarget* GetNormalPrepassRenderTarget();
+	static RenderTarget* GetSSAORenderTarget(int index);
 };

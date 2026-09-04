@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <cstdint>
 
 class Scene;
@@ -12,9 +12,9 @@ public:
     static void Draw();
     static bool GetEditorMode() { return s_editorMode; }
 
-    // F3-toggled Statistics/Profiler window, independent of the full editor UI (which is
-    // only drawn in editor mode - see RenderEditor()). Call this from the fullscreen/player
-    // render path so the profiler stays available without dropping into editor mode.
+    // F3で切り替えるStatistics/Profilerウィンドウ。フルエディタUI(エディタモードでしか
+    // 描かれない - RenderEditor()参照)とは独立している。フルスクリーン/プレイヤー視点の
+    // レンダーパスから呼ぶことで、エディタモードに入らなくてもProfilerを見られるようにする。
     static void DrawProfilerOverlay();
 
     // s_showEditor is the flag F1 toggles in Draw(); it's a global that survives scene changes, so

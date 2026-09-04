@@ -1,4 +1,4 @@
-#include "../../Pch.h"
+﻿#include "../../Pch.h"
 #include "GameManager.h"
 #include "../../Graphics/Shader/ShaderLibrary.h"
 #include "../../Graphics/Shader/LitShader/LitShader.h"
@@ -6,6 +6,9 @@
 #include "../../Graphics/Shader/SkinningShader/SkinningShader.h"
 #include "../../Graphics/Shader/PostProcessShader/PostProcessShader.h"
 #include "../../Graphics/Shader/BloomShader/BloomShader.h"
+#include "../../Graphics/Shader/GodRaysShader/GodRaysShader.h"
+#include "../../Graphics/Shader/NormalPrepassShader/NormalPrepassShader.h"
+#include "../../Graphics/Shader/SSAOShader/SSAOShader.h"
 #include "../../Graphics/Shader/SkyShader/SkyShader.h"
 #include "../../Graphics/Shader/FogShader/FogShader.h"
 #include "Scene/Scene.h"
@@ -16,6 +19,7 @@
 #include "../ECS/CompSystem/Systems/CameraSystem.h"
 #include "../ECS/CompSystem/Systems/AnimationSystem.h"
 #include "../ECS/CompSystem/Systems/ScriptSystem.h"
+#include "../ECS/CompSystem/Systems/LightSystem.h"
 #include "../ECS/ComponentSerializerRegistration.h"
 #include "../DirectX/Utility/Profiler.h"
 
@@ -50,6 +54,7 @@ void GameManager::Init()
     m_ecs.RegisterComponent<ColliderData>();
     m_ecs.RegisterComponent<NativeScriptData>();
     m_ecs.RegisterComponent<SpriteData>();
+    m_ecs.RegisterComponent<PointLightData>();
 
     // --- System 登録 & Signature 設定 ---
     m_spScriptSystem = m_ecs.RegisterSystem<ScriptSystem>();
@@ -104,6 +109,15 @@ void GameManager::Init()
         m_spSpriteRenderSystem->m_pCoordinator = &m_ecs;
     }
 
+    m_spLightSystem = m_ecs.RegisterSystem<LightSystem>();
+    {
+        Signature sig;
+        sig.set(m_ecs.GetComponentType<TransformData>());
+        sig.set(m_ecs.GetComponentType<PointLightData>());
+        m_ecs.SetSystemSignature<LightSystem>(sig);
+        m_spLightSystem->m_pCoordinator = &m_ecs;
+    }
+
     CollisionManager::Instance().Init();
         JobSystem::Instance().Init();
 
@@ -113,6 +127,9 @@ void GameManager::Init()
     ShaderLibrary::Instance().Register<SkinningShader>(pDevice);
     ShaderLibrary::Instance().Register<PostProcessShader>(pDevice);
     ShaderLibrary::Instance().Register<BloomShader>(pDevice);
+    ShaderLibrary::Instance().Register<GodRaysShader>(pDevice);
+    ShaderLibrary::Instance().Register<NormalPrepassShader>(pDevice);
+    ShaderLibrary::Instance().Register<SSAOShader>(pDevice);
     ShaderLibrary::Instance().Register<SkyShader>(pDevice);
     ShaderLibrary::Instance().Register<FogShader>(pDevice);
 }
@@ -124,7 +141,7 @@ void GameManager::Update(float deltaTime, class Scene* pScene)
     if (!pScene) return;
 
     {
-        // Player/Ghost/etc. script logic - includes GhostAI's pathfinding (NavMesh queries).
+        // Player/Ghost等のスクリプトロジック - GhostAIの経路探索(NavMeshクエリ)も含む。
         PROFILE_CPU_SCOPE("ScriptSystem::Update");
         m_spScriptSystem->Update(deltaTime);
     }

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "MeshData/MeshData.h"
 #include "../../GPUResource/Buffer/VertexBuffer.h"
 #include "../../GPUResource/Buffer/IndexBuffer.h"
@@ -38,9 +38,10 @@ public:
 	const std::vector<MeshVertex>& GetVertices() const { return m_vertices; }
 	const std::vector<MeshFace>&   GetFaces()    const { return m_faces; }
 
-	// Local-space bounding box, computed once in CreateGPU(). Lets mesh-collider checks
-	// (CollisionSolver's Mesh case) reject a whole mesh with one box test instead of
-	// transforming every vertex of every triangle just to find out none of them are close.
+	// ローカル空間のバウンディングボックス、CreateGPU()内で一度だけ計算される。
+	// メッシュコライダーの判定(CollisionSolverのMeshケース)で、全三角形の全頂点を
+	// 変換して結局どれも近くないと分かるくらいなら、ボックス1回の判定でメッシュ
+	// 全体を棄却できるようにする。
 	const DirectX::BoundingBox& GetLocalAABB() const { return m_localAABB; }
 
 	// AssetState�F�`��O�� IsReady() ���m�F���邱��

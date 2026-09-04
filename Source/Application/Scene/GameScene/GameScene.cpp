@@ -1,4 +1,4 @@
-#include "../../../Pch.h"
+﻿#include "../../../Pch.h"
 #include "GameScene.h"
 #include "../../../Framework/Manager/GameManager.h"
 #include "../../../Framework/ECS/CompSystem/SpriteRenderSystem/SpriteRenderSystem.h"
@@ -17,7 +17,11 @@
 #include "../../../Graphics/Shader/ShaderLibrary.h"
 #include "../../../Graphics/Shader/PostProcessShader/PostProcessShader.h"
 #include "../../../Graphics/Shader/BloomShader/BloomShader.h"
+#include "../../../Graphics/Shader/GodRaysShader/GodRaysShader.h"
+#include "../../../Graphics/Shader/SSAOShader/SSAOShader.h"
 #include "../../../Framework/DirectX/Utility/Profiler.h"
+#include "../../../Framework/ECS/CompSystem/Systems/LightSystem.h"
+#include <algorithm>
 
 void GameScene::Init()
 {
@@ -343,7 +347,7 @@ void GameScene::Render()
 
     if (m_fullscreenGame) {
         RenderGame();
-        Editor::DrawProfilerOverlay(); // F3 toggles this - editor mode already shows it via RenderEditor()'s full UI
+        Editor::DrawProfilerOverlay(); // F3で切り替え - エディタモードではRenderEditor()のフルUIで既に表示される
     }
     else
         RenderEditor();
@@ -360,6 +364,21 @@ void GameScene::RenderGame()
     if (m_gameCameraEntity != INVALID_ENTITY)
     {
         auto* pCmdList = GraphicsDevice::Instance().GetCmdList();
+
+        UpdateLights(m_gameCameraEntity);
+        UpdatePointLightShadow(m_gameCameraEntity);
+        RenderSSAO(m_gameCameraEntity);
+
+        // ReflectionComponent::PreDraw()がここで平面の位置/法線をワールド空間へ変換する。
+        // 以前はRenderGame()経路(実際のゲームプレイ=FPSカメラ)でこれが一度も呼ばれておらず、
+        // RenderReflection()が初期値(point=(0,0,0), normal=(0,0,1))のまま鏡を描画していた
+        // (ゲームプレイ中の反射が実際の窓の位置・向きを無視していた原因)。
+        auto scriptSystemPreDraw = GameManager::Instance().GetScriptSystem();
+        if (scriptSystemPreDraw) {
+            PROFILE_CPU_SCOPE("ScriptPreDraw");
+            PROFILE_GPU_SCOPE(pCmdList, "ScriptPreDraw");
+            scriptSystemPreDraw->PreDraw();
+        }
 
         auto* pSceneHDR = Renderer::GetSceneHDRRenderTarget();
         GraphicsDevice::Instance().SetRenderTarget(pSceneHDR);
@@ -390,42 +409,213 @@ void GameScene::RenderGame()
             scriptSystem->Draw();
         }
 
-        // Phase 4: PostProcess (Bloom & ToneMapping)
-        PROFILE_CPU_SCOPE("PostProcess");
-        PROFILE_GPU_SCOPE(pCmdList, "PostProcess");
-
-        auto& bloomShader = ShaderLibrary::Instance().Get<BloomShader>();
-        auto& postProcessShader = ShaderLibrary::Instance().Get<PostProcessShader>();
-
-        auto* pExtractRT = Renderer::GetBloomExtractRenderTarget();
-        auto* pBlurRT0 = Renderer::GetBloomBlurRenderTarget(0);
-        auto* pBlurRT1 = Renderer::GetBloomBlurRenderTarget(1);
-
-        const auto& postProcessData = ShaderManager::Instance().GetPostProcessData();
-
-        // 1. Bloom Extract
-        GraphicsDevice::Instance().TransitionToSRV(pSceneHDR);
-        bloomShader.DrawExtract(pSceneHDR, pExtractRT, postProcessData);
-
-        // 2. Bloom Blur
-        // Horizontal
-        GraphicsDevice::Instance().TransitionToSRV(pExtractRT);
-        bloomShader.DrawBlur(pExtractRT, pBlurRT0, postProcessData, 1.0f, 0.0f);
-        // Vertical
-        GraphicsDevice::Instance().TransitionToSRV(pBlurRT0);
-        bloomShader.DrawBlur(pBlurRT0, pBlurRT1, postProcessData, 0.0f, 1.0f);
-
-        // 3. Composite to Back Buffer
-        GraphicsDevice::Instance().TransitionToSRV(pBlurRT1);
-        GraphicsDevice::Instance().SetBackBuffer();
-        Renderer::BindDefaultViewport();
-        GraphicsDevice::Instance().ClearBackBuffer(0.0f, 0.0f, 0.0f, 1.0f);
-        postProcessShader.Draw(pSceneHDR, pBlurRT1, postProcessData);
+        // Phase 4: PostProcess (Bloom, DOF, ToneMapping, Vignette, Grain, Chromatic Aberration...)
+        DoPostProcess(m_gameCameraEntity, 0.0f, 0.0f, 0.0f);
     }
     else
     {
         GraphicsDevice::Instance().ClearBackBuffer(0.0f, 0.0f, 0.0f, 1.0f);
     }
+}
+
+void GameScene::UpdateLights(Entity cameraEntity)
+{
+    auto lightSystem = GameManager::Instance().GetLightSystem();
+    if (!lightSystem) return;
+
+    Math::Vector3 camPos = Math::Vector3::Zero;
+    auto& ecs = GameManager::Instance().GetECS();
+    if (auto* pTrans = ecs.TryGetComponent<TransformData>(cameraEntity))
+    {
+        camPos = pTrans->m_worldMatrix.Translation();
+    }
+    lightSystem->Update(GameTimer::Instance().DeltaTime(), camPos);
+}
+
+void GameScene::UpdatePointLightShadow(Entity cameraEntity)
+{
+    auto renderSystem = GameManager::Instance().GetRenderSystem();
+    if (!renderSystem) return;
+
+    const auto& lightData = ShaderManager::Instance().GetLightData();
+    if (lightData.PL_Count <= 0)
+    {
+        ShaderManager::Instance().SetPointLightShadowData(Math::Matrix::Identity, 0.0f, false);
+        return;
+    }
+
+    // g_PL[0]はLightSystemが視点に近い順でソート済みなので、そのまま最も近いライトを使う。
+    Math::Vector3 lightPos = lightData.PL[0].Pos;
+    float range = lightData.PL[0].Range;
+
+    Math::Vector3 aimAt = lightPos + Math::Vector3(0, -1, 0);
+    auto& ecs = GameManager::Instance().GetECS();
+    if (cameraEntity != INVALID_ENTITY)
+    {
+        if (auto* pTrans = ecs.TryGetComponent<TransformData>(cameraEntity))
+        {
+            aimAt = pTrans->m_worldMatrix.Translation();
+        }
+    }
+
+    renderSystem->RenderPointLightShadow(lightPos, aimAt, range);
+}
+
+void GameScene::RenderSSAO(Entity cameraEntity)
+{
+    auto renderSystem = GameManager::Instance().GetRenderSystem();
+    if (!renderSystem || cameraEntity == INVALID_ENTITY) return;
+
+    auto& ssaoSettings = ShaderManager::Instance().GetSSAOSettings();
+    auto* pSSAORaw = Renderer::GetSSAORenderTarget(0);
+    auto* pSSAOBlur = Renderer::GetSSAORenderTarget(1);
+
+    if (!ssaoSettings.EnableSSAO)
+    {
+        // 無効時はAO=1(遮蔽なし)を維持する。LitShaderは毎フレームこのRT(index0)を読むため。
+        GraphicsDevice::Instance().SetRenderTarget(pSSAORaw);
+        pSSAORaw->Clear(1.0f, 1.0f, 1.0f, 1.0f);
+        GraphicsDevice::Instance().TransitionToSRV(pSSAORaw);
+        return;
+    }
+
+    auto* pNormalRT = Renderer::GetNormalPrepassRenderTarget();
+    renderSystem->RenderNormalPrepass(cameraEntity, pNormalRT);
+
+    auto& ssaoShader = ShaderLibrary::Instance().Get<SSAOShader>();
+    SSAOShader::Params params;
+    params.Radius = ssaoSettings.Radius;
+    params.Bias = ssaoSettings.Bias;
+    params.Power = ssaoSettings.Power;
+    params.Intensity = ssaoSettings.Intensity;
+    ssaoShader.Draw(pNormalRT, pSSAORaw, params);
+
+    // Bloomのブラーパイプラインを再利用して軽くぼかす(SSAO特有のノイズを均す)。
+    // index0(raw)→index1(H)→index0(V)の順で処理するので、最終結果は必ずindex0に戻る
+    // (LitShader.cppのt12バインドがindex0を読む前提と対応させている)。
+    auto& bloomShader = ShaderLibrary::Instance().Get<BloomShader>();
+    CBufferData::PostProcess blurData = {};
+    blurData.BlurRadius = 1.5f;
+    GraphicsDevice::Instance().TransitionToSRV(pSSAORaw);
+    bloomShader.DrawBlur(pSSAORaw, pSSAOBlur, blurData, 1.0f, 0.0f);
+    GraphicsDevice::Instance().TransitionToSRV(pSSAOBlur);
+    bloomShader.DrawBlur(pSSAOBlur, pSSAORaw, blurData, 0.0f, 1.0f);
+    GraphicsDevice::Instance().TransitionToSRV(pSSAORaw);
+}
+
+void GameScene::DoPostProcess(Entity cameraEntity, float clearR, float clearG, float clearB)
+{
+    auto* pCmdList = GraphicsDevice::Instance().GetCmdList();
+    PROFILE_CPU_SCOPE("PostProcess");
+    PROFILE_GPU_SCOPE(pCmdList, "PostProcess");
+
+    auto* pSceneHDR = Renderer::GetSceneHDRRenderTarget();
+    auto& bloomShader = ShaderLibrary::Instance().Get<BloomShader>();
+    auto& postProcessShader = ShaderLibrary::Instance().Get<PostProcessShader>();
+
+    // DOFの深度リニア化に使うNear/Farを、実際に描画したカメラの値へ同期
+    if (cameraEntity != INVALID_ENTITY)
+    {
+        auto& ecs = GameManager::Instance().GetECS();
+        if (auto* pCamData = ecs.TryGetComponent<CameraData>(cameraEntity))
+        {
+            ShaderManager::Instance().SetCameraNearFar(pCamData->m_nearZ, pCamData->m_farZ);
+        }
+    }
+
+    const auto& postProcessSettings = ShaderManager::Instance().GetPostProcessSettings();
+    const auto& postProcessData = ShaderManager::Instance().GetPostProcessData();
+
+    // 1. Bloom Extract (輝度が閾値を超えた部分だけ抽出)
+    auto* pExtractRT = Renderer::GetBloomExtractRenderTarget();
+    GraphicsDevice::Instance().TransitionToSRV(pSceneHDR);
+    bloomShader.DrawExtract(pSceneHDR, pExtractRT, postProcessData);
+
+    // 2. Bloom Blur - 半径(BloomRadius)と反復回数(BloomIterations)はShaderEditorから調整可能。
+    // 以前は1/2解像度+固定半径5texel+1回だけだったため、Intensityを上げてもほぼ変化が
+    // 見えなかった。1/4解像度化+可変半径+複数回ブラーで画面に広がる量を確保する。
+    auto* pBlurRT0 = Renderer::GetBloomBlurRenderTarget(0);
+    auto* pBlurRT1 = Renderer::GetBloomBlurRenderTarget(1);
+    RenderTarget* pBloomResult = pExtractRT;
+    int bloomIterations = std::max(1, postProcessSettings.BloomIterations);
+    for (int i = 0; i < bloomIterations; ++i)
+    {
+        GraphicsDevice::Instance().TransitionToSRV(pBloomResult);
+        bloomShader.DrawBlur(pBloomResult, pBlurRT0, postProcessData, 1.0f, 0.0f); // Horizontal
+        GraphicsDevice::Instance().TransitionToSRV(pBlurRT0);
+        bloomShader.DrawBlur(pBlurRT0, pBlurRT1, postProcessData, 0.0f, 1.0f);     // Vertical
+        pBloomResult = pBlurRT1;
+    }
+
+    // 3. Depth of Field - 有効な時だけ、シーン全体(閾値なし)をぼかしたコピーを作る。
+    // BloomのExtract/Blurパスをそのまま閾値0で使い回しているので専用シェーダーは不要。
+    auto* pDofRT0 = Renderer::GetDOFBlurRenderTarget(0);
+    RenderTarget* pDofResult = pDofRT0;
+    if (postProcessSettings.EnableDOF)
+    {
+        auto* pDofRT1 = Renderer::GetDOFBlurRenderTarget(1);
+
+        CBufferData::PostProcess dofExtractData = postProcessData;
+        dofExtractData.BloomThreshold = 0.0f; // 閾値0 = 素通し(シーン全体をそのままコピー)
+
+        GraphicsDevice::Instance().TransitionToSRV(pSceneHDR);
+        bloomShader.DrawExtract(pSceneHDR, pDofRT0, dofExtractData);
+
+        GraphicsDevice::Instance().TransitionToSRV(pDofRT0);
+        bloomShader.DrawBlur(pDofRT0, pDofRT1, dofExtractData, 1.0f, 0.0f);
+        GraphicsDevice::Instance().TransitionToSRV(pDofRT1);
+        bloomShader.DrawBlur(pDofRT1, pDofRT0, dofExtractData, 0.0f, 1.0f);
+    }
+    GraphicsDevice::Instance().TransitionToSRV(pDofResult);
+
+    // 4. God Rays - 平行光をスクリーン空間に投影した位置から、Bloom結果をラジアルブラーして
+    // 光条を作る。新しいシャドウマップ等は使わない軽量な近似。
+    auto* pGodRaysRT = Renderer::GetGodRaysRenderTarget();
+    if (postProcessSettings.EnableGodRays)
+    {
+        auto& context = Renderer::GetContext();
+        Math::Matrix vp = context.View * context.Projection;
+        Math::Vector3 camPos = context.View.Invert().Translation();
+        Math::Vector3 dlDir = ShaderManager::Instance().GetLightData().DL_Dir; // シーンへ向かう方向
+        Math::Vector3 towardLight = -dlDir;
+        Math::Vector3 farPoint = camPos + towardLight * 5000.0f;
+
+        Math::Vector4 clip = Math::Vector4::Transform(Math::Vector4(farPoint.x, farPoint.y, farPoint.z, 1.0f), vp);
+        bool lightValid = clip.w > 0.001f;
+        float u = 0.5f, v = 0.5f;
+        if (lightValid)
+        {
+            u = (clip.x / clip.w) * 0.5f + 0.5f;
+            v = 1.0f - ((clip.y / clip.w) * 0.5f + 0.5f);
+        }
+        ShaderManager::Instance().SetGodRaysLightScreenPos(u, v, lightValid);
+
+        if (lightValid)
+        {
+            auto& godRaysShader = ShaderLibrary::Instance().Get<GodRaysShader>();
+            // g_EnableGodRaysはSetGodRaysLightScreenPos直後のUpdateConstantBuffersで確定するため、
+            // ここではpostProcessDataではなく最新のGetPostProcessData()を使う。
+            const auto& godRaysData = ShaderManager::Instance().GetPostProcessData();
+            GraphicsDevice::Instance().TransitionToSRV(pBloomResult);
+            godRaysShader.Draw(pBloomResult, pGodRaysRT, godRaysData);
+            GraphicsDevice::Instance().TransitionToSRV(pGodRaysRT);
+        }
+    }
+    else
+    {
+        ShaderManager::Instance().SetGodRaysLightScreenPos(0.5f, 0.5f, false);
+    }
+
+    // 5. Composite to Back Buffer
+    // pSceneHDR自身の深度バッファをDOFのCoC計算用にSRVへ遷移(RenderScene終了時に書き込み用へ
+    // 戻されているため)。Draw後はDEPTH_WRITEへ戻し、次フレームの描画に備える。
+    GraphicsDevice::Instance().TransitionDepthToSRV(pSceneHDR);
+    GraphicsDevice::Instance().TransitionToSRV(pBloomResult);
+    GraphicsDevice::Instance().SetBackBuffer();
+    Renderer::BindDefaultViewport();
+    GraphicsDevice::Instance().ClearBackBuffer(clearR, clearG, clearB, 1.0f);
+    postProcessShader.Draw(pSceneHDR, pBloomResult, postProcessData, pDofResult, pGodRaysRT);
+    GraphicsDevice::Instance().TransitionDepthToWrite(pSceneHDR);
 }
 
 void GameScene::RenderEditor()
@@ -442,6 +632,28 @@ void GameScene::RenderEditor()
 
     if (m_editorCameraEntity != INVALID_ENTITY)
     {
+        UpdateLights(m_editorCameraEntity);
+        UpdatePointLightShadow(m_editorCameraEntity);
+        RenderSSAO(m_editorCameraEntity);
+
+        // ReflectionComponent::PreDraw()がここで平面の位置/法線をワールド空間へ変換する。
+        // RenderReflection()より後に呼んでいると1フレーム遅れた(古い)平面情報を使ってしまうので、
+        // 先に呼んでおく(以前はScriptDraw部分でRenderScene/Sprite描画より後に呼ばれていた)。
+        auto scriptSystem = GameManager::Instance().GetScriptSystem();
+        if (scriptSystem) {
+            PROFILE_CPU_SCOPE("ScriptPreDraw");
+            PROFILE_GPU_SCOPE(pCmdList, "ScriptPreDraw");
+            scriptSystem->PreDraw();
+        }
+
+        {
+            // 以前はRenderGame()経由(FPSカメラ)でしか呼ばれておらず、エディタのフリーカメラでは
+            // 反射テクスチャが直前のゲームプレイ時点のまま凍結していた(反射のデバッグが
+            // 事実上できなかった原因)。フリーカメラでも都度更新するようにする。
+            PROFILE_CPU_SCOPE("Reflection");
+            PROFILE_GPU_SCOPE(pCmdList, "Reflection");
+            renderSystem->RenderReflection(m_editorCameraEntity);
+        }
         {
             PROFILE_CPU_SCOPE("Scene");
             PROFILE_GPU_SCOPE(pCmdList, "Scene");
@@ -453,12 +665,10 @@ void GameScene::RenderEditor()
             spriteRenderSystem->Render();
         }
 
-        // Script Draw (?f?o?b?O???C???[???)
-        auto scriptSystem = GameManager::Instance().GetScriptSystem();
+        // Script Draw (デバッグワイヤー等表示)
         if (scriptSystem) {
             PROFILE_CPU_SCOPE("ScriptDraw");
             PROFILE_GPU_SCOPE(pCmdList, "ScriptDraw");
-            scriptSystem->PreDraw();
             scriptSystem->Draw();
         }
         {
@@ -470,36 +680,7 @@ void GameScene::RenderEditor()
     }
 
     // Post Process to Back Buffer
-    {
-        PROFILE_CPU_SCOPE("PostProcess");
-        PROFILE_GPU_SCOPE(pCmdList, "PostProcess");
-
-        auto& bloomShader = ShaderLibrary::Instance().Get<BloomShader>();
-        auto& postProcessShader = ShaderLibrary::Instance().Get<PostProcessShader>();
-
-        auto* pExtractRT = Renderer::GetBloomExtractRenderTarget();
-        auto* pBlurRT0 = Renderer::GetBloomBlurRenderTarget(0);
-        auto* pBlurRT1 = Renderer::GetBloomBlurRenderTarget(1);
-
-        const auto& postProcessData = ShaderManager::Instance().GetPostProcessData();
-
-        // 1. Bloom Extract
-        GraphicsDevice::Instance().TransitionToSRV(pSceneHDR);
-        bloomShader.DrawExtract(pSceneHDR, pExtractRT, postProcessData);
-
-        // 2. Bloom Blur (Horizontal then Vertical)
-        GraphicsDevice::Instance().TransitionToSRV(pExtractRT);
-        bloomShader.DrawBlur(pExtractRT, pBlurRT0, postProcessData, 1.0f, 0.0f);
-        GraphicsDevice::Instance().TransitionToSRV(pBlurRT0);
-        bloomShader.DrawBlur(pBlurRT0, pBlurRT1, postProcessData, 0.0f, 1.0f);
-
-        // 3. Composite
-        GraphicsDevice::Instance().TransitionToSRV(pBlurRT1);
-        GraphicsDevice::Instance().SetBackBuffer();
-        Renderer::BindDefaultViewport();
-        GraphicsDevice::Instance().ClearBackBuffer(0.1f, 0.1f, 0.2f, 1.0f);
-        postProcessShader.Draw(pSceneHDR, pBlurRT1, postProcessData);
-    }
+    DoPostProcess(m_editorCameraEntity, 0.1f, 0.1f, 0.2f);
 
     Editor::Draw();
 }

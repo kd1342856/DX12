@@ -32,13 +32,16 @@ namespace CBufferData
 		float Gamma;
 		float ScreenWidth;
 		float ScreenHeight;
-		float pad[2];
 
-		// •½–Ê”½Ë(‘‹ƒKƒ‰ƒX“™)—p: ”½ËƒJƒƒ‰‚ÌView*Projs—ñB
-		// ƒKƒ‰ƒX‚ÌƒsƒNƒZƒ‹ƒVƒF[ƒ_[‚ªƒ[ƒ‹ƒhÀ•W‚ğÄ“Š‰e‚µ‚Ä
-		// g_planarReflectionMap‚Ì³‚µ‚¢UV‚ğ‹‚ß‚é‚½‚ß‚Ég‚¤B
+		// SSR (ã‚¹ã‚¯ãƒªãƒ¼ãƒ³ã‚¹ãƒšãƒ¼ã‚¹åå°„) - å¹³é¢åå°„ãŒç„¡ã„ã‚¬ãƒ©ã‚¹ç­‰ã®ãƒ•ã‚©ãƒ¼ãƒ«ãƒãƒƒã‚¯ã«ä½¿ã†
+		int32_t EnableSSR;
+		float SSRStepSize;
+
+		// ï¿½ï¿½ï¿½Ê”ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½Kï¿½ï¿½ï¿½Xï¿½ï¿½)ï¿½p: ï¿½ï¿½ï¿½ËƒJï¿½ï¿½ï¿½ï¿½ï¿½ï¿½View*Projï¿½sï¿½ï¿½B
+		// ï¿½Kï¿½ï¿½ï¿½Xï¿½Ìƒsï¿½Nï¿½Zï¿½ï¿½ï¿½Vï¿½Fï¿½[ï¿½_ï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½hï¿½ï¿½ï¿½Wï¿½ï¿½ï¿½Ä“ï¿½ï¿½eï¿½ï¿½ï¿½ï¿½
+		// g_planarReflectionMapï¿½Ìï¿½ï¿½ï¿½ï¿½ï¿½UVï¿½ï¿½ï¿½ï¿½ï¿½ß‚é‚½ï¿½ß‚Égï¿½ï¿½ï¿½B
 		Math::Matrix mReflectionVP;
-		int HasReflection; // ¡ƒtƒŒ[ƒ€—LŒø‚È”½Ë‚ª‚ ‚é‚©(0/1)
+		int HasReflection; // ï¿½ï¿½ï¿½tï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½Lï¿½ï¿½ï¿½È”ï¿½ï¿½Ë‚ï¿½ï¿½ï¿½ï¿½é‚©(0/1)
 		float padReflection[3];
 	};
 
@@ -56,12 +59,20 @@ namespace CBufferData
 		Math::Matrix mLightVP;
 	};
 
+	struct PointLight
+	{
+		Math::Vector3 Pos;
+		float Range;
+		Math::Vector3 Color;
+		float pad;
+	};
+
 	struct Light
 	{
 		int SL_Count;
 		Math::Vector3 dummy1;
 		Math::Vector3 AmbientLight;
-		float dummy2;
+		float IndirectShadowFloor; // å½±ãŒè½ã¡ã‚‹å ´æ‰€ã«æ®‹ã™é–“æ¥å…‰(Ambient/IBL)ã®ä¸‹é™ 0..1
 		Math::Vector3 DL_Dir;
 		float DL_ShadowBias;
 		Math::Vector3 DL_Color;
@@ -71,17 +82,70 @@ namespace CBufferData
 		SpotLight SL[10];
 		Math::Vector3 DistanceFogColor;
 		float DistanceFogDensity;
+
+		int PL_Count;
+		Math::Vector3 dummyPL;
+		PointLight PL[8]; // ãƒ­ã‚¦ã‚½ã‚¯/è£¸é›»çƒç­‰ã€ãƒ•ãƒªãƒƒã‚«ãƒ¼ä»˜ãã®ç‚¹å…‰æº(LightSystemãŒæ¯ãƒ•ãƒ¬ãƒ¼ãƒ æ›´æ–°)
+
+		// ãƒã‚¤ãƒ³ãƒˆå…‰ã®å½±(æœ€ã‚‚è¿‘ã„1ç¯ã®ã¿ã€ç°¡æ˜“å˜ä¸€ãƒ‘ãƒ¼ã‚¹ãƒšã‚¯ãƒ†ã‚£ãƒ–ã‚·ãƒ£ãƒ‰ã‚¦)
+		Math::Matrix PL0_ShadowVP;
+		float PL0_ShadowBias;
+		int32_t PL0_ShadowEnabled;
+		float PadPL0Shadow[2];
+	};
+
+	struct SSAO
+	{
+		float Radius;
+		float Bias;
+		float Power;
+		float Intensity;
 	};
 
 	struct PostProcess
 	{
+		// Tonemap / Exposure
 		float Exposure;
-		float BloomThreshold;
-		float BloomIntensity;
-		float BlurDirectionX;
-		float BlurDirectionY;
 		float Gamma;
 		uint32_t EnableHDR;
-		float Pad[1];
+		float Time;
+
+		// Bloom
+		float BloomThreshold;
+		float BloomIntensity;
+		float BlurDirectionX; // Blurãƒ‘ã‚¹å°‚ç”¨
+		float BlurDirectionY;
+
+		float BlurRadius;
+		// Vignette
+		float VignetteIntensity;
+		float VignetteSmoothness;
+		// Film Grain
+		float FilmGrainIntensity;
+
+		// Chromatic Aberration
+		float ChromaticAberrationIntensity;
+		// Depth of Field
+		uint32_t EnableDOF;
+		float DOFFocusDistance;
+		float DOFFocusRange;
+
+		// Camera Near/Far (æ·±åº¦ãƒªãƒ‹ã‚¢åŒ–ç”¨)
+		float CameraNear;
+		float CameraFar;
+		// God Rays: å…‰æºã®ã‚¹ã‚¯ãƒªãƒ¼ãƒ³ç©ºé–“UV
+		float GodRaysLightU;
+		float GodRaysLightV;
+
+		// God Rays
+		float GodRaysDensity;
+		float GodRaysDecay;
+		float GodRaysWeight;
+		float GodRaysExposure;
+
+		uint32_t GodRaysNumSamples;
+		uint32_t EnableGodRays;
+		float GodRaysIntensity;
+		float Pad;
 	};
 }

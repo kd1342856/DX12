@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 class Logger
 {
@@ -20,11 +20,11 @@ public:
 		std::string debugStr = "[LOG] " + message + "\n";
 		OutputDebugStringA(debugStr.c_str());
 
-		// Keep the file open for the lifetime of the process instead of doing an
-		// fopen/fclose per call - that pair is disk I/O + OS handle setup/teardown
-		// every single time, which gets very expensive when something logs every
-		// frame (pathfinding queries, per-entity debug output, etc.). fflush still
-		// makes sure nothing is lost if the process crashes.
+		// 呼ぶたびにfopen/fcloseするのではなく、プロセスの生存期間中ファイルを開きっぱなしに
+		// する - あのペアはディスクI/O+OSハンドルの生成/破棄を毎回行うことになり、
+		// 何かが毎フレームログを出す(経路探索のクエリ、エンティティごとのデバッグ出力等)
+		// と非常に高くつく。fflushは変わらず行うので、プロセスがクラッシュしても
+		// 内容が失われないようにしている。
 		if (m_logFile) {
 			fwrite(debugStr.data(), 1, debugStr.size(), m_logFile);
 			fflush(m_logFile);

@@ -1,4 +1,4 @@
-#include "../../../Pch.h"
+﻿#include "../../../Pch.h"
 #include "../../Manager/Scene/Scene.h"
 #include "../../Manager/Scene/SceneManager.h"
 #include "../../Manager/Collision/CollisionManager.h"
@@ -18,14 +18,14 @@ void Editor::DrawStatistics()
     {
         ImGui::Text("FPS: %.1f (%.3f ms/frame)", ImGui::GetIO().Framerate, 1000.0f / ImGui::GetIO().Framerate);
 #ifdef _DEBUG
-        // Ground truth for this session, decided once in GraphicsDevice::Init() - see
-        // RendererPanel's checkbox for the persisted request (next-launch), which can
-        // legitimately differ from this until you restart.
+        // このセッションでの実測値。GraphicsDevice::Init()で一度だけ決まる - 永続化された
+        // リクエスト(次回起動時に反映)についてはRendererPanelのチェックボックスを参照。
+        // 再起動するまではこの値と食い違っていて正常。
         ImGui::Text("D3D12 Debug Layer: %s", GraphicsDevice::IsDebugLayerActive() ? "ON" : "OFF");
 #endif
 
-        // Present-to-Present frame time history (this is what the player experiences,
-        // as opposed to ImGui's own smoothed Framerate above).
+        // Present～Present間のフレーム時間の履歴(上のImGui自身の平滑化されたFramerateとは
+        // 違い、これがプレイヤーの体感そのもの)。
         {
             const auto& frameHistory = Profiler::Instance().GetFrameTimeHistory();
             float frameTimes[Profiler::kFrameHistorySize];
@@ -44,9 +44,9 @@ void Editor::DrawStatistics()
         ImGui::Separator();
 
         ImGui::Text("--- Pass Timing (ms) ---");
-        // GPU timings lag a couple frames behind CPU timings (results are read back once
-        // the frame-in-flight slot they were recorded into is safe to reuse) but line up
-        // by pass name, so a simple side-by-side table is enough to spot the hot pass.
+        // GPU計測はCPU計測より数フレーム遅れる(記録先のフレームインフライトスロットが
+        // 再利用しても安全になった時点で結果を読み戻すため)が、パス名で対応が取れるので、
+        // 単純に横並びのテーブルにするだけで重いパスを見つけるには十分。
         if (ImGui::BeginTable("PassTiming", 3, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
         {
             ImGui::TableSetupColumn("Pass");
@@ -57,7 +57,7 @@ void Editor::DrawStatistics()
             const auto& cpuTimings = Profiler::Instance().GetCPUTimings();
             const auto& gpuTimings = Profiler::Instance().GetGPUTimings();
 
-            // Union of names seen on either side, so a pass missing from one side still shows up.
+            // 両方に出てきた名前の和集合。片方にしか無いパスも表示に出るようにする。
             std::vector<std::string> names;
             names.reserve(cpuTimings.size() + gpuTimings.size());
             for (const auto& pair : cpuTimings) names.push_back(pair.first);
@@ -134,9 +134,9 @@ void Editor::DrawStatistics()
         ImGui::Text("Workers: %zu", workerCount);
         ImGui::Text("Active Jobs: %d", activeJobs);
         ImGui::Text("Queued Jobs: %zu", JobSystem::Instance().GetQueuedJobCount());
-        // On a small navmesh, findPath finishes in well under a frame - "Active Jobs" flickering
-        // to 1 is easy to miss just by eye. This total keeps counting up as long as async path
-        // recomputes (NavMeshManager::MoveToward) are actually happening.
+        // 小さいNavMeshだとfindPathは1フレームより十分速く終わるので、「Active Jobs」が
+        // 1になる瞬間を目で追うのは難しい。この合計値は、非同期の経路再計算
+        // (NavMeshManager::MoveToward)が実際に起きている限り増え続ける。
         ImGui::Text("Async Path Recomputes: %d", NavMeshManager::Instance().GetAsyncRecomputeCount());
 
         std::vector<bool> workerStatuses = JobSystem::Instance().GetWorkerStatuses();

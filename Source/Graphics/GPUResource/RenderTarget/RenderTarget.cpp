@@ -1,4 +1,4 @@
-#include "../../../Pch.h"
+﻿#include "../../../Pch.h"
 #include "RenderTarget.h"
 bool RenderTarget::Create(int width, int height, DXGI_FORMAT format)
 {
@@ -42,9 +42,10 @@ bool RenderTarget::Create(int width, int height, DXGI_FORMAT format)
 	D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle = m_device->GetImGuiSRVHeap()->GetCPUDescriptorHandleForHeapStart();
 	cpuHandle.ptr += m_device->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * m_imGuiSrvIndex;
 	m_device->GetDevice()->CreateShaderResourceView(m_resource.Get(), &srvDesc, cpuHandle);
-	// DepthStencil??
+	// DepthStencil。SRVからも読めるように(DOF/SSAO/SSR等)、DSVと同じ理由でTypelessにしておき、
+	// DSV側はD32_FLOAT、SRV側はR32_FLOATとしてそれぞれ見る(DepthStencilクラスと同じ手法)。
 	D3D12_RESOURCE_DESC depthResDesc = resDesc;
-	depthResDesc.Format = DXGI_FORMAT_D32_FLOAT;
+	depthResDesc.Format = DXGI_FORMAT_R32_TYPELESS;
 	depthResDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 	D3D12_CLEAR_VALUE depthClearValue = {};
 	depthClearValue.Format = DXGI_FORMAT_D32_FLOAT;
@@ -55,6 +56,8 @@ bool RenderTarget::Create(int width, int height, DXGI_FORMAT format)
 	if (FAILED(hr)) return false;
 	// DSV??
 	m_dsvIndex = m_device->CreateDSV(m_pDepthBuffer.Get(), DXGI_FORMAT_D32_FLOAT);
+	// SRV (Typelessなので CreateSRV が自動でR32_FLOATとして解釈する)
+	m_depthSrvIndex = m_device->CreateSRV(m_pDepthBuffer.Get());
 	return true;
 }
 void RenderTarget::Clear(float r, float g, float b, float a)

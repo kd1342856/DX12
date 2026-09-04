@@ -43,8 +43,9 @@ cbuffer cbPerMaterial : register(b2)
     float g_emissiveStrength;
     float3 g_emissiveFactor;
     int g_alphaMode; // 0:Opaque, 1:Mask, 2:Blend
-    int g_proceduralType; // 0:None, 1:Blood, 2:Cobweb
-    float2 pad;
+    int g_proceduralType; // 0:None, 1:Blood, 2:Cobweb, 3:Glass, 4:Dissolve
+    float g_dissolveAmount; // Dissolve用: 0=通常表示, 1=完全に消滅
+    float pad;
 };
 
 // ?e?N?X?`??
@@ -57,6 +58,8 @@ Texture2D g_occlusionMap_white : register(t4); // ?I?N???[?W?????}?b?v (GLTF: R=
 Texture2D g_opaqueDepth : register(t9); // Opaqueパスで書き込まれた深度バッファ
 Texture2D g_refractionMap : register(t10); // Opaqueパスのカラー結果（屈折用）
 Texture2D g_planarReflectionMap : register(t11); // 平面反射パスのカラー結果
+Texture2D g_ssaoMap : register(t12); // SSAO結果(画面空間、環境光に掛ける)
+Texture2D g_pointLightShadowMap : register(t13); // 最も近いポイントライトの簡易シャドウマップ
 
 //========================================================
 // ???`??p?\????

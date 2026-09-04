@@ -229,4 +229,34 @@ void RegisterComponentSerializers() {
             }
             return false;
         });
+
+    reg.Register("PointLightData",
+        [](ECSCoordinator& ecs, Entity e, const nlohmann::json& cj, GameObject* obj) {
+            PointLightData d;
+            if (cj.contains("Color")) { d.m_color = {cj["Color"][0], cj["Color"][1], cj["Color"][2]}; }
+            if (cj.contains("Intensity")) d.m_intensity = cj["Intensity"];
+            if (cj.contains("Range")) d.m_range = cj["Range"];
+            if (cj.contains("Enabled")) d.m_enabled = cj["Enabled"];
+            if (cj.contains("FlickerEnabled")) d.m_flickerEnabled = cj["FlickerEnabled"];
+            if (cj.contains("FlickerSpeed")) d.m_flickerSpeed = cj["FlickerSpeed"];
+            if (cj.contains("FlickerIntensity")) d.m_flickerIntensity = cj["FlickerIntensity"];
+            if (cj.contains("FlickerSeed")) d.m_flickerSeed = cj["FlickerSeed"];
+            else d.m_flickerSeed = static_cast<float>(rand() % 1000) * 0.01f; // 位相をずらす
+            ecs.AddComponent(e, d);
+        },
+        [](ECSCoordinator& ecs, Entity e, nlohmann::json& cj, GameObject* obj) -> bool {
+            if (auto* p_d = ecs.TryGetComponent<PointLightData>(e)) {
+                cj["Color"] = {p_d->m_color.x, p_d->m_color.y, p_d->m_color.z};
+                cj["Intensity"] = p_d->m_intensity;
+                cj["Range"] = p_d->m_range;
+                cj["Enabled"] = p_d->m_enabled;
+                cj["FlickerEnabled"] = p_d->m_flickerEnabled;
+                cj["FlickerSpeed"] = p_d->m_flickerSpeed;
+                cj["FlickerIntensity"] = p_d->m_flickerIntensity;
+                cj["FlickerSeed"] = p_d->m_flickerSeed;
+                return true;
+            }
+            return false;
+        });
+    reg.RegisterAlias("PointLightComponent", "PointLightData");
 }

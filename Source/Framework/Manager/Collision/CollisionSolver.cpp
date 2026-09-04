@@ -1,4 +1,4 @@
-#include "../../../Pch.h"
+﻿#include "../../../Pch.h"
 #include "CollisionSolver.h"
 #include "../Asset/MeshManager.h"
 #include <iostream>
@@ -188,11 +188,11 @@ bool CheckCollisionShape(CollisionResult& result,
         Mesh* mesh = MeshManager::Instance().Get(meshHandle);
         if (!mesh) continue;
 
-        // Broad-phase: reject this whole mesh with one box test instead of transforming
-        // every vertex of every triangle just to find out none of them are anywhere near
-        // shapeA. This is what made mesh colliders (e.g. level geometry) cost time
-        // proportional to their total triangle count on every check, regardless of how
-        // small/far away shapeA actually was.
+        // ブロードフェーズ: 全三角形の全頂点を変換して結局shapeAの近くには
+        // どれも無いと分かるくらいなら、ボックス1回の判定でこのメッシュ全体を
+        // 棄却する。これが無いと、メッシュコライダー(レベルジオメトリ等)は
+        // shapeAが実際どれだけ小さい/遠いかに関わらず、判定のたびに三角形の
+        // 総数に比例したコストがかかっていた。
         DirectX::BoundingBox worldMeshAABB;
         mesh->GetLocalAABB().Transform(worldMeshAABB, mNodeWorld);
         if (!worldMeshAABB.Intersects(shapeA->m_worldAABB)) continue;

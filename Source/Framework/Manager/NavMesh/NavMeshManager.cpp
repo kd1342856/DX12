@@ -1,4 +1,4 @@
-#include "../../../Pch.h"
+﻿#include "../../../Pch.h"
 #include "NavMeshManager.h"
 #include "../Asset/MeshManager.h"
 #include "../../../Application/Object/Script/System/RoomArea.h"
@@ -992,11 +992,11 @@ bool NavMeshManager::FindPath(
     outPath.clear();
     if (!m_navQuery || !m_navMesh) return false;
 
-    // FindPath can now run on a JobSystem worker thread (see MoveToward) while the main
-    // thread is still free to call IsReachable() etc. - both touch the same dtNavMeshQuery,
-    // which isn't safe to use from more than one thread concurrently, hence the lock here
-    // and in IsReachable(). Held for the whole function; findPath itself is fast enough
-    // on a navmesh this size that serializing it isn't a real cost.
+    // FindPathは今やJobSystemのワーカースレッドで実行され得る(MoveToward参照)一方、
+    // メインスレッドは引き続きIsReachable()等を自由に呼べる - どちらも同じdtNavMeshQueryを
+    // 触るが、複数スレッドから同時に使うのは安全ではないため、こことIsReachable()で
+    // ロックしている。関数全体で保持する; findPath自体はこの規模のNavMeshなら十分速いので、
+    // 直列化しても実質的なコストにはならない。
     std::lock_guard<std::mutex> lock(m_navQueryMutex);
 
     // Vertical extent must stay well under the ~4.3m floor-to-floor gap in this house - too large
@@ -1087,10 +1087,10 @@ Math::Vector3 NavMeshManager::MoveToward(
     if (!cache.computing) cache.computing = std::make_shared<std::atomic<bool>>(false);
     if (!cache.pending) cache.pending = std::make_shared<AsyncPathResult>();
 
-    // Absorb a finished background recompute, if one's ready, before deciding whether to
-    // start another. The mover just keeps following the *previous* cache.waypoints while a
-    // recompute is in flight - no stall, no snap, exactly "walk toward the waypoint already
-    // known while the next one is worked out in the background".
+    // 新しく再計算を始めるか決める前に、完了しているバックグラウンド再計算があれば
+    // 取り込む。再計算が進行中の間も、移動主体は*それまでの*cache.waypointsをそのまま
+    // 辿り続ける - 停止もスナップもしない。まさに「既に分かっているウェイポイントに
+    // 向かって歩きつつ、裏で次のウェイポイントを計算する」という動き。
     {
         std::lock_guard<std::mutex> lock(cache.pending->mutex);
         if (cache.pending->ready)
@@ -1102,23 +1102,25 @@ Math::Vector3 NavMeshManager::MoveToward(
         }
     }
 
-    // Recompute only when there's an actual reason to: no path yet, the target has genuinely moved
-    // (a live Hunt target, say), or a long safety-net interval has passed in case something else
-    // changed underneath us. Recomputing on a short fixed timer *regardless of whether anything
-    // changed* used to replace a perfectly good, still-in-progress path with a slightly different
-    // one at the smallest positional noise (most visibly at a narrow clipped connector, where two
-    // recomputes a moment apart can each resolve to a marginally different route through it) -
-    // from the mover's point of view that looks like committing to a waypoint and then immediately
-    // reversing, over and over, since the just-started path never gets a chance to finish.
+    // 実際に理由がある時だけ再計算する: まだ経路が無い、ターゲットが本当に動いた
+    // (Huntのライブターゲット等)、または何か他のことが裏で変わっている可能性に備えた
+    // 長めの安全網インターバルが経過した、のいずれか。*何も変わっていなくても*短い
+    // 固定タイマーで再計算していた頃は、位置のわずかなノイズだけで、完璧にまだ進行中の
+    // 経路をわずかに違う経路に置き換えてしまっていた(狭く区切られたコネクタで特に
+    // 顕著で、少し間を置いた2回の再計算がそれぞれ微妙に違うルートに解決することがある)
+    // - 移動主体側から見ると、ウェイポイントに向かい始めた直後にすぐ反転する、を
+    // 延々と繰り返しているように見える。始まったばかりの経路が完了する機会を
+    // 一度も得られないため。
     const float kTargetMovedThreshold = 1.0f;
     bool targetMoved = cache.hasTarget && (target - cache.lastTarget).LengthSquared() > (kTargetMovedThreshold * kTargetMovedThreshold);
     cache.timer -= deltaTime;
-    // "waypoints.empty()" only forces an immediate recompute the first time we're ever asked
-    // for this target (hasTarget false) - once we've already computed for it, an empty list
-    // just means we arrived, not "try again right now". Without the !hasTarget guard this
-    // re-fires every single frame while sitting at the destination waiting for a new order
-    // (visible as Async Path Recomputes climbing rapidly while idle - a job that immediately
-    // starts, finishes, and gets re-triggered next frame, forever, until the target changes).
+    // "waypoints.empty()" が即座の再計算を強制するのは、このターゲットについて
+    // 一度も問い合わせていない時(hasTarget が false)だけにしている - 既に計算済みの
+    // 場合、リストが空なのは単に到着したことを意味するだけで、「今すぐもう一度試す」
+    // ではない。!hasTarget のガードが無いと、目的地に座って次の指示を待っている間
+    // 毎フレーム発火し続けてしまう(Async Path Recomputesがアイドル中に急増して見える -
+    // ジョブが即座に開始・完了し、ターゲットが変わるまで延々と次のフレームで
+    // 再トリガーされる)。
     bool needsRecompute = (cache.waypoints.empty() && !cache.hasTarget) || targetMoved || cache.timer <= 0.0f;
 
     if (needsRecompute && !cache.computing->load(std::memory_order_acquire))
@@ -1128,9 +1130,9 @@ Math::Vector3 NavMeshManager::MoveToward(
         cache.lastTarget = target;
         cache.hasTarget = true;
 
-        // pending/computing are shared_ptrs, kept alive by this lambda independent of
-        // PathCache/m_pathCache's own lifetime - safe even if ClearPath() erases this
-        // entity's cache entry while the job is still running (see AsyncPathResult's comment).
+        // pending/computingはshared_ptrで、このラムダによってPathCache/m_pathCache自体の
+        // 寿命とは独立して生かされる - ジョブがまだ実行中の間にClearPath()がこの
+        // エンティティのキャッシュエントリを消しても安全(AsyncPathResultのコメント参照)。
         auto pending = cache.pending;
         auto computing = cache.computing;
         Math::Vector3 startCopy = current;
@@ -1138,15 +1140,16 @@ Math::Vector3 NavMeshManager::MoveToward(
 
         JobSystem::Instance().Execute([this, startCopy, targetCopy, pending, computing]() {
             std::vector<Math::Vector3> result;
-            FindPath(startCopy, targetCopy, result); // internally locks m_navQueryMutex
+            FindPath(startCopy, targetCopy, result); // 内部でm_navQueryMutexをロックする
             m_asyncRecomputeCount.fetch_add(1, std::memory_order_relaxed);
 
             std::lock_guard<std::mutex> lock(pending->mutex);
             pending->waypoints = std::move(result);
             pending->ready = true;
-            // 'computing' is intentionally left true here - MoveToward's absorb step above
-            // clears it once it actually picks up this result, so a second job can't start
-            // (and overwrite 'pending' mid-read) before that happens.
+            // 'computing' はここでは意図的にtrueのままにしている - 上のMoveTowardの
+            // 取り込みステップが実際にこの結果を受け取った時点でクリアされるので、
+            // それより前に2つ目のジョブが始まって('pending'を読み取り中に上書きする)
+            // しまうことはない。
         });
     }
 
@@ -1225,8 +1228,8 @@ bool NavMeshManager::IsReachable(const Math::Vector3& start, const Math::Vector3
     // to explicitly verify the path actually terminates at the destination polygon.
     if (!m_navQuery || !m_navMesh) return false;
 
-    // See the lock in FindPath() - the same dtNavMeshQuery can now be touched concurrently
-    // by a background path recompute (MoveToward) and this (still main-thread) call.
+    // FindPath()のロックを参照 - 同じdtNavMeshQueryに、バックグラウンドの経路再計算
+    // (MoveToward)とこの呼び出し(今も引き続きメインスレッド)が同時に触り得るようになった。
     std::lock_guard<std::mutex> lock(m_navQueryMutex);
 
     // Kept in sync with FindPath()'s extents - see its comment for why the vertical component must
@@ -1256,13 +1259,13 @@ bool NavMeshManager::IsReachable(const Math::Vector3& start, const Math::Vector3
         return false;
     }
 
-    // NOTE: this used to unconditionally log every call here. IsReachable() is called
-    // frequently (e.g. GhostAI filtering candidate rooms every time it picks a new
-    // wander target), and each Logger::AddLog() call is a synchronous disk write -
-    // that was adding real per-frame cost for a result callers already get as the
-    // return value. Keep this call silent on the (expected, common) success/failure
-    // path; the two branches above still log the genuinely unexpected cases (no
-    // nearby polygon, findPath returning nothing).
+    // 注: ここは以前、呼ばれるたびに無条件でログを出していた。IsReachable()は
+    // 頻繁に呼ばれる(例: GhostAIが新しい徘徊先を選ぶたびに候補の部屋をフィルタする)
+    // ため、Logger::AddLog()の呼び出し1回1回が同期のディスク書き込みであり、
+    // 呼び出し側が戻り値として既に受け取っている結果のために実質的な毎フレームの
+    // コストを追加していた。この呼び出しは(想定内でよくある)成功/失敗の経路では
+    // 静かにしておく; 上の2つの分岐は、本当に想定外のケース(近くにポリゴンが無い、
+    // findPathが何も返さない)は引き続きログに残す。
     return path[pathCount - 1] == endRef;
 }
 

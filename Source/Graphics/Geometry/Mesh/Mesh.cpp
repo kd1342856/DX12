@@ -1,4 +1,4 @@
-#include "../../../Pch.h"
+﻿#include "../../../Pch.h"
 #include "../../../Framework/DirectX/Utility/Profiler.h"
 #include "Mesh.h"
 #include "../../Device/ResourceUploader.h"
@@ -22,8 +22,8 @@ void Mesh::CreateGPU(GraphicsDevice* pDevice,
     m_faces         = faces;
     m_instanceCount = static_cast<UINT>(faces.size() * 3);
 
-    // Local-space AABB, used by mesh-collider checks to reject this whole mesh with one
-    // box test instead of transforming every vertex just to find nothing is close.
+    // ローカル空間のAABB。メッシュコライダーの判定で、全頂点を変換して結局何も近くに
+    // 無いと分かるくらいなら、ボックス1回の判定でこのメッシュ全体を早期棄却するのに使う。
     if (!m_vertices.empty())
     {
         DirectX::XMFLOAT3 minP = m_vertices[0].Position;

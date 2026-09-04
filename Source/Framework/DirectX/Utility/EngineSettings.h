@@ -1,13 +1,13 @@
-#pragma once
+﻿#pragma once
 
-// Tiny persisted-settings helper for options that can only take effect at process
-// startup (e.g. the D3D12 debug layer, which must be enabled before the device is
-// created and can't be toggled live). An ImGui checkbox can still let the user flip
-// these - the value is saved to disk and picked up on the *next* launch.
+// プロセス起動時にしか反映できないオプション（例: D3D12デバッグレイヤーはデバイス作成前
+// にしか有効化できず、ライブ切り替えができない）のための小さな永続設定ヘルパー。ImGuiの
+// チェックボックスで切り替えられるようにはできる - 値はディスクに保存され、*次回*起動時に
+// 反映される。
 //
-// File format is deliberately trivial: one "Key=0"/"Key=1" line per setting in
-// EngineSettings.ini next to the executable. Add new keys the same way as
-// EnableD3D12DebugLayer below if more startup-only toggles are needed later.
+// ファイル形式はあえて単純にしていて、exeと同じフォルダのEngineSettings.iniに設定ごとに
+// "Key=0"/"Key=1" の行が1つ。今後起動時専用のトグルを増やす場合は、下のEnableD3D12DebugLayer
+// と同じやり方でキーを追加すること。
 class EngineSettings
 {
 public:
@@ -33,19 +33,18 @@ private:
 
     EngineSettings() { Load(); }
 
-    // Resolved once and reused, rather than using a bare relative "EngineSettings.ini" -
-    // that only ever finds the same file if the process's current working directory happens
-    // to be identical every time it's launched. Launching via Visual Studio (CWD = project
-    // dir) vs. double-clicking the exe (CWD = its own folder) vs. the "Apply & Restart"
-    // button would each read/write a *different* file, silently defaulting settings back to
-    // their fallback value depending on which one you happened to use last (exactly what
-    // made the D3D12 debug layer checkbox look like it wasn't sticking). The exe's own
-    // directory is the one thing every launch method has in common.
+    // 単純な相対パス "EngineSettings.ini" ではなく、一度だけ解決して使い回す - 相対パスだと、
+    // プロセスのカレントディレクトリが毎回同じ場合しか同じファイルを見つけられない。
+    // Visual Studioからの起動(CWD=プロジェクトルート)、exeを直接ダブルクリック
+    // (CWD=exe自身のフォルダ)、「Apply & Restart」ボタン、それぞれで別々のファイルを
+    // 読み書きしてしまい、最後にどれを使ったかによって設定が黙って既定値に戻ってしまう
+    // （まさにD3D12デバッグレイヤーのチェックボックスが反映されていないように見えた原因）。
+    // exe自身のフォルダは、どの起動方法でも共通する唯一の場所。
     static std::string GetSettingsFilePath()
     {
         wchar_t exePath[MAX_PATH];
         DWORD len = GetModuleFileNameW(nullptr, exePath, MAX_PATH);
-        if (len == 0 || len >= MAX_PATH) return "EngineSettings.ini"; // fallback: CWD-relative
+        if (len == 0 || len >= MAX_PATH) return "EngineSettings.ini"; // フォールバック: CWD相対
 
         std::wstring path(exePath, len);
         size_t slash = path.find_last_of(L"\\/");

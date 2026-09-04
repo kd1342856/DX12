@@ -1,4 +1,4 @@
-#include "../../../Pch.h"
+﻿#include "../../../Pch.h"
 
 #include "../../../Framework/Manager/Asset/AssetManager.h"
 #include "../../../Framework/Manager/Asset/LoadModelOption.h"
@@ -34,7 +34,7 @@ bool ModelData::TryGetLocalBounds(DirectX::BoundingBox& outBounds) const
 		for (const auto& meshHandle : node.meshes)
 		{
 			Mesh* pMesh = MeshManager::Instance().Get(meshHandle);
-			if (!pMesh || !pMesh->IsReady()) return false; // some mesh not ready - try again next frame
+			if (!pMesh || !pMesh->IsReady()) return false; // まだ準備できていないメッシュがある - 次のフレームで再挑戦
 
 			const DirectX::BoundingBox& meshBounds = pMesh->GetLocalAABB();
 			if (!any)
@@ -49,7 +49,7 @@ bool ModelData::TryGetLocalBounds(DirectX::BoundingBox& outBounds) const
 		}
 	}
 
-	if (!any) return false; // no meshes at all (yet?) - nothing to cull against
+	if (!any) return false; // メッシュが(まだ)1つも無い - カリングの判定対象が無い
 
 	m_localBounds = merged;
 	m_localBoundsComputed = true;

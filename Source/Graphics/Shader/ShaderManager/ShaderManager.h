@@ -35,14 +35,26 @@ public:
 	ShadowSettings& GetShadowSettings() { return m_ShadowSettings; }
 	IBLSettings& GetIBLSettings() { return m_IBLSettings; }
 	PostProcessSettings& GetPostProcessSettings() { return m_PostProcessSettings; }
+	SSAOSettings& GetSSAOSettings() { return m_SSAOSettings; }
 	DebugSettings& GetDebugSettings() { return m_DebugSettings; }
 	FogSettings& GetFogSettings() { return m_FogSettings; }
 
 	const CBufferData::System& GetSystemData() const { return m_SystemData; }
 	const CBufferData::PostProcess& GetPostProcessData() const { return m_PostProcessData; }
 	const CBufferData::Light& GetLightData() const { return m_LightData; }
+	// LightSystemがポイントライト配列(PL/PL_Count)を毎フレーム書き込むための可変アクセス。
+	CBufferData::Light& GetMutableLightData() { return m_LightData; }
 
 	void SetDirectionalLightMatrix(const Math::Matrix& m) { m_LightData.DL_mLightVP[0] = m; }
+
+	// 最も近いポイントライト(g_PL[0])の簡易シャドウ(単一パースペクティブ)用データ。
+	// enabled=falseの時はシェーダー側で影計算そのものをスキップする。
+	void SetPointLightShadowData(const Math::Matrix& vp, float bias, bool enabled)
+	{
+		m_LightData.PL0_ShadowVP = vp;
+		m_LightData.PL0_ShadowBias = bias;
+		m_LightData.PL0_ShadowEnabled = enabled ? 1 : 0;
+	}
 
 	// Increments/decrements the count of ghosts currently hunting. While the count is > 0
 	// the fog density and screen darkening both blend toward their "hunt" values (a counter,
@@ -61,6 +73,25 @@ public:
 	{
 		m_SystemData.mReflectionVP = viewProj;
 		m_SystemData.HasReflection = hasReflection ? 1 : 0;
+	}
+
+	// DOFの深度リニア化に使うアクティブカメラのNear/Far。RenderScene呼び出し側(GameScene)が
+	// 毎フレーム、実際に描画に使ったカメラの値で更新する。
+	void SetCameraNearFar(float nearZ, float farZ)
+	{
+		m_PostProcessData.CameraNear = nearZ;
+		m_PostProcessData.CameraFar = farZ;
+	}
+
+	// God Raysの光源スクリーン座標。GameScene側で平行光の方向とカメラ行列から毎フレーム計算する。
+	// isValid=false(光源がカメラの後ろ等)の時はGodRays設定が有効でも今フレームは描画しない。
+	// EnableGodRaysもここで確定させる(UpdateConstantBuffers()はDoPostProcessより前に走るため、
+	// IsDirty待ちにすると1フレーム遅れてしまう)。
+	void SetGodRaysLightScreenPos(float u, float v, bool isValid)
+	{
+		m_PostProcessData.GodRaysLightU = u;
+		m_PostProcessData.GodRaysLightV = v;
+		m_PostProcessData.EnableGodRays = (m_PostProcessSettings.EnableGodRays && isValid) ? 1 : 0;
 	}
 
 	ShaderProgram* LoadShader(const std::wstring& vsPath, const std::wstring& psPath);
@@ -85,6 +116,7 @@ private:
 	ShadowSettings m_ShadowSettings;
 	IBLSettings m_IBLSettings;
 	PostProcessSettings m_PostProcessSettings;
+	SSAOSettings m_SSAOSettings;
 	DebugSettings m_DebugSettings;
 	FogSettings m_FogSettings;
 

@@ -1,4 +1,4 @@
-#include "RendererPanel.h"
+﻿#include "RendererPanel.h"
 #include "../EditorContext.h"
 #include "../../../../Library/ImGui/imgui.h"
 #include "../../../Graphics/Device/GraphicsDevice.h"
@@ -7,20 +7,19 @@
 #ifdef _DEBUG
 namespace
 {
-    // Live-recreating the D3D12 device (swapchain, every mesh/texture/PSO, ImGui, ...) to
-    // apply a debug-layer change without restarting is a lot of invasive, risky work for
-    // what it buys. Spawning a fresh copy of the process and quitting this one gets the
-    // same "one click, no manual restart" experience with none of that risk.
+    // D3D12デバイス(スワップチェーン、全メッシュ/テクスチャ/PSO、ImGui等)をライブ再作成して
+    // デバッグレイヤーの変更を再起動無しで反映するのは、得られるものの割に侵襲的で
+    // リスクの大きい作業。プロセスの新しいコピーを起動してこちらを終了する方が、
+    // そのリスク無しで同じ「ワンクリックで手動再起動不要」という体験を得られる。
     void RelaunchApplication()
     {
         wchar_t exePath[MAX_PATH];
         if (GetModuleFileNameW(nullptr, exePath, MAX_PATH) == 0) return;
 
-        // Explicitly pass this process's *current* working directory rather than leaving
-        // lpCurrentDirectory null and trusting inheritance. This process resolves things
-        // like dxcompiler.dll via a CWD-relative search, so whatever CWD got it running is
-        // known-good right now - capture and reuse it instead of assuming the child would
-        // end up with the same one.
+        // lpCurrentDirectoryをnullのままにして継承に任せるのではなく、このプロセスの
+        // *現在の*作業ディレクトリを明示的に渡す。このプロセスはdxcompiler.dll等を
+        // CWD相対の検索で解決しているので、今動けているそのCWDは確実に正しい -
+        // 子プロセスも同じになると仮定するのではなく、それを捕まえて使い回す。
         wchar_t cwd[MAX_PATH];
         DWORD cwdLen = GetCurrentDirectoryW(MAX_PATH, cwd);
         const wchar_t* pCwd = (cwdLen > 0 && cwdLen < MAX_PATH) ? cwd : nullptr;
@@ -33,8 +32,8 @@ namespace
             CloseHandle(pi.hThread);
         }
 
-        // Same thread as the Win32 message loop (Window::ProcessMessage), so this is picked
-        // up on its next PeekMessage and runs the normal shutdown path cleanly.
+        // Win32メッセージループ(Window::ProcessMessage)と同じスレッドなので、次の
+        // PeekMessageで拾われて、通常のシャットダウン処理がきれいに走る。
         PostQuitMessage(0);
     }
 }
@@ -49,6 +48,15 @@ void RendererPanel::Draw(EditorContext& ctx)
             bool changed = false;
 
             if (ImGui::Checkbox("Enable PBR", &ctx.Renderer->EnablePBR)) changed = true;
+
+            ImGui::Separator();
+            ImGui::Text("SSR (Screen Space Reflection)");
+            if (ImGui::Checkbox("Enable SSR", &ctx.Renderer->EnableSSR)) changed = true;
+            if (ImGui::SliderFloat("SSR Step Size", &ctx.Renderer->SSRStepSize, 0.05f, 1.5f, "%.2f")) changed = true;
+            if (ImGui::IsItemHovered())
+            {
+                ImGui::SetTooltip("平面反射(専用の反射カメラ)が設定されていないガラス面のフォールバック。\nOpaqueパスの深度/カラーだけでレイマーチするため、Opaque材質自身には効かない(既知の制限)。");
+            }
 
             if (changed) {
                 ctx.Renderer->IsDirty = true;
@@ -70,10 +78,11 @@ void RendererPanel::Draw(EditorContext& ctx)
 
 #ifdef _DEBUG
         ImGui::Separator();
-        // Ground truth for what's actually running *this* session, decided once in
-        // GraphicsDevice::Init() - independent of the checkbox below, so there's no need to
-        // infer it from fps. If this doesn't match the checkbox, the checkbox reflects what
-        // will happen on the *next* launch (see the tooltip) - it never applies live.
+        // このセッションで実際に動いているものの実測値。GraphicsDevice::Init()で
+        // 一度だけ決まる - 下のチェックボックスとは独立しているので、fpsから
+        // 推測する必要が無い。これがチェックボックスと食い違っている場合、
+        // チェックボックスは*次回*起動時に何が起こるかを表している(ツールチップ参照) -
+        // ライブには決して反映されない。
         ImGui::Text("Debug Layer Active This Session: %s", GraphicsDevice::IsDebugLayerActive() ? "ON" : "OFF");
 
         static bool s_debugLayerRequested = GraphicsDevice::IsDebugLayerRequested();

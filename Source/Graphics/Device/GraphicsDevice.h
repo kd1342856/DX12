@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <mutex>
 
 class DescriptorHeapManager;
@@ -37,6 +37,10 @@ public:
 	// �����_�[�^�[�Q�b�g�ݒ�
 	void SetRenderTarget(RenderTarget* pRT);
 	void TransitionToSRV(RenderTarget* pRT);
+	// RenderTarget専用の深度バッファ(pRT->GetDepthSRVIndex())の状態遷移。
+	// DEPTH_WRITE(描画時) <-> PIXEL_SHADER_RESOURCE(DOF/SSAO/SSR等で読む時) を切り替える。
+	void TransitionDepthToSRV(RenderTarget* pRT);
+	void TransitionDepthToWrite(RenderTarget* pRT);
 	void SetBackBuffer();
 	void ClearBackBuffer(float r, float g, float b, float a);
 
@@ -59,6 +63,7 @@ public:
 	const FrameConstantBufferAllocator* GetFrameConstantBufferAllocator() const { return m_upFrameManager->GetCurrentFrameResource().GetConstantBufferAllocator(); }
 	DepthStencil* GetDepthStencil()const { return m_upDepthStencil.get(); } 
 	DepthStencil* GetShadowMap()const { return m_upShadowMap.get(); }
+	DepthStencil* GetPointLightShadowMap()const { return m_upPointLightShadowMap.get(); }
 	
 
 
@@ -79,14 +84,14 @@ public:
 	void Shutdown();
 	void EnableDebugLayer();
 
-	// Persisted toggle for the D3D12 debug layer (Debug builds only). It can only be
-	// enabled/disabled before the device is created, so this doesn't take effect until
-	// the next launch - see the checkbox in RendererPanel and the comment in Init().
+	// D3D12デバッグレイヤーの永続化トグル(Debugビルドのみ)。デバイス作成前にしか
+	// 有効/無効を切り替えられないため、次回起動まで反映されない
+	// - RendererPanelのチェックボックスとInit()内のコメントを参照。
 	static bool IsDebugLayerRequested();
 	static void SetDebugLayerRequested(bool enabled);
-	// Whether the debug layer is actually active *this* run (decided once, in Init()) -
-	// as opposed to IsDebugLayerRequested(), which reflects the checkbox and may already
-	// differ if the user just toggled it and hasn't restarted yet.
+	// このセッションで実際にデバッグレイヤーが有効かどうか(Init()で一度だけ決まる) -
+	// IsDebugLayerRequested()はチェックボックスの状態を反映するもので、ユーザーが
+	// 今しがた切り替えて未再起動の場合はこの値と食い違うことがある。
 	static bool IsDebugLayerActive() { return s_debugLayerActive; }
 
 	ID3D12DescriptorHeap* GetImGuiSRVHeap() const { return m_upImGuiSRVHeap.Get(); }
@@ -142,6 +147,7 @@ public:
 
 	std::unique_ptr<DepthStencil>			m_upDepthStencil = nullptr;
 	std::unique_ptr<DepthStencil>			m_upShadowMap = nullptr;
+	std::unique_ptr<DepthStencil>			m_upPointLightShadowMap = nullptr;
 	std::unique_ptr<ResourceStateTracker> m_upResourceStateTracker = nullptr;
 	std::unique_ptr<ResourceUploader> m_upResourceUploader = nullptr;
 	std::unique_ptr<ResourceLifetimeManager> m_upResourceLifetimeManager = nullptr;

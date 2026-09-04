@@ -26,8 +26,9 @@ struct MaterialConstants
     float emissiveFactorZ = 0.0f;
     
     int alphaMode = 0; // 0:Opaque, 1:Mask, 2:Blend
-    int proceduralType = 0; // 0:None, 1:Blood, 2:Cobweb
-    float pad[2];
+    int proceduralType = 0; // 0:None, 1:Blood, 2:Cobweb, 3:Glass, 4:Dissolve
+    float dissolveAmount = 0.0f; // Dissolve用: 0=通常表示, 1=完全に消滅
+    float pad[1];
 };
 
 class Material

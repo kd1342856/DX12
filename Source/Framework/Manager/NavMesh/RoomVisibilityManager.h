@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <vector>
 #include <unordered_map>
@@ -9,37 +9,35 @@ class RoomArea;
 class Mesh;
 using Entity = uint32_t;
 
-// Portal/room-based occlusion culling. Frustum culling alone still draws a room that's
-// technically inside the view frustum but hidden behind walls (e.g. looking at the house
-// from outside - every room on the far side is still "in view" as far as the frustum is
-// concerned). This adds a second filter on top: only meshes belonging to the room the
-// camera is currently in, or a room reachable from it through an open door, are visible.
+// ポータル/ルーム単位のオクルージョンカリング。フラスタムカリングだけだと、視錐台には
+// 入っているが壁に隠れて見えないはずの部屋まで描いてしまう（例: 家の外から見た時、
+// 反対側の部屋も視錐台上は「見えている」扱いになる）。これはその上にもう1段フィルタを
+// 重ねるもので、カメラが今いる部屋のメッシュ、または開いているドア経由で辿れる部屋の
+// メッシュだけを可視とする。
 //
-// Reuses the RoomArea components already placed for NavMesh (GameSequence::GetRooms()) -
-// no additional level authoring needed. Room adjacency is inferred once from which room
-// AABBs are close enough to share a wall. Each adjacency edge is then matched, by
-// position, against a door's "Door..."-named animation (the same detection Player's
-// TryInteractDoor already uses) - if a door is found for that edge its open/closed state
-// (RuntimeAnimationData::ProgressTime) gates visibility; edges with no matching door
-// (open archways, etc.) stay always-passable.
+// NavMesh用に既に配置されているRoomArea（GameSequence::GetRooms()）をそのまま流用する
+// ので、レベル側の追加作業は不要。部屋同士の隣接関係は、AABBが壁を共有できるくらい
+// 近いかどうかで一度だけ推定する。各隣接エッジは、位置ベースで"Door..."という名前の
+// アニメーションを持つドア（Playerの TryInteractDoor が使っているのと同じ検出方法）と
+// 突き合わせる。該当するドアが見つかればその開閉状態（RuntimeAnimationData::ProgressTime）
+// で可視性を制御し、ドアが見つからないエッジ（開いた通路など）は常に通行可能扱いにする。
 class RoomVisibilityManager
 {
 public:
     static RoomVisibilityManager& Instance();
 
-    // Call once per RenderScene (not per mesh) with the camera's world position. Figures
-    // out which room the camera is in and refreshes the visible-room set from it.
+    // RenderSceneごとに1回（メッシュごとではなく）カメラのワールド座標を渡して呼ぶ。
+    // カメラが今どの部屋にいるかを判定し、可視部屋の集合を更新する。
     void UpdateVisibleRooms(const Math::Vector3& viewerPos);
 
-    // Whether pMesh (whose node/entity is at meshWorldTransform) belongs to a room that's
-    // currently visible. A mesh is assigned to every room its world-space AABB overlaps
-    // (not just the one containing its centroid) - boundary geometry like a window or wall
-    // panel straddling two rooms would otherwise get pinned to whichever room happened to
-    // win an arbitrary tie-break, and could then vanish while standing right next to it.
-    // This is resolved once and cached, so it should only be called for static geometry -
-    // see ModelData::IsNodeAnimated for anything that moves. Meshes that don't overlap any
-    // known room (or when there's no room data at all, or the viewer isn't inside any room)
-    // are never culled by this, only by whatever frustum test the caller also applies.
+    // pMesh（ノード/エンティティはmeshWorldTransformの位置）が、現在可視な部屋に属しているか。
+    // メッシュは、そのワールド空間AABBが重なっている部屋「すべて」に割り当てる（中心点を
+    // 含む部屋1つだけではない）。そうしないと、窓や壁のパネルのように2部屋にまたがる境界
+    // ジオメトリが、たまたま勝った方の部屋に固定されてしまい、すぐ隣に立っているのに
+    // 消えてしまうことがある。この判定は一度だけ行いキャッシュするので、静的なジオメトリ
+    // にのみ呼び出すこと（動くものについては ModelData::IsNodeAnimated を参照）。
+    // どの部屋にも重ならないメッシュ（部屋データが全く無い場合や、視点がどの部屋にも
+    // 入っていない場合も含む）はここではカリングされず、呼び出し側のフラスタム判定にのみ従う。
     bool IsMeshInVisibleRoom(Mesh* pMesh, const Math::Matrix& meshWorldTransform);
 
 private:
@@ -57,11 +55,11 @@ private:
     static uint64_t EdgeKey(int a, int b);
 
     std::vector<RoomArea*> m_rooms;
-    std::vector<DirectX::BoundingBox> m_paddedRoomBoxes; // room AABBs padded outward - shared by adjacency, door matching, and mesh assignment
-    std::vector<std::vector<int>> m_adjacency;         // room index -> adjacent room indices
-    std::unordered_map<uint64_t, DoorLink> m_edgeDoors; // EdgeKey(i,j) -> door, only for edges with a matched door
-    std::unordered_map<Mesh*, std::vector<int>> m_meshRoomIndices; // empty = couldn't place it in a room
+    std::vector<DirectX::BoundingBox> m_paddedRoomBoxes; // 外側にパディングした部屋のAABB - 隣接判定/ドア突き合わせ/メッシュ割り当てで共有
+    std::vector<std::vector<int>> m_adjacency;         // 部屋インデックス -> 隣接する部屋インデックスのリスト
+    std::unordered_map<uint64_t, DoorLink> m_edgeDoors; // EdgeKey(i,j) -> ドア（該当するドアが見つかったエッジのみ）
+    std::unordered_map<Mesh*, std::vector<int>> m_meshRoomIndices; // 空 = どの部屋にも割り当てられなかった
     std::unordered_set<int> m_visibleRoomIndices;
     bool m_graphBuilt = false;
-    bool m_allVisible = true; // true until UpdateVisibleRooms finds the camera inside a known room
+    bool m_allVisible = true; // UpdateVisibleRoomsがカメラを既知の部屋の中に見つけるまではtrue
 };

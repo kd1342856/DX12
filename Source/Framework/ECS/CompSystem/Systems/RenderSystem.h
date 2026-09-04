@@ -1,9 +1,11 @@
-#pragma once
+﻿#pragma once
+#include <algorithm>
 #include "../../../../Graphics/Shader/ShaderLibrary.h"
 #include "../../../../Graphics/Shader/LitShader/LitShader.h"
 #include "../../../../Graphics/Shader/ShadowShader/ShadowShader.h"
 #include "../../../../Graphics/Shader/SkinningShader/SkinningShader.h"
 #include "../../../../Graphics/Shader/SkyShader/SkyShader.h"
+#include "../../../../Graphics/Shader/NormalPrepassShader/NormalPrepassShader.h"
 #include "../../../../Graphics/Renderer/ModelRenderer.h"
 #include "../../../../Graphics/Renderer/Renderer.h"
 #include "../../../../Graphics/Renderer/RenderManager.h"
@@ -29,8 +31,8 @@ public:
 	Entity GetCameraEntity() const { return m_cameraEntity; }
 	void SetCameraEntity(Entity cameraEntity) { m_cameraEntity = cameraEntity; }
 
-	// Runtime toggles for RendererPanel - flip these off to A/B test whether a rendering
-	// glitch is caused by culling (frustum and/or portal/room) or is unrelated to it.
+	// RendererPanel用の実行時トグル - 描画の不具合がカリング（フラスタム/ポータルルーム）に
+	// 起因するのか、それとは無関係なのかをA/Bテストするためにオフにする。
 	static inline bool s_enableFrustumCulling = true;
 	static inline bool s_enableRoomCulling = true;
 
@@ -156,6 +158,108 @@ public:
 			pGraphicsDevice->GetContextManager()->GetGraphicsContext()->FlushResourceBarriers();
 		}
 	}
+
+	// 最も近いポイントライト1灯だけの簡易シャドウ(単一パースペクティブ、真のキューブシャドウではない)。
+	// lightPos: 光源のワールド座標。aimAt: 影を落としたい方向の目標点(通常は視点/プレイヤー位置)。
+	// range: ライトの減衰距離(そのままシャドウ投影のFar面にする)。
+	void RenderPointLightShadow(const Math::Vector3& lightPos, const Math::Vector3& aimAt, float range)
+	{
+		if (!m_pCoordinator) return;
+
+		auto* pGraphicsDevice = &GDF::Instance().GetGraphicsDevice();
+		auto* pCmdList = pGraphicsDevice->GetCmdList();
+
+		auto* pShadowMap = pGraphicsDevice->GetPointLightShadowMap();
+		if (!pShadowMap) return;
+
+		Math::Vector3 aimDir = aimAt - lightPos;
+		if (aimDir.LengthSquared() < 0.0001f) aimDir = Math::Vector3(0, -1, 0);
+		aimDir.Normalize();
+		Math::Vector3 up = (std::abs(aimDir.y) > 0.95f) ? Math::Vector3(1, 0, 0) : Math::Vector3(0, 1, 0);
+
+		auto desc = pShadowMap->GetBuffer()->GetDesc();
+		D3D12_VIEWPORT shadowViewport = {};
+		shadowViewport.Width = (float)desc.Width;
+		shadowViewport.Height = (float)desc.Height;
+		shadowViewport.MinDepth = 0.0f;
+		shadowViewport.MaxDepth = 1.0f;
+		D3D12_RECT shadowScissor = { 0, 0, (LONG)desc.Width, (LONG)desc.Height };
+		pCmdList->RSSetViewports(1, &shadowViewport);
+		pCmdList->RSSetScissorRects(1, &shadowScissor);
+
+		pGraphicsDevice->GetContextManager()->GetGraphicsContext()->TransitionResource(pShadowMap->GetResource(), D3D12_RESOURCE_STATE_DEPTH_WRITE);
+		pGraphicsDevice->GetContextManager()->GetGraphicsContext()->FlushResourceBarriers();
+		pShadowMap->ClearBuffer();
+		auto dsvH = pGraphicsDevice->GetDescriptorHeapManager()->GetDSVAllocator()->GetCPUHandle(pShadowMap->GetDSVNumber());
+		pCmdList->OMSetRenderTargets(0, nullptr, false, &dsvH);
+
+		// 広めのFOV(120度)で単一方向をカバーする近似。真のキューブシャドウではないので、
+		// このFOVの外(=光源からほぼ真後ろ)は影が付かない。
+		Math::Matrix mLightView = Math::Matrix::CreateLookAt(lightPos, lightPos + aimDir, up);
+		Math::Matrix mLightProj = DirectX::XMMatrixPerspectiveFovLH(
+			DirectX::XMConvertToRadians(120.0f), 1.0f, 0.05f, std::max(range, 1.0f));
+		Math::Matrix mLightVP = mLightView * mLightProj;
+
+		RenderContext& context = Renderer::GetContext();
+		Math::Matrix oldView = context.View;
+		Math::Matrix oldProj = context.Projection;
+		context.View = mLightView;
+		context.Projection = mLightProj;
+
+		auto& shadowShader = ShaderLibrary::Instance().Get<ShadowShader>();
+		auto& skinningShader = ShaderLibrary::Instance().Get<SkinningShader>();
+
+		for (auto const& entity : m_entities)
+		{
+			auto& cTransform = m_pCoordinator->GetComponent<TransformData>(entity);
+			auto& cModel = m_pCoordinator->GetComponent<ModelRenderData>(entity);
+			if (cModel.m_isVisible && cModel.m_spModelData && cModel.m_spModelData->IsLoaded())
+			{
+				bool isSkinned = (cModel.m_modelType == ModelType::Dynamic);
+				if (isSkinned) {
+					skinningShader.BeginShadow(context);
+					DrawContext drawCtx;
+					const auto& boneMatrices = cModel.m_spModelData->GetBoneMatrices();
+					drawCtx.BoneMatrices = &boneMatrices;
+					skinningShader.BeginModel(*cModel.m_spModelData, drawCtx);
+				} else {
+					shadowShader.Begin(context);
+				}
+
+				Math::Matrix world = cTransform.m_worldMatrix;
+				const auto& nodes = cModel.m_spModelData->GetNodes();
+				for (const auto& node : nodes) {
+					if (isSkinned) {
+						skinningShader.BeginNode(node, world);
+					} else {
+						Math::Matrix nodeWorld = node.animDeltaTransform * world;
+						shadowShader.BeginNode(node, nodeWorld);
+					}
+
+					for (const auto& meshHandle : node.meshes) {
+						Mesh* pMesh = MeshManager::Instance().Get(meshHandle);
+						if (pMesh) {
+							if (isSkinned) skinningShader.BeforeDrawMesh(*pMesh, pMesh->GetMaterial());
+							else shadowShader.BeforeDrawMesh(*pMesh, pMesh->GetMaterial());
+
+							pMesh->DrawInstanced(pMesh->GetInstanceCount());
+						}
+					}
+				}
+			}
+		}
+
+		context.View = oldView;
+		context.Projection = oldProj;
+
+		// LitShader_PS.hlsl側でNdotLに応じてこの値を最大8倍まで広げる(スロープスケールバイアス)ので、
+		// ここはまっすぐ光を受ける面での最小値だけ決めればよい。
+		ShaderManager::Instance().SetPointLightShadowData(mLightVP, 0.0015f, true);
+
+		pGraphicsDevice->GetContextManager()->GetGraphicsContext()->TransitionResource(pShadowMap->GetResource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+		pGraphicsDevice->GetContextManager()->GetGraphicsContext()->FlushResourceBarriers();
+	}
+
 	void RenderReflection(Entity cameraEntity)
 	{
 		if (!m_pCoordinator) return;
@@ -212,7 +316,52 @@ public:
 		Math::Vector3 refCamForward = Math::Vector3::TransformNormal(camForward, reflectionMatrix);
 		Math::Vector3 refCamUp = Math::Vector3::TransformNormal(camUp, reflectionMatrix);
 
+		// Debug: numeric dump of everything the reflection math uses, throttled to ~1/sec so it's
+		// readable in the editor's Console window instead of eyeballing 3D debug lines.
+		{
+			static int s_dbgFrame = 0;
+			if ((s_dbgFrame++ % 60) == 0)
+			{
+				Logger::Instance().AddLog(Logger::LogLevel::Info,
+					"[Reflection] plane p=(%.2f,%.2f,%.2f) n=(%.2f,%.2f,%.2f)", p.x, p.y, p.z, n.x, n.y, n.z);
+				Logger::Instance().AddLog(Logger::LogLevel::Info,
+					"[Reflection] camPos=(%.2f,%.2f,%.2f) camForward=(%.2f,%.2f,%.2f)", camPos.x, camPos.y, camPos.z, camForward.x, camForward.y, camForward.z);
+				Logger::Instance().AddLog(Logger::LogLevel::Info,
+					"[Reflection] refCamPos=(%.2f,%.2f,%.2f) refCamForward=(%.2f,%.2f,%.2f)", refCamPos.x, refCamPos.y, refCamPos.z, refCamForward.x, refCamForward.y, refCamForward.z);
+
+				// Also log the Player body mesh's own world "forward" (project convention: +Z / Backward()),
+				// so we can tell whether the mesh's front actually points the same way the camera looks.
+				for (auto const& e : m_entities)
+				{
+					auto* cM = m_pCoordinator->TryGetComponent<ModelRenderData>(e);
+					if (!cM || cM->m_filePath.find("Player.gltf") == std::string::npos) continue;
+					auto* cT = m_pCoordinator->TryGetComponent<TransformData>(e);
+					if (!cT) continue;
+					Math::Vector3 modelForward = cT->m_worldMatrix.Backward();
+					Math::Vector3 modelPos = cT->m_worldMatrix.Translation();
+					float dot = modelForward.Dot(camForward);
+					Logger::Instance().AddLog(Logger::LogLevel::Info,
+						"[Reflection] PlayerModel pos=(%.2f,%.2f,%.2f) forward=(%.2f,%.2f,%.2f) dot(vs camForward)=%.2f (%s)",
+						modelPos.x, modelPos.y, modelPos.z, modelForward.x, modelForward.y, modelForward.z, dot,
+						dot > 0 ? "SAME direction as camera" : "OPPOSITE direction from camera");
+					break;
+				}
+			}
+		}
+
 		Math::Vector3 refCamTarget = refCamPos + refCamForward;
+
+		// Debug visualization: real camera direction(yellow), reflected camera position+direction(magenta),
+		// line connecting both(white, should cross the mirror plane). Visible in editor free-cam(F5) debug draw.
+		CollisionManager::Instance().AddDebugLine(camPos, camPos + camForward * 2.0f, IM_COL32(255, 255, 0, 255));
+		CollisionManager::Instance().AddDebugLine(refCamPos, refCamTarget, IM_COL32(255, 0, 255, 255));
+		CollisionManager::Instance().AddDebugLine(camPos, refCamPos, IM_COL32(255, 255, 255, 255));
+		{
+			float s = 0.15f;
+			CollisionManager::Instance().AddDebugLine(refCamPos - Math::Vector3(s, 0, 0), refCamPos + Math::Vector3(s, 0, 0), IM_COL32(0, 255, 255, 255));
+			CollisionManager::Instance().AddDebugLine(refCamPos - Math::Vector3(0, s, 0), refCamPos + Math::Vector3(0, s, 0), IM_COL32(0, 255, 255, 255));
+			CollisionManager::Instance().AddDebugLine(refCamPos - Math::Vector3(0, 0, s), refCamPos + Math::Vector3(0, 0, s), IM_COL32(0, 255, 255, 255));
+		}
 
 		// ���˂��ꂽ�ʒu�ƕ�������V����View�s����\�z����(��ԑS�̂͗��Ԃ邪�A���_���͔̂��ˑ��̕���������)
 		Math::Matrix refView = Math::Matrix::CreateLookAt(refCamPos, refCamTarget, refCamUp);
@@ -294,23 +443,72 @@ public:
 			}
 		};
 
-		// �[�x�o�b�t�@���N���A���Ďg�p
-		auto* pDepthBuffer = pGraphicsDevice->GetDepthStencil();
-		auto dsvH = pGraphicsDevice->GetDescriptorHeapManager()->GetDSVAllocator()->GetCPUHandle(pDepthBuffer->GetDSVNumber());
-		auto rtvH = pGraphicsDevice->GetDescriptorHeapManager()->GetRTVAllocator()->GetCPUHandle(pRT->GetRTVIndex());
+		// Note: SetRenderTarget(pRT) above already bound pRT's own private RTV+DSV, and
+		// pRT->Clear() already cleared both. This used to re-bind here with a *different*,
+		// wrongly-sized shared depth buffer (GraphicsDevice::GetDepthStencil(), sized for the
+		// main window, not this 1024x1024 reflection target) - depth testing against a
+		// mismatched buffer meant geometry drawn here could silently fail the depth test,
+		// leaving the reflection render target essentially black. Removed; pRT's own
+		// depth buffer (already bound/cleared above) is what should be used.
 
-		pGraphicsDevice->GetContextManager()->GetGraphicsContext()->TransitionResource(pDepthBuffer->GetBuffer(), D3D12_RESOURCE_STATE_DEPTH_WRITE);
-		pGraphicsDevice->GetContextManager()->GetGraphicsContext()->FlushResourceBarriers();
-		pDepthBuffer->ClearBuffer();
-		pGraphicsDevice->GetCmdList()->OMSetRenderTargets(1, &rtvH, false, &dsvH);
-
-		drawEntities(false); // Opaque �̂�
+		drawEntities(false); // Opaque のみ
 
 		// ����
 		context.View = oldView;
 		context.Projection = oldProj;
 
 		pGraphicsDevice->TransitionToSRV(pRT);
+	}
+
+	// SSAO/SSR用のビュー空間法線プリパス。RenderScene直前に呼ぶ。
+	// スキニングメッシュ/半透明/Skyは対象外(近似用途のため単純化 - Phase3の既知の制限)。
+	void RenderNormalPrepass(Entity cameraEntity, class RenderTarget* pNormalRT)
+	{
+		if (!m_pCoordinator) return;
+		if (cameraEntity == INVALID_ENTITY || !pNormalRT) return;
+
+		auto* pGraphicsDevice = &GDF::Instance().GetGraphicsDevice();
+
+		pGraphicsDevice->SetRenderTarget(pNormalRT);
+		Renderer::BindViewport(pNormalRT);
+		pNormalRT->Clear(0.5f, 0.5f, 1.0f, 1.0f); // (0,0,1)相当(カメラ正面向き)でクリア
+
+		auto& cCamera = m_pCoordinator->GetComponent<CameraData>(cameraEntity);
+		RenderContext& context = Renderer::GetContext();
+		context.View = cCamera.m_viewMatrix;
+		context.Projection = cCamera.m_projMatrix;
+
+		auto& normalShader = ShaderLibrary::Instance().Get<NormalPrepassShader>();
+
+		for (auto const& entity : m_entities)
+		{
+			auto& cTransform = m_pCoordinator->GetComponent<TransformData>(entity);
+			auto& cModel = m_pCoordinator->GetComponent<ModelRenderData>(entity);
+			if (!cModel.m_isVisible || !cModel.m_spModelData || !cModel.m_spModelData->IsLoaded()) continue;
+			if (cModel.m_modelType == ModelType::Dynamic) continue; // スキニングは今回対象外
+			if (cModel.m_modelType == ModelType::Sky) continue;
+
+			normalShader.Begin(context);
+			Math::Matrix world = cTransform.m_worldMatrix;
+			for (const auto& node : cModel.m_spModelData->GetNodes())
+			{
+				Math::Matrix nodeWorld = node.animDeltaTransform * world;
+				normalShader.BeginNode(node, nodeWorld);
+				for (const auto& meshHandle : node.meshes)
+				{
+					Mesh* pMesh = MeshManager::Instance().Get(meshHandle);
+					if (pMesh)
+					{
+						bool isMeshBlend = (pMesh->GetMaterial().Constants.alphaMode == 2);
+						if (isMeshBlend) continue; // 半透明はAO/SSRの元データに含めない
+						pMesh->DrawInstanced(pMesh->GetInstanceCount());
+					}
+				}
+			}
+		}
+
+		pGraphicsDevice->TransitionToSRV(pNormalRT);
+		pGraphicsDevice->TransitionDepthToSRV(pNormalRT);
 	}
 
 	void RenderScene(Entity cameraEntity, class RenderTarget* pRT = nullptr)
@@ -346,17 +544,17 @@ public:
 		context.View = cCamera.m_viewMatrix;
 		context.Projection = cCamera.m_projMatrix;
 
-		// Camera-space frustum from the projection, moved into world space by the camera's
-		// world transform (inverse of the view matrix) - used below to skip draw commands
-		// for anything outside the view instead of recording+drawing everything every frame.
+		// 投影行列から作ったカメラ空間のフラスタムを、カメラのワールド変換(View行列の逆)で
+		// ワールド空間に移す - 毎フレーム全部記録+描画するのではなく、視界外のものの
+		// 描画コマンドを以下でスキップするために使う。
 		Math::Matrix camWorld = cCamera.m_viewMatrix.Invert();
 		DirectX::BoundingFrustum frustum;
 		DirectX::BoundingFrustum::CreateFromMatrix(frustum, cCamera.m_projMatrix);
 		frustum.Transform(frustum, camWorld);
 
-		// Portal/room culling on top of the frustum test - see RoomVisibilityManager for why
-		// frustum culling alone isn't enough (a room can be inside the view frustum and still
-		// hidden behind a wall).
+		// フラスタム判定の上にさらにポータル/ルームカリングを重ねる - フラスタムカリング
+		// だけでは足りない理由(部屋が視錐台の中にあっても壁の裏に隠れていることがある)は
+		// RoomVisibilityManagerを参照。
 		RoomVisibilityManager::Instance().UpdateVisibleRooms(camWorld.Translation());
 
 		auto& litShader = ShaderLibrary::Instance().Get<LitShader>();
@@ -384,10 +582,10 @@ public:
 
 					if (isSky && isBlendPass) continue; // Sky�� Opaque�p�X�̂�
 
-					// Entity-level frustum cull. Sky is exempt - it's meant to always
-					// surround the camera, and its own "bounds" don't mean much culled.
-					// Reported to the Profiler once (opaque pass only) to avoid double-
-					// counting the same entity when the blend pass runs the same check.
+					// エンティティ単位のフラスタムカリング。Skyは常にカメラを取り囲む
+					// ものなので対象外にしている（そもそも「境界」の意味があまり無い）。
+					// Profilerへの報告はOpaqueパスのみ1回だけ行い、Blendパスで同じ判定を
+					// もう一度走らせた時に同じエンティティを二重カウントしないようにしている。
 					if (!isSky && s_enableFrustumCulling)
 					{
 						DirectX::BoundingBox entityBoundsLocal;
@@ -399,8 +597,8 @@ public:
 							if (!isBlendPass) Profiler::Instance().AddEntityCullResult(culled);
 							if (culled) continue;
 						}
-						// else: bounds not ready yet (assets still streaming in) - draw
-						// unconditionally rather than guess wrong and hide something.
+						// else: バウンズがまだ準備できていない(アセットがまだストリーミング中)
+						// - 誤って何かを隠すよりは、無条件に描画する。
 					}
 
 					// �f�o�b�O���O: 1�t���[���ڂ̂ݏڍ׏����o�� (Opaque�p�X���̂�)
@@ -467,8 +665,8 @@ public:
 							litShader.BeginNode(node, nodeWorld);
 						}
 
-						// Same nodeWorld transform used above for the static (lit) case -
-						// recomputed here since it's local to the branch above.
+						// 上のstatic(lit)ケースで使ったのと同じnodeWorld変換 -
+						// 上のブランチ内のローカル変数なので、ここで計算し直している。
 						Math::Matrix staticNodeWorld = node.animDeltaTransform * world;
 
 						for (const auto& meshHandle : node.meshes) {
@@ -477,25 +675,25 @@ public:
 								bool isMeshBlend = (pMesh->GetMaterial().Constants.alphaMode == 2);
 								if (isBlendPass != isMeshBlend) continue;
 
-								// Mesh-level frustum cull - only for the static/lit path.
-								// This is what actually matters for something like the house
-								// model, where dozens of room/door meshes share one entity:
-								// the entity-level box above covers the whole house and can't
-								// reject individual rooms, but this can. Skinned/sky meshes
-								// are left alone (few of them, and a skinned mesh's bind-pose
-								// AABB doesn't reliably bound the animated pose anyway).
+								// メッシュ単位のフラスタムカリング - static/litパスのみ。
+								// 家のモデルのように、1エンティティに部屋やドアのメッシュが
+								// 何十個も紐づくケースで実際に効いてくるのはこれ:
+								// 上のエンティティ単位のボックスは家全体を覆ってしまい
+								// 個々の部屋を除外できないが、これならできる。Skinned/sky
+								// メッシュは対象外にしている(数が少ないし、Skinnedメッシュの
+								// バインドポーズAABBはアニメーション後のポーズを正しく
+								// 包含できるとは限らないため)。
 								if (!isSkinned && !isSky) {
 									DirectX::BoundingBox meshWorldBounds;
 									pMesh->GetLocalAABB().Transform(meshWorldBounds, staticNodeWorld);
 									bool meshCulled = s_enableFrustumCulling && !frustum.Intersects(meshWorldBounds);
-									// Room culling caches a mesh's room assignment the first time
-									// it's queried and never re-evaluates it - wrong for anything
-									// that actually moves (a door swinging open/closed), so
-									// animated nodes are exempt and rely on the frustum test only.
-									// Small props (a handful of meshes) get essentially no benefit
-									// from room culling but are more exposed to its boundary edge
-									// cases (e.g. a pickup item sitting near a doorway) - only
-									// apply it to models with enough meshes to actually matter.
+									// ルームカリングは初回問い合わせ時にメッシュの部屋割り当てを
+									// キャッシュして二度と評価し直さない - ドアの開閉のように
+									// 実際に動くものには不適切なので、動くノードは対象外にして
+									// フラスタム判定のみに頼る。小物(メッシュ数が少ない)は
+									// ルームカリングの恩恵がほとんど無い割に、その境界ケースの
+									// 影響を受けやすい(例: 出入り口付近に置かれたピックアップ
+									// アイテム) - 実質的に意味のあるメッシュ数を持つモデルにだけ適用する。
 									constexpr int kRoomCullingMinMeshCount = 6;
 									if (!meshCulled && s_enableRoomCulling
 										&& !cModel.m_spModelData->IsNodeAnimated(node.name)
@@ -557,17 +755,23 @@ public:
 			}
 		}
 
-		// Depth Buffer �� SRV �� Transition
-		auto* pDepthBuffer = pGraphicsDevice->GetDepthStencil()->GetBuffer();
-		pGraphicsContext->TransitionResource(pDepthBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-		pGraphicsContext->FlushResourceBarriers();
+		// Depth Buffer を SRV へ Transition
+		// (pRTが実際に持つ専用深度バッファ - g_opaqueDepth/DOF/SSAO/SSRはここを読む。
+		//  以前はGraphicsDevice::GetDepthStencil()という別の未使用気味なバッファを
+		//  遷移させていて、血痕デカール等が実際には書き込まれていない深度を見てしまっていた)
+		if (pRT)
+		{
+			pGraphicsDevice->TransitionDepthToSRV(pRT);
+		}
 
-		// �p�X2: Blend & Decal
+		// パス2: Blend & Decal
 		drawEntities(true);
 
-		// Depth Buffer �� �������ݗp�ɖ߂�
-		pGraphicsDevice->GetContextManager()->GetGraphicsContext()->TransitionResource(pDepthBuffer, D3D12_RESOURCE_STATE_DEPTH_WRITE);
-		pGraphicsDevice->GetContextManager()->GetGraphicsContext()->FlushResourceBarriers();
+		// Depth Buffer を書き込み用に戻す
+		if (pRT)
+		{
+			pGraphicsDevice->TransitionDepthToWrite(pRT);
+		}
 	}
 
 private:

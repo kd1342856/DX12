@@ -19,12 +19,18 @@ public:
     Math::Vector3 m_worldPlaneNormal = { 0.0f, 0.0f, 1.0f };
     Math::Vector3 m_worldPlanePoint = { 0.0f, 0.0f, 0.0f };
 
-    // ƒGƒfƒBƒ^ã‚Å‹¾‚Ì”ÍˆÍ‚ğ¦‚·ƒfƒoƒbƒO•`‰æ—p
+    // ï¿½Gï¿½fï¿½Bï¿½^ï¿½ï¿½Å‹ï¿½ï¿½Ì”ÍˆÍ‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½fï¿½oï¿½bï¿½Oï¿½`ï¿½ï¿½p
     float m_debugSize = 2.0f;
 
-    // ‘Î‰‚·‚éRoomArea(GameObject–¼)B‹ó‚È‚çí‚ÉƒAƒNƒeƒBƒu(]—ˆ’Ê‚è‚Ì‹““®)B
-    // İ’è‚·‚é‚ÆƒvƒŒƒCƒ„[‚ª‚»‚ÌRoomArea“à‚É‚¢‚é‚¾‚¯”½Ë‚ğ—LŒø‰»‚·‚éB
-    std::string m_roomName;
+    // ï¿½Î‰ï¿½ï¿½ï¿½ï¿½ï¿½RoomArea(GameObjectï¿½ï¿½)ï¿½Bï¿½ï¿½È‚ï¿½ï¿½ÉƒAï¿½Nï¿½eï¿½Bï¿½u(ï¿½]ï¿½ï¿½ï¿½Ê‚ï¿½Ì‹ï¿½ï¿½ï¿½)ï¿½B
+    // ï¿½İ’è‚·ï¿½ï¿½Æƒvï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½RoomAreaï¿½ï¿½ï¿½É‚ï¿½ï¿½éï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ë‚ï¿½Lï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½B
+    std::string m_roomName; // unused (kept for old scene data load compatibility)
+
+    // Reflection is active whenever the player is within this distance of the mirror plane,
+    // instead of the old "player is inside this named RoomArea" check - a window sitting right at
+    // a room's boundary line meant standing normally in front of it never counted as "inside",
+    // so the reflection never activated at realistic viewing distance.
+    float m_activationDistance = 4.0f;
 
 private:
     bool m_isActive = true;

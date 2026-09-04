@@ -10,6 +10,7 @@ struct EditorContext
     ShadowSettings*      Shadow = nullptr;
     IBLSettings*         IBL = nullptr;
     PostProcessSettings* PostProcess = nullptr;
+    SSAOSettings*        SSAO = nullptr;
     DebugSettings*       Debug = nullptr;
     FogSettings*         Fog = nullptr;
     

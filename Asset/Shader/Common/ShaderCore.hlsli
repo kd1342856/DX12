@@ -78,13 +78,14 @@ struct SpotLight
     row_major float4x4 mLightVP;
 };
 
-// ポイントライトのデータ
+// ポイントライトのデータ (ロウソク/裸電球等。フリッカーはC++側(LightSystem)で
+// 明滅させた結果のColorを毎フレーム書き込むので、シェーダー側はただの点光源として扱う)
 struct PointLight
 {
-    float3 Color; // 色
-    float Radius; // 半径
     float3 Pos; // 座標
-    float tmp;
+    float Range; // 減衰距離
+    float3 Color; // 色
+    float pad;
 };
 
 cbuffer cbLight : register(b3)
@@ -97,7 +98,7 @@ cbuffer cbLight : register(b3)
     // 環境光
     //-------------------------
     float3 g_AmbientLight;
-    float  g_tmp2;
+    float  g_IndirectShadowFloor; // 平行光の影が落ちる場所に残す間接光(Ambient/IBL)の下限 0..1
 
     //-------------------------
     // 平行光
@@ -121,6 +122,22 @@ cbuffer cbLight : register(b3)
     //-------------------------
     float3  g_DistanceFogColor;
     float   g_DistanceFogDensity;
+
+    //-------------------------
+    // ポイント光 (ロウソク/裸電球等、フリッカー対応)
+    //-------------------------
+    int g_PL_Count;
+    float3 g_dummyPL;
+    PointLight g_PL[8];
+
+    //-------------------------
+    // ポイント光の影 (最も近い1灯のみ、単純な単一パースペクティブ投影の簡易シャドウ。
+    // 真の全方位キューブシャドウではなく、毎フレーム視点の方向へ向けている近似)
+    //-------------------------
+    row_major float4x4 g_PL0_ShadowVP;
+    float g_PL0_ShadowBias;
+    int   g_PL0_ShadowEnabled;
+    float2 g_PadPL0Shadow;
 };
 
 //----------------------------------------
@@ -145,7 +162,10 @@ cbuffer cbSystem : register(b4)
     float g_Gamma;
     float g_ScreenWidth;
     float g_ScreenHeight;
-    float2 g_PadSystem;
+
+    // SSR (スクリーンスペース反射) - 平面反射が無いガラス等のフォールバックに使う
+    int g_EnableSSR;
+    float g_SSRStepSize;
 
     // 平面反射(窓ガラス等)用: 反射カメラのView*Proj行列。
     // ワールド座標をこれで再投影してg_planarReflectionMapの正しいUVを求める。
