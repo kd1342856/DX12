@@ -87,8 +87,8 @@ namespace CBufferData
 		Math::Vector3 dummyPL;
 		PointLight PL[8]; // ロウソク/裸電球等、フリッカー付きの点光源(LightSystemが毎フレーム更新)
 
-		// ポイント光の影(最も近い1灯のみ、簡易単一パースペクティブシャドウ)
-		Math::Matrix PL0_ShadowVP;
+		// ポイント光の影(最も近い1灯のみ、6面キューブシャドウ。Texture2D×6の簡易実装)
+		Math::Matrix PL0_ShadowVP[6];
 		float PL0_ShadowBias;
 		int32_t PL0_ShadowEnabled;
 		float PadPL0Shadow[2];
@@ -100,6 +100,13 @@ namespace CBufferData
 		float Bias;
 		float Power;
 		float Intensity;
+	};
+
+	struct SSROpaque
+	{
+		float StepSize;
+		float Intensity;
+		float Pad[2];
 	};
 
 	struct PostProcess

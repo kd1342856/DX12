@@ -19,6 +19,7 @@
 #include "../../../Graphics/Shader/BloomShader/BloomShader.h"
 #include "../../../Graphics/Shader/GodRaysShader/GodRaysShader.h"
 #include "../../../Graphics/Shader/SSAOShader/SSAOShader.h"
+#include "../../../Graphics/Shader/SSROpaqueShader/SSROpaqueShader.h"
 #include "../../../Framework/DirectX/Utility/Profiler.h"
 #include "../../../Framework/ECS/CompSystem/Systems/LightSystem.h"
 #include <algorithm>
@@ -440,7 +441,11 @@ void GameScene::UpdatePointLightShadow(Entity cameraEntity)
     const auto& lightData = ShaderManager::Instance().GetLightData();
     if (lightData.PL_Count <= 0)
     {
-        ShaderManager::Instance().SetPointLightShadowData(Math::Matrix::Identity, 0.0f, false);
+        Math::Matrix identity6[6] = {
+            Math::Matrix::Identity, Math::Matrix::Identity, Math::Matrix::Identity,
+            Math::Matrix::Identity, Math::Matrix::Identity, Math::Matrix::Identity
+        };
+        ShaderManager::Instance().SetPointLightShadowData(identity6, 0.0f, false);
         return;
     }
 
@@ -448,17 +453,7 @@ void GameScene::UpdatePointLightShadow(Entity cameraEntity)
     Math::Vector3 lightPos = lightData.PL[0].Pos;
     float range = lightData.PL[0].Range;
 
-    Math::Vector3 aimAt = lightPos + Math::Vector3(0, -1, 0);
-    auto& ecs = GameManager::Instance().GetECS();
-    if (cameraEntity != INVALID_ENTITY)
-    {
-        if (auto* pTrans = ecs.TryGetComponent<TransformData>(cameraEntity))
-        {
-            aimAt = pTrans->m_worldMatrix.Translation();
-        }
-    }
-
-    renderSystem->RenderPointLightShadow(lightPos, aimAt, range);
+    renderSystem->RenderPointLightShadowCube(lightPos, range);
 }
 
 void GameScene::RenderSSAO(Entity cameraEntity)
@@ -525,6 +520,22 @@ void GameScene::DoPostProcess(Entity cameraEntity, float clearR, float clearG, f
 
     const auto& postProcessSettings = ShaderManager::Instance().GetPostProcessSettings();
     const auto& postProcessData = ShaderManager::Instance().GetPostProcessData();
+
+    // 0. SSR (Opaque材質向け) - 専用のG-Bufferパスを追加せず、NormalPrepass(SSAO用)の法線+深度と
+    // Opaqueパスのカラーコピーを再利用してシーンHDRへ加算合成する。ガラス限定のSSR(LitShader内)
+    // とは別物で、床・タイル等のOpaque材質に効く。RenderScene直後、まだpSceneHDRがRENDER_TARGET
+    // 状態のこのタイミングでだけ加算できる(この後すぐSRVへ遷移してBloom等に読まれるため)。
+    auto& rendererSettings = ShaderManager::Instance().GetRendererSettings();
+    if (rendererSettings.EnableSSR)
+    {
+        auto* pNormalRT = Renderer::GetNormalPrepassRenderTarget();
+        auto* pSceneOpaqueCopy = Renderer::GetSceneOpaqueCopyRenderTarget();
+        auto& ssrOpaqueShader = ShaderLibrary::Instance().Get<SSROpaqueShader>();
+        SSROpaqueShader::Params ssrParams;
+        ssrParams.StepSize = rendererSettings.SSRStepSize;
+        ssrParams.Intensity = rendererSettings.SSROpaqueIntensity;
+        ssrOpaqueShader.Draw(pNormalRT, pSceneOpaqueCopy, pSceneHDR, ssrParams);
+    }
 
     // 1. Bloom Extract (輝度が閾値を超えた部分だけ抽出)
     auto* pExtractRT = Renderer::GetBloomExtractRenderTarget();

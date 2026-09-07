@@ -116,14 +116,17 @@ void LitShader::Begin(RenderContext& context)
 		}
 	}
 
-	// Bind Point Light Shadow Map to t13
-	int t13 = GetRootParameterIndex(ShaderBindingType::SRV, 13);
-	if (t13 != -1) {
-		auto* pPLShadowMap = m_pDevice->GetPointLightShadowMap();
-		if (pPLShadowMap && pPLShadowMap->GetSRVNumber() != -1)
-		{
-			auto handle = m_pDevice->GetDescriptorHeapManager()->GetCBVSRVUAVAllocator()->GetGPUHandle(pPLShadowMap->GetSRVNumber());
-			m_pDevice->GetCmdList()->SetGraphicsRootDescriptorTable(t13, handle);
+	// Bind Point Light Shadow Cube faces to t13..t18
+	for (int face = 0; face < 6; ++face)
+	{
+		int tFace = GetRootParameterIndex(ShaderBindingType::SRV, 13 + face);
+		if (tFace != -1) {
+			auto* pPLShadowMap = m_pDevice->GetPointLightShadowMapFace(face);
+			if (pPLShadowMap && pPLShadowMap->GetSRVNumber() != -1)
+			{
+				auto handle = m_pDevice->GetDescriptorHeapManager()->GetCBVSRVUAVAllocator()->GetGPUHandle(pPLShadowMap->GetSRVNumber());
+				m_pDevice->GetCmdList()->SetGraphicsRootDescriptorTable(tFace, handle);
+			}
 		}
 	}
 }

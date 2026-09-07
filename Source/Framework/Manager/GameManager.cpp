@@ -9,6 +9,7 @@
 #include "../../Graphics/Shader/GodRaysShader/GodRaysShader.h"
 #include "../../Graphics/Shader/NormalPrepassShader/NormalPrepassShader.h"
 #include "../../Graphics/Shader/SSAOShader/SSAOShader.h"
+#include "../../Graphics/Shader/SSROpaqueShader/SSROpaqueShader.h"
 #include "../../Graphics/Shader/SkyShader/SkyShader.h"
 #include "../../Graphics/Shader/FogShader/FogShader.h"
 #include "Scene/Scene.h"
@@ -130,6 +131,7 @@ void GameManager::Init()
     ShaderLibrary::Instance().Register<GodRaysShader>(pDevice);
     ShaderLibrary::Instance().Register<NormalPrepassShader>(pDevice);
     ShaderLibrary::Instance().Register<SSAOShader>(pDevice);
+    ShaderLibrary::Instance().Register<SSROpaqueShader>(pDevice);
     ShaderLibrary::Instance().Register<SkyShader>(pDevice);
     ShaderLibrary::Instance().Register<FogShader>(pDevice);
 }

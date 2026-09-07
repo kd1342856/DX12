@@ -75,11 +75,15 @@ bool GraphicsDevice::Init(HWND  hWnd, int w, int h)
 	m_upShadowMap = std::make_unique<DepthStencil>();
 	if(!m_upShadowMap->Create(this, Math::Vector2(2048.0f, 2048.0f), DepthStencilFormat::DepthHighQuality, true)) return false;
 
-	// Point light shadow (nearest/strongest point light only, single perspective shadow - not a
-	// true 6-face cube shadow. Aimed toward the viewer each frame, which is a reasonable
-	// approximation for a single room-scale point light such as a candle/bulb near the player.
-	m_upPointLightShadowMap = std::make_unique<DepthStencil>();
-	if (!m_upPointLightShadowMap->Create(this, Math::Vector2(1024.0f, 1024.0f), DepthStencilFormat::DepthHighQuality, true)) return false;
+	// Point light shadow (nearest/strongest point light only): a true 6-face cube shadow,
+	// implemented as 6 independent 2D depth maps (one per cube face) rather than a native
+	// TextureCube resource - reuses the exact same ShadowShader/DepthStencil machinery as the
+	// directional light shadow, just run 6 times with a 90-degree FOV aimed down each axis.
+	for (int face = 0; face < 6; ++face)
+	{
+		m_upPointLightShadowMapFaces[face] = std::make_unique<DepthStencil>();
+		if (!m_upPointLightShadowMapFaces[face]->Create(this, Math::Vector2(768.0f, 768.0f), DepthStencilFormat::DepthHighQuality, true)) return false;
+	}
 
 	if (!CreateSwapChainRTV()) return false;
 	

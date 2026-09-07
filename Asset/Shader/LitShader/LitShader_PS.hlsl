@@ -292,8 +292,10 @@ PSOutput main(VSOutput In) : SV_Target0
                 // 投影座標-> UV座標へ変換
                 float2 uv = liPos.xy * float2(1, -1) * 0.5 + 0.5;
 
-                // ライトカメラからの距離を、バイアス引いた値と比較しシャドウアクネ対策
-                float bias = g_DL_DirLightShadowBias;
+                // ライトカメラからの距離を、バイアス引いた値と比較しシャドウアクネ対策。
+                // 壁が光に対して斜めになるほど(NdotLが小さいほど)、深度の変化が急峻になり
+                // 固定バイアスだけでは縞状のバンディングが残るので、スロープスケールで補う。
+                float bias = g_DL_DirLightShadowBias * lerp(1.0, 16.0, 1.0 - saturate(NdotL));
                 float z = liPos.z - bias; // シャドウアクネ対策
 
                 // 画面のサイズ
@@ -302,21 +304,24 @@ PSOutput main(VSOutput In) : SV_Target0
                 g_dirLightShadowMap.GetDimensions(0, pxSize.x, pxSize.y, levels);
                 pxSize.x = max(pxSize.x, 1.0);
                 pxSize.y = max(pxSize.y, 1.0);
-                
+
                 // ランダム回転
                 float noise = InterleavedGradientNoise(In.Pos.xy);
                 float s = sin(noise * 6.28318530718);
                 float c = cos(noise * 6.28318530718);
                 float2x2 rot = float2x2(c, -s, s, c);
 
-                // PCF計算 (16回は重すぎるため4回に軽量化)
+                // PCF計算 (16回は重すぎるため4回に軽量化)。フィルタ半径を数texel分に広げて、
+                // シャドウマップのテクセル格子がそのまま縞模様として見えてしまう
+                // (斜め入射時のエイリアシング)のを目立たなくする。
+                const float kFilterRadiusTexels = 10.0;
                 shadow = 0;
-                for (int i = 0; i < 4; i++)
+                for (int i = 0; i < 8; i++)
                 {
-                    float2 offset = mul(g_poissonDisk16[i], rot) / pxSize;
+                    float2 offset = mul(g_poissonDisk16[i], rot) * kFilterRadiusTexels / pxSize;
                     shadow += g_dirLightShadowMap.SampleCmpLevelZero(g_ss_comparison, uv + offset, z);
                 }
-                shadow /= 4.0;
+                shadow /= 8.0;
                 
                 // 影の強度
                 shadow = lerp(1.0, shadow, g_DL_ShadowPower);
@@ -390,13 +395,19 @@ PSOutput main(VSOutput In) : SV_Target0
         float3 diff_PL = Diffuse_Burley(baseDiffuse, NdotL_PL, NdotV, LdotH_PL, roughness);
         float3 spec_PL = Specular_BRDF(roughness2, baseSpecular, NdotV, NdotL_PL, LdotH_PL, NdotH_PL);
 
-        // 影(最も近い1灯[j==0]のみ。単一パースペクティブの簡易シャドウなので、
-        // ライトの背後・視錐台の外は影無しとして扱う - Phase4以降で真のキューブシャドウに
-        // 拡張する余地を残してある)
+        // 影(最も近い1灯[j==0]のみ)。6面キューブシャドウ(Texture2D×6の簡易実装)。
+        // ライトからこのピクセルへのベクトルの主軸から、6面のうちどれに属するかを判定する。
         float shadow_PL = 1;
         if (j == 0 && g_PL0_ShadowEnabled != 0)
         {
-            float4 plPos = mul(float4(In.wPos, 1), g_PL0_ShadowVP);
+            float3 toPixel = In.wPos - g_PL[0].Pos;
+            float3 absDir = abs(toPixel);
+            int faceIndex;
+            if (absDir.x >= absDir.y && absDir.x >= absDir.z) faceIndex = toPixel.x > 0 ? 0 : 1;
+            else if (absDir.y >= absDir.z) faceIndex = toPixel.y > 0 ? 2 : 3;
+            else faceIndex = toPixel.z > 0 ? 4 : 5;
+
+            float4 plPos = mul(float4(In.wPos, 1), g_PL0_ShadowVP[faceIndex]);
             plPos.xyz /= plPos.w;
             if (plPos.w > 0 && abs(plPos.x) <= 1 && abs(plPos.y) <= 1 && plPos.z <= 1)
             {
@@ -406,26 +417,29 @@ PSOutput main(VSOutput In) : SV_Target0
                 float slopeBias = g_PL0_ShadowBias * lerp(1.0, 8.0, 1.0 - saturate(NdotL_PL));
                 float z = plPos.z - slopeBias;
 
-                float2 pxSize;
-                float levels;
-                g_pointLightShadowMap.GetDimensions(0, pxSize.x, pxSize.y, levels);
-                pxSize.x = max(pxSize.x, 1.0);
-                pxSize.y = max(pxSize.y, 1.0);
+                // GraphicsDevice側で各面768x768固定で作っているので、GetDimensionsで
+                // 面ごとに切り替える手間を避けて定数のまま使う。
+                const float2 pxSize = float2(768.0, 768.0);
 
                 float noise = InterleavedGradientNoise(In.Pos.xy + 7.0);
                 float s = sin(noise * 6.28318530718);
                 float c = cos(noise * 6.28318530718);
                 float2x2 rot = float2x2(c, -s, s, c);
 
-                // FOV120度の単一パースペクティブで壁を斜めから照らすと、深度バッファの精度が
-                // 遠いほど急激に粗くなり、固定バイアスでは消せない縞状のバンディングが出る。
-                // フィルタ半径を広げて(6texel相当)ぼかすことで、バンディングを目立たなくする。
-                const float kFilterRadiusTexels = 6.0;
+                // 深度バッファ精度の粗さ由来の縞状バンディングを目立たなくするため、
+                // フィルタ半径を数texel分に広げてぼかす。
+                const float kFilterRadiusTexels = 4.0;
                 shadow_PL = 0;
                 for (int k = 0; k < 4; k++)
                 {
                     float2 offset = mul(g_poissonDisk16[k], rot) * kFilterRadiusTexels / pxSize;
-                    shadow_PL += g_pointLightShadowMap.SampleCmpLevelZero(g_ss_comparison, uv + offset, z);
+                    float2 sampleUV = uv + offset;
+                    if (faceIndex == 0) shadow_PL += g_pointLightShadowMapFace0.SampleCmpLevelZero(g_ss_comparison, sampleUV, z);
+                    else if (faceIndex == 1) shadow_PL += g_pointLightShadowMapFace1.SampleCmpLevelZero(g_ss_comparison, sampleUV, z);
+                    else if (faceIndex == 2) shadow_PL += g_pointLightShadowMapFace2.SampleCmpLevelZero(g_ss_comparison, sampleUV, z);
+                    else if (faceIndex == 3) shadow_PL += g_pointLightShadowMapFace3.SampleCmpLevelZero(g_ss_comparison, sampleUV, z);
+                    else if (faceIndex == 4) shadow_PL += g_pointLightShadowMapFace4.SampleCmpLevelZero(g_ss_comparison, sampleUV, z);
+                    else shadow_PL += g_pointLightShadowMapFace5.SampleCmpLevelZero(g_ss_comparison, sampleUV, z);
                 }
                 shadow_PL /= 4.0;
             }

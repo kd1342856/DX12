@@ -159,94 +159,111 @@ public:
 		}
 	}
 
-	// 最も近いポイントライト1灯だけの簡易シャドウ(単一パースペクティブ、真のキューブシャドウではない)。
-	// lightPos: 光源のワールド座標。aimAt: 影を落としたい方向の目標点(通常は視点/プレイヤー位置)。
-	// range: ライトの減衰距離(そのままシャドウ投影のFar面にする)。
-	void RenderPointLightShadow(const Math::Vector3& lightPos, const Math::Vector3& aimAt, float range)
+	// 最も近いポイントライト1灯だけの、真の6面キューブシャドウ。TextureCubeリソースではなく、
+	// Texture2Dを6枚(GraphicsDevice::GetPointLightShadowMapFace)使う簡易実装。
+	// face順は 0=+X,1=-X,2=+Y,3=-Y,4=+Z,5=-Z (LitShader_PS.hlslの面選択ロジックと対応させること)。
+	// lightPos: 光源のワールド座標。range: ライトの減衰距離(そのままシャドウ投影のFar面にする)。
+	void RenderPointLightShadowCube(const Math::Vector3& lightPos, float range)
 	{
 		if (!m_pCoordinator) return;
 
 		auto* pGraphicsDevice = &GDF::Instance().GetGraphicsDevice();
 		auto* pCmdList = pGraphicsDevice->GetCmdList();
 
-		auto* pShadowMap = pGraphicsDevice->GetPointLightShadowMap();
-		if (!pShadowMap) return;
-
-		Math::Vector3 aimDir = aimAt - lightPos;
-		if (aimDir.LengthSquared() < 0.0001f) aimDir = Math::Vector3(0, -1, 0);
-		aimDir.Normalize();
-		Math::Vector3 up = (std::abs(aimDir.y) > 0.95f) ? Math::Vector3(1, 0, 0) : Math::Vector3(0, 1, 0);
-
-		auto desc = pShadowMap->GetBuffer()->GetDesc();
-		D3D12_VIEWPORT shadowViewport = {};
-		shadowViewport.Width = (float)desc.Width;
-		shadowViewport.Height = (float)desc.Height;
-		shadowViewport.MinDepth = 0.0f;
-		shadowViewport.MaxDepth = 1.0f;
-		D3D12_RECT shadowScissor = { 0, 0, (LONG)desc.Width, (LONG)desc.Height };
-		pCmdList->RSSetViewports(1, &shadowViewport);
-		pCmdList->RSSetScissorRects(1, &shadowScissor);
-
-		pGraphicsDevice->GetContextManager()->GetGraphicsContext()->TransitionResource(pShadowMap->GetResource(), D3D12_RESOURCE_STATE_DEPTH_WRITE);
-		pGraphicsDevice->GetContextManager()->GetGraphicsContext()->FlushResourceBarriers();
-		pShadowMap->ClearBuffer();
-		auto dsvH = pGraphicsDevice->GetDescriptorHeapManager()->GetDSVAllocator()->GetCPUHandle(pShadowMap->GetDSVNumber());
-		pCmdList->OMSetRenderTargets(0, nullptr, false, &dsvH);
-
-		// 広めのFOV(120度)で単一方向をカバーする近似。真のキューブシャドウではないので、
-		// このFOVの外(=光源からほぼ真後ろ)は影が付かない。
-		Math::Matrix mLightView = Math::Matrix::CreateLookAt(lightPos, lightPos + aimDir, up);
-		Math::Matrix mLightProj = DirectX::XMMatrixPerspectiveFovLH(
-			DirectX::XMConvertToRadians(120.0f), 1.0f, 0.05f, std::max(range, 1.0f));
-		Math::Matrix mLightVP = mLightView * mLightProj;
+		static const Math::Vector3 kFaceDirs[6] = {
+			{  1,  0,  0 }, { -1,  0,  0 },
+			{  0,  1,  0 }, {  0, -1,  0 },
+			{  0,  0,  1 }, {  0,  0, -1 },
+		};
+		// +Y/-Y面はdirとupが平行にならないよう、Z軸をupに使う(標準的なキューブマップの規約)
+		static const Math::Vector3 kFaceUps[6] = {
+			{ 0, 1, 0 }, { 0, 1, 0 },
+			{ 0, 0, -1 }, { 0, 0, 1 },
+			{ 0, 1, 0 }, { 0, 1, 0 },
+		};
 
 		RenderContext& context = Renderer::GetContext();
 		Math::Matrix oldView = context.View;
 		Math::Matrix oldProj = context.Projection;
-		context.View = mLightView;
-		context.Projection = mLightProj;
 
 		auto& shadowShader = ShaderLibrary::Instance().Get<ShadowShader>();
 		auto& skinningShader = ShaderLibrary::Instance().Get<SkinningShader>();
 
-		for (auto const& entity : m_entities)
-		{
-			auto& cTransform = m_pCoordinator->GetComponent<TransformData>(entity);
-			auto& cModel = m_pCoordinator->GetComponent<ModelRenderData>(entity);
-			if (cModel.m_isVisible && cModel.m_spModelData && cModel.m_spModelData->IsLoaded())
-			{
-				bool isSkinned = (cModel.m_modelType == ModelType::Dynamic);
-				if (isSkinned) {
-					skinningShader.BeginShadow(context);
-					DrawContext drawCtx;
-					const auto& boneMatrices = cModel.m_spModelData->GetBoneMatrices();
-					drawCtx.BoneMatrices = &boneMatrices;
-					skinningShader.BeginModel(*cModel.m_spModelData, drawCtx);
-				} else {
-					shadowShader.Begin(context);
-				}
+		Math::Matrix faceVP[6];
+		float farPlane = std::max(range, 1.0f);
 
-				Math::Matrix world = cTransform.m_worldMatrix;
-				const auto& nodes = cModel.m_spModelData->GetNodes();
-				for (const auto& node : nodes) {
+		for (int face = 0; face < 6; ++face)
+		{
+			auto* pShadowMap = pGraphicsDevice->GetPointLightShadowMapFace(face);
+			if (!pShadowMap) continue;
+
+			auto desc = pShadowMap->GetBuffer()->GetDesc();
+			D3D12_VIEWPORT shadowViewport = {};
+			shadowViewport.Width = (float)desc.Width;
+			shadowViewport.Height = (float)desc.Height;
+			shadowViewport.MinDepth = 0.0f;
+			shadowViewport.MaxDepth = 1.0f;
+			D3D12_RECT shadowScissor = { 0, 0, (LONG)desc.Width, (LONG)desc.Height };
+			pCmdList->RSSetViewports(1, &shadowViewport);
+			pCmdList->RSSetScissorRects(1, &shadowScissor);
+
+			pGraphicsDevice->GetContextManager()->GetGraphicsContext()->TransitionResource(pShadowMap->GetResource(), D3D12_RESOURCE_STATE_DEPTH_WRITE);
+			pGraphicsDevice->GetContextManager()->GetGraphicsContext()->FlushResourceBarriers();
+			pShadowMap->ClearBuffer();
+			auto dsvH = pGraphicsDevice->GetDescriptorHeapManager()->GetDSVAllocator()->GetCPUHandle(pShadowMap->GetDSVNumber());
+			pCmdList->OMSetRenderTargets(0, nullptr, false, &dsvH);
+
+			// 各面は90度FOVのちょうど1/6球(立方体の1面分)をカバーする
+			Math::Matrix mLightView = Math::Matrix::CreateLookAt(lightPos, lightPos + kFaceDirs[face], kFaceUps[face]);
+			Math::Matrix mLightProj = DirectX::XMMatrixPerspectiveFovLH(
+				DirectX::XMConvertToRadians(90.0f), 1.0f, 0.05f, farPlane);
+			faceVP[face] = mLightView * mLightProj;
+
+			context.View = mLightView;
+			context.Projection = mLightProj;
+
+			for (auto const& entity : m_entities)
+			{
+				auto& cTransform = m_pCoordinator->GetComponent<TransformData>(entity);
+				auto& cModel = m_pCoordinator->GetComponent<ModelRenderData>(entity);
+				if (cModel.m_isVisible && cModel.m_spModelData && cModel.m_spModelData->IsLoaded())
+				{
+					bool isSkinned = (cModel.m_modelType == ModelType::Dynamic);
 					if (isSkinned) {
-						skinningShader.BeginNode(node, world);
+						skinningShader.BeginShadow(context);
+						DrawContext drawCtx;
+						const auto& boneMatrices = cModel.m_spModelData->GetBoneMatrices();
+						drawCtx.BoneMatrices = &boneMatrices;
+						skinningShader.BeginModel(*cModel.m_spModelData, drawCtx);
 					} else {
-						Math::Matrix nodeWorld = node.animDeltaTransform * world;
-						shadowShader.BeginNode(node, nodeWorld);
+						shadowShader.Begin(context);
 					}
 
-					for (const auto& meshHandle : node.meshes) {
-						Mesh* pMesh = MeshManager::Instance().Get(meshHandle);
-						if (pMesh) {
-							if (isSkinned) skinningShader.BeforeDrawMesh(*pMesh, pMesh->GetMaterial());
-							else shadowShader.BeforeDrawMesh(*pMesh, pMesh->GetMaterial());
+					Math::Matrix world = cTransform.m_worldMatrix;
+					const auto& nodes = cModel.m_spModelData->GetNodes();
+					for (const auto& node : nodes) {
+						if (isSkinned) {
+							skinningShader.BeginNode(node, world);
+						} else {
+							Math::Matrix nodeWorld = node.animDeltaTransform * world;
+							shadowShader.BeginNode(node, nodeWorld);
+						}
 
-							pMesh->DrawInstanced(pMesh->GetInstanceCount());
+						for (const auto& meshHandle : node.meshes) {
+							Mesh* pMesh = MeshManager::Instance().Get(meshHandle);
+							if (pMesh) {
+								if (isSkinned) skinningShader.BeforeDrawMesh(*pMesh, pMesh->GetMaterial());
+								else shadowShader.BeforeDrawMesh(*pMesh, pMesh->GetMaterial());
+
+								pMesh->DrawInstanced(pMesh->GetInstanceCount());
+							}
 						}
 					}
 				}
 			}
+
+			pGraphicsDevice->GetContextManager()->GetGraphicsContext()->TransitionResource(pShadowMap->GetResource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+			pGraphicsDevice->GetContextManager()->GetGraphicsContext()->FlushResourceBarriers();
 		}
 
 		context.View = oldView;
@@ -254,10 +271,7 @@ public:
 
 		// LitShader_PS.hlsl側でNdotLに応じてこの値を最大8倍まで広げる(スロープスケールバイアス)ので、
 		// ここはまっすぐ光を受ける面での最小値だけ決めればよい。
-		ShaderManager::Instance().SetPointLightShadowData(mLightVP, 0.0015f, true);
-
-		pGraphicsDevice->GetContextManager()->GetGraphicsContext()->TransitionResource(pShadowMap->GetResource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-		pGraphicsDevice->GetContextManager()->GetGraphicsContext()->FlushResourceBarriers();
+		ShaderManager::Instance().SetPointLightShadowData(faceVP, 0.0015f, true);
 	}
 
 	void RenderReflection(Entity cameraEntity)

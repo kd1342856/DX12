@@ -47,11 +47,11 @@ public:
 
 	void SetDirectionalLightMatrix(const Math::Matrix& m) { m_LightData.DL_mLightVP[0] = m; }
 
-	// 最も近いポイントライト(g_PL[0])の簡易シャドウ(単一パースペクティブ)用データ。
+	// 最も近いポイントライト(g_PL[0])の6面キューブシャドウ用データ。
 	// enabled=falseの時はシェーダー側で影計算そのものをスキップする。
-	void SetPointLightShadowData(const Math::Matrix& vp, float bias, bool enabled)
+	void SetPointLightShadowData(const Math::Matrix(&vp)[6], float bias, bool enabled)
 	{
-		m_LightData.PL0_ShadowVP = vp;
+		for (int i = 0; i < 6; ++i) m_LightData.PL0_ShadowVP[i] = vp[i];
 		m_LightData.PL0_ShadowBias = bias;
 		m_LightData.PL0_ShadowEnabled = enabled ? 1 : 0;
 	}

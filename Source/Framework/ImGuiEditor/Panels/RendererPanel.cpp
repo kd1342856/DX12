@@ -55,7 +55,12 @@ void RendererPanel::Draw(EditorContext& ctx)
             if (ImGui::SliderFloat("SSR Step Size", &ctx.Renderer->SSRStepSize, 0.05f, 1.5f, "%.2f")) changed = true;
             if (ImGui::IsItemHovered())
             {
-                ImGui::SetTooltip("平面反射(専用の反射カメラ)が設定されていないガラス面のフォールバック。\nOpaqueパスの深度/カラーだけでレイマーチするため、Opaque材質自身には効かない(既知の制限)。");
+                ImGui::SetTooltip("平面反射(専用の反射カメラ)が設定されていないガラス面のフォールバック。");
+            }
+            if (ImGui::SliderFloat("SSR Opaque Intensity", &ctx.Renderer->SSROpaqueIntensity, 0.0f, 2.0f, "%.2f")) changed = true;
+            if (ImGui::IsItemHovered())
+            {
+                ImGui::SetTooltip("床・タイル等のOpaque材質向けSSR(NormalPrepassの法線+深度を再利用)。\n粗さ/金属度は考慮しない鏡面反射の近似(非金属F0=0.04固定)。0で無効。");
             }
 
             if (changed) {

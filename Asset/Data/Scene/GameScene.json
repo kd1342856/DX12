@@ -1,6 +1,6 @@
 {
     "Fog": {
-        "EnableFog": true,
+        "EnableFog": false,
         "EnableHuntDarken": true,
         "FogColor": [
             0.5,
@@ -18,13 +18,13 @@
             "Components": [
                 {
                     "Position": [
-                        -2.2098302841186523,
-                        2.018723487854004,
-                        0.09740607440471649
+                        1.1847503185272217,
+                        2.506805896759033,
+                        -2.1645374298095703
                     ],
                     "Rotation": [
-                        0.16534346342086792,
-                        -17.25765609741211,
+                        -0.09465672820806503,
+                        -18.129671096801758,
                         0.0
                     ],
                     "Scale": [
@@ -196,7 +196,7 @@
                             "AnimationIndex": 9,
                             "IsLoop": true,
                             "IsPlaying": true,
-                            "ProgressTime": 1822.5472412109375,
+                            "ProgressTime": 203.97605895996094,
                             "Speed": 1.0,
                             "Type": "AnimationDataComponent"
                         }
@@ -215,7 +215,7 @@
                                 0.25
                             ],
                             "Rotation": [
-                                0.1553407609462738,
+                                0.1673428863286972,
                                 0.0,
                                 0.0
                             ],
@@ -296,13 +296,13 @@
             "Components": [
                 {
                     "Position": [
-                        -3.1758201122283936,
-                        9.834766387939453e-07,
-                        0.6475290656089783
+                        1.0918872356414795,
+                        9.238719940185547e-07,
+                        -5.595392227172852
                     ],
                     "Rotation": [
                         0.0,
-                        -7.80595588684082,
+                        -6.691967964172363,
                         0.0
                     ],
                     "Scale": [
@@ -346,13 +346,13 @@
             "Components": [
                 {
                     "Position": [
-                        -3.6956849098205566,
+                        1.1006466150283813,
                         1.6400009393692017,
-                        0.9127923250198364
+                        -5.0118279457092285
                     ],
                     "Rotation": [
                         0.0,
-                        -6.235159397125244,
+                        -5.121171474456787,
                         0.06981316953897476
                     ],
                     "Scale": [
@@ -801,7 +801,7 @@
                         {
                             "ScriptName": "ReflectionComponent",
                             "Type": "NativeScriptData",
-                            "activationDistance": 4.0,
+                            "activationDistance": 10.0,
                             "debugSize": 2.4000000953674316,
                             "planeNormal": [
                                 1.0,
@@ -924,11 +924,11 @@
                             "Type": "ModelRenderData"
                         },
                         {
-                            "AnimationIndex": 1,
+                            "AnimationIndex": 3,
                             "IsLoop": true,
                             "IsPlaying": true,
-                            "ProgressTime": 3652.9052734375,
-                            "Speed": 1.0,
+                            "ProgressTime": 3774.2724609375,
+                            "Speed": 1.5,
                             "Type": "AnimationDataComponent"
                         }
                     ],
@@ -983,13 +983,13 @@
             "Components": [
                 {
                     "Position": [
-                        -0.3390175402164459,
-                        9.834766387939453e-07,
-                        4.949010372161865
+                        3.75,
+                        0.0,
+                        -6.760000228881836
                     ],
                     "Rotation": [
                         0.0,
-                        29.286428451538086,
+                        37.01516342163086,
                         0.0
                     ],
                     "Scale": [
@@ -1176,6 +1176,47 @@
             "IsActive": true,
             "Name": "Stairs",
             "UUID": 7351902468135791359
+        },
+        {
+            "Children": [],
+            "Components": [
+                {
+                    "Position": [
+                        2.5,
+                        3.299999952316284,
+                        0.30000001192092896
+                    ],
+                    "Rotation": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "Scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "Type": "TransformData"
+                },
+                {
+                    "Color": [
+                        1.0,
+                        0.800000011920929,
+                        0.5
+                    ],
+                    "Enabled": true,
+                    "FlickerEnabled": false,
+                    "FlickerIntensity": 0.4000000059604645,
+                    "FlickerSeed": 0.0,
+                    "FlickerSpeed": 8.0,
+                    "Intensity": 9.949999809265137,
+                    "Range": 3.200000047683716,
+                    "Type": "PointLightData"
+                }
+            ],
+            "IsActive": true,
+            "Name": "Light",
+            "UUID": 6604222368930172274
         }
     ]
 }

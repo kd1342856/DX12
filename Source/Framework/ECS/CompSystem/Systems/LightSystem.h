@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <vector>
 #include "../../../../Graphics/Shader/ShaderManager/ShaderManager.h"
+#include "../../../Manager/Collision/CollisionManager.h"
 
 // PointLightDataを持つエンティティを毎フレーム集めてShaderManagerへ送るシステム。
 // - フリッカー(明滅)はここでCPU側に計算し、送るColorに反映させる(シェーダー側は
@@ -47,6 +48,10 @@ public:
 
             float distSq = Math::Vector3::DistanceSquared(pos, viewerPos);
             candidates.push_back({ pos, distSq, pl });
+
+            // エディタでの配置確認用ギズモ(常に描画しておいても、実際に画面に出るのは
+            // RenderEditorのDebugDraw経由でエディタモードの時だけ)。
+            DrawGizmo(pos, light.m_color, light.m_range);
         }
 
         std::sort(candidates.begin(), candidates.end(),
@@ -64,4 +69,30 @@ public:
 
 private:
     float m_elapsedTime = 0.0f;
+
+    static void DrawGizmo(const Math::Vector3& pos, const Math::Vector3& color, float range)
+    {
+        ImU32 col = IM_COL32(
+            (int)(saturate(color.x) * 255), (int)(saturate(color.y) * 255), (int)(saturate(color.z) * 255), 255);
+
+        // 中心の十字
+        const float s = 0.15f;
+        auto& cm = CollisionManager::Instance();
+        cm.AddDebugLine(pos - Math::Vector3(s, 0, 0), pos + Math::Vector3(s, 0, 0), col);
+        cm.AddDebugLine(pos - Math::Vector3(0, s, 0), pos + Math::Vector3(0, s, 0), col);
+        cm.AddDebugLine(pos - Math::Vector3(0, 0, s), pos + Math::Vector3(0, 0, s), col);
+
+        // Range(減衰距離)を示す水平の円(XZ平面、簡易12角形)
+        constexpr int kSegments = 12;
+        for (int i = 0; i < kSegments; ++i)
+        {
+            float a0 = (float)i / kSegments * 6.28318530718f;
+            float a1 = (float)(i + 1) / kSegments * 6.28318530718f;
+            Math::Vector3 p0 = pos + Math::Vector3(cosf(a0), 0, sinf(a0)) * range;
+            Math::Vector3 p1 = pos + Math::Vector3(cosf(a1), 0, sinf(a1)) * range;
+            cm.AddDebugLine(p0, p1, col);
+        }
+    }
+
+    static float saturate(float v) { return v < 0.0f ? 0.0f : (v > 1.0f ? 1.0f : v); }
 };

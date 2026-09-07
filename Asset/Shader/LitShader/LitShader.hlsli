@@ -59,7 +59,14 @@ Texture2D g_opaqueDepth : register(t9); // Opaqueパスで書き込まれた深�
 Texture2D g_refractionMap : register(t10); // Opaqueパスのカラー結果（屈折用）
 Texture2D g_planarReflectionMap : register(t11); // 平面反射パスのカラー結果
 Texture2D g_ssaoMap : register(t12); // SSAO結果(画面空間、環境光に掛ける)
-Texture2D g_pointLightShadowMap : register(t13); // 最も近いポイントライトの簡易シャドウマップ
+// 最も近いポイントライトの6面キューブシャドウ(TextureCubeではなくTexture2D×6の簡易実装)。
+// face: 0=+X,1=-X,2=+Y,3=-Y,4=+Z,5=-Z
+Texture2D g_pointLightShadowMapFace0 : register(t13);
+Texture2D g_pointLightShadowMapFace1 : register(t14);
+Texture2D g_pointLightShadowMapFace2 : register(t15);
+Texture2D g_pointLightShadowMapFace3 : register(t16);
+Texture2D g_pointLightShadowMapFace4 : register(t17);
+Texture2D g_pointLightShadowMapFace5 : register(t18);
 
 //========================================================
 // ???`??p?\????
