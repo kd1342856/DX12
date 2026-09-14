@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <string>
 #include <memory>
 #include <unordered_map>
@@ -28,7 +28,11 @@ struct MaterialConstants
     int alphaMode = 0; // 0:Opaque, 1:Mask, 2:Blend
     int proceduralType = 0; // 0:None, 1:Blood, 2:Cobweb, 3:Glass, 4:Dissolve
     float dissolveAmount = 0.0f; // Dissolve用: 0=通常表示, 1=完全に消滅
-    float pad[1];
+
+    // 平面反射(窓ガラス等、proceduralType==3)がどの反射スロット(0〜2、最大3枚まで同時)を
+    // 使うか。RenderSystem::RenderReflection()が毎フレーム、アクティブなReflectionComponent
+    // の分だけ動的に割り当てる(-1=このフレームは専用カメラの反射が無い→SSRフォールバック)。
+    int32_t reflectionSlot = -1;
 };
 
 class Material

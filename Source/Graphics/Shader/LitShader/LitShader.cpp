@@ -92,14 +92,20 @@ void LitShader::Begin(RenderContext& context)
 		}
 	}
 	
-	// Bind Planar Reflection Map to t11
-	int t11 = GetRootParameterIndex(ShaderBindingType::SRV, 11);
-	if (t11 != -1) {
-		auto* pReflection = Renderer::GetPlanarReflectionRenderTarget();
-		if (pReflection && pReflection->GetSRVIndex() != -1)
+	// Bind Planar Reflection Maps (最大3枚=3窓まで同時) to t11, t19, t20
+	{
+		static const int kReflectionSlotRegisters[3] = { 11, 19, 20 };
+		for (int slot = 0; slot < 3; ++slot)
 		{
-			auto handle = m_pDevice->GetDescriptorHeapManager()->GetCBVSRVUAVAllocator()->GetGPUHandle(pReflection->GetSRVIndex());
-			m_pDevice->GetCmdList()->SetGraphicsRootDescriptorTable(t11, handle);
+			int tSlot = GetRootParameterIndex(ShaderBindingType::SRV, kReflectionSlotRegisters[slot]);
+			if (tSlot != -1) {
+				auto* pReflection = Renderer::GetPlanarReflectionRenderTarget(slot);
+				if (pReflection && pReflection->GetSRVIndex() != -1)
+				{
+					auto handle = m_pDevice->GetDescriptorHeapManager()->GetCBVSRVUAVAllocator()->GetGPUHandle(pReflection->GetSRVIndex());
+					m_pDevice->GetCmdList()->SetGraphicsRootDescriptorTable(tSlot, handle);
+				}
+			}
 		}
 	}
 

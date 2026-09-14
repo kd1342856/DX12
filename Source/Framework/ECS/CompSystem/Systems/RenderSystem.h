@@ -20,6 +20,7 @@
 #include "../../../Manager/GameManager.h"
 #include "../../Components/Data/NativeScript.h"
 #include "../../../../Application/Object/Script/System/ReflectionComponent.h"
+#include "../../../Object/GameObject.h"
 
 // RenderSystem: Draws entities with Transform + ModelRenderData components
 class RenderSystem : public SystemBase
@@ -274,6 +275,12 @@ public:
 		ShaderManager::Instance().SetPointLightShadowData(faceVP, 0.0015f, true);
 	}
 
+	// 最大3枚(3窓)まで同時にアクティブな平面反射をサポートする。各アクティブな
+	// ReflectionComponentに専用の反射カメラ+RT(スロット0〜2)を割り当て、そのメッシュの
+	// Material.reflectionSlotにスロット番号を書き込む。ガラスのピクセルシェーダーは
+	// 自分のreflectionSlotに対応するg_planarReflectionMapN/g_mReflectionVP[N]を使う。
+	// 4枚目以降が同時にアクティブになった場合は割り当てられず(見つかった順の先着3枚まで)、
+	// SSRフォールバックのまま表示される - 既知の制限。
 	void RenderReflection(Entity cameraEntity)
 	{
 		if (!m_pCoordinator) return;
@@ -282,121 +289,68 @@ public:
 		auto& ecs = GameManager::Instance().GetECS();
 		auto& cCamera = ecs.GetComponent<CameraData>(cameraEntity);
 		auto* pGraphicsDevice = &GDF::Instance().GetGraphicsDevice();
-		auto* pRT = Renderer::GetPlanarReflectionRenderTarget();
-		if (!pRT) return;
 
-		bool hasReflection = false;
-		Math::Vector3 p, n;
+		// 前フレームの割り当てが残らないよう、まず全メッシュのreflectionSlotをリセットする。
+		// これをやらないと、鏡が非アクティブになった窓が古いスロットのVP/テクスチャを
+		// 使い続けてしまう(古い絵がそのまま映り続けるバグの元)。
+		for (auto const& entity : m_entities) {
+			auto* cModel = m_pCoordinator->TryGetComponent<ModelRenderData>(entity);
+			if (!cModel || !cModel->m_spModelData) continue;
+			for (auto& node : cModel->m_spModelData->GetNodes()) {
+				for (auto const& meshHandle : node.meshes) {
+					Mesh* pMesh = MeshManager::Instance().Get(meshHandle);
+					if (pMesh) pMesh->GetMaterialRef().Constants.reflectionSlot = -1;
+				}
+			}
+		}
+		ShaderManager::Instance().ClearAllReflectionData();
+
+		// アクティブなReflectionComponentを先着3個まで集める
+		constexpr int kMaxReflections = 3;
+		class ReflectionComponent* activeComps[kMaxReflections] = {};
+		Math::Vector3 activeP[kMaxReflections];
+		Math::Vector3 activeN[kMaxReflections];
+		int activeCount = 0;
 		for (auto& scriptData : ecs.GetComponentArray<NativeScriptData>()) {
 			if (auto* ref = dynamic_cast<class ReflectionComponent*>(scriptData.Instance.get())) {
-				if (!ref->IsActive()) continue; // �����Ƀv���C���[�����Ȃ����͖����Ȃ̂ŃX�L�b�v
-				p = ref->m_worldPlanePoint;
-				n = ref->m_worldPlaneNormal;
-				hasReflection = true;
-				break; // �A�N�e�B�u�Ȃ��̂̒��ōŏ��Ɍ����������̂��g��(���˃e�N�X�`����1�����������Ȃ�)
+				if (!ref->IsActive()) continue;
+				if (activeCount >= kMaxReflections) break;
+				activeP[activeCount] = ref->m_worldPlanePoint;
+				activeN[activeCount] = ref->m_worldPlaneNormal;
+				activeComps[activeCount] = ref;
+				activeCount++;
 			}
 		}
 
-		if (!hasReflection) {
+		// 使わないスロットのRTは黒クリアしておく(前回の絵が残ると変なものが映る)
+		auto clearSlot = [&](int slot) {
+			auto* pRT = Renderer::GetPlanarReflectionRenderTarget(slot);
+			if (!pRT) return;
 			pGraphicsDevice->SetRenderTarget(pRT);
 			pRT->Clear(0.0f, 0.0f, 0.0f, 1.0f);
-			// �K���ȍ��ɂ��Ă����u���t���[���͗L���Ȕ��˂��Ȃ��v���Ƃ�����
-			ShaderManager::Instance().SetReflectionData(Math::Matrix::Identity, false);
+			pGraphicsDevice->TransitionToSRV(pRT);
+		};
+
+		if (activeCount == 0) {
+			for (int slot = 0; slot < kMaxReflections; ++slot) clearSlot(slot);
 			return;
 		}
+		for (int slot = activeCount; slot < kMaxReflections; ++slot) clearSlot(slot);
 
-		// �ꎞ�I�ȃR���e�L�X�g�I�[�o�[���C�h
+		// 一時的なコンテキストオーバーライド
 		RenderContext& context = Renderer::GetContext();
 		Math::Matrix oldView = context.View;
 		Math::Matrix oldProj = context.Projection;
 
-		// �{���̃J�������[���h�s�񂩂�ʒu�ƕ����𒊏o
+		// 本物のカメラのワールド行列から位置と方向を抽出
+		// 注意: SimpleMathのMatrix::Forward()はローカルZ-(奥)を返すが、
+		// このプロジェクトの「前」はローカル+Z(手持ちアイテムもTransformNormal(Vector3(0,0,1), rot)で計算)。
+		// Forward()を使うと実際とは逆方向のベクトルになり、反射カメラも逆方向を向いてしまう。
+		// SimpleMathのBackward()(+Z)がこのプロジェクトの前方向と一致する。
 		Math::Matrix camWorld = oldView.Invert();
 		Math::Vector3 camPos = camWorld.Translation();
-		// ����: SimpleMath��Matrix::Forward()�̓��[�J��Z-(��)��Ԃ����A
-		// ���̃v���W�F�N�g�́u�O���v�̓��[�J��+Z(�e�ӏ���TransformNormal(Vector3(0,0,1), rot)�Ōv�Z)�B
-		// Forward()���g���Ǝ��ۂƂ͋t�����̃x�N�g���ɂȂ�A���˃J�������t�����������Ă��܂�
-		// (���𐳖ʂ��猩���Ƃ��Ɋ�ł͂Ȃ��㉺���]�������f�����s��̌��ʂ�\��)�B
-		// SimpleMath��Backward()(+Z)�����̃v���W�F�N�g�̑O�����ƈ�v����B
 		Math::Vector3 camForward = camWorld.Backward();
 		Math::Vector3 camUp = camWorld.Up();
-
-		// ���ˍs��̌v�Z
-		Math::Plane plane(p, n);
-		Math::Matrix reflectionMatrix = Math::Matrix::CreateReflection(plane);
-
-		// �ʒu�AForward�AUp���ׂĂ𔽎˂�����
-		Math::Vector3 refCamPos = Math::Vector3::Transform(camPos, reflectionMatrix);
-		Math::Vector3 refCamForward = Math::Vector3::TransformNormal(camForward, reflectionMatrix);
-		Math::Vector3 refCamUp = Math::Vector3::TransformNormal(camUp, reflectionMatrix);
-
-		// Debug: numeric dump of everything the reflection math uses, throttled to ~1/sec so it's
-		// readable in the editor's Console window instead of eyeballing 3D debug lines.
-		{
-			static int s_dbgFrame = 0;
-			if ((s_dbgFrame++ % 60) == 0)
-			{
-				Logger::Instance().AddLog(Logger::LogLevel::Info,
-					"[Reflection] plane p=(%.2f,%.2f,%.2f) n=(%.2f,%.2f,%.2f)", p.x, p.y, p.z, n.x, n.y, n.z);
-				Logger::Instance().AddLog(Logger::LogLevel::Info,
-					"[Reflection] camPos=(%.2f,%.2f,%.2f) camForward=(%.2f,%.2f,%.2f)", camPos.x, camPos.y, camPos.z, camForward.x, camForward.y, camForward.z);
-				Logger::Instance().AddLog(Logger::LogLevel::Info,
-					"[Reflection] refCamPos=(%.2f,%.2f,%.2f) refCamForward=(%.2f,%.2f,%.2f)", refCamPos.x, refCamPos.y, refCamPos.z, refCamForward.x, refCamForward.y, refCamForward.z);
-
-				// Also log the Player body mesh's own world "forward" (project convention: +Z / Backward()),
-				// so we can tell whether the mesh's front actually points the same way the camera looks.
-				for (auto const& e : m_entities)
-				{
-					auto* cM = m_pCoordinator->TryGetComponent<ModelRenderData>(e);
-					if (!cM || cM->m_filePath.find("Player.gltf") == std::string::npos) continue;
-					auto* cT = m_pCoordinator->TryGetComponent<TransformData>(e);
-					if (!cT) continue;
-					Math::Vector3 modelForward = cT->m_worldMatrix.Backward();
-					Math::Vector3 modelPos = cT->m_worldMatrix.Translation();
-					float dot = modelForward.Dot(camForward);
-					Logger::Instance().AddLog(Logger::LogLevel::Info,
-						"[Reflection] PlayerModel pos=(%.2f,%.2f,%.2f) forward=(%.2f,%.2f,%.2f) dot(vs camForward)=%.2f (%s)",
-						modelPos.x, modelPos.y, modelPos.z, modelForward.x, modelForward.y, modelForward.z, dot,
-						dot > 0 ? "SAME direction as camera" : "OPPOSITE direction from camera");
-					break;
-				}
-			}
-		}
-
-		Math::Vector3 refCamTarget = refCamPos + refCamForward;
-
-		// Debug visualization: real camera direction(yellow), reflected camera position+direction(magenta),
-		// line connecting both(white, should cross the mirror plane). Visible in editor free-cam(F5) debug draw.
-		CollisionManager::Instance().AddDebugLine(camPos, camPos + camForward * 2.0f, IM_COL32(255, 255, 0, 255));
-		CollisionManager::Instance().AddDebugLine(refCamPos, refCamTarget, IM_COL32(255, 0, 255, 255));
-		CollisionManager::Instance().AddDebugLine(camPos, refCamPos, IM_COL32(255, 255, 255, 255));
-		{
-			float s = 0.15f;
-			CollisionManager::Instance().AddDebugLine(refCamPos - Math::Vector3(s, 0, 0), refCamPos + Math::Vector3(s, 0, 0), IM_COL32(0, 255, 255, 255));
-			CollisionManager::Instance().AddDebugLine(refCamPos - Math::Vector3(0, s, 0), refCamPos + Math::Vector3(0, s, 0), IM_COL32(0, 255, 255, 255));
-			CollisionManager::Instance().AddDebugLine(refCamPos - Math::Vector3(0, 0, s), refCamPos + Math::Vector3(0, 0, s), IM_COL32(0, 255, 255, 255));
-		}
-
-		// ���˂��ꂽ�ʒu�ƕ�������V����View�s����\�z����(��ԑS�̂͗��Ԃ邪�A���_���͔̂��ˑ��̕���������)
-		Math::Matrix refView = Math::Matrix::CreateLookAt(refCamPos, refCamTarget, refCamUp);
-		context.View = refView;
-
-		// ���˃e�N�X�`���͐����`(1024x1024)�Ȃ̂ŁA�A�X�y�N�g��1:1��Projection��ʓr�g�ށB
-		// (������context.Projection���X�V���Ȃ��ƁA�O�t���[����16:9�J�����pProjection��
-		//  �c���̂܂܂ɂȂ�A�����`�̃����_�[�^�[�Q�b�g�ɕ`�悷��Ƙc��ł��܂�)
-		Math::Matrix refProj = DirectX::XMMatrixPerspectiveFovLH(
-			DirectX::XMConvertToRadians(cCamera.m_fov), 1.0f, cCamera.m_nearZ, cCamera.m_farZ);
-		context.Projection = refProj;
-
-		// ���̒��ł��̃s�N�Z���̃��[���h���W���ē��e���Đ��������˗p��UV�����߂���悤�ɁA
-		// ���˃J������View*Proj�s���n���Ă���
-		// (���C���J�����̃X�N���[��UV�����̂܂܎g���񂷂ƁA�ʃJ�����ŕ`�����G�Ƃ͑Ή����Ȃ����߂���͑厖)
-		ShaderManager::Instance().SetReflectionData(refView * refProj, true);
-
-		// �ʏ��Opaque�p�X�݂̂�`��
-		pGraphicsDevice->SetRenderTarget(pRT);
-		pRT->Clear(0.0f, 0.0f, 0.0f, 1.0f);
-		Renderer::BindViewport(pRT);
 
 		auto& litShader = ShaderLibrary::Instance().Get<LitShader>();
 		auto& skinningShader = ShaderLibrary::Instance().Get<SkinningShader>();
@@ -443,8 +397,6 @@ public:
 							if (pMesh) {
 								bool isMeshBlend = (pMesh->GetMaterial().Constants.alphaMode == 2); // 2: Blend
 								if (isMeshBlend == isBlendPass) {
-									// ���˃p�X�ł͔��]���Ă��邽��Cull Mode���t�ɂ���̂����_�I�����A
-									// ����͂��̂܂ܕ`�悵�AShader���őΏ����邩������Ȃ�
 									if (isSkinned) skinningShader.BeforeDrawMesh(*pMesh, pMesh->GetMaterial());
 									else if (isSky) skyShader.BeforeDrawMesh(*pMesh, pMesh->GetMaterial());
 									else litShader.BeforeDrawMesh(*pMesh, pMesh->GetMaterial());
@@ -457,21 +409,81 @@ public:
 			}
 		};
 
-		// Note: SetRenderTarget(pRT) above already bound pRT's own private RTV+DSV, and
-		// pRT->Clear() already cleared both. This used to re-bind here with a *different*,
-		// wrongly-sized shared depth buffer (GraphicsDevice::GetDepthStencil(), sized for the
-		// main window, not this 1024x1024 reflection target) - depth testing against a
-		// mismatched buffer meant geometry drawn here could silently fail the depth test,
-		// leaving the reflection render target essentially black. Removed; pRT's own
-		// depth buffer (already bound/cleared above) is what should be used.
+		for (int slot = 0; slot < activeCount; ++slot)
+		{
+			auto* pRT = Renderer::GetPlanarReflectionRenderTarget(slot);
+			if (!pRT) continue;
 
-		drawEntities(false); // Opaque のみ
+			// このスロットを使うメッシュにreflectionSlotを割り当てる
+			if (auto* pGO = activeComps[slot]->GetGameObject()) {
+				if (auto* cModel = m_pCoordinator->TryGetComponent<ModelRenderData>(pGO->GetEntityID())) {
+					if (cModel->m_spModelData) {
+						for (auto& node : cModel->m_spModelData->GetNodes()) {
+							for (auto const& meshHandle : node.meshes) {
+								Mesh* pMesh = MeshManager::Instance().Get(meshHandle);
+								if (pMesh) pMesh->GetMaterialRef().Constants.reflectionSlot = slot;
+							}
+						}
+					}
+				}
+			}
 
-		// ����
+			// 反射行列の計算
+			Math::Plane plane(activeP[slot], activeN[slot]);
+			Math::Matrix reflectionMatrix = Math::Matrix::CreateReflection(plane);
+
+			// 位置、Forward、Upすべてを反射させる
+			Math::Vector3 refCamPos = Math::Vector3::Transform(camPos, reflectionMatrix);
+			Math::Vector3 refCamForward = Math::Vector3::TransformNormal(camForward, reflectionMatrix);
+			Math::Vector3 refCamUp = Math::Vector3::TransformNormal(camUp, reflectionMatrix);
+			Math::Vector3 refCamTarget = refCamPos + refCamForward;
+
+			// Debug: スロット0だけ、数値ダンプ+デバッグ線を出す(全スロット出すと見づらいため)。
+			if (slot == 0)
+			{
+				static int s_dbgFrame = 0;
+				if ((s_dbgFrame++ % 60) == 0)
+				{
+					Logger::Instance().AddLog(Logger::LogLevel::Info,
+						"[Reflection] plane p=(%.2f,%.2f,%.2f) n=(%.2f,%.2f,%.2f)", activeP[slot].x, activeP[slot].y, activeP[slot].z, activeN[slot].x, activeN[slot].y, activeN[slot].z);
+					Logger::Instance().AddLog(Logger::LogLevel::Info,
+						"[Reflection] camPos=(%.2f,%.2f,%.2f) camForward=(%.2f,%.2f,%.2f)", camPos.x, camPos.y, camPos.z, camForward.x, camForward.y, camForward.z);
+					Logger::Instance().AddLog(Logger::LogLevel::Info,
+						"[Reflection] refCamPos=(%.2f,%.2f,%.2f) refCamForward=(%.2f,%.2f,%.2f) activeCount=%d", refCamPos.x, refCamPos.y, refCamPos.z, refCamForward.x, refCamForward.y, refCamForward.z, activeCount);
+				}
+
+				CollisionManager::Instance().AddDebugLine(camPos, camPos + camForward * 2.0f, IM_COL32(255, 255, 0, 255));
+				CollisionManager::Instance().AddDebugLine(refCamPos, refCamTarget, IM_COL32(255, 0, 255, 255));
+				CollisionManager::Instance().AddDebugLine(camPos, refCamPos, IM_COL32(255, 255, 255, 255));
+			}
+
+			// 反射された位置と方向から新しいView行列を構築する(空間全体は歪むが、視点側は反射側の見た目だけ正しい)
+			Math::Matrix refView = Math::Matrix::CreateLookAt(refCamPos, refCamTarget, refCamUp);
+
+			// 反射テクスチャは正方形(1024x1024)なので、アスペクト1:1のProjectionを別途組む。
+			Math::Matrix refProj = DirectX::XMMatrixPerspectiveFovLH(
+				DirectX::XMConvertToRadians(cCamera.m_fov), 1.0f, cCamera.m_nearZ, cCamera.m_farZ);
+
+			context.View = refView;
+			context.Projection = refProj;
+
+			// このガラスのピクセルシェーダーがワールド座標を再投影して正しい反射用のUVを
+			// 求められるように、反射カメラのView*Proj行列をスロット別に渡しておく
+			ShaderManager::Instance().SetReflectionData(slot, refView * refProj, true);
+
+			// 通常のOpaqueパスのみ描画
+			pGraphicsDevice->SetRenderTarget(pRT);
+			pRT->Clear(0.0f, 0.0f, 0.0f, 1.0f);
+			Renderer::BindViewport(pRT);
+
+			drawEntities(false); // Opaque のみ
+
+			pGraphicsDevice->TransitionToSRV(pRT);
+		}
+
+		// 復元
 		context.View = oldView;
 		context.Projection = oldProj;
-
-		pGraphicsDevice->TransitionToSRV(pRT);
 	}
 
 	// SSAO/SSR用のビュー空間法線プリパス。RenderScene直前に呼ぶ。
@@ -579,7 +591,7 @@ public:
 		if (bFirstFrame)
 		{
 			Logger::Instance().AddLog(Logger::LogLevel::Info,
-				"[RenderSystem] === RenderScene �J�n �G���e�B�e�B��: %d ===", (int)m_entities.size());
+				u8"[RenderSystem] === RenderScene 開始 エンティティ数: %d ===", (int)m_entities.size());
 		}
 		m_debugLogFrameCount++;
 
@@ -735,7 +747,7 @@ public:
 					bool hasData = (cModel.m_spModelData != nullptr);
 					bool isLoaded = hasData && cModel.m_spModelData->IsLoaded();
 					Logger::Instance().AddLog(Logger::LogLevel::Warning,
-						"[RenderSystem] Entity=%u ���f���X�L�b�v HasData=%d IsLoaded=%d",
+						u8"[RenderSystem] Entity=%u モデルスキップ HasData=%d IsLoaded=%d",
 						(uint32_t)entity, (int)hasData, (int)isLoaded);
 				}
 			}

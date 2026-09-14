@@ -151,6 +151,19 @@ void Editor::DrawInspector() {
                     ImGui::DragFloat("FOV", &c.m_fov, 0.5f, 1.0f, 179.0f);
                     ImGui::DragFloat("Near Z", &c.m_nearZ, 0.1f);
                     ImGui::DragFloat("Far Z", &c.m_farZ, 1.0f);
+
+                    ImGui::Separator();
+                    ImGui::Checkbox("Debug Preview Camera", &c.m_isDebugPreview);
+                    ImGui::SameLine();
+                    ImGui::TextDisabled("(?)");
+                    if (ImGui::IsItemHovered()) {
+                        ImGui::SetTooltip(
+                            u8"ONにすると、このカメラのTransform(位置・回転)から見た絵を毎フレーム\n"
+                            u8"専用のプレビューRTに描画する。「Window > Preview Camera」で結果を確認できる。\n"
+                            u8"普通のGameObjectなので、Transformで自由に動かして任意の角度から\n"
+                            u8"シーンやガラス面の反射を確認できる(エディタのフリーカメラや反射カメラとは無関係)。\n"
+                            u8"同時に複数のカメラでONにした場合、見つかった最初の1つだけが使われる。");
+                    }
                 }
             }
 
@@ -241,7 +254,7 @@ void Editor::DrawInspector() {
                     ImGui::DragFloat("Flicker Speed", &l.m_flickerSpeed, 0.1f, 0.0f, 60.0f);
                     ImGui::DragFloat("Flicker Intensity", &l.m_flickerIntensity, 0.01f, 0.0f, 1.0f);
                     ImGui::DragFloat("Flicker Seed", &l.m_flickerSeed, 0.1f);
-                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("同じ部屋に複数のフリッカーライトを置く時、位相をずらしてバラバラに明滅させたい場合に変える。");
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"同じ部屋に複数のフリッカーライトを置く時、位相をずらしてバラバラに明滅させたい場合に変える。");
                 }
             }
             if (auto* pScript = ecs.TryGetComponent<NativeScriptData>(entity)) {

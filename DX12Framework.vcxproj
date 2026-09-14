@@ -350,6 +350,7 @@ xcopy /y /d "$(ProjectDir)dxil.dll" "$(OutDir)"</Command>
     <ClCompile Include="Source\Framework\ImGuiEditor\Editor\HierarchyWindow.cpp" />
     <ClCompile Include="Source\Framework\ImGuiEditor\Editor\InspectorWindow.cpp" />
     <ClCompile Include="Source\Framework\ImGuiEditor\Editor\StatisticsWindow.cpp" />
+    <ClCompile Include="Source\Framework\ImGuiEditor\Editor\PreviewCameraWindow.cpp" />
     <ClCompile Include="Source\Framework\ImGuiEditor\Editor\ConsoleWindow.cpp" />
     <ClCompile Include="Source\Framework\ImGuiEditor\Editor\AssetBrowserWindow.cpp" />
     <ClCompile Include="Source\Framework\ImGuiEditor\Editor\Toolbar.cpp" />

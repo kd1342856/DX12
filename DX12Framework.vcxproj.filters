@@ -360,6 +360,9 @@
     <ClCompile Include="Source\Framework\ImGuiEditor\Editor\StatisticsWindow.cpp">
       <Filter>Source\Framework\ImGuiEditor\Editor</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Framework\ImGuiEditor\Editor\PreviewCameraWindow.cpp">
+      <Filter>Source\Framework\ImGuiEditor\Editor</Filter>
+    </ClCompile>
     <ClCompile Include="Source\Framework\ImGuiEditor\Editor\Toolbar.cpp">
       <Filter>Source\Framework\ImGuiEditor\Editor</Filter>
     </ClCompile>

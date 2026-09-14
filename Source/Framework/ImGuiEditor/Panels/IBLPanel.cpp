@@ -35,7 +35,7 @@ void IBLPanel::Draw(EditorContext& ctx)
         ImGui::SliderFloat("SSAO Intensity", &ctx.SSAO->Intensity, 0.0f, 2.0f, "%.2f");
         if (ImGui::IsItemHovered())
         {
-            ImGui::SetTooltip("画面空間で近くのジオメトリ同士の隙間を暗くする近似(環境光にのみ影響)。\nSkinned/Skyメッシュはこの計算には含まれない(既知の制限)。");
+            ImGui::SetTooltip(u8"画面空間で近くのジオメトリ同士の隙間を暗くする近似(環境光にのみ影響)。\nSkinned/Skyメッシュはこの計算には含まれない(既知の制限)。");
         }
     }
 }

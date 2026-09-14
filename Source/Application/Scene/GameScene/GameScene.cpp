@@ -126,14 +126,23 @@ void GameScene::UpdateCamera()
     std::shared_ptr<GameObject> pEditorCameraObj = nullptr;
 
     std::function<void(const std::shared_ptr<GameObject>&)> findCameras = [&](const std::shared_ptr<GameObject>& obj) {
-        if (ecs.TryGetComponent<CameraData>(obj->GetEntityID()) != nullptr)
+        if (auto* pCam = ecs.TryGetComponent<CameraData>(obj->GetEntityID()))
         {
-            if (obj->GetName() == "MainCamera")
+            // Debug Preview Cameraはデバッグ専用の独立したカメラ(GameScene::RenderDebugPreviewCamera
+            // が別RTに描画する)なので、エディタ/ゲームの本編カメラ選定には一切関与させない。
+            // これを除外しないと、名前が「MainCamera」でないCameraDataは無条件でm_gameCameraEntityに
+            // なってしまうため、プレビュー用に置いた新しいカメラが本来のゲームカメラを乗っ取って
+            // 画面全体がそのカメラに切り替わってしまう(操作もできなくなる)。
+            if (pCam->m_isDebugPreview)
+            {
+                // スキップ
+            }
+            else if (obj->GetName() == "MainCamera")
             {
                 m_editorCameraEntity = obj->GetEntityID();
                 pEditorCameraObj = obj;
 
-                // ?G?f?B?^?J??????X?N???v?g??R???C?_?[?????????????????????C??(?t???[?J????????????????)
+                // エディタカメラにはスクリプトコンポーネントを付けていない前提(フリーカメラの操作はここで直接行う)
             }
             else
             {
@@ -289,6 +298,71 @@ void GameScene::UpdateCamera()
             }
         }
     }
+
+    // Debug Preview Camera: 「Preview Camera」ウィンドウにマウスが乗っている間だけ、右クリック
+    // ドラッグでエディタ自由カメラと同じ操作感で動かせるようにする(ShaderEditor内で反射RTを
+    // 直接覗くのをやめ、Transformで自由に置けるカメラに置き換えたことに伴う操作方法)。
+    {
+        auto& camArray = ecs.GetComponentArray<CameraData>();
+        Entity previewEntity = INVALID_ENTITY;
+        for (size_t i = 0; i < camArray.GetSize(); ++i) {
+            if ((camArray.begin() + i)->m_isDebugPreview) { previewEntity = camArray.GetEntityFromIndex(i); break; }
+        }
+
+        if (previewEntity != INVALID_ENTITY && Editor::IsPreviewCameraHovered() && Input::Instance().IsMouseRightTrigger()) {
+            Input::Instance().SetMouseModeRelative();
+            m_isPreviewCameraDragging = true;
+        }
+        // IsMouseRightRelease()の取りこぼし(フォーカスが外れる等でボタンアップのエッジイベントを
+        // 見逃す)でm_isPreviewCameraDraggingがtrueのまま固着すると、マウスの微小なノイズ入力が
+        // 毎フレーム蓄積し続け、いつの間にか回転が異常な値(例: Y軸が-1530°等)まで暴走してしまう。
+        // エッジイベントに頼らず、「今実際に右クリックが押されているか」を毎フレーム直接見て
+        // 判定すれば、取りこぼしがあっても次のフレームで確実に自己修復する。
+        if (m_isPreviewCameraDragging && !Input::Instance().IsMouseRightHold()) {
+            Input::Instance().SetMouseModeAbsolute();
+            m_isPreviewCameraDragging = false;
+        }
+
+        if (previewEntity != INVALID_ENTITY && m_isPreviewCameraDragging)
+        {
+            auto* pData = ecs.TryGetComponent<TransformData>(previewEntity);
+            auto* pCamData = ecs.TryGetComponent<CameraData>(previewEntity);
+            if (pData && pCamData)
+            {
+                auto& data = *pData;
+                auto& camData = *pCamData;
+
+                float rotSpeed = 0.002f;
+                data.m_rotation.y += Input::Instance().GetMouseDeltaX() * rotSpeed;
+                data.m_rotation.x += Input::Instance().GetMouseDeltaY() * rotSpeed;
+
+                float pitchLimit = DirectX::XMConvertToRadians(89.0f);
+                if (data.m_rotation.x > pitchLimit) data.m_rotation.x = pitchLimit;
+                if (data.m_rotation.x < -pitchLimit) data.m_rotation.x = -pitchLimit;
+
+                Math::Matrix mRot = Math::Matrix::CreateFromYawPitchRoll(data.m_rotation.y, data.m_rotation.x, data.m_rotation.z);
+                Math::Vector3 forward = Math::Vector3::TransformNormal(Math::Vector3(0, 0, 1), mRot);
+                Math::Vector3 right = Math::Vector3::TransformNormal(Math::Vector3(1, 0, 0), mRot);
+                Math::Vector3 up = Math::Vector3(0, 1, 0);
+
+                Math::Vector3 moveVec = Math::Vector3(0, 0, 0);
+                float moveSpeed = camData.m_moveSpeed;
+
+                if (Input::Instance().IsKeyHold('W')) moveVec += forward;
+                if (Input::Instance().IsKeyHold('S')) moveVec -= forward;
+                if (Input::Instance().IsKeyHold('D')) moveVec += right;
+                if (Input::Instance().IsKeyHold('A')) moveVec -= right;
+                if (Input::Instance().IsKeyHold('E')) moveVec += up;
+                if (Input::Instance().IsKeyHold('Q')) moveVec -= up;
+
+                if (moveVec.LengthSquared() > 0.0f)
+                {
+                    moveVec.Normalize();
+                    data.m_position += moveVec * moveSpeed;
+                }
+            }
+        }
+    }
 }
 
 void GameScene::TryBuildNavMesh()
@@ -353,7 +427,60 @@ void GameScene::Render()
     else
         RenderEditor();
 
+    RenderDebugPreviewCamera();
+
     Renderer::EndFrame();
+}
+
+void GameScene::RenderDebugPreviewCamera()
+{
+    auto renderSystem = GameManager::Instance().GetRenderSystem();
+    if (!renderSystem) return;
+
+    auto* pPreviewRT = Renderer::GetDebugPreviewRenderTarget();
+    if (!pPreviewRT) return;
+
+    // CameraData.m_isDebugPreviewを立てたカメラを探す(複数あっても最初の1つだけ使う)。
+    auto& ecs = GameManager::Instance().GetECS();
+    auto& camArray = ecs.GetComponentArray<CameraData>();
+    Entity previewCameraEntity = INVALID_ENTITY;
+    for (size_t i = 0; i < camArray.GetSize(); ++i)
+    {
+        if ((camArray.begin() + i)->m_isDebugPreview) { previewCameraEntity = camArray.GetEntityFromIndex(i); break; }
+    }
+
+    if (previewCameraEntity == INVALID_ENTITY) return;
+
+    // RenderScene()は内部でRenderSystem::m_cameraEntityを書き換える(フラスタムカリング等が
+    // 参照するため)。プレビュー描画のためにこれを一時的に差し替えたら、他の処理(ポストプロセス等)
+    // が本来のメインカメラだと思って読んでいる値を壊さないよう、必ず元に戻す。
+    Entity savedCameraEntity = renderSystem->GetCameraEntity();
+
+    // ルーム単位のカリング(RoomVisibilityManager)は「今どの部屋にいるか」を基準に間引くため、
+    // 自由に置いたプレビューカメラがどの部屋にも属さない座標にあると全て非表示になってしまう。
+    // デバッグ用途では常にシーン全体が見えてほしいので、この描画の間だけ無効化する。
+    bool savedRoomCulling = RenderSystem::s_enableRoomCulling;
+    RenderSystem::s_enableRoomCulling = false;
+
+    renderSystem->RenderScene(previewCameraEntity, pPreviewRT);
+
+    RenderSystem::s_enableRoomCulling = savedRoomCulling;
+    renderSystem->SetCameraEntity(savedCameraEntity);
+
+    // RenderScene(previewCameraEntity, pPreviewRT)が小さいプレビュー用RT(640x360)を
+    // レンダーターゲットにバインドしたままなので、ここで戻さないと直後のRenderer::EndFrame()の
+    // ImGui描画がそのオフスクリーンRTに描かれてしまい、画面(バックバッファ)からImGuiパネルが
+    // 全て消えたように見える(ゲーム自体は別経路で既にバックバッファへ合成済みなので普通に動き続ける)。
+    GraphicsDevice::Instance().SetBackBuffer();
+    D3D12_VIEWPORT viewport = {};
+    viewport.Width = 1280.0f;
+    viewport.Height = 720.0f;
+    viewport.MinDepth = 0.0f;
+    viewport.MaxDepth = 1.0f;
+    D3D12_RECT scissorRect = { 0, 0, 1280, 720 };
+    auto* pCmdList = GraphicsDevice::Instance().GetCmdList();
+    pCmdList->RSSetViewports(1, &viewport);
+    pCmdList->RSSetScissorRects(1, &scissorRect);
 }
 
 void GameScene::RenderGame()

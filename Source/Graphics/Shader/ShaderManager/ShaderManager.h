@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <mutex>
 #include <string>
 #include <unordered_map>
@@ -66,13 +66,27 @@ public:
 	}
 	bool IsHuntFogActive() const { return m_huntActiveCount > 0; }
 
-	// ���ʔ���(���K���X��)�p: ���˃J������View*Proj�s��ƗL���t���O��ݒ肷��B
-	// �K���X�̃s�N�Z���V�F�[�_�[�͂���Ń��[���h���W���ē��e���A
-	// g_planarReflectionMap�̐�����UV�����߂�B
-	void SetReflectionData(const Math::Matrix& viewProj, bool hasReflection)
+	// 平面反射(窓ガラス等)用: 指定スロット(0〜2、最大3枚=3窓まで同時)の反射カメラ
+	// View*Proj行列と有効フラグを設定する。ガラスのピクセルシェーダーは自分の
+	// reflectionSlotに対応するこの行列でワールド座標を再投影し、
+	// g_planarReflectionMapN(N=スロット番号)の正しいUVを求める。
+	void SetReflectionData(int slot, const Math::Matrix& viewProj, bool hasReflection)
 	{
-		m_SystemData.mReflectionVP = viewProj;
-		m_SystemData.HasReflection = hasReflection ? 1 : 0;
+		if (slot < 0 || slot >= 3) return;
+		m_SystemData.mReflectionVP[slot] = viewProj;
+		int32_t* pFlags = &m_SystemData.HasReflectionPacked.x;
+		pFlags[slot] = hasReflection ? 1 : 0;
+	}
+
+	// 毎フレームの反射割り当て開始時に呼ぶ。前フレームまでアクティブだったスロットが
+	// 今フレームどのReflectionComponentからも選ばれなかった場合に「有効」のまま
+	// 残ってしまうのを防ぐ(古いView*Projで古い絵をサンプルし続けるバグの元になる)。
+	void ClearAllReflectionData()
+	{
+		for (int i = 0; i < 3; ++i) {
+			m_SystemData.mReflectionVP[i] = Math::Matrix::Identity;
+		}
+		m_SystemData.HasReflectionPacked = DirectX::XMINT4(0, 0, 0, 0);
 	}
 
 	// DOFの深度リニア化に使うアクティブカメラのNear/Far。RenderScene呼び出し側(GameScene)が

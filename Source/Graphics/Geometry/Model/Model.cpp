@@ -12,7 +12,7 @@ bool ModelData::Load(const std::string& filepath)
 	LoadModelOption option;
 	if (!AssetManager::Instance().LoadModel(filepath, option, this))
 	{
-		OutputDebugStringA(("���f���̃��[�h�Ɏ��s���܂���: " + filepath + "\n").c_str());
+		OutputDebugStringA(("モデルのロードに失敗しました: " + filepath + "\n").c_str());
 		return false;
 	}
 	SetLoaded(true);

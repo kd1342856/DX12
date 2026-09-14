@@ -168,9 +168,8 @@ cbuffer cbSystem : register(b4)
     int g_EnableSSR;
     float g_SSRStepSize;
 
-    // 平面反射(窓ガラス等)用: 反射カメラのView*Proj行列。
-    // ワールド座標をこれで再投影してg_planarReflectionMapの正しいUVを求める。
-    row_major float4x4 g_mReflectionVP;
-    int g_HasReflection; // 今フレーム有効な反射があるか(0/1)
-    float3 g_PadReflection;
+    // 平面反射(窓ガラス等)用: 各反射スロット(最大3枚=3窓まで同時)の反射カメラView*Proj行列。
+    // ワールド座標をこれで再投影してg_planarReflectionMapN(N=スロット番号)の正しいUVを求める。
+    row_major float4x4 g_mReflectionVP[3];
+    int4 g_HasReflectionPacked; // x,y,z = スロット0/1/2が今フレーム有効か(0/1)。wは未使用
 };

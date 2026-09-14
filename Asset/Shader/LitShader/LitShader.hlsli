@@ -45,7 +45,7 @@ cbuffer cbPerMaterial : register(b2)
     int g_alphaMode; // 0:Opaque, 1:Mask, 2:Blend
     int g_proceduralType; // 0:None, 1:Blood, 2:Cobweb, 3:Glass, 4:Dissolve
     float g_dissolveAmount; // Dissolve用: 0=通常表示, 1=完全に消滅
-    float pad;
+    int g_reflectionSlot; // このメッシュが使う反射スロット(0〜2)。-1ならSSRフォールバック
 };
 
 // ?e?N?X?`??
@@ -57,7 +57,9 @@ Texture2D g_occlusionMap_white : register(t4); // ?I?N???[?W?????}?b?v (GLTF: R=
 
 Texture2D g_opaqueDepth : register(t9); // Opaqueパスで書き込まれた深度バッファ
 Texture2D g_refractionMap : register(t10); // Opaqueパスのカラー結果（屈折用）
-Texture2D g_planarReflectionMap : register(t11); // 平面反射パスのカラー結果
+// 平面反射パスのカラー結果。最大3枚(3窓)まで同時にアクティブにできる - 各メッシュが
+// cbPerMaterial.g_reflectionSlotでどれを使うか指定する(-1ならどれも使わずSSRフォールバック)。
+Texture2D g_planarReflectionMap0 : register(t11);
 Texture2D g_ssaoMap : register(t12); // SSAO結果(画面空間、環境光に掛ける)
 // 最も近いポイントライトの6面キューブシャドウ(TextureCubeではなくTexture2D×6の簡易実装)。
 // face: 0=+X,1=-X,2=+Y,3=-Y,4=+Z,5=-Z
@@ -67,6 +69,8 @@ Texture2D g_pointLightShadowMapFace2 : register(t15);
 Texture2D g_pointLightShadowMapFace3 : register(t16);
 Texture2D g_pointLightShadowMapFace4 : register(t17);
 Texture2D g_pointLightShadowMapFace5 : register(t18);
+Texture2D g_planarReflectionMap1 : register(t19);
+Texture2D g_planarReflectionMap2 : register(t20);
 
 //========================================================
 // ???`??p?\????

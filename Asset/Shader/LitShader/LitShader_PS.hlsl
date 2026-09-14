@@ -611,20 +611,29 @@ PSOutput main(VSOutput In) : SV_Target0
         // 透過色: 背景にガラス色を掛けたものと、ガラス自体のDiffuse色をブレンド
         float3 transColor = lerp(refractColor * glassColor, glassColor, glassOpacity);
         
-        // 平面反射色の取得
+        // 平面反射色の取得(最大3枚=3窓まで同時アクティブ対応)
         // メインカメラのスクリーンUV(sampleUV)は別カメラ(反射カメラ)で描いた
-        // g_planarReflectionMapとは対応しないため使えない。
-        // このピクセルのワールド座標(In.wPos)を、反射カメラのView*Proj行列で
-        // 直接再投影して、正しいUVを求める。
+        // g_planarReflectionMapNとは対応しないため使えない。
+        // このピクセルのワールド座標(In.wPos)を、このメッシュに割り当てられた
+        // 反射スロット(g_reflectionSlot)の反射カメラView*Proj行列で直接再投影して、
+        // 正しいUVを求める。-1(未割り当て)ならSSRフォールバックへ。
         float3 reflectionColor = float3(0.0, 0.0, 0.0);
-        if (g_HasReflection != 0)
+        bool slotHasReflection =
+            (g_reflectionSlot == 0 && g_HasReflectionPacked.x != 0) ||
+            (g_reflectionSlot == 1 && g_HasReflectionPacked.y != 0) ||
+            (g_reflectionSlot == 2 && g_HasReflectionPacked.z != 0);
+        if (slotHasReflection)
         {
-            float4 reflClip = mul(float4(In.wPos, 1.0), g_mReflectionVP);
+            float4x4 reflectionVP = g_mReflectionVP[g_reflectionSlot];
+            float4 reflClip = mul(float4(In.wPos, 1.0), reflectionVP);
             if (reflClip.w > 0.0001)
             {
                 float2 reflNdc = reflClip.xy / reflClip.w;
                 float2 reflectionUV = reflNdc * float2(0.5, -0.5) + 0.5;
-                reflectionColor = g_planarReflectionMap.Sample(g_ss_linear_clamp, saturate(reflectionUV)).rgb;
+                reflectionUV = saturate(reflectionUV);
+                if (g_reflectionSlot == 0) reflectionColor = g_planarReflectionMap0.Sample(g_ss_linear_clamp, reflectionUV).rgb;
+                else if (g_reflectionSlot == 1) reflectionColor = g_planarReflectionMap1.Sample(g_ss_linear_clamp, reflectionUV).rgb;
+                else reflectionColor = g_planarReflectionMap2.Sample(g_ss_linear_clamp, reflectionUV).rgb;
             }
         }
         else if (g_EnableSSR != 0)

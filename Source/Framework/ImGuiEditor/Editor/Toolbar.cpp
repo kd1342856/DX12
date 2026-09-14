@@ -41,6 +41,7 @@ void Editor::DrawMenuBar() {
             ImGui::MenuItem("Game Editor",   nullptr, &s_showGameEditor);
             ImGui::MenuItem("Shader Editor", nullptr, &s_showShaderEditor);
             ImGui::MenuItem("NavMesh Editor", nullptr, &s_showNavMeshEditor);
+            ImGui::MenuItem("Preview Camera", nullptr, &s_showPreviewCamera);
             ImGui::EndMenu();
         }
         ImGui::EndMainMenuBar();

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "../SceneBase.h"
 #include "../../../Framework/Manager/Scene/Scene.h"
 #include "../../../Graphics/GPUResource/RenderTarget/RenderTarget.h"
@@ -30,10 +30,15 @@ private:
     // 法線プリパス+SSAOの計算。RenderScene呼び出し前に呼ぶ必要がある
     // (LitShaderが読むg_ssaoMapをここで確定させるため)。
     void RenderSSAO(Entity cameraEntity);
+    // CameraData.m_isDebugPreviewを立てたカメラ(あれば1つ目)のTransformから見た絵を専用RTに
+    // 描画する。RenderGame/RenderEditorどちらの後にもRender()から呼ぶ(反射カメラ等の他の
+    // システムとは完全に独立、既存のRenderScene()をそのまま流用するだけ)。
+    void RenderDebugPreviewCamera();
 
     float m_exposure = 1.0f;
     bool m_fullscreenGame = true; // 起動時からPlayerのFPS視点でスタートする（F5でデバッグ用フリーカメラに切替）
     bool m_isCameraDragging = false;
+    bool m_isPreviewCameraDragging = false; // Debug Preview Cameraを右クリックドラッグで操作中か
     bool m_flashlightOn = false;
 
     Entity m_editorCameraEntity = INVALID_ENTITY;

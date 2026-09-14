@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 namespace CBufferData
 {
@@ -37,12 +37,11 @@ namespace CBufferData
 		int32_t EnableSSR;
 		float SSRStepSize;
 
-		// ���ʔ���(���K���X��)�p: ���˃J������View*Proj�s��B
-		// �K���X�̃s�N�Z���V�F�[�_�[�����[���h���W���ē��e����
-		// g_planarReflectionMap�̐�����UV�����߂邽�߂Ɏg���B
-		Math::Matrix mReflectionVP;
-		int HasReflection; // ���t���[���L���Ȕ��˂����邩(0/1)
-		float padReflection[3];
+		// 平面反射(窓ガラス等)用: 各反射スロット(最大3枚=3窓まで同時)の反射カメラView*Proj行列。
+		// ガラスのピクセルシェーダーがワールド座標をこれで再投影して
+		// g_planarReflectionMapN(N=スロット番号)の正しいUVを求めるために使う。
+		Math::Matrix mReflectionVP[3];
+		DirectX::XMINT4 HasReflectionPacked; // x,y,z = スロット0/1/2の有効フラグ(0/1)、wは未使用
 	};
 
 	struct SpotLight
