@@ -428,41 +428,103 @@ public:
 				}
 			}
 
-			// 反射行列の計算
-			Math::Plane plane(activeP[slot], activeN[slot]);
-			Math::Matrix reflectionMatrix = Math::Matrix::CreateReflection(plane);
+			Math::Matrix refView;
+			Math::Matrix refProj;
 
-			// 位置、Forward、Upすべてを反射させる
-			Math::Vector3 refCamPos = Math::Vector3::Transform(camPos, reflectionMatrix);
-			Math::Vector3 refCamForward = Math::Vector3::TransformNormal(camForward, reflectionMatrix);
-			Math::Vector3 refCamUp = Math::Vector3::TransformNormal(camUp, reflectionMatrix);
-			Math::Vector3 refCamTarget = refCamPos + refCamForward;
-
-			// Debug: スロット0だけ、数値ダンプ+デバッグ線を出す(全スロット出すと見づらいため)。
-			if (slot == 0)
+			if (activeComps[slot]->m_useFixedCameraSource)
 			{
-				static int s_dbgFrame = 0;
-				if ((s_dbgFrame++ % 60) == 0)
+				// 「反射」の数学は一切行わず、Inspectorでドラッグ&ドロップにより明示的に
+				// 指定したGameObject(ReflectionComponent::m_fixedCameraSourceUUID)の
+				// CameraDataをそのままこの鏡に映す(監視カメラ/モニター的な使い方)。
+				// 「フラグが立っているものを検索」という曖昧な方式だと、削除し損ねた孤児
+				// コンポーネントが誤って優先される事故が起きたため、明示指定に変更した。
+				Entity fixedCamEntity = INVALID_ENTITY;
+				if (auto* pFixedCamObj = activeComps[slot]->ResolveFixedCameraSource())
 				{
-					Logger::Instance().AddLog(Logger::LogLevel::Info,
-						"[Reflection] plane p=(%.2f,%.2f,%.2f) n=(%.2f,%.2f,%.2f)", activeP[slot].x, activeP[slot].y, activeP[slot].z, activeN[slot].x, activeN[slot].y, activeN[slot].z);
-					Logger::Instance().AddLog(Logger::LogLevel::Info,
-						"[Reflection] camPos=(%.2f,%.2f,%.2f) camForward=(%.2f,%.2f,%.2f)", camPos.x, camPos.y, camPos.z, camForward.x, camForward.y, camForward.z);
-					Logger::Instance().AddLog(Logger::LogLevel::Info,
-						"[Reflection] refCamPos=(%.2f,%.2f,%.2f) refCamForward=(%.2f,%.2f,%.2f) activeCount=%d", refCamPos.x, refCamPos.y, refCamPos.z, refCamForward.x, refCamForward.y, refCamForward.z, activeCount);
+					if (ecs.TryGetComponent<CameraData>(pFixedCamObj->GetEntityID()))
+					{
+						fixedCamEntity = pFixedCamObj->GetEntityID();
+					}
 				}
 
-				CollisionManager::Instance().AddDebugLine(camPos, camPos + camForward * 2.0f, IM_COL32(255, 255, 0, 255));
-				CollisionManager::Instance().AddDebugLine(refCamPos, refCamTarget, IM_COL32(255, 0, 255, 255));
-				CollisionManager::Instance().AddDebugLine(camPos, refCamPos, IM_COL32(255, 255, 255, 255));
+				{
+					static int s_dbgFrameFixed = 0;
+					if ((s_dbgFrameFixed++ % 60) == 0)
+					{
+						Logger::Instance().AddLog(Logger::LogLevel::Info,
+							"[Reflection][FixedCam] slot=%d fixedCamEntity=%u", slot, (uint32_t)fixedCamEntity);
+					}
+				}
+
+				if (fixedCamEntity != INVALID_ENTITY)
+				{
+					auto& fixedCamData = ecs.GetComponent<CameraData>(fixedCamEntity);
+					refView = fixedCamData.m_viewMatrix;
+					// 反射テクスチャは正方形(1024x1024)なので、アスペクト1:1のProjectionを組み直す。
+					refProj = DirectX::XMMatrixPerspectiveFovLH(
+						DirectX::XMConvertToRadians(fixedCamData.m_fov), 1.0f, fixedCamData.m_nearZ, fixedCamData.m_farZ);
+
+					static int s_dbgFrameFixed2 = 0;
+					if ((s_dbgFrameFixed2++ % 60) == 0)
+					{
+						Math::Vector3 camWorldPos = fixedCamData.m_viewMatrix.Invert().Translation();
+						Logger::Instance().AddLog(Logger::LogLevel::Info,
+							"[Reflection][FixedCam] using camPos=(%.2f,%.2f,%.2f) fov=%.1f near=%.3f far=%.1f",
+							camWorldPos.x, camWorldPos.y, camWorldPos.z, fixedCamData.m_fov, fixedCamData.m_nearZ, fixedCamData.m_farZ);
+					}
+				}
+				else
+				{
+					// 固定カメラが見つからない(Debug Preview Cameraが立っていない)場合は
+					// 通常の自動反射にフォールバックする。
+					Math::Plane fallbackPlane(activeP[slot], activeN[slot]);
+					Math::Matrix fallbackReflect = Math::Matrix::CreateReflection(fallbackPlane);
+					Math::Vector3 fallbackPos = Math::Vector3::Transform(camPos, fallbackReflect);
+					Math::Vector3 fallbackForward = Math::Vector3::TransformNormal(camForward, fallbackReflect);
+					Math::Vector3 fallbackUp = Math::Vector3::TransformNormal(camUp, fallbackReflect);
+					refView = Math::Matrix::CreateLookAt(fallbackPos, fallbackPos + fallbackForward, fallbackUp);
+					refProj = DirectX::XMMatrixPerspectiveFovLH(
+						DirectX::XMConvertToRadians(cCamera.m_fov), 1.0f, cCamera.m_nearZ, cCamera.m_farZ);
+				}
 			}
+			else
+			{
+				// 反射行列の計算
+				Math::Plane plane(activeP[slot], activeN[slot]);
+				Math::Matrix reflectionMatrix = Math::Matrix::CreateReflection(plane);
 
-			// 反射された位置と方向から新しいView行列を構築する(空間全体は歪むが、視点側は反射側の見た目だけ正しい)
-			Math::Matrix refView = Math::Matrix::CreateLookAt(refCamPos, refCamTarget, refCamUp);
+				// 位置、Forward、Upすべてを反射させる
+				Math::Vector3 refCamPos = Math::Vector3::Transform(camPos, reflectionMatrix);
+				Math::Vector3 refCamForward = Math::Vector3::TransformNormal(camForward, reflectionMatrix);
+				Math::Vector3 refCamUp = Math::Vector3::TransformNormal(camUp, reflectionMatrix);
+				Math::Vector3 refCamTarget = refCamPos + refCamForward;
 
-			// 反射テクスチャは正方形(1024x1024)なので、アスペクト1:1のProjectionを別途組む。
-			Math::Matrix refProj = DirectX::XMMatrixPerspectiveFovLH(
-				DirectX::XMConvertToRadians(cCamera.m_fov), 1.0f, cCamera.m_nearZ, cCamera.m_farZ);
+				// Debug: スロット0だけ、数値ダンプ+デバッグ線を出す(全スロット出すと見づらいため)。
+				if (slot == 0)
+				{
+					static int s_dbgFrame = 0;
+					if ((s_dbgFrame++ % 60) == 0)
+					{
+						Logger::Instance().AddLog(Logger::LogLevel::Info,
+							"[Reflection] plane p=(%.2f,%.2f,%.2f) n=(%.2f,%.2f,%.2f)", activeP[slot].x, activeP[slot].y, activeP[slot].z, activeN[slot].x, activeN[slot].y, activeN[slot].z);
+						Logger::Instance().AddLog(Logger::LogLevel::Info,
+							"[Reflection] camPos=(%.2f,%.2f,%.2f) camForward=(%.2f,%.2f,%.2f)", camPos.x, camPos.y, camPos.z, camForward.x, camForward.y, camForward.z);
+						Logger::Instance().AddLog(Logger::LogLevel::Info,
+							"[Reflection] refCamPos=(%.2f,%.2f,%.2f) refCamForward=(%.2f,%.2f,%.2f) activeCount=%d", refCamPos.x, refCamPos.y, refCamPos.z, refCamForward.x, refCamForward.y, refCamForward.z, activeCount);
+					}
+
+					CollisionManager::Instance().AddDebugLine(camPos, camPos + camForward * 2.0f, IM_COL32(255, 255, 0, 255));
+					CollisionManager::Instance().AddDebugLine(refCamPos, refCamTarget, IM_COL32(255, 0, 255, 255));
+					CollisionManager::Instance().AddDebugLine(camPos, refCamPos, IM_COL32(255, 255, 255, 255));
+				}
+
+				// 反射された位置と方向から新しいView行列を構築する(空間全体は歪むが、視点側は反射側の見た目だけ正しい)
+				refView = Math::Matrix::CreateLookAt(refCamPos, refCamTarget, refCamUp);
+
+				// 反射テクスチャは正方形(1024x1024)なので、アスペクト1:1のProjectionを別途組む。
+				refProj = DirectX::XMMatrixPerspectiveFovLH(
+					DirectX::XMConvertToRadians(cCamera.m_fov), 1.0f, cCamera.m_nearZ, cCamera.m_farZ);
+			}
 
 			context.View = refView;
 			context.Projection = refProj;

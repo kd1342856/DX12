@@ -1,4 +1,4 @@
-#include "../../../Pch.h"
+﻿#include "../../../Pch.h"
 #include "../../Manager/Scene/Scene.h"
 #include "../../Manager/Scene/SceneManager.h"
 #include "../../Manager/Collision/CollisionManager.h"
@@ -57,7 +57,11 @@ void Editor::DrawHierarchyNode(std::shared_ptr<GameObject> obj) {
     ImGui::PushID(obj.get());
     bool opened = ImGui::TreeNodeEx((void*)obj.get(), flags, "%s", obj->GetName().c_str());
     
-    if (ImGui::IsItemClicked()) {
+    // Shiftを押しながらのクリックでは選択を切り替えない - ドラッグ&ドロップでカメラ等を
+    // どこかのInspector上のドロップターゲット(例: ReflectionComponentのFixed Camera欄)に
+    // 割り当てたい時、クリックした瞬間にInspectorがドラッグ元のオブジェクトへ切り替わって
+    // しまうと、ドロップ先のUIが消えてドラッグを完了できないため。
+    if (ImGui::IsItemClicked() && !ImGui::GetIO().KeyShift) {
         s_selectedObject = obj;
     }
 

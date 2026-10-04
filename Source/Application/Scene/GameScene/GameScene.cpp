@@ -440,16 +440,62 @@ void GameScene::RenderDebugPreviewCamera()
     auto* pPreviewRT = Renderer::GetDebugPreviewRenderTarget();
     if (!pPreviewRT) return;
 
-    // CameraData.m_isDebugPreviewを立てたカメラを探す(複数あっても最初の1つだけ使う)。
+    // CameraData.m_isDebugPreviewを立てたカメラを探す。複数見つかった場合は「最後(＝Entity番号が
+    // 一番大きい=一番新しく作られた)もの」を使う。過去にGameObjectを削除/親子関係変更した際、
+    // ECS側にコンポーネントだけ孤児として残ってしまうケースがあり(表示上は1つしか無いのに実際は
+    // 複数ある)、それが古い方から見つかって優先されてしまう事故を避けるため。
     auto& ecs = GameManager::Instance().GetECS();
     auto& camArray = ecs.GetComponentArray<CameraData>();
     Entity previewCameraEntity = INVALID_ENTITY;
-    for (size_t i = 0; i < camArray.GetSize(); ++i)
     {
-        if ((camArray.begin() + i)->m_isDebugPreview) { previewCameraEntity = camArray.GetEntityFromIndex(i); break; }
+        // デバッグ: 該当するCameraDataが複数(重複/孤児)無いか~1秒おきに全部ログへ出す。
+        static int s_dbgFrame2 = 0;
+        bool doLog = ((s_dbgFrame2++ % 60) == 0);
+        int matchCount = 0;
+        for (size_t i = 0; i < camArray.GetSize(); ++i)
+        {
+            if ((camArray.begin() + i)->m_isDebugPreview)
+            {
+                Entity e = camArray.GetEntityFromIndex(i);
+                matchCount++;
+                if (doLog)
+                {
+                    Logger::Instance().AddLog(Logger::LogLevel::Info,
+                        "[PreviewCamera] candidate #%d entity=%u", matchCount, (uint32_t)e);
+                }
+                if (previewCameraEntity == INVALID_ENTITY || e > previewCameraEntity) previewCameraEntity = e;
+            }
+        }
+        if (doLog)
+        {
+            Logger::Instance().AddLog(Logger::LogLevel::Info,
+                "[PreviewCamera] total Debug Preview Camera candidates=%d, using entity=%u",
+                matchCount, (uint32_t)previewCameraEntity);
+        }
     }
 
     if (previewCameraEntity == INVALID_ENTITY) return;
+
+    // デバッグ: 実際にレンダーに使われているカメラのワールド座標・向きを~1秒おきにログへ出す。
+    // Position/Rotationの数値だけ合っていても、親子関係やコンポーネント登録の不整合で
+    // 実際のワールド変換がズレている可能性を切り分けるため。
+    {
+        static int s_dbgFrame = 0;
+        if ((s_dbgFrame++ % 60) == 0)
+        {
+            if (auto* pTrans = ecs.TryGetComponent<TransformData>(previewCameraEntity))
+            {
+                Math::Vector3 worldPos = pTrans->m_worldMatrix.Translation();
+                Math::Vector3 worldForward = pTrans->m_worldMatrix.Backward();
+                Logger::Instance().AddLog(Logger::LogLevel::Info,
+                    "[PreviewCamera] entity=%u localPos=(%.2f,%.2f,%.2f) worldPos=(%.2f,%.2f,%.2f) worldForward=(%.2f,%.2f,%.2f)",
+                    (uint32_t)previewCameraEntity,
+                    pTrans->m_position.x, pTrans->m_position.y, pTrans->m_position.z,
+                    worldPos.x, worldPos.y, worldPos.z,
+                    worldForward.x, worldForward.y, worldForward.z);
+            }
+        }
+    }
 
     // RenderScene()は内部でRenderSystem::m_cameraEntityを書き換える(フラスタムカリング等が
     // 参照するため)。プレビュー描画のためにこれを一時的に差し替えたら、他の処理(ポストプロセス等)
@@ -460,11 +506,21 @@ void GameScene::RenderDebugPreviewCamera()
     // 自由に置いたプレビューカメラがどの部屋にも属さない座標にあると全て非表示になってしまう。
     // デバッグ用途では常にシーン全体が見えてほしいので、この描画の間だけ無効化する。
     bool savedRoomCulling = RenderSystem::s_enableRoomCulling;
+    bool savedFrustumCulling = RenderSystem::s_enableFrustumCulling;
     RenderSystem::s_enableRoomCulling = false;
+    RenderSystem::s_enableFrustumCulling = false; // 念のため視錐台カリングも無効化して切り分ける
+
+    // RenderScene(cameraEntity, pRT)はpRTを渡された時、SetRenderTarget()でバインドするだけで
+    // 中身(カラー・深度)を一切クリアしない(呼び出し側が既にクリア済みという前提の設計)。
+    // このRTは毎フレーム使い回しなので、クリアせずに描くと前フレームの深度バッファが残ったまま
+    // 新しいジオメトリの深度テストと衝突し、実質何も更新されないように見えるバグになる。
+    GraphicsDevice::Instance().SetRenderTarget(pPreviewRT);
+    pPreviewRT->Clear(0.0f, 0.0f, 0.0f, 1.0f);
 
     renderSystem->RenderScene(previewCameraEntity, pPreviewRT);
 
     RenderSystem::s_enableRoomCulling = savedRoomCulling;
+    RenderSystem::s_enableFrustumCulling = savedFrustumCulling;
     renderSystem->SetCameraEntity(savedCameraEntity);
 
     // RenderScene(previewCameraEntity, pPreviewRT)が小さいプレビュー用RT(640x360)を
