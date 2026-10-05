@@ -1,4 +1,4 @@
-#include "../../../../Pch.h"
+﻿#include "../../../../Pch.h"
 #include "RoomArea.h"
 #include "../../../../Framework/Object/GameObject.h"
 #include "../../../../Framework/Manager/Collision/CollisionManager.h"
@@ -32,7 +32,7 @@ void RoomArea::Deserialize(const nlohmann::json& in)
 
 void RoomArea::PreDraw()
 {
-    // AABB��8���_���Z�o
+    // AABBの8頂点を算出
     Math::Vector3 c[8] = {
         { m_min.x, m_min.y, m_min.z },
         { m_max.x, m_min.y, m_min.z },
@@ -44,14 +44,14 @@ void RoomArea::PreDraw()
         { m_max.x, m_max.y, m_max.z },
     };
 
-    // �S�[�X�g�̕����Ȃ�A�ʏ�͔������O���[
+    // ゴーストの部屋なら水色、通常は半透明のグレー
     ImU32 color = IM_COL32(150, 150, 150, 100);
 
     auto& ecs = GameManager::Instance().GetECS();
     for (auto& scriptData : ecs.GetComponentArray<NativeScriptData>()) {
         if (auto* g = dynamic_cast<GhostAI*>(scriptData.Instance.get())) {
             if (g->GetTargetRoom() == this) {
-                color = IM_COL32(100, 200, 255, 255); // �S�[�X�g�̕����͐ŋ���
+                color = IM_COL32(100, 200, 255, 255); // ゴーストの部屋は青で強調
             }
             break;
         }
@@ -59,19 +59,19 @@ void RoomArea::PreDraw()
 
     auto& cm = CollisionManager::Instance();
 
-    // ��� (Y=min) ��4��
+    // 底面 (Y=min) の4辺
     cm.AddDebugLine(c[0], c[1], color);
     cm.AddDebugLine(c[1], c[3], color);
     cm.AddDebugLine(c[3], c[2], color);
     cm.AddDebugLine(c[2], c[0], color);
 
-    // �V�� (Y=max) ��4��
+    // 天井 (Y=max) の4辺
     cm.AddDebugLine(c[4], c[5], color);
     cm.AddDebugLine(c[5], c[7], color);
     cm.AddDebugLine(c[7], c[6], color);
     cm.AddDebugLine(c[6], c[4], color);
 
-    // �c4��
+    // 縦4辺
     cm.AddDebugLine(c[0], c[4], color);
     cm.AddDebugLine(c[1], c[5], color);
     cm.AddDebugLine(c[2], c[6], color);

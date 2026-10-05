@@ -1,4 +1,4 @@
-#include "../../../../Pch.h"
+﻿#include "../../../../Pch.h"
 #include "GameSequence.h"
 #include "../../../../Framework/Object/GameObject.h"
 #include "../../../../Framework/Manager/Scene/Scene.h"
@@ -61,12 +61,12 @@ void GameSequence::Start()
             RoomArea* targetRoom = candidates[r];
             ghost->SetTargetRoom(targetRoom);
             
-            // �S�[�X�g��I�΂ꂽ�����̒��S�ɔz�u
+            // ゴーストを選ばれた部屋の中心に配置
             auto& gTrans = ecs.GetComponent<TransformData>(ghost->GetGameObject()->GetEntityID());
             gTrans.m_position = targetRoom->GetCenter();
-            // �� y = 0.0f �̋������Z�b�g�͔p�~�B2�K���[�����I�΂ꂽ�ꍇ�����[����Y���W���g��
+            // ※ y = 0.0f の強制リセットは廃止。2階ルームが選ばれた場合もルームのY座標を使う
 
-            // ���O�Ɍ��ݎw�肳�ꂽ���[�����o��
+            // ログに現在指定されたルームを出す
             std::string roomName = targetRoom->GetGameObject()->GetName();
             Logger::Instance().AddLog(Logger::LogLevel::Info, "Ghost Room Selected: %s", roomName.c_str());
         } else {
@@ -114,9 +114,9 @@ void GameSequence::PreDraw()
 
 void GameSequence::Draw()
 {
-    // ImGui���̃N���A/�I�[�o�[�e�L�X�g�I�[�o�[���[�͔p�~�B
-    // ResultScene�̉摜(bg_clear.jpg/Death.png)�Ō��ʂ�`�悷��̂ŁA
-    // ���̑O�ɃQ�[����ʒ����Ƀf�o�b�O���ȕ�����o�Ă���K�v���Ȃ��B
+    // ImGui側のクリア/オーバーテキストオーバーレイは廃止。
+    // ResultSceneの画像(bg_clear.jpg/Death.png)で結果を描画するので、
+    // その前にゲーム画面中央にデバッグ的な文字が出ている必要がない。
 }
 
 void GameSequence::Serialize(nlohmann::json& out) const

@@ -19,7 +19,7 @@ void LitShader::Create(GraphicsDevice* pGraphicsDevice)
 	m_topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
 	// Opaque
-	desc.CullMode = CullMode::None; // ���˂̋����`��ŃJ�����O�����]���Ă��`�悳���悤��None�ɂ���
+	desc.CullMode = CullMode::None; // 反射の鏡像描画でカリングが反転しても描画されるようにNoneにする
 	desc.BlendMode = BlendMode::None;
 	desc.DepthBias = 0;
 	desc.IsDepthMask = true;
@@ -32,14 +32,14 @@ void LitShader::Create(GraphicsDevice* pGraphicsDevice)
 	desc.IsDepthMask = true;
 	m_psoMask = ShaderManager::Instance().GetPipelineState(m_pProgram, desc);
 
-	// Blend (�f�J�[���p)
+	// Blend (デカール用)
 	desc.CullMode = CullMode::None;
 	desc.BlendMode = BlendMode::Alpha;
-	desc.DepthBias = -100; // Z�t�@�C�g������Ď�O�ɕ`��
-	desc.IsDepthMask = false; // �������Ȃ̂�Z�������݂Ȃ�
+	desc.DepthBias = -100; // Zファイトを避けて手前に描画
+	desc.IsDepthMask = false; // 半透明なのでZ書き込みなし
 	m_psoBlend = ShaderManager::Instance().GetPipelineState(m_pProgram, desc);
 
-	// �f�t�H���g
+	// デフォルト
 	m_pPipelineState = m_psoOpaque.Get();
 }
 

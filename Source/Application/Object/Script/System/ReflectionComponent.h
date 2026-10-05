@@ -19,11 +19,11 @@ public:
     Math::Vector3 m_worldPlaneNormal = { 0.0f, 0.0f, 1.0f };
     Math::Vector3 m_worldPlanePoint = { 0.0f, 0.0f, 0.0f };
 
-    // �G�f�B�^��ŋ��͈̔͂������f�o�b�O�`��p
+    // エディタ上で球の範囲を示すデバッグ描画用
     float m_debugSize = 2.0f;
 
-    // �Ή�����RoomArea(GameObject��)�B��Ȃ��ɃA�N�e�B�u(�]���ʂ�̋���)�B
-    // �ݒ肷��ƃv���C���[������RoomArea���ɂ��鎞�������˂�L��������B
+    // 対応するRoomArea(GameObject名)。空なら常にアクティブ(従来通りの挙動)。
+    // 設定するとプレイヤーがそのRoomArea内にいる時だけ反射を有効化する。
     std::string m_roomName; // unused (kept for old scene data load compatibility)
 
     // Reflection is active whenever the player is within this distance of the mirror plane,

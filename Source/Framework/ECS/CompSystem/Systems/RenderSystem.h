@@ -648,7 +648,7 @@ public:
 		auto& litShader = ShaderLibrary::Instance().Get<LitShader>();
 		auto& skinningShader = ShaderLibrary::Instance().Get<SkinningShader>();
 
-		// �f�o�b�O: �ŏ��̃t���[���̂�ImGui�ɃG���e�B�e�B�̕`�搔���o�͂���
+		// デバッグ: 最初のフレームのみImGuiにエンティティの描画数を出力する
 		bool bFirstFrame = (m_debugLogFrameCount == 0);
 		if (bFirstFrame)
 		{
@@ -668,7 +668,7 @@ public:
 					bool isSkinned = (cModel.m_modelType == ModelType::Dynamic);
 					bool isSky = (cModel.m_modelType == ModelType::Sky);
 
-					if (isSky && isBlendPass) continue; // Sky�� Opaque�p�X�̂�
+					if (isSky && isBlendPass) continue; // SkyはOpaqueパスのみ
 
 					// エンティティ単位のフラスタムカリング。Skyは常にカメラを取り囲む
 					// ものなので対象外にしている（そもそも「境界」の意味があまり無い）。
@@ -689,7 +689,7 @@ public:
 						// - 誤って何かを隠すよりは、無条件に描画する。
 					}
 
-					// �f�o�b�O���O: 1�t���[���ڂ̂ݏڍ׏����o�� (Opaque�p�X���̂�)
+					// デバッグログ: 1フレーム目のみ詳細情報を出力 (Opaqueパス時のみ)
 					if (bFirstFrame && !isBlendPass)
 					{
 						const auto& boneMatricesDbg = cModel.m_spModelData->GetBoneMatrices();
@@ -815,12 +815,12 @@ public:
 			}
 		};
 
-		// �p�X1: Opaque & Mask
+		// パス1: Opaque & Mask
 		drawEntities(false);
 
 		auto* pGraphicsContext = pGraphicsDevice->GetContextManager()->GetGraphicsContext();
 
-		// Opaque�p�X�̌��ʂ� Refraction �p�ɃR�s�[
+		// Opaqueパスの結果を Refraction 用にコピー
 		if (pRT)
 		{
 			auto* pDestRT = Renderer::GetSceneOpaqueCopyRenderTarget();
@@ -829,14 +829,14 @@ public:
 				auto* pSrcBuffer = pRT->GetResource();
 				auto* pDestBuffer = pDestRT->GetResource();
 
-				// ��ԑJ��: Src��COPY_SOURCE��, Dest��COPY_DEST��
+				// 状態遷移: SrcはCOPY_SOURCEへ, DestはCOPY_DESTへ
 				pGraphicsContext->TransitionResource(pSrcBuffer, D3D12_RESOURCE_STATE_COPY_SOURCE);
 				pGraphicsContext->TransitionResource(pDestBuffer, D3D12_RESOURCE_STATE_COPY_DEST);
 				pGraphicsContext->FlushResourceBarriers();
 
 				pCmdList->CopyResource(pDestBuffer, pSrcBuffer);
 
-				// ��ԑJ��: Src��RENDER_TARGET�ɖ߂�, Dest��SRV(ShaderResource)��
+				// 状態遷移: SrcはRENDER_TARGETに戻す, DestはSRV(ShaderResource)へ
 				pGraphicsContext->TransitionResource(pSrcBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET);
 				pGraphicsContext->TransitionResource(pDestBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 				pGraphicsContext->FlushResourceBarriers();
@@ -865,7 +865,7 @@ public:
 private:
 	Entity m_cameraEntity = INVALID_ENTITY;
 	Math::Vector3 m_lightDirection = Math::Vector3(0.5f, -1.0f, 0.5f);
-	// �f�o�b�O: 1�t���[���ڂ̂݃��O���o�͂��邽�߂̃J�E���^
+	// デバッグ: 1フレーム目のみログを出力するためのカウンタ
 	int m_debugLogFrameCount = 0;
 };
 

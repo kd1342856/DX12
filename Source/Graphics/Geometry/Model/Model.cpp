@@ -148,7 +148,7 @@ std::vector<Math::Matrix> ModelData::GetBoneMatrices() const
 		for (size_t i = 0; i < boneMatrices.size(); ++i) {
 			Math::Vector3 s, t;
 			Math::Quaternion q;
-			// boneMatrices�͂��̂܂�Decompose�ł���͂������ADirectXMath�(Row-Major)�Ȃ̂ł��̂܂ܓn��
+			// boneMatricesはそのままDecomposeできるはずだが、DirectXMath基準(Row-Major)なのでそのまま渡す
 			boneMatrices[i].Decompose(s, q, t);
 			//Logger::Instance().AddLog(Logger::LogLevel::Info, "Bone %zu: Scale(%.3f, %.3f, %.3f) Trans(%.3f, %.3f, %.3f)", i, s.x, s.y, s.z, t.x, t.y, t.z);
 		}
@@ -180,12 +180,12 @@ void ModelData::UpdateAnimation(int animationIndex, float ticks)
 			continue;
 		}
 
-		// ���̃��[�J���ό`���珉���l���擾���Ă���
+		// 元のローカル変形から初期値を取得しておく
 		Math::Vector3 defScale, defPos;
 		Math::Quaternion defRot;
 		m_nodes[targetNodeIdx].originalLocalTransform.Decompose(defScale, defRot, defPos);
 
-		// 1. �ʒu(Position)�̕��
+		// 1. 位置(Position)の補間
 		Math::Vector3 finalPos = defPos;
 		if (!channel.positionKeys.empty()) {
 			if (channel.positionKeys.size() == 1 || ticks <= channel.positionKeys[0].time) {
@@ -206,7 +206,7 @@ void ModelData::UpdateAnimation(int animationIndex, float ticks)
 			}
 		}
 
-		// 2. ��](Rotation)�̕��
+		// 2. 回転(Rotation)の補間
 		Math::Quaternion finalRot = defRot;
 		if (!channel.rotationKeys.empty()) {
 			if (channel.rotationKeys.size() == 1 || ticks <= channel.rotationKeys[0].time) {
@@ -227,7 +227,7 @@ void ModelData::UpdateAnimation(int animationIndex, float ticks)
 			}
 		}
 
-		// 3. �X�P�[��(Scale)�̕��
+		// 3. スケール(Scale)の補間
 		Math::Vector3 finalScale = defScale;
 		if (!channel.scalingKeys.empty()) {
 			if (channel.scalingKeys.size() == 1 || ticks <= channel.scalingKeys[0].time) {

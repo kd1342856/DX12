@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include <d3d12.h>
 #include <wrl.h>
@@ -20,11 +20,11 @@ public:
 	void Execute(ID3D12CommandList* pCmdList);
 	void ExecuteAndSignal(ID3D12CommandList* pCmdList, ID3D12Fence* pFence, uint64_t fenceValue);
     
-    // ƒtƒFƒ“ƒX‚ği‚ß‚ÄA‚»‚Ì’l‚ğ•Ô‚·
+    // ãƒ•ã‚§ãƒ³ã‚¹ã‚’é€²ã‚ã¦ã€ãã®å€¤ã‚’è¿”ã™
     uint64_t Signal();
 	void Signal(ID3D12Fence* pFence, uint64_t value);
 
-    // E??‚µ‚½ƒtƒFƒ“ƒX’l‚Ü‚ÅCPU‚ğªE??‚³‚¹‚é
+    // æŒ‡å®šã—ãŸãƒ•ã‚§ãƒ³ã‚¹å€¤ã¾ã§CPUã‚’å¾…æ©Ÿã•ã›ã‚‹
     void WaitForFence(uint64_t fenceValue);
     void WaitQueue(CommandQueue* pWaitOnQueue, uint64_t fenceValue);
 
@@ -44,7 +44,7 @@ private:
     uint64_t m_fenceValue;
     HANDLE m_fenceEvent;
     
-    // D3D12ƒ`E??ƒ`E??ƒŒƒCƒ„[‚ÌƒNƒ‰ƒ`E??ƒ…‚ğ–h‚®‚½‚ßAExecute‚ÆSignal‚ğ•ÛŒì‚·‚é
+    // D3D12ãƒ‡ãƒãƒƒã‚°ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ã‚¯ãƒ©ãƒƒã‚·ãƒ¥ã‚’é˜²ããŸã‚ã€Executeã¨Signalã‚’ä¿è­·ã™ã‚‹
     std::recursive_mutex m_queueMutex;
 };
 

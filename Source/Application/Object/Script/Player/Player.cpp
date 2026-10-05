@@ -19,8 +19,8 @@ void Player::Awake() {}
 
 void Player::Start()
 {
-    // AnimationDataComponent�͎������g�ł͂Ȃ��q��"Model"�I�u�W�F�N�g�ɕt���Ă��邽�߁A
-    // �q�K�w��T���ăL���b�V�����Ă���(���t���[���T�����Ȃ��悤��)
+    // AnimationDataComponentは自分自身ではなく子の"Model"オブジェクトに付いているため、
+    // 子階層を探してキャッシュしておく(毎フレーム探索しないように)
     auto& ecs = GameManager::Instance().GetECS();
     std::function<void(GameObject*)> findAnimEntity = [&](GameObject* obj) {
         if (m_animEntity != INVALID_ENTITY) return;
@@ -487,9 +487,9 @@ void Player::Update(float deltaTime)
 
     UpdateAnimationState(isMoving);
 
-    // ���Ⴊ�݋�����炩�ɕ�Ԃ���(�J�����̍���������ɒǏ]������)�B
-    // Ctrl���������u�Ԃ̓A�j���[�V�������ɏ������O�������ē����o�����x��邽�߁A
-    // �J���������������x�点�Ă��瓮�����n�߂邱�ƂŃY�������킹��B
+    // しゃがみ具合を滑らかに補間する(カメラの高さもこれに追従させる)。
+    // Ctrlを押した瞬間はアニメーション側に少し溜めがあって動き出しが遅れるため、
+    // カメラも少しだけ遅らせてから動き始めることでズレを合わせる。
     if (crouchToggled)
     {
         m_crouchCameraDelayTimer = m_crouchCameraDelay;
@@ -600,7 +600,7 @@ void Player::TryInteractDoor(const Math::Vector3& playerPos)
         const auto& anims = pModel->m_spModelData->GetAnimations();
         if (anims.empty()) continue;
 
-        // ���I�� AnimationDataComponent ��ǉ�����
+        // 動的に AnimationDataComponent を追加する
         auto* pAnim = ecs.TryGetComponent<AnimationDataComponent>(entity);
         if (!pAnim)
         {
@@ -675,8 +675,8 @@ void Player::TryInteractDoor(const Math::Vector3& playerPos)
                 pAnim->multiAnims[bestAnimIdx].ProgressTime = currentTime;
             }
 
-            // �ǉ�: �A�j���[�V��������G���e�B�e�B�͓��I�I�u�W�F�N�g�Ƃ��Ĉ����A
-            // �������Z(CollisionManager::Solve)�Ŗ��t���[��AABB���X�V�����悤�ɂ���
+            // 追加: アニメーションするエンティティは動的オブジェクトとして扱い、
+            // 衝突判定(CollisionManager::Solve)で毎フレームAABBが更新されるようにする
             auto* pCollider = ecs.TryGetComponent<ColliderData>(bestEntity);
             if (pCollider && pCollider->m_isStatic)
             {

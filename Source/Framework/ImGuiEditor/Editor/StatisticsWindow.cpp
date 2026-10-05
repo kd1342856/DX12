@@ -86,7 +86,7 @@ void Editor::DrawStatistics()
         }
         ImGui::Separator();
 
-        // ����p�o�b�t�@�i���t���[���L�^�j
+        // 履歴用バッファ（毎フレーム記録）
         static float drawCallHistory[120] = {};
         static float instanceHistory[120] = {};
         static float activeJobHistory[120] = {};

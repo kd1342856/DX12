@@ -13,7 +13,7 @@
 #include "../Framework/System/JobSystem/JobSystem.h"
 #include "../Framework/DirectX/Utility/Profiler.h"
 
-// ImGui �� Win32 ���b�Z�[�W�n���h����]������
+// ImGui の Win32 メッセージハンドラへ転送する
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 #include "../Framework/DirectX/Utility/Thread.h"
 
@@ -21,7 +21,7 @@ void my_terminate_handler() {
     std::ofstream ofs("crash.log", std::ios::app);
     ofs << "std::terminate was called! Unhandled exception!\n";
     try {
-        throw; // �ăX���[���ė�O�̌^�����
+        throw; // 再スローして例外の型を特定する
     } catch (const std::exception& e) {
         ofs << "Exception type: std::exception, Message: " << e.what() << "\n";
     } catch (...) {
@@ -84,7 +84,7 @@ void Application::Execute()
 		SceneManager::Instance().GetCurrentScene()->Init();
 	}
 
-	// �Q�[�����[�v
+	// ゲームループ
 	while (true)
 	{
 		if (!m_window.ProcessMessage())

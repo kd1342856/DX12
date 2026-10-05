@@ -22,13 +22,13 @@ public:
     void AddItem(ItemType item);
     bool HasItem(ItemType item) const;
 
-    //���Ⴊ�݋(0=����,1=���S�ɂ��Ⴊ��)�BCrouch�A�j���[�V�����̎��ۂ̍Đ��ʒu�Ɠ������Ă���̂ŁA
-    // �J�����̍���������ɍ��킹��ƃA�j���[�V�����ƃY���Ȃ��B
+    //しゃがみ具合(0=立ち,1=完全にしゃがみ)。Crouchアニメーションの実際の再生位置と同期しているので、
+    // カメラの高さもこれに合わせるとアニメーションとズレない。
     float GetCrouchAmount() const { return m_crouchBlend; }
     bool IsCrouching() const { return m_isCrouching; }
 
 private:
-    // F�L�[�Ńh�A���J���鏈��
+    // Fキーでドアを開閉する処理
     void TryInteractDoor(const Math::Vector3& playerPos);
     float m_moveSpeed = 10.0f;
     bool m_useGravity = true;
@@ -115,20 +115,20 @@ private:
     mutable bool m_doorCandidateCacheBuilt = false;
     void RebuildDoorCandidateCache() const;
 
-    // --- �A�j���[�V���� ---
-    // AnimationDataComponent�͎������g�ł͂Ȃ��q��"Model"�I�u�W�F�N�g�ɕt���Ă��邽�߁A
-    // �����T���Ċo���Ă���(���t���[���T�����Ȃ��Ă����悤��Start()�ŃL���b�V������)
+    // --- アニメーション ---
+    // AnimationDataComponentは自分自身ではなく子の"Model"オブジェクトに付いているため、
+    // 子階層を探して覚えておく(毎フレーム探索しなくていいようにStart()でキャッシュする)
     Entity m_animEntity = INVALID_ENTITY;
 
     bool m_isCrouching = false;
-    float m_crouchBlend = 0.0f; // 0=����,1=���S�ɂ��Ⴊ�݁B���t���[���ڕW�l�֊��炩�ɋ߂Â���
-    float m_crouchBlendSpeed = 6.0f; // �傫���قǑf�����Ǐ]����
-    // Ctrl�������Ă���J�����������o���܂ł̒x��(�b)�B
-    // �A�j���[�V�������̓����o���̃��O�ɍ��킹�Ē�������B
+    float m_crouchBlend = 0.0f; // 0=立ち,1=完全にしゃがみ。毎フレーム目標値へ滑らかに近づける
+    float m_crouchBlendSpeed = 6.0f; // 大きいほど素早く追従する
+    // Ctrlを押してからカメラが動き出すまでの遅延(秒)。
+    // アニメーション側の動き出しのラグに合わせて調整する。
     float m_crouchCameraDelay = 0.1f;
     float m_crouchCameraDelayTimer = 0.0f;
 
-    // Walk/CrouchWalk�n�̃A�j���[�V�����Đ����x�{���B1.0�����{�B
+    // Walk/CrouchWalk系のアニメーション再生速度倍率。1.0で等倍。
     float m_animWalkSpeed = 1.0f;
 
     // Animation state machine: picks one of Idle/Walk/Crouch/CrouchWalk (or its UseItem_* variant

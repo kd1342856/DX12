@@ -2,7 +2,7 @@
 #include "MeshData/MeshData.h"
 #include "../../GPUResource/Buffer/VertexBuffer.h"
 #include "../../GPUResource/Buffer/IndexBuffer.h"
-// AssetState �̂ݕK�v�iGPUUploadQueue.h�𒼐ڃC���N���[�h����Əz�Q�ƂɂȂ�j
+// AssetState のみ必要（GPUUploadQueue.hを直接インクルードすると循環参照になる）
 #include "../../../Framework/Manager/Asset/AssetState.h"
 
 class Texture;
@@ -15,15 +15,15 @@ struct MeshFace
 
 // ============================================================
 // Mesh
-// GPU �o�b�t�@�̐����� CreateGPU() �Ń��C���X���b�h�̂ݎ��s����
-// Begin()/End() �� GPUUploadQueue::Process() ���O���ŊǗ����邽��
-// CreateGPU() ���ł͌Ă΂Ȃ�
+// GPU バッファの生成は CreateGPU() でメインスレッドのみ実行する
+// Begin()/End() は GPUUploadQueue::Process() が外側で管理するため
+// CreateGPU() 内では呼ばない
 // ============================================================
 class Mesh
 {
 public:
-	// ���C���X���b�h��p�FCPU�f�[�^ �� GPU �o�b�t�@�����{�R�}���h�L�^
-	// Begin()/End() �͊O���� GPUUploadQueue::Process() ���Ǘ�����
+	// メインスレッド専用：CPUデータ → GPU バッファ生成＋コマンド記録
+	// Begin()/End() は外側の GPUUploadQueue::Process() が管理する
 	void CreateGPU(GraphicsDevice* pDevice,
 		const std::vector<MeshVertex>& vertices,
 		const std::vector<MeshFace>&   faces,
@@ -44,7 +44,7 @@ public:
 	// 全体を棄却できるようにする。
 	const DirectX::BoundingBox& GetLocalAABB() const { return m_localAABB; }
 
-	// AssetState�F�`��O�� IsReady() ���m�F���邱��
+	// AssetState：描画前に IsReady() を確認すること
 	AssetState GetState() const { return m_state; }
 	void SetState(AssetState state) { m_state = state; }
 	bool IsReady() const { return m_state == AssetState::Ready; }

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "RoomArea.h"
 #include <vector>
 
@@ -33,10 +33,10 @@ public:
 
     static GameSequence* GetInstance() { return s_instance; }
 
-    // �V�[���؂�ւ����ɌĂԁBScene::~Scene()��GameObject��OnDestroy()���Ă΂Ȃ�
-    // (���g��shared_ptr<GameObject>�������������邾��)���߁As_instance����u�����
-    // �j���ς݂̃V�[����GameSequence���w���_���O�����O�|�C���^���c���Ă��܂�
-    // (CollisionManager�̐ÓI�I�N�g�c���[�Ɠ�����ނ̕s��̌���������)�B
+    // シーン切り替え時に呼ぶ。Scene::~Scene()はGameObjectのOnDestroy()を呼ばない
+    // (中身のshared_ptr<GameObject>を解放するだけ)ため、s_instanceをそのままにすると
+    // 破棄済みのシーンのGameSequenceを指すダングリングポインタが残ってしまう
+    // (CollisionManagerの静的オクトツリーと同じ種類の不具合の原因になる)。
     static void ResetInstance() { s_instance = nullptr; }
 
 private:
