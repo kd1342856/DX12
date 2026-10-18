@@ -1,4 +1,4 @@
-#include "../../../Pch.h"
+﻿#include "../../../Pch.h"
 #include <SpriteBatch.h>
 #include "SceneManager.h"
 #include "../../../Application/Object/Script/System/GameSequence.h"
@@ -9,7 +9,7 @@ void SceneManager::Init()
     m_fadeState = FadeState::None;
     m_fadeAlpha = 0.0f;
 
-    // GDF�̃V�X�e���������e�N�X�`�����擾���Ďg�p����
+    // GDFのシステムが持っているテクスチャを取得して使用する
     m_pFadeTexture = GDF::Instance().GetBlackTex();
 }
 
@@ -52,8 +52,8 @@ void SceneManager::Update()
             GraphicsDevice::Instance().SetBackBuffer();
             GraphicsDevice::Instance().ClearBackBuffer(0.0f, 0.0f, 0.0f, 1.0f);
 
-            // �V�[����j������O�ɁAGPU���̏��������������Ă���
-            // (�g�p���̃��\�[�X���c�����܂܉������Ɩ��ɂȂ邽��)
+            // シーンを破棄する前に、GPU側の処理が完了するのを待っておく
+            // (使用中のリソースが残ったまま解放すると問題になるため)
             GraphicsDevice::Instance().GetQueueManager()->GetGraphicsQueue()->Flush();
 
             // Scenes that create their own raw ECS entities directly (TitleScene, ResultScene -
@@ -67,31 +67,31 @@ void SceneManager::Update()
             }
 
             CollisionManager::Instance().SetScene(nullptr);
-            // �Â��V�[�����o�^���Ă����ÓI�R���C�_�[(�I�N�g�c���[���̐��|�C���^�܂�)��
-            // �����Ŋm���ɃN���A���Ă����B���Ȃ��ƁA���̃V�[���œ���Entity ID��
-            // �ė��p���ꂽ���Ɂu�o�^�ς݁v��������čēo�^���ꂸ�A
-            // �j���ς݂�CollisionShape���w���_���O�����O�|�C���^���Փ˔����
-            // �Q�Ƃ���ăN���b�V������(�V�[���؂�ւ����ɗ����Ă����s��̌���)�B
+            // 古いシーンが登録していた静的コライダー(オクトツリー内の生ポインタを含む)を
+            // ここで確実にクリアしておく。しないと、次のシーンで同じEntity IDが
+            // 再利用された時に「登録済み」と判定されて再登録されず、
+            // 破棄済みのCollisionShapeを指すダングリングポインタが衝突判定で
+            // 参照されてクラッシュする(シーン切り替え時に落ちていた不具合の原因)。
             CollisionManager::Instance().ResetForSceneChange();
-            // GameSequence::s_instance���������R(Scene�j������OnDestroy()���Ă΂�Ȃ�)��
-            // �_���O�����O�|�C���^�ɂȂ蓾�邽�߂����ŃN���A����B
+            // GameSequence::s_instanceも同じ理由(Scene破棄時にOnDestroy()が呼ばれない)で
+            // ダングリングポインタになり得るためここでクリアする。
             GameSequence::ResetInstance();
-            // Editor�̑I�𒆃I�u�W�F�N�g���������R�ŃN���A����B
-            // (shared_ptr�ŌÂ��V�[����GameObject���������сAInspector����
-            //  ���݂��Ȃ�Entity���Q�Ƃ��ăN���b�V�����錴���ɂȂ��Ă���)
+            // Editorの選択中オブジェクトも同じ理由でクリアする。
+            // (shared_ptrで古いシーンのGameObjectが生き延び、Inspectorから
+            //  存在しないEntityを参照してクラッシュする原因になっていた)
             Editor::ClearSelection();
             m_currentScene = nullptr;
 
-            // GameObject�̔j����ECS�R�}���h�o�b�t�@�ɐς܂�邾���ő����ɂ͎��s����Ȃ��B
-            // ������FlushCommands()�����Ɏ��̃V�[����Init()����ƁA�j���҂���Entity/
-            // �R���|�[�l���g(����NativeScriptData�̒��̃X�N���v�g�C���X�^���X)��
-            // ECS��Ɏc�����܂ܐV�V�[���̏����������������Ă��܂��A�V�V�[�����̃R�[�h��
-            // ������E���āu���ɉ�����ꂽGameObject�ւ̐��|�C���^�v��H���ăN���b�V������
-            // (���ꂪ�J��Ԃ��������Ă����N���b�V���̍��{����������)�B
-            // ���̃V�[�����Z�b�g����O�ɕK���j���R�}���h�𔽉f������B
+            // GameObjectの破棄はECSコマンドバッファに積まれるだけで即座には実行されない。
+            // ここでFlushCommands()せずに次のシーンをInit()すると、破棄待ちのEntity/
+            // コンポーネント(特にNativeScriptDataの中のスクリプトインスタンス)が
+            // ECS上に残ったまま新シーンの初期化処理が走ってしまい、新シーン側のコードが
+            // それを拾って「既に解放されたGameObjectへの生ポインタ」を辿ってクラッシュする
+            // (これが繰り返し発生していたクラッシュの根本原因だった)。
+            // 次のシーンをセットする前に必ず破棄コマンドを反映させる。
             GameManager::Instance().GetECS().FlushCommands();
 
-            // �V�����V�[�����Z�b�g����
+            // 新しいシーンをセットする
             m_currentScene = std::move(m_nextScene);
 
             if (m_currentScene)
@@ -139,7 +139,7 @@ void SceneManager::DrawFade()
 
     DirectX::XMVECTOR color = DirectX::XMVectorSet(1.0f, 1.0f, 1.0f, m_fadeAlpha);
     DirectX::XMFLOAT2 pos(0.0f, 0.0f);
-    DirectX::XMFLOAT2 scale(1280.0f, 720.0f); // 1x1�̃e�N�X�`����S��ʂɈ������΂�
+    DirectX::XMFLOAT2 scale(1280.0f, 720.0f); // 1x1のテクスチャを全画面に引き伸ばす
     auto texSize = DirectX::XMUINT2(1, 1);
 
     pSpriteBatch->Draw(

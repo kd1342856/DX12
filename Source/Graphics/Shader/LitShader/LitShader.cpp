@@ -19,7 +19,7 @@ void LitShader::Create(GraphicsDevice* pGraphicsDevice)
 	m_topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
 	// Opaque
-	desc.CullMode = CullMode::None; // ���˂̋����`��ŃJ�����O�����]���Ă��`�悳���悤��None�ɂ���
+	desc.CullMode = CullMode::None; // 反射の鏡像描画でカリングが反転しても描画されるようにNoneにする
 	desc.BlendMode = BlendMode::None;
 	desc.DepthBias = 0;
 	desc.IsDepthMask = true;
@@ -32,14 +32,14 @@ void LitShader::Create(GraphicsDevice* pGraphicsDevice)
 	desc.IsDepthMask = true;
 	m_psoMask = ShaderManager::Instance().GetPipelineState(m_pProgram, desc);
 
-	// Blend (�f�J�[���p)
+	// Blend (デカール用)
 	desc.CullMode = CullMode::None;
 	desc.BlendMode = BlendMode::Alpha;
-	desc.DepthBias = -100; // Z�t�@�C�g������Ď�O�ɕ`��
-	desc.IsDepthMask = false; // �������Ȃ̂�Z�������݂Ȃ�
+	desc.DepthBias = -100; // Zファイトを避けて手前に描画
+	desc.IsDepthMask = false; // 半透明なのでZ書き込みなし
 	m_psoBlend = ShaderManager::Instance().GetPipelineState(m_pProgram, desc);
 
-	// �f�t�H���g
+	// デフォルト
 	m_pPipelineState = m_psoOpaque.Get();
 }
 
@@ -92,14 +92,20 @@ void LitShader::Begin(RenderContext& context)
 		}
 	}
 	
-	// Bind Planar Reflection Map to t11
-	int t11 = GetRootParameterIndex(ShaderBindingType::SRV, 11);
-	if (t11 != -1) {
-		auto* pReflection = Renderer::GetPlanarReflectionRenderTarget();
-		if (pReflection && pReflection->GetSRVIndex() != -1)
+	// Bind Planar Reflection Maps (最大3枚=3窓まで同時) to t11, t19, t20
+	{
+		static const int kReflectionSlotRegisters[3] = { 11, 19, 20 };
+		for (int slot = 0; slot < 3; ++slot)
 		{
-			auto handle = m_pDevice->GetDescriptorHeapManager()->GetCBVSRVUAVAllocator()->GetGPUHandle(pReflection->GetSRVIndex());
-			m_pDevice->GetCmdList()->SetGraphicsRootDescriptorTable(t11, handle);
+			int tSlot = GetRootParameterIndex(ShaderBindingType::SRV, kReflectionSlotRegisters[slot]);
+			if (tSlot != -1) {
+				auto* pReflection = Renderer::GetPlanarReflectionRenderTarget(slot);
+				if (pReflection && pReflection->GetSRVIndex() != -1)
+				{
+					auto handle = m_pDevice->GetDescriptorHeapManager()->GetCBVSRVUAVAllocator()->GetGPUHandle(pReflection->GetSRVIndex());
+					m_pDevice->GetCmdList()->SetGraphicsRootDescriptorTable(tSlot, handle);
+				}
+			}
 		}
 	}
 
@@ -116,14 +122,17 @@ void LitShader::Begin(RenderContext& context)
 		}
 	}
 
-	// Bind Point Light Shadow Map to t13
-	int t13 = GetRootParameterIndex(ShaderBindingType::SRV, 13);
-	if (t13 != -1) {
-		auto* pPLShadowMap = m_pDevice->GetPointLightShadowMap();
-		if (pPLShadowMap && pPLShadowMap->GetSRVNumber() != -1)
-		{
-			auto handle = m_pDevice->GetDescriptorHeapManager()->GetCBVSRVUAVAllocator()->GetGPUHandle(pPLShadowMap->GetSRVNumber());
-			m_pDevice->GetCmdList()->SetGraphicsRootDescriptorTable(t13, handle);
+	// Bind Point Light Shadow Cube faces to t13..t18
+	for (int face = 0; face < 6; ++face)
+	{
+		int tFace = GetRootParameterIndex(ShaderBindingType::SRV, 13 + face);
+		if (tFace != -1) {
+			auto* pPLShadowMap = m_pDevice->GetPointLightShadowMapFace(face);
+			if (pPLShadowMap && pPLShadowMap->GetSRVNumber() != -1)
+			{
+				auto handle = m_pDevice->GetDescriptorHeapManager()->GetCBVSRVUAVAllocator()->GetGPUHandle(pPLShadowMap->GetSRVNumber());
+				m_pDevice->GetCmdList()->SetGraphicsRootDescriptorTable(tFace, handle);
+			}
 		}
 	}
 }

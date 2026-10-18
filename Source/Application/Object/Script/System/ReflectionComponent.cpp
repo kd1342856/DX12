@@ -1,10 +1,12 @@
-#include "../../../../Pch.h"
+﻿#include "../../../../Pch.h"
 #include "ReflectionComponent.h"
 #include "../../../../Framework/ImGuiEditor/Editor/Editor.h"
 #include "../../../../Framework/Manager/GameManager.h"
 #include "../../../../Framework/Manager/Collision/CollisionManager.h"
+#include "../../../../Framework/Manager/Scene/Scene.h"
 #include "../../../../Framework/Object/GameObject.h"
 #include "../Player/Player.h"
+#include <functional>
 
 REGISTER_COMPONENT(ReflectionComponent);
 
@@ -15,6 +17,8 @@ void ReflectionComponent::Serialize(nlohmann::json& out) const
     out["debugSize"] = m_debugSize;
     out["roomName"] = m_roomName;
     out["activationDistance"] = m_activationDistance;
+    out["useFixedCameraSource"] = m_useFixedCameraSource;
+    out["fixedCameraSourceUUID"] = m_fixedCameraSourceUUID;
 }
 
 void ReflectionComponent::Deserialize(const nlohmann::json& in)
@@ -36,6 +40,33 @@ void ReflectionComponent::Deserialize(const nlohmann::json& in)
     if (in.contains("activationDistance")) {
         m_activationDistance = in["activationDistance"];
     }
+    if (in.contains("useFixedCameraSource")) {
+        m_useFixedCameraSource = in["useFixedCameraSource"];
+    }
+    if (in.contains("fixedCameraSourceUUID")) {
+        m_fixedCameraSourceUUID = in["fixedCameraSourceUUID"];
+    }
+}
+
+GameObject* ReflectionComponent::ResolveFixedCameraSource() const
+{
+    if (m_fixedCameraSourceUUID == 0) return nullptr;
+    auto scene = Editor::GetScene();
+    if (!scene) return nullptr;
+
+    std::function<GameObject*(const std::shared_ptr<GameObject>&)> find =
+        [&](const std::shared_ptr<GameObject>& obj) -> GameObject* {
+        if (obj->GetUUID() == m_fixedCameraSourceUUID) return obj.get();
+        for (auto& child : obj->GetChildren()) {
+            if (auto* found = find(child)) return found;
+        }
+        return nullptr;
+    };
+
+    for (auto& obj : scene->GetGameObjects()) {
+        if (auto* found = find(obj)) return found;
+    }
+    return nullptr;
 }
 
 void ReflectionComponent::ImGuiUpdate()
@@ -49,6 +80,50 @@ void ReflectionComponent::ImGuiUpdate()
 
     // Normal must always stay unit length
     m_planeNormal.Normalize();
+
+    ImGui::Separator();
+    ImGui::Checkbox("Use Fixed Camera Source", &m_useFixedCameraSource);
+    ImGui::SameLine();
+    ImGui::TextDisabled("(?)");
+    if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip(
+            u8"ONにすると、プレイヤー/エディタカメラを鏡面で自動反射する代わりに、\n"
+            u8"下で明示的に指定したカメラの映像をそのままこの鏡に映す\n"
+            u8"(監視カメラ/モニターのような使い方)。指定したカメラが見つからない場合は\n"
+            u8"通常の自動反射にフォールバックする。");
+    }
+
+    if (m_useFixedCameraSource)
+    {
+        // ドラッグ&ドロップは環境によって開始されないことがあるため、確実に選べる
+        // プルダウンリスト方式にする。CameraDataを持つ全GameObjectを列挙して選ぶだけ。
+        GameObject* pResolved = ResolveFixedCameraSource();
+        std::string currentLabel = pResolved ? pResolved->GetName() : u8"(未設定)";
+
+        if (ImGui::BeginCombo("Fixed Camera", currentLabel.c_str()))
+        {
+            auto& ecs = GameManager::Instance().GetECS();
+            auto scene = Editor::GetScene();
+            auto& camArray = ecs.GetComponentArray<CameraData>();
+            for (size_t i = 0; i < camArray.GetSize(); ++i)
+            {
+                Entity e = camArray.GetEntityFromIndex(i);
+                auto obj = scene ? scene->GetGameObject(e) : nullptr;
+                if (!obj) continue;
+
+                bool isSelected = (pResolved == obj.get());
+                std::string label = obj->GetName() + "##fixedcam" + std::to_string((uint32_t)e);
+                if (ImGui::Selectable(label.c_str(), isSelected))
+                {
+                    m_fixedCameraSourceUUID = obj->GetUUID();
+                }
+            }
+            ImGui::EndCombo();
+        }
+        if (m_fixedCameraSourceUUID != 0 && ImGui::Button("Clear Fixed Camera")) {
+            m_fixedCameraSourceUUID = 0;
+        }
+    }
 
     ImGui::Text("Active: %s", m_isActive ? "true" : "false");
 }

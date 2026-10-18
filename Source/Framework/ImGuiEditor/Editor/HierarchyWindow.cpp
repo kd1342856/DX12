@@ -1,4 +1,4 @@
-#include "../../../Pch.h"
+﻿#include "../../../Pch.h"
 #include "../../Manager/Scene/Scene.h"
 #include "../../Manager/Scene/SceneManager.h"
 #include "../../Manager/Collision/CollisionManager.h"
@@ -18,7 +18,7 @@ void Editor::DrawHierarchy() {
     if (!scene) return;
     ImGui::Begin("Hierarchy");
     
-    // ?w?i??E???E???E???E?????E????E???E???E???E??u?W??E???E??g??E?????E
+    // 背景を右クリックした時のポップアップメニュー
     if (ImGui::BeginPopupContextWindow("HierarchyPopup", ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems)) {
         if (ImGui::MenuItem("Create Empty Object")) {
             scene->CreateGameObject("GameObject");
@@ -31,7 +31,7 @@ void Editor::DrawHierarchy() {
         DrawHierarchyNode(obj);
     }
     
-    // ??E???E????h?E??E?????E??E??h????E?E??E??e????E???E??E????[?g?K??E???E??????E??E
+    // 空き領域にドロップしたら親子関係を解除してルートに戻す
     ImGui::Dummy(ImGui::GetContentRegionAvail());
     if (ImGui::BeginDragDropTarget()) {
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GAMEOBJECT")) {
@@ -57,7 +57,11 @@ void Editor::DrawHierarchyNode(std::shared_ptr<GameObject> obj) {
     ImGui::PushID(obj.get());
     bool opened = ImGui::TreeNodeEx((void*)obj.get(), flags, "%s", obj->GetName().c_str());
     
-    if (ImGui::IsItemClicked()) {
+    // Shiftを押しながらのクリックでは選択を切り替えない - ドラッグ&ドロップでカメラ等を
+    // どこかのInspector上のドロップターゲット(例: ReflectionComponentのFixed Camera欄)に
+    // 割り当てたい時、クリックした瞬間にInspectorがドラッグ元のオブジェクトへ切り替わって
+    // しまうと、ドロップ先のUIが消えてドラッグを完了できないため。
+    if (ImGui::IsItemClicked() && !ImGui::GetIO().KeyShift) {
         s_selectedObject = obj;
     }
 

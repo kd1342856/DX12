@@ -1,7 +1,7 @@
 #include "../Common/ShaderCore.hlsli"
 #include "../Common/inc_PBRCommon.hlsli"
 
-// 16?T???v?? Poisson Disk
+// 16サンプルの Poisson Disk
 static const float2 g_poissonDisk16[16] = {
     float2( -0.94201624, -0.39906216 ),
     float2( 0.94558609, -0.76890725 ),
@@ -21,7 +21,7 @@ static const float2 g_poissonDisk16[16] = {
     float2( 0.14383161, -0.14100790 )
 };
 
-// ?C???^?[???[?u???z?m?C?Y
+// インターリーブド・グラディエント・ノイズ
 float InterleavedGradientNoise(float2 screenPos)
 {
     float3 magic = float3(0.06711056f, 0.00583715f, 52.9829189f);
@@ -30,7 +30,7 @@ float InterleavedGradientNoise(float2 screenPos)
 
 //================================
 //
-// ?}?e???A??
+// マテリアル
 //
 //================================
 cbuffer cbPerMaterial : register(b2)
@@ -45,51 +45,62 @@ cbuffer cbPerMaterial : register(b2)
     int g_alphaMode; // 0:Opaque, 1:Mask, 2:Blend
     int g_proceduralType; // 0:None, 1:Blood, 2:Cobweb, 3:Glass, 4:Dissolve
     float g_dissolveAmount; // Dissolve用: 0=通常表示, 1=完全に消滅
-    float pad;
+    int g_reflectionSlot; // このメッシュが使う反射スロット(0〜2)。-1ならSSRフォールバック
 };
 
-// ?e?N?X?`??
-Texture2D g_baseMap_white : register(t0); // ?x?[?X?J???[?e?N?X?`??
-Texture2D g_normalMap_normal : register(t1); // ?@???}?b?v
+// テクスチャ
+Texture2D g_baseMap_white : register(t0); // ベースカラーテクスチャ
+Texture2D g_normalMap_normal : register(t1); // 法線マップ
 Texture2D g_metallicRoughnessMap_white : register(t2); // GLTF: G=Roughness, B=Metallic
-Texture2D g_emissiveMap_white : register(t3); // ????}?b?v
-Texture2D g_occlusionMap_white : register(t4); // ?I?N???[?W?????}?b?v (GLTF: R=Occlusion)
+Texture2D g_emissiveMap_white : register(t3); // 発光マップ
+Texture2D g_occlusionMap_white : register(t4); // オクルージョンマップ (GLTF: R=Occlusion)
 
 Texture2D g_opaqueDepth : register(t9); // Opaqueパスで書き込まれた深度バッファ
 Texture2D g_refractionMap : register(t10); // Opaqueパスのカラー結果（屈折用）
-Texture2D g_planarReflectionMap : register(t11); // 平面反射パスのカラー結果
+// 平面反射パスのカラー結果。最大3枚(3窓)まで同時にアクティブにできる - 各メッシュが
+// cbPerMaterial.g_reflectionSlotでどれを使うか指定する(-1ならどれも使わずSSRフォールバック)。
+Texture2D g_planarReflectionMap0 : register(t11);
 Texture2D g_ssaoMap : register(t12); // SSAO結果(画面空間、環境光に掛ける)
-Texture2D g_pointLightShadowMap : register(t13); // 最も近いポイントライトの簡易シャドウマップ
+// 最も近いポイントライトの6面キューブシャドウ(TextureCubeではなくTexture2D×6の簡易実装)。
+// face: 0=+X,1=-X,2=+Y,3=-Y,4=+Z,5=-Z
+Texture2D g_pointLightShadowMapFace0 : register(t13);
+Texture2D g_pointLightShadowMapFace1 : register(t14);
+Texture2D g_pointLightShadowMapFace2 : register(t15);
+Texture2D g_pointLightShadowMapFace3 : register(t16);
+Texture2D g_pointLightShadowMapFace4 : register(t17);
+Texture2D g_pointLightShadowMapFace5 : register(t18);
+Texture2D g_planarReflectionMap1 : register(t19);
+Texture2D g_planarReflectionMap2 : register(t20);
 
 //========================================================
-// ???`??p?\????
+// 通常描画用構造体
 //========================================================
 
-// ???_?V?F?[?_????o?????f?[?^
+// 頂点シェーダーから出力するデータ
 struct VSOutput
 {
-    float4 Pos : SV_Position; // ???e???W
-    float2 UV : TEXCOORD0; // UV???W
-    float3 wT : TEXCOORD1; // ???[???h???
-    float3 wB : TEXCOORD2; // ???[???h?]?@??
-    float3 wN : TEXCOORD3; // ???[???h?@??
-    float3 wPos : TEXCOORD5; // ???[???h???W
+    float4 Pos : SV_Position; // 射影座標
+    float2 UV : TEXCOORD0; // UV座標
+    float3 wT : TEXCOORD1; // ワールド接線
+    float3 wB : TEXCOORD2; // ワールド従法線
+    float3 wN : TEXCOORD3; // ワールド法線
+    float3 wPos : TEXCOORD5; // ワールド座標
 };
 
-// ?s?N?Z???V?F?[?_?[????o?????f?[?^
+// ピクセルシェーダーから出力するデータ
 struct PSOutput
 {
     float4 color : SV_Target0;
 };
 
 //========================================================
-// ?V???h?E?}?b?v?????p?\????
+// シャドウマップ生成用構造体
 //========================================================
 
-// ???_?V?F?[?_????o?????f?[?^
+// 頂点シェーダーから出力するデータ
 struct ShadowCasterVSOutput
 {
-    float4 Pos : SV_Position; // ???e???W
-    float2 UV : TEXCOORD0; // UV???W
+    float4 Pos : SV_Position; // 射影座標
+    float2 UV : TEXCOORD0; // UV座標
     float4 wvpPos : TEXCOORD1;
 };

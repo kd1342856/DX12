@@ -131,10 +131,11 @@ cbuffer cbLight : register(b3)
     PointLight g_PL[8];
 
     //-------------------------
-    // ポイント光の影 (最も近い1灯のみ、単純な単一パースペクティブ投影の簡易シャドウ。
-    // 真の全方位キューブシャドウではなく、毎フレーム視点の方向へ向けている近似)
+    // ポイント光の影 (最も近い1灯のみ、6面キューブシャドウ。TextureCubeではなく
+    // Texture2Dを6枚使う簡易実装 - 面の選択はピクセルシェーダー側でLight->Pixelベクトルの
+    // 主軸から判定する。face: 0=+X,1=-X,2=+Y,3=-Y,4=+Z,5=-Z)
     //-------------------------
-    row_major float4x4 g_PL0_ShadowVP;
+    row_major float4x4 g_PL0_ShadowVP[6];
     float g_PL0_ShadowBias;
     int   g_PL0_ShadowEnabled;
     float2 g_PadPL0Shadow;
@@ -167,9 +168,8 @@ cbuffer cbSystem : register(b4)
     int g_EnableSSR;
     float g_SSRStepSize;
 
-    // 平面反射(窓ガラス等)用: 反射カメラのView*Proj行列。
-    // ワールド座標をこれで再投影してg_planarReflectionMapの正しいUVを求める。
-    row_major float4x4 g_mReflectionVP;
-    int g_HasReflection; // 今フレーム有効な反射があるか(0/1)
-    float3 g_PadReflection;
+    // 平面反射(窓ガラス等)用: 各反射スロット(最大3枚=3窓まで同時)の反射カメラView*Proj行列。
+    // ワールド座標をこれで再投影してg_planarReflectionMapN(N=スロット番号)の正しいUVを求める。
+    row_major float4x4 g_mReflectionVP[3];
+    int4 g_HasReflectionPacked; // x,y,z = スロット0/1/2が今フレーム有効か(0/1)。wは未使用
 };

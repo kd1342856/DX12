@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include <mutex>
+#include <array>
 
 class DescriptorHeapManager;
 class FrameConstantBufferAllocator;
@@ -18,23 +19,23 @@ class ResourceLifetimeManager;
 
 class GraphicsDevice {
 public:
-	// �I���������n�܂������ǂ����B�P����static bool�Ȃ̂ŁAGraphicsDevice��
-	// �C���X�^���X���̂�(�ÓI�j�������̓s������)���ɉ��Ă��Ă����������͈��S�ɓǂ߂�B
-	// GPUResource�̃f�X�g���N�^���A�I�������̌�ɂǂ̃^�C�~���O�ŌĂ΂�邩
-	// �m��ł��Ȃ��ӏ�����Am_device�ɐG��O�ɕK��������m�F���邱�ƁB
+	// 終了処理が始まったかどうか。単純なstatic boolなので、GraphicsDeviceの
+	// インスタンス自体が(静的破棄順序の都合などで)既に壊れていても、これだけは安全に読める。
+	// GPUResourceのデストラクタが、終了処理の後にどのタイミングで呼ばれるか
+	// 確定できない箇所からは、m_deviceに触る前に必ずこれを確認すること。
 	static bool IsShuttingDown() { return s_isShuttingDown; }
 
-	// ������
+	// 初期化
 	bool Init(HWND hWnd, int w, int h);
 	
-	// �`��I��
+	// 描画終了
 	void EndFrame();
 
-	// �`��J�n
+	// 描画開始
 	void BeginFrame();
 
 	
-	// �����_�[�^�[�Q�b�g�ݒ�
+	// レンダーターゲット設定
 	void SetRenderTarget(RenderTarget* pRT);
 	void TransitionToSRV(RenderTarget* pRT);
 	// RenderTarget専用の深度バッファ(pRT->GetDepthSRVIndex())の状態遷移。
@@ -44,7 +45,7 @@ public:
 	void SetBackBuffer();
 	void ClearBackBuffer(float r, float g, float b, float a);
 
-	// ImGui�`��(EndFrame�O�ɌĂ�)
+	// ImGui描画(EndFrame前に呼ぶ)
 	void RenderImGui();
 
 	// Getter
@@ -63,7 +64,11 @@ public:
 	const FrameConstantBufferAllocator* GetFrameConstantBufferAllocator() const { return m_upFrameManager->GetCurrentFrameResource().GetConstantBufferAllocator(); }
 	DepthStencil* GetDepthStencil()const { return m_upDepthStencil.get(); } 
 	DepthStencil* GetShadowMap()const { return m_upShadowMap.get(); }
-	DepthStencil* GetPointLightShadowMap()const { return m_upPointLightShadowMap.get(); }
+	// 最も近いポイントライト1灯の全方位(キューブ)シャドウ。6面それぞれ独立したDepthStencil
+	// (TextureCubeリソースではなく、Texture2Dを6枚使う簡易実装 - 連続したディスクリプタ確保が
+	// 不要で、既存のShadowShader/DepthStencilの仕組みをそのまま6回使い回せる)。
+	// face: 0=+X, 1=-X, 2=+Y, 3=-Y, 4=+Z, 5=-Z (LitShader_PS.hlslの面選択と対応させること)
+	DepthStencil* GetPointLightShadowMapFace(int face)const { return m_upPointLightShadowMapFaces[face % 6].get(); }
 	
 
 
@@ -80,7 +85,7 @@ public:
 	// SpriteBatch
 	DirectX::SpriteBatch* GetSpriteBatch() const { return m_spSpriteBatch.get(); }
 
-	// �I������
+	// 終了処理
 	void Shutdown();
 	void EnableDebugLayer();
 
@@ -96,7 +101,7 @@ public:
 
 	ID3D12DescriptorHeap* GetImGuiSRVHeap() const { return m_upImGuiSRVHeap.Get(); }
 
-	// SpotShadowMap�͖��g�p�̂��ߍ폜�ς�
+	// SpotShadowMapは未使用のため削除済み
 	int m_imGuiSrvCount = 1;
 
 	std::unique_ptr<DirectX::SpriteBatch> m_spSpriteBatch;
@@ -119,14 +124,14 @@ public:
 		Kind,
 	};
 
-	// �f�o�C�X
+	// デバイス
 	Microsoft::WRL::ComPtr<ID3D12Device8>					m_pDevice = nullptr;
 	Microsoft::WRL::ComPtr<IDXGIFactory6>					m_pDxgiFactory = nullptr;
 	Microsoft::WRL::ComPtr<IDXGIAdapter3>					m_pAdapter3 = nullptr;
 
-	// �R�}���h
+	// コマンド
 			
-	// �X���b�v�`�F�[��
+	// スワップチェーン
 	Microsoft::WRL::ComPtr<IDXGISwapChain4>					m_pSwapChain = nullptr;
 
 	// Number of swap chain back buffers. 3 lets the CPU run ahead of the GPU.
@@ -147,7 +152,7 @@ public:
 
 	std::unique_ptr<DepthStencil>			m_upDepthStencil = nullptr;
 	std::unique_ptr<DepthStencil>			m_upShadowMap = nullptr;
-	std::unique_ptr<DepthStencil>			m_upPointLightShadowMap = nullptr;
+	std::array<std::unique_ptr<DepthStencil>, 6> m_upPointLightShadowMapFaces;
 	std::unique_ptr<ResourceStateTracker> m_upResourceStateTracker = nullptr;
 	std::unique_ptr<ResourceUploader> m_upResourceUploader = nullptr;
 	std::unique_ptr<ResourceLifetimeManager> m_upResourceLifetimeManager = nullptr;
@@ -155,7 +160,7 @@ public:
 	std::unique_ptr<Texture> m_spBlackTex = nullptr;
 	std::unique_ptr<Texture> m_spNormalTex = nullptr;
 
-	// ImGui�pSRV�p�q�[�v
+	// ImGui用SRVヒープ
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>			m_upImGuiSRVHeap = nullptr;
 	std::unique_ptr<DirectX::GraphicsMemory> m_graphicsMemory = nullptr;
 	float GetVRAMUsageMB();
@@ -166,9 +171,9 @@ private:
 	bool CreateSwapChainRTV();
 		bool CreateDefaultTextures();
 
-	// SpotShadowMap: ���g�p�̂��ߍ폜�ς�
+	// SpotShadowMap: 未使用のため削除済み
 
-	// ImGui������
+	// ImGui初期化
 	bool InitImGui();
 	void ShutdownImGui();
 

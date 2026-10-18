@@ -30,6 +30,8 @@ std::shared_ptr<Scene> Editor::s_scene = nullptr;
 bool Editor::s_showGameEditor = false;
 bool Editor::s_showShaderEditor = false;
 bool Editor::s_showNavMeshEditor = false;
+bool Editor::s_showPreviewCamera = false;
+bool Editor::s_previewCameraHovered = false;
 
 void Editor::Init() {
     s_scene = std::make_shared<Scene>();
@@ -53,6 +55,8 @@ void Editor::Draw()
     DrawAssetBrowser();
     DrawStatistics();
     DrawConsole();
+    if (s_showPreviewCamera) DrawPreviewCamera();
+    else s_previewCameraHovered = false; // ウィンドウを閉じている間は右クリック操作を有効にしたままにしない
 
     static GameEditor gameEditor;
     static ShaderEditor shaderEditor;

@@ -33,6 +33,7 @@ struct RendererSettings
     // フォールバックとして、Opaqueパスの深度+カラーをレイマーチする。
     bool  EnableSSR = true;
     float SSRStepSize = 0.35f; // ビュー空間での1ステップの距離
+    float SSROpaqueIntensity = 0.5f; // Opaque材質向けSSR(床・タイル等)の強さ。ガラスのSSRとは別パラメータ
 };
 
 struct LightingSettings

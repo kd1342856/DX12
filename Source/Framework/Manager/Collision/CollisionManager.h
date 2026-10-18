@@ -6,6 +6,7 @@ class RenderTarget;
 
 #include "CollisionShape.h"
 #include "Octree.h"
+#include <map>
 
 struct RaycastHit {
     bool hit = false;
@@ -78,6 +79,9 @@ private:
     Octree m_dynamicOctree;
     bool m_isStaticOctreeBuilt = false;
     std::set<Entity> m_registeredStaticEntities;
+    // Static shape AABB at the time it was put into the octree. Mesh colliders (async-loaded
+    // models) can grow after registration, so we re-register when the AABB changes.
+    std::map<const CollisionShape*, DirectX::BoundingBox> m_registeredStaticAABBs;
 
     CollisionManager() {}
     ~CollisionManager() {}

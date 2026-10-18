@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "../System/RoomArea.h"
 
 class GhostAI : public NativeScript {
@@ -6,9 +6,9 @@ public:
     enum class State
     {
         Idle,
-        Wander,      // Room�ҋ@: �S�[�X�g���[��(m_targetRoom)�̒���������
-        HouseWander, // �p�j: �S�[�X�g���[���̊O(�Ƃ̒�)��NavMesh�ŕ������
-        Hunt,        // Player��ǂ�(�����I�ɖ������ŊJ�n)
+        Wander,      // Room待機: ゴーストルーム(m_targetRoom)の中をうろつく
+        HouseWander, // 徘徊: ゴーストルームの外(家の中)をNavMeshで歩き回る
+        Hunt,        // Playerを追う(定期的に無条件で開始)
         Stun,
         Dead
     };
@@ -66,32 +66,32 @@ private:
 
     State m_currentState = State::Idle;
 
-    // --- �Ƃ͈̔�(HouseWander/Hunt�̈ړ������͈͓̔��ɐ�������) ---
-    // �SRoomArea��AABB���������A�������m�̌���(�L���Ȃ�)��������悤�ɏ����]�T�������������́B
+    // --- 家の範囲(HouseWander/Huntの移動先をこの範囲内に制限する) ---
+    // 全RoomAreaのAABBを合成し、部屋同士の境界(廊下など)も含まれるように少し余裕を持たせたもの。
     bool m_houseBoundsValid = false;
     Math::Vector3 m_houseBoundsMin = { 0, 0, 0 };
     Math::Vector3 m_houseBoundsMax = { 0, 0, 0 };
-    float m_houseBoundsMargin = 0.5f; //����AABB����O���ɍL����]�T(m)
+    float m_houseBoundsMargin = 0.5f; //部屋AABBから外側に広げる余裕(m)
 
-    // --- �Ƃ̒��̜p�j(Room�ҋ@ <-> HouseWander) ---
-    // Wander(Room�ҋ@)����m_houseWanderTimer�����Z���A0�ɂȂ����瑼�̕�����ڎw����HouseWander�֑J�ڂ���B
-    // HouseWander����m_houseWanderDurationTimer���؂��܂ŕ�����n������A�؂ꂽ��S�[�X�g���[���֖߂�n�߂�
-    // (m_houseWanderReturning=true)�A����������Wander(Room�ҋ@)�֖߂�B
-    // �ړ���̕�����NavMesh::IsReachable()�Ŏ��ۂɓ��B�\�Ȃ��̂�����I��
-    // (�Ƃ����G�Ȍ`�Ȃǂ�NavMesh���q�����Ă��Ȃ�������I�ԂƗ����������Ă��܂�����)�B
-    // ����ł��i�߂Ȃ��Ȃ����ꍇ�̕ی��Ƃ���m_houseWanderStuckTimer�ŗ������������m����B
-    float m_houseWanderTimer         = 0.0f;  // ���ɜp�j���n�߂�܂ł̎c�莞��(Room�ҋ@��)
-    float m_houseWanderIntervalMin   = 15.0f; // �p�j���n�߂�܂ł̊Ԋu�̍ŏ��l(�b)
-    float m_houseWanderIntervalMax   = 30.0f; // �p�j���n�߂�܂ł̊Ԋu�̍ő�l(�b)
-    float m_houseWanderDurationTimer = 0.0f;  // �p�j�I��(�A�ҊJ�n)�܂ł̎c�莞��(HouseWander��)
-    float m_houseWanderDurationMin   = 10.0f; // �p�j�𑱂��鎞�Ԃ̍ŏ��l(�b)
-    float m_houseWanderDurationMax   = 20.0f; // �p�j�𑱂��鎞�Ԃ̍ő�l(�b)
-    bool  m_houseWanderReturning     = false; // true�̊Ԃ̓S�[�X�g���[���ւ̋A�Ғ�
+    // --- 家の中の徘徊(Room待機 <-> HouseWander) ---
+    // Wander(Room待機)中はm_houseWanderTimerを減算し、0になったら他の部屋を目指してHouseWanderへ遷移する。
+    // HouseWander中はm_houseWanderDurationTimerが切れるまで部屋を渡り歩き、切れたらゴーストルームへ戻り始め
+    // (m_houseWanderReturning=true)、到着したらWander(Room待機)へ戻る。
+    // 移動先の部屋はNavMesh::IsReachable()で実際に到達可能なものだけ選ぶ
+    // (家が複雑な形などでNavMeshが繋がっていない部屋を選ぶと立ち往生してしまうため)。
+    // それでも進めなくなった場合の保険としてm_houseWanderStuckTimerで立ち往生を検知する。
+    float m_houseWanderTimer         = 0.0f;  // 次に徘徊を始めるまでの残り時間(Room待機中)
+    float m_houseWanderIntervalMin   = 15.0f; // 徘徊を始めるまでの間隔の最小値(秒)
+    float m_houseWanderIntervalMax   = 30.0f; // 徘徊を始めるまでの間隔の最大値(秒)
+    float m_houseWanderDurationTimer = 0.0f;  // 徘徊終了(帰還開始)までの残り時間(HouseWander中)
+    float m_houseWanderDurationMin   = 10.0f; // 徘徊を続ける時間の最小値(秒)
+    float m_houseWanderDurationMax   = 20.0f; // 徘徊を続ける時間の最大値(秒)
+    bool  m_houseWanderReturning     = false; // trueの間はゴーストルームへの帰還中
     Math::Vector3 m_houseWanderTargetPos = { 0, 0, 0 };
-    float m_roomArriveThreshold = 1.5f;       // �ړI�n�ɂ��̋����܂ŋ߂Â����瓞���Ƃ݂Ȃ�
-    Math::Vector3 m_houseWanderLastPos = { 0, 0, 0 }; // �����������m�p�̒��߈ʒu
-    float m_houseWanderStuckTimer = 0.0f;     // �i��ł��Ȃ��܂܌o�߂�������
-    float m_houseWanderStuckTimeout = 5.0f;   // ���ꂾ���i��ł��Ȃ���ΖړI�n����߂�(�b)
+    float m_roomArriveThreshold = 1.5f;       // 目的地にこの距離まで近づいたら到着とみなす
+    Math::Vector3 m_houseWanderLastPos = { 0, 0, 0 }; // 立ち往生検知用の直近位置
+    float m_houseWanderStuckTimer = 0.0f;     // 進んでいないまま経過した時間
+    float m_houseWanderStuckTimeout = 5.0f;   // これだけ進んでいなければ目的地を諦める(秒)
 
     // Progress is measured over a window instead of frame-to-frame: re-anchoring every single
     // frame only catches a full stop, not rapid back-and-forth oscillation (e.g. flapping between
@@ -111,33 +111,33 @@ private:
     float m_huntStuckTimer = 0.0f;
     float m_huntStuckCheckTimer = 0.0f;
 
-    // --- �n���g(Hunt) ---
-    // �ȑO�͎��F(CanSeePlayer)�ɂ���Ă̂݊J�n���Ă������A���͈ʒu�Ɋւ�炸�����I�ɖ������ŊJ�n����
-    // �^�C�}�[�ɕύX(m_huntTriggerTimer)�BHunt����Player�̌��݈ʒu�𒼐ڒǐՂ���̂ŁA
-    // CanSeePlayer/m_hasLastKnownPlayerPos�͂����ł͎g�킸(�֐����͎̂c���Ă���)�B
-    float m_huntTimer = 0.0f;              // �n���g�I���܂ł̎c�莞��(Hunt��)
-    float m_huntDurationMin = 4.0f;        // �n���g�p�����Ԃ̍ŏ��l(�b)
-    float m_huntDurationMax = 8.0f;        // �n���g�p�����Ԃ̍ő�l(�b)
-    float m_huntSpeedMultiplier = 1.8f;    // �n���g���̈ړ����x�{��
-    float m_huntTriggerTimer = 0.0f;       // ���Ƀn���g���J�n����܂ł̎c�莞��(Room�ҋ@/�p�j��)
-    float m_huntTriggerIntervalMin = 20.0f;// �n���g�J�n�܂ł̊Ԋu�̍ŏ��l(�b)
-    float m_huntTriggerIntervalMax = 40.0f;// �n���g�J�n�܂ł̊Ԋu�̍ő�l(�b)
+    // --- ハント(Hunt) ---
+    // 以前は視認(CanSeePlayer)によってのみ開始していたが、今は位置に関わらず定期的に無条件で開始する
+    // タイマーに変更(m_huntTriggerTimer)。Hunt中はPlayerの現在位置を直接追跡するので、
+    // CanSeePlayer/m_hasLastKnownPlayerPosはここでは使わず(関数自体は残している)。
+    float m_huntTimer = 0.0f;              // ハント終了までの残り時間(Hunt中)
+    float m_huntDurationMin = 4.0f;        // ハント継続時間の最小値(秒)
+    float m_huntDurationMax = 8.0f;        // ハント継続時間の最大値(秒)
+    float m_huntSpeedMultiplier = 1.8f;    // ハント中の移動速度倍率
+    float m_huntTriggerTimer = 0.0f;       // 次にハントを開始するまでの残り時間(Room待機/徘徊中)
+    float m_huntTriggerIntervalMin = 20.0f;// ハント開始までの間隔の最小値(秒)
+    float m_huntTriggerIntervalMax = 40.0f;// ハント開始までの間隔の最大値(秒)
     Entity m_playerEntity = INVALID_ENTITY;
 
-    // --- �f�o�b�O�\��: �s�����_/�o�H�̉��� ---
+    // --- デバッグ表示: 行き先/経路の可視化 ---
     bool m_showPathDebug = true;
-    Math::Vector3 m_debugFinalTarget = { 0, 0, 0 }; // ���ۂɖڎw���Ă���ŏI�ړI�n(Room���S��Player�ʒu)
-    Math::Vector3 m_debugMoveTarget  = { 0, 0, 0 }; // GetEffectiveMoveTarget��̎��ۂ�NavMesh�ړ��ڕW
+    Math::Vector3 m_debugFinalTarget = { 0, 0, 0 }; // 実際に目指している最終目的地(Room中心かPlayer位置)
+    Math::Vector3 m_debugMoveTarget  = { 0, 0, 0 }; // GetEffectiveMoveTarget後の実際のNavMesh移動目標
 
-    // --- ���F�E�o�H�T�� (���݂�Hunt�J�n�ɂ͖��g�p�B�֐��E�t�B�[���h�͎c���Ă���) ---
-    float m_visionRange = 15.0f;           // ���F�ł���ő勗��
-    float m_visionAngle = 100.0f;          // ����p(�x)
-    float m_eyeHeight = 1.5f;              // �������C�̔��ˍ���(��������̍���)
-    float m_searchGiveUpDistance = 1.0f;   // �ŏI�ڌ��n�_�ɂ��̋����܂ŋ߂Â��Ă�������Ȃ���Α{���I��
+    // --- 視認・経路探索 (現在はHunt開始には未使用。関数・フィールドは残している) ---
+    float m_visionRange = 15.0f;           // 視認できる最大距離
+    float m_visionAngle = 100.0f;          // 視野角(度)
+    float m_eyeHeight = 1.5f;              // 視線レイの発射高さ(足元からの高さ)
+    float m_searchGiveUpDistance = 1.0f;   // 最終目撃地点にこの距離まで近づいても見つからなければ捜索終了
     Math::Vector3 m_lastKnownPlayerPos = { 0, 0, 0 };
     bool m_hasLastKnownPlayerPos = false;
 
-    // --- �h�A�J��(HouseWander/Hunt�̈ړ����ɋ߂Â����܂��Ă���h�A�������I�ɊJ����) ---
+    // --- ドア開閉(HouseWander/Huntの移動中に近づいた閉まっているドアを自動的に開ける) ---
     float m_doorCheckTimer = 0.0f;
     float m_doorPassThroughTimer = 0.0f;
     float m_doorPassThroughDuration = 3.5f;
@@ -230,12 +230,12 @@ private:
     Math::Vector3 m_stairsCrossEnd = { 0, 0, 0 };
     float m_stairsCrossElapsed = 0.0f;
     float m_stairsCrossDuration = 1.0f;
-    float m_doorCheckInterval = 0.25f;     // �h�A�̋ߐڔ���Ԋu(�b) - ���t���[���S�G���e�B�e�B�������Ȃ��悤�Ԉ���
-    float m_doorOpenRange = 2.0f;          // ���̋����ȓ��̕܂��Ă���h�A�͎����I�ɊJ����
+    float m_doorCheckInterval = 0.25f;     // ドアの近接判定間隔(秒) - 毎フレーム全エンティティを走査しないよう間引く
+    float m_doorOpenRange = 2.0f;          // この距離以内の閉まっているドアは自動的に開ける
 
-    // Ghost.gltf�̃A�j���[�V������ 0:Ghost_Death, 1:Ghost_Move ��2�����Ȃ��B
-    // ��p��Idle/Hunt���[�V�������Ȃ��̂ŁA�Ƃ肠����Move���g��
-    // (Hunt�͊����R�[�h��Speed=1.5�{�ɂ��đ����Ă���悤�Ɍ����Ă���)�B
+    // Ghost.gltfのアニメーションは 0:Ghost_Death, 1:Ghost_Move の2つしかない。
+    // 専用のIdle/Huntモーションがないので、とりあえずMoveを使う
+    // (Huntは既存コードでSpeed=1.5倍にして走っているように見せている)。
     int m_animIdle = 1;
     int m_animWander = 1;
     int m_animHunt = 1;
@@ -244,14 +244,14 @@ private:
     RoomArea* m_targetRoom = nullptr;
     float m_stunTimer = 0.0f;
 
-    // AnimationDataComponent�͎������g�ł͂Ȃ��q��"Model"�I�u�W�F�N�g�ɕt���Ă��邽�߁A
-    // �q�K�w��T���Ċo���Ă���(���t���[���T�����Ȃ��Ă����悤Start()�ŃL���b�V������)
+    // AnimationDataComponentは自分自身ではなく子の"Model"オブジェクトに付いているため、
+    // 子階層を探して覚えておく(毎フレーム探索しなくていいようStart()でキャッシュする)
     Entity m_animEntity = INVALID_ENTITY;
 
-    // --- �d�� ---
-    float m_velocityY       = 0.0f;   // �������x
-    float m_gravityStrength = 9.8f;   // �d�͋��x
-    bool  m_isGrounded      = false;  // �ڒn���Ă��邩
+    // --- 重力 ---
+    float m_velocityY       = 0.0f;   // 落下速度
+    float m_gravityStrength = 9.8f;   // 重力強度
+    bool  m_isGrounded      = false;  // 接地しているか
     float m_groundOffset    = 0.0f;   // ground-height Y offset (tune if the model origin isn't at the feet)
     // Set for one frame by UpdateHouseWander/UpdateHunt right after GetStairsCrossingMove computes
     // height directly from Z-progress along the stairs - tells the gravity/ground-raycast block to

@@ -27,6 +27,7 @@ void CollisionManager::ResetForSceneChange() {
     m_staticOctree.Clear();
     m_isStaticOctreeBuilt = false;
     m_registeredStaticEntities.clear();
+    m_registeredStaticAABBs.clear();
 
     // 動的オクトツリーは毎フレームClear()されるが念のため
     m_dynamicOctree.Clear();
@@ -82,6 +83,7 @@ void CollisionManager::Solve(Scene* scene) {
 
     std::vector<Entity> dynamicEntities;
     std::vector<Entity> allEntities;
+    bool staticAABBChanged = false;
 
     for (Entity entity = 0; entity < MAX_ENTITIES; ++entity) {
         if (!ecs.IsAlive(entity)) continue;
@@ -98,15 +100,46 @@ void CollisionManager::Solve(Scene* scene) {
             if (colData.m_isStatic) {
                 if (m_registeredStaticEntities.find(entity) == m_registeredStaticEntities.end()) {
                     for (auto& shape : colData.m_shapes) {
-                        if (shape) m_staticOctree.Insert({entity, shape.get(), shape->m_worldAABB});
+                        if (!shape) continue;
+                        m_staticOctree.Insert({entity, shape.get(), shape->m_worldAABB});
+                        m_registeredStaticAABBs[shape.get()] = shape->m_worldAABB;
                     }
                     m_registeredStaticEntities.insert(entity);
+                } else {
+                    // Mesh models load asynchronously, so the AABB seen at first registration may
+                    // cover only the meshes uploaded so far - parts of the level outside it would
+                    // never be tested for collision (walk-through walls). Detect growth/changes.
+                    for (auto& shape : colData.m_shapes) {
+                        if (!shape) continue;
+                        auto it = m_registeredStaticAABBs.find(shape.get());
+                        const auto& a = shape->m_worldAABB;
+                        if (it == m_registeredStaticAABBs.end() ||
+                            Math::Vector3::DistanceSquared(Math::Vector3(it->second.Center), Math::Vector3(a.Center)) > 1e-6f ||
+                            Math::Vector3::DistanceSquared(Math::Vector3(it->second.Extents), Math::Vector3(a.Extents)) > 1e-6f) {
+                            staticAABBChanged = true;
+                        }
+                    }
                 }
             } else {
                 dynamicEntities.push_back(entity);
                 for (auto& shape : colData.m_shapes) {
                     if (shape) m_dynamicOctree.Insert({entity, shape.get(), shape->m_worldAABB});
                 }
+            }
+        }
+    }
+
+    if (staticAABBChanged) {
+        m_staticOctree.Clear();
+        m_staticOctree.Build(DirectX::BoundingBox(Math::Vector3::Zero, Math::Vector3(5000, 5000, 5000)), 6);
+        m_registeredStaticAABBs.clear();
+        for (Entity entity : allEntities) {
+            auto& colData = ecs.GetComponent<ColliderData>(entity);
+            if (!colData.m_isStatic) continue;
+            for (auto& shape : colData.m_shapes) {
+                if (!shape) continue;
+                m_staticOctree.Insert({entity, shape.get(), shape->m_worldAABB});
+                m_registeredStaticAABBs[shape.get()] = shape->m_worldAABB;
             }
         }
     }

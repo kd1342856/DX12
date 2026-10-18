@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "../Manager/Collision/CollisionManager.h"
 #include "../System/JobSystem/JobSystem.h"
 #include "../DirectX/Utility/ClassAssembly.h"
@@ -13,32 +13,32 @@ class Scene;
 
 // =============================================
 // GameManager
-// ECSCoordinator �Ɗe System �̈ꌳ�Ǘ�
-// Application ���[�v���� Update() ���ĂԂ����őS System ������
+// ECSCoordinator と各 System の一元管理
+// Application ループから Update() を呼ぶだけで全 System が動く
 // =============================================
 class GameManager
 {
 public:
-    // �V���O���g���C���X�^���X�擾
+    // シングルトンインスタンス取得
     static GameManager& Instance();
 
-    // static �j����� false �ɂȂ鐶���t���O
+    // static 破棄後に false になる生存フラグ
     static bool IsInstanceAlive() { return s_alive; }
 
-    // �A�v���N������1�񂾂��Ă�
-    // Component �^�o�^ + �S System �o�^ + Signature �ݒ�
+    // アプリ起動時に1回だけ呼ぶ
+    // Component 型登録 + 全 System 登録 + Signature 設定
     void Init();
 
     void Update(float deltaTime, class Scene* pScene);
 
 
-    // ECS �擾
+    // ECS 取得
     ECSCoordinator& GetECS() { return m_ecs; }
 
-    // ClassAssembly �擾�i�^�o�^�̈�{���j
+    // ClassAssembly 取得（型登録の一本化）
     ClassAssembly& GetClassAssembly() { return ClassAssembly::Instance(); }
 
-    // System �A�N�Z�T�i�K�v�ȏꍇ�̂݁j
+    // System アクセサ（必要な場合のみ）
     std::shared_ptr<RenderSystem>       GetRenderSystem()       const { return m_spRenderSystem; }
     std::shared_ptr<SpriteRenderSystem> GetSpriteRenderSystem() const { return m_spSpriteRenderSystem; }
     std::shared_ptr<CameraSystem>       GetCameraSystem()       const { return m_spCameraSystem; }
@@ -55,7 +55,7 @@ private:
 
     ECSCoordinator m_ecs;
 
-    // �풓 System�iScene �ؑ֌������������j
+    // 常駐 System（Scene 切替後も生き続ける）
     std::shared_ptr<ScriptSystem>       m_spScriptSystem;
     std::shared_ptr<TransformSystem>    m_spTransformSystem;
     std::shared_ptr<CameraSystem>       m_spCameraSystem;
@@ -64,10 +64,10 @@ private:
     std::shared_ptr<SpriteRenderSystem> m_spSpriteRenderSystem;
     std::shared_ptr<LightSystem>        m_spLightSystem;
 
-    // �V���b�g�_�E���̓�d�A�N�Z�X�h�~�t���O
+    // シャットダウンの二重アクセス防止フラグ
     static bool s_alive;
 
-    // Init()�̓�d�Ăяo���h�~(GameScene::Init()���������ĕ�����Ă΂�Ă�
-    // ECS���󂳂Ȃ��悤�ɂ��邽�߂̃K�[�h)
+    // Init()の二重呼び出し防止(GameScene::Init()が誤って複数回呼ばれても
+    // ECSを壊さないようにするためのガード)
     bool m_isInitialized = false;
 };

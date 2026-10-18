@@ -56,6 +56,7 @@ void RegisterComponentSerializers() {
             if (cj.contains("CameraMode")) d.m_cameraMode = static_cast<CameraMode>(cj["CameraMode"]);
             if (cj.contains("TargetOffset")) { d.m_targetOffset = {cj["TargetOffset"][0], cj["TargetOffset"][1], cj["TargetOffset"][2]}; }
             if (cj.contains("FpsOffset")) { d.m_fpsOffset = {cj["FpsOffset"][0], cj["FpsOffset"][1], cj["FpsOffset"][2]}; }
+            if (cj.contains("IsDebugPreview")) d.m_isDebugPreview = cj["IsDebugPreview"];
             ecs.AddComponent(e, d);
         },
         [](ECSCoordinator& ecs, Entity e, nlohmann::json& cj, GameObject* obj) -> bool {
@@ -67,6 +68,7 @@ void RegisterComponentSerializers() {
                 cj["CameraMode"] = static_cast<int>(p_d->m_cameraMode);
                 cj["TargetOffset"] = {p_d->m_targetOffset.x, p_d->m_targetOffset.y, p_d->m_targetOffset.z};
                 cj["FpsOffset"] = {p_d->m_fpsOffset.x, p_d->m_fpsOffset.y, p_d->m_fpsOffset.z};
+                cj["IsDebugPreview"] = p_d->m_isDebugPreview;
                 return true;
             }
             return false;

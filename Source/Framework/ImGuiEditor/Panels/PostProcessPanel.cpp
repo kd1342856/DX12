@@ -20,7 +20,7 @@ void PostProcessPanel::Draw(EditorContext& ctx)
             if (ImGui::SliderFloat("Bloom Intensity", &ctx.PostProcess->BloomIntensity, 0.0f, 3.0f, "%.2f")) changed = true;
             if (ImGui::SliderFloat("Bloom Radius", &ctx.PostProcess->BloomRadius, 1.0f, 24.0f, "%.1f")) changed = true;
             if (ImGui::SliderInt("Bloom Iterations", &ctx.PostProcess->BloomIterations, 1, 8)) changed = true;
-            if (ImGui::IsItemHovered()) ImGui::SetTooltip("半径・反復回数を上げるほど広く柔らかく漏れる。既定値で変化が薄い時はまずここを疑う。");
+            if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"半径・反復回数を上げるほど広く柔らかく漏れる。既定値で変化が薄い時はまずここを疑う。");
 
             ImGui::Separator();
             ImGui::Text("Vignette");
@@ -53,7 +53,7 @@ void PostProcessPanel::Draw(EditorContext& ctx)
             if (ImGui::SliderFloat("God Rays Exposure", &ctx.PostProcess->GodRaysExposure, 0.0f, 3.0f, "%.2f")) changed = true;
             if (ImGui::SliderFloat("God Rays Intensity", &ctx.PostProcess->GodRaysIntensity, 0.0f, 3.0f, "%.2f")) changed = true;
             if (ImGui::SliderInt("God Rays Samples", &ctx.PostProcess->GodRaysNumSamples, 8, 96)) changed = true;
-            if (ImGui::IsItemHovered()) ImGui::SetTooltip("平行光の方向とカメラ行列から光源のスクリーン位置を推定し、Bloom結果をラジアルブラーする近似。光源がカメラの後ろにある時は自動的に無効化される。");
+            if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"平行光の方向とカメラ行列から光源のスクリーン位置を推定し、Bloom結果をラジアルブラーする近似。光源がカメラの後ろにある時は自動的に無効化される。");
 
             if (changed) {
                 ctx.PostProcess->IsDirty = true;

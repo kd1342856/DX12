@@ -26,9 +26,9 @@ bool RenderTarget::Create(int width, int height, DXGI_FORMAT format)
 		&heapProp, D3D12_HEAP_FLAG_NONE, &resDesc,
 		D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, &clearValue, IID_PPV_ARGS(&m_resource));
 	if (FAILED(hr)) return false;
-	// RTV??
+	// RTV作成
 	m_rtvIndex = m_device->CreateRTV(m_resource.Get());
-	// SRV??
+	// SRV作成
 	m_srvIndex = m_device->CreateSRV(m_resource.Get());
 	m_imGuiSrvIndex = m_device->AllocateImGuiSRV(m_resource.Get());
 	// Actually create the SRV in the ImGui SRV Heap
@@ -54,7 +54,7 @@ bool RenderTarget::Create(int width, int height, DXGI_FORMAT format)
 		&heapProp, D3D12_HEAP_FLAG_NONE, &depthResDesc,
 		D3D12_RESOURCE_STATE_DEPTH_WRITE, &depthClearValue, IID_PPV_ARGS(&m_pDepthBuffer));
 	if (FAILED(hr)) return false;
-	// DSV??
+	// DSV作成
 	m_dsvIndex = m_device->CreateDSV(m_pDepthBuffer.Get(), DXGI_FORMAT_D32_FLOAT);
 	// SRV (Typelessなので CreateSRV が自動でR32_FLOATとして解釈する)
 	m_depthSrvIndex = m_device->CreateSRV(m_pDepthBuffer.Get());

@@ -344,10 +344,24 @@ void CollisionShapeBox::UpdateWorldAABB(const Math::Matrix& world) {
     m_worldAABB.Extents = wExtents;
 }
 
+// These used to be empty, leaving m_worldAABB at the BoundingBox default (unit box at the
+// origin). Anything that culls by the shape's AABB (the octree, and the per-mesh broadphase in
+// the mesh collider solver) then only ever saw geometry near the world origin, so isolated thin
+// meshes far from it (e.g. a lone wall with its own material) were never collided against.
 void CollisionShapeSphere::UpdateWorldAABB(const Math::Matrix& world) {
+    m_worldAABB.Center = Math::Vector3::Transform(m_offset, world);
+    m_worldAABB.Extents = Math::Vector3(radius, radius, radius);
 }
 
 void CollisionShapeCapsule::UpdateWorldAABB(const Math::Matrix& world) {
+    // Same endpoints the solver uses (GetCapsulePoints in CollisionSolver.cpp)
+    Math::Vector3 half(0, height * 0.5f, 0);
+    Math::Vector3 p1 = Math::Vector3::Transform(m_offset + half, world);
+    Math::Vector3 p2 = Math::Vector3::Transform(m_offset - half, world);
+    Math::Vector3 mn = Math::Vector3::Min(p1, p2) - Math::Vector3(radius, radius, radius);
+    Math::Vector3 mx = Math::Vector3::Max(p1, p2) + Math::Vector3(radius, radius, radius);
+    m_worldAABB.Center = (mn + mx) * 0.5f;
+    m_worldAABB.Extents = (mx - mn) * 0.5f;
 }
 
 void CollisionShapeMesh::UpdateWorldAABB(const Math::Matrix& world) {

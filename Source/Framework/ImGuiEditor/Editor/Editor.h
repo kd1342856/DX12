@@ -24,6 +24,11 @@ public:
 
     static std::shared_ptr<Scene> GetScene() { return s_scene; }
 
+    // 「Preview Camera」ウィンドウに今マウスが乗っているか。GameSceneの右クリックドラッグでの
+    // カメラ操作(通常のエディタ自由カメラと同じ操作感)を、どちらのウィンドウを操作しているかで
+    // 出し分けるために使う。PreviewCameraWindow.cppがDrawPreviewCamera()内で毎フレーム更新する。
+    static bool IsPreviewCameraHovered() { return s_previewCameraHovered; }
+
     // シーン切り替え時に呼ぶ。選択中オブジェクトを持ったままシーンを切り替えると、
     // 古いシーンのGameObjectがshared_ptrで生き延びてしまい(ECSからは既に消えているのに
     // C++オブジェクトだけ残る)、Inspector/AssetBrowserがそれを参照して
@@ -42,6 +47,7 @@ private:
     static void DrawAssetBrowser();
     static void DrawStatistics();
     static void DrawConsole();
+    static void DrawPreviewCamera();
 
     // Helper
     static void DrawHierarchyNode(std::shared_ptr<GameObject> obj);
@@ -60,4 +66,6 @@ private:
     static bool s_showGameEditor;
     static bool s_showShaderEditor;
     static bool s_showNavMeshEditor;
+    static bool s_showPreviewCamera;
+    static bool s_previewCameraHovered;
 };

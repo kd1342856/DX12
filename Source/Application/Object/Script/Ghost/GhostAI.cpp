@@ -1,4 +1,4 @@
-#include "../../../../Pch.h"
+﻿#include "../../../../Pch.h"
 #include "GhostAI.h"
 #include "../../../../Framework/Manager/Animation/AnimationManager.h"
 #include "../../../../Framework/Object/GameObject.h"
@@ -22,8 +22,8 @@ void GhostAI::Start()
 {
     m_changeDirTimer = 0.0f;
 
-    // AnimationDataComponent�͎������g�ł͂Ȃ��q��"Model"�I�u�W�F�N�g�ɕt���Ă��邽�߁A
-    // �q�K�w��T���ăL���b�V�����Ă���(���t���[���T�����Ȃ��悤)
+    // AnimationDataComponentは自分自身ではなく子の"Model"オブジェクトに付いているため、
+    // 子階層を探してキャッシュしておく(毎フレーム探索しないよう)
     auto& ecs = GameManager::Instance().GetECS();
     std::function<void(GameObject*)> findAnimEntity = [&](GameObject* obj) {
         if (m_animEntity != INVALID_ENTITY) return;
@@ -86,7 +86,7 @@ void GhostAI::EnsureHouseBounds()
         mx = Math::Vector3::Max(mx, room->m_max);
     }
 
-    // �������m�̌���(�L���Ȃ�)��������悤�ɏ����]�T���������Ă���
+    // 部屋同士の境界(廊下など)も含まれるように少し余裕を持たせておく
     mn.x -= m_houseBoundsMargin;
     mn.z -= m_houseBoundsMargin;
     mx.x += m_houseBoundsMargin;
@@ -318,7 +318,7 @@ void GhostAI::SetState(GhostAI::State state)
 
     m_currentState = state;
 
-    // ��{�I�Ɏp�͔�\���B�v���C���[�ɋC�t�����ׂ����(�n���g�E���S��)�ɂȂ����Ƃ������\������B
+    // 基本的に姿は非表示。プレイヤーに気付かれるべき状態(ハント・死亡時)になった時だけ表示する。
     switch (state) {
         case GhostAI::State::Wander:
         case GhostAI::State::HouseWander:
@@ -332,7 +332,7 @@ void GhostAI::SetState(GhostAI::State state)
             break;
     }
 
-    if (m_animEntity == INVALID_ENTITY) return; // �A�j���[�V�����Ώۂ�������Ȃ��ꍇ�͉������Ȃ�
+    if (m_animEntity == INVALID_ENTITY) return; // アニメーション対象が見つからない場合は何もしない
 
     switch (state) {
         case GhostAI::State::Idle:
@@ -358,7 +358,7 @@ void GhostAI::FacePosition(TransformData& cTrans, const Math::Vector3& dir, floa
 
     float targetAngle = atan2f(dir.x, dir.z);
 
-    // �ŒZ�p�x�ŕ�� (Lerp�����360�x�܂����ŕs���R�ɂȂ�̂Œ���)
+    // 最短角度で補間 (Lerpだと360度をまたいで不自然になるので注意)
     float diff = targetAngle - cTrans.m_rotation.y;
     while (diff < -DirectX::XM_PI) diff += DirectX::XM_2PI;
     while (diff >  DirectX::XM_PI) diff -= DirectX::XM_2PI;
@@ -368,7 +368,7 @@ void GhostAI::FacePosition(TransformData& cTrans, const Math::Vector3& dir, floa
 
 void GhostAI::UpdateWander(float deltaTime, TransformData& cTrans)
 {
-    // Room�ҋ@: �S�[�X�g���[��(m_targetRoom)�̒�������������
+    // Room待機: ゴーストルーム(m_targetRoom)の中をうろうろする
     m_changeDirTimer -= deltaTime;
     if (m_changeDirTimer <= 0.0f) {
         float randX = Random::Instance().Range(-1.0f, 1.0f);
@@ -385,26 +385,26 @@ void GhostAI::UpdateWander(float deltaTime, TransformData& cTrans)
     if (m_targetRoom == nullptr || m_targetRoom->IsInside(nextPos)) {
         cTrans.m_position = nextPos;
     } else {
-        // �����̊O�ɏo�����ɂȂ�����A�����̒��S�֌�������
+        // 部屋の外に出そうになったら、部屋の中心へ向きを変える
         Math::Vector3 roomCenter = (m_targetRoom->m_min + m_targetRoom->m_max) * 0.5f;
         m_moveDir = roomCenter - cTrans.m_position;
         m_moveDir.y = 0.0f;
         if (m_moveDir.LengthSquared() > 0.0f) {
             m_moveDir.Normalize();
         } else {
-            // ���S�ɂ���ꍇ�̓����_���ȕ�����
+            // 中心にいる場合はランダムな方向へ
             m_moveDir = Math::Vector3(Random::Instance().Range(-1.0f, 1.0f), 0.0f, Random::Instance().Range(-1.0f, 1.0f));
             m_moveDir.Normalize();
         }
-        m_changeDirTimer = 1.0f; // ���΂炭�͒��S�Ɍ������ĕ�������
+        m_changeDirTimer = 1.0f; // しばらくは中心に向かって歩き続ける
     }
 
     FacePosition(cTrans, m_moveDir, deltaTime);
 }
 
-// m_targetRoom�ȊO�̕�������A���݈ʒu����NavMesh��Ŏ��ۂɓ��B�\�Ȃ��̂������W�߂�B
-// (�Ƃ����G�Ȍ`�Ȃǂ̗��R��NavMesh���q�����Ă��Ȃ�������I��ł��܂��ƁA
-//  �����֌��������܂܉i���ɗ����������Ă��܂�����)
+// m_targetRoom以外の部屋から、現在位置からNavMesh上で実際に到達可能なものだけを集める。
+// (家が複雑な形などの理由でNavMeshが繋がっていない部屋を選んでしまうと、
+//  そこへ向かったまま永遠に立ち往生してしまうため)
 std::vector<RoomArea*> GhostAI::CollectReachableCandidateRooms(const Math::Vector3& currentPos) const
 {
     std::vector<RoomArea*> candidates;
@@ -430,7 +430,7 @@ void GhostAI::StartHouseWander(const Math::Vector3& currentPos)
     std::vector<RoomArea*> candidates = CollectReachableCandidateRooms(currentPos);
 
     if (candidates.empty()) {
-        // �o����(���B�\��)���̕������Ȃ��ꍇ��Room�ҋ@�𑱂���
+        // 行き先(到達可能な他の部屋)がない場合はRoom待機を続ける
         auto gs = GameSequence::GetInstance();
         Logger::Instance().AddLog(Logger::LogLevel::Warning,
             "[GhostAI] StartHouseWander: no reachable candidate room (GameSequence rooms=%d, NavMeshBuilt=%d). Staying in Room idle.",
@@ -454,7 +454,7 @@ void GhostAI::StartHouseWander(const Math::Vector3& currentPos)
 
 void GhostAI::UpdateHouseWander(float deltaTime, TransformData& cTrans)
 {
-    // �p�j: �S�[�X�g���[���̊O���A�Ƃ͈͓̔��Ɍ��肵��NavMesh�o�R�ŕ������
+    // 徘徊: ゴーストルームの外側、家の範囲内に限定してNavMesh経由で歩き回る
     EnsureHouseBounds();
     TryOpenNearbyDoor(cTrans.m_position, deltaTime);
 
@@ -488,7 +488,7 @@ void GhostAI::UpdateHouseWander(float deltaTime, TransformData& cTrans)
             (int)GetGameObject()->GetEntityID(), cTrans.m_position, moveTarget, m_moveSpeed, deltaTime,
             m_pathUpdateInterval, m_pathNodeReachThreshold);
     } else {
-        // NavMesh���\�z���͒����ړ��Ƀt�H�[���o�b�N
+        // NavMesh未構築時は直線移動にフォールバック
         Math::Vector3 toTarget = m_houseWanderTargetPos - cTrans.m_position;
         toTarget.y = 0.0f;
         if (toTarget.LengthSquared() > 0.0001f) toTarget.Normalize();
@@ -519,12 +519,12 @@ void GhostAI::UpdateHouseWander(float deltaTime, TransformData& cTrans)
         m_houseWanderDurationTimer -= deltaTime;
     }
 
-    // �����������m: �o�H���q�����Ă��Ȃ��A���邢�͉��炩�̗��R�ł��΂炭�i�߂Ă��Ȃ��ꍇ��
-    // ���̖ړI�n����߂�(IsReachable�����蔲�����z��O�̃P�[�X�̕ی�)
-    // ���t���[���ł͂Ȃ���̎��Ԃ��ƂɐM�s�̈ړ��ʂ��`�F�b�N����(���t���[���r�r����
-    // ���Ȕ���(���̂΂������L�ĂɖY��킹��Ȃǂ�2�o�H�̊Ԃ��s�㕁�����Ă���ꍇ)��
-    // ���t���[���r�r��"10cm�ȏ㓮����"�Ə������Ă��܂������ł̗~�l�ˑ��̌��m�Ȃ̂ŁA
-    // ���Ȑi����m�ł��Ȃ�)
+    // 立ち往生検知: 経路が繋がっていない、あるいは何らかの理由でしばらく進めていない場合は
+    // その目的地を諦める(IsReachableをすり抜けた想定外のケースの保険)
+    // 毎フレームではなく一定時間ごとに区間の移動量をチェックする(毎フレーム比較だと
+    // 微小な往復(壁の角などで2経路の間を行ったり来たりしている場合)でも
+    // 毎フレーム比較で"10cm以上動いた"と判定されてしまい、閾値依存の検知なので、
+    // 停滞を検知できない)
     m_houseWanderStuckCheckTimer += deltaTime;
     if (m_houseWanderStuckCheckTimer >= m_stuckCheckWindow) {
         float windowProgress = Math::Vector3::Distance(cTrans.m_position, m_houseWanderLastPos);
@@ -554,7 +554,7 @@ void GhostAI::UpdateHouseWander(float deltaTime, TransformData& cTrans)
         m_houseWanderStuckTimer = 0.0f;
 
         if (m_houseWanderReturning) {
-            // �A�蓹�ł��������������ꍇ�́A���̏�ŃS�[�X�g���[�������ɂ��Ďd�؂蒼��
+            // 帰り道でも立ち往生した場合は、その場でゴーストルームを目標にして仕切り直す
             m_houseWanderTimer = Random::Instance().Range(m_houseWanderIntervalMin, m_houseWanderIntervalMax);
             SetState(GhostAI::State::Wander);
             return;
@@ -574,17 +574,17 @@ void GhostAI::UpdateHouseWander(float deltaTime, TransformData& cTrans)
     }
 
     float distToTarget = Math::Vector3::Distance(cTrans.m_position, m_houseWanderTargetPos);
-    if (distToTarget > m_roomArriveThreshold) return; // �܂��������Ă��Ȃ�
+    if (distToTarget > m_roomArriveThreshold) return; // まだ到着していない
 
     if (m_houseWanderReturning) {
-        // �S�[�X�g���[���ւ̋A�Ҋ��� -> Room�ҋ@��
+        // ゴーストルームへの帰還完了 -> Room待機へ
         m_houseWanderTimer = Random::Instance().Range(m_houseWanderIntervalMin, m_houseWanderIntervalMax);
         SetState(GhostAI::State::Wander);
         return;
     }
 
     if (m_houseWanderDurationTimer <= 0.0f) {
-        // �p�j���Ԑ؂� -> �S�[�X�g���[���֖߂�
+        // 徘徊時間切れ -> ゴーストルームへ戻る
         if (m_targetRoom) {
             m_houseWanderTargetPos = m_targetRoom->GetCenter();
         }
@@ -593,13 +593,13 @@ void GhostAI::UpdateHouseWander(float deltaTime, TransformData& cTrans)
         return;
     }
 
-    // �܂��p�j�𑱂���: ���B�\�ȕʂ̕�����ڎw��
+    // まだ徘徊を続ける: 到達可能な別の部屋を目指す
     std::vector<RoomArea*> candidates = CollectReachableCandidateRooms(cTrans.m_position);
     if (!candidates.empty()) {
         RoomArea* dest = candidates[Random::Instance().Range(0, (int)candidates.size() - 1)];
         m_houseWanderTargetPos = dest->GetCenter();
     } else if (m_targetRoom) {
-        // ���ɍs���镔�����Ȃ���΋A�҂���
+        // 他に行ける部屋がなければ帰還する
         m_houseWanderTargetPos = m_targetRoom->GetCenter();
         m_houseWanderReturning = true;
     }
@@ -619,21 +619,21 @@ bool GhostAI::CanSeePlayer(const TransformData& cTrans, Math::Vector3& outPlayer
 
     outPlayerPos = pPlayerTrans->m_position;
 
-    // ���_�ʒu�ƁA�_���ڕW�ʒu(�������ƕs���R�Ȃ̂ŁA�������_��)
+    // 視点位置と、狙う目標位置(足元だと不自然なので、少し上を狙う)
     Math::Vector3 eyePos = cTrans.m_position + Math::Vector3(0.0f, m_eyeHeight, 0.0f);
     Math::Vector3 targetPos = outPlayerPos + Math::Vector3(0.0f, 1.0f, 0.0f);
 
     Math::Vector3 toPlayer = targetPos - eyePos;
     float distance = toPlayer.Length();
     if (distance > m_visionRange) return false;
-    // �������߂�����ƈȍ~�̃��C�L���X�g���s����(�ő勗�����ق�0�ɂȂ�)�ɂȂ邽�߁A
-    // ���̏ꍇ�͖������Ŏ��F�������Ƃɂ���
+    // 距離が近すぎるとその後のレイキャストが不安定(最大距離がほぼ0になる)になるため、
+    // その場合は無条件で視認したことにする
     if (distance <= 0.3f) return true;
 
     Math::Vector3 dir = toPlayer;
     dir /= distance;
 
-    // ����p�`�F�b�N(���������̂݁BGhost�̌���=rotation.y����ɂ���)
+    // 視野角チェック(水平方向のみ。Ghostの向き=rotation.yを基準にする)
     Math::Vector3 forward(sinf(cTrans.m_rotation.y), 0.0f, cosf(cTrans.m_rotation.y));
     Math::Vector3 flatDir(dir.x, 0.0f, dir.z);
     if (flatDir.LengthSquared() > 0.0001f) {
@@ -642,16 +642,16 @@ bool GhostAI::CanSeePlayer(const TransformData& cTrans, Math::Vector3& outPlayer
         if (forward.Dot(flatDir) < cosHalfFov) return false;
     }
 
-    // �Օ��`�F�b�N: Player�܂ł̂�������Stage���b�V��(�ǂȂ�)�ɓ��������猩���Ă��Ȃ�
+    // 遮蔽チェック: Playerまでの間にあるStageメッシュ(壁など)に当たったら見えていない
     RaycastHit hit = CollisionManager::Instance().RaycastAgainstMesh(eyePos, dir, distance - 0.2f, "Stage");
     if (hit.hit) return false;
 
     return true;
 }
 
-// HouseWander/Hunt�ňړ����ɁA�߂��ɂ���܂��Ă���h�A�������I�ɊJ����B
-// ���t���[���S�G���e�B�e�B�𑖍�����̂͏d���̂ŁAm_doorCheckInterval�ŊԈ����B
-// Player�̎蓮�h�A����(Player::TryInteractDoor)�Ǝ����d�g�݂����AGhost�͊J���邾���ŕ߂Ȃ��B
+// HouseWander/Huntで移動中に、近くにある閉まっているドアを自動的に開ける。
+// 毎フレーム全エンティティを走査するのは重いので、m_doorCheckIntervalで間引く。
+// Playerの手動ドア操作(Player::TryInteractDoor)と同じ仕組みを使うが、Ghostは開けるだけで閉めない。
 void GhostAI::TryOpenNearbyDoor(const Math::Vector3& ghostPos, float deltaTime)
 {
     m_doorCheckTimer -= deltaTime;
@@ -676,7 +676,7 @@ void GhostAI::TryOpenNearbyDoor(const Math::Vector3& ghostPos, float deltaTime)
         if (anims.empty()) continue;
 
         Math::Vector3 entityPos = pTransform->m_position;
-        if ((ghostPos - entityPos).Length() > 50.0f) continue; // �������肵�����؂�
+        if ((ghostPos - entityPos).Length() > 50.0f) continue; // 距離で大まかに足切り
 
         auto* pAnim = ecs.TryGetComponent<AnimationDataComponent>(entity);
         if (!pAnim) {
@@ -712,7 +712,7 @@ void GhostAI::TryOpenNearbyDoor(const Math::Vector3& ghostPos, float deltaTime)
                 }
             }
 
-            // ���ɊJ���Ă���(�܂��͊J���Ă���Œ���)�h�A�͑ΏۊO - ���Ă�����̂����J����
+            // 既に開いている(または開いている最中の)ドアは対象外 - 閉じているものだけ開ける
             const auto& state = pAnim->multiAnims[i];
             if (state.IsPlaying || state.ProgressTime > 0.0f) continue;
 
@@ -737,8 +737,8 @@ void GhostAI::TryOpenNearbyDoor(const Math::Vector3& ghostPos, float deltaTime)
     m_doorPassThroughTimer = m_doorPassThroughDuration;
     SetDoorPassThrough(true);
 
-    //�h�A�A�j���[�V�������̓R���C�_�[�𓮓I�����Ė��t���[��AABB���X�V�����悤�ɂ���
-    // (Player::TryInteractDoor�Ɠ����d�g��)
+    //ドアアニメーション中はコライダーを動的扱いにして毎フレームAABBが更新されるようにする
+    // (Player::TryInteractDoorと同じ仕組み)
     auto* pCollider = ecs.TryGetComponent<ColliderData>(bestEntity);
     if (pCollider && pCollider->m_isStatic)
     {
@@ -748,8 +748,8 @@ void GhostAI::TryOpenNearbyDoor(const Math::Vector3& ghostPos, float deltaTime)
 
 void GhostAI::UpdateHunt(float deltaTime, TransformData& cTrans)
 {
-    // �n���g: �ʒu�⎋�F�Ɋւ�炸�J�n����̂ŁAPlayer �̌��݈ʒu�𒼐ڒǐՂ���
-    // (CanSeePlayer �ɂ�鎋�F�Q�[�g��Hunt�J�n�E�p���ǂ���ɂ��g��Ȃ�)
+    // ハント: 位置や視認に関わらず開始するので、Player の現在位置を直接追跡する
+    // (CanSeePlayer による視認ゲートはHunt開始・継続どちらにも使わない)
     if (m_playerEntity == INVALID_ENTITY) {
         m_playerEntity = FindPlayerEntity();
     }
@@ -771,7 +771,7 @@ void GhostAI::UpdateHunt(float deltaTime, TransformData& cTrans)
     m_debugFinalTarget = target;
     m_debugMoveTarget = moveTarget;
 
-    // NavMesh���\�z�ς݂Ȃ炻����̌o�H�ňړ�����(�ǂ�˂��������Ƀh�A��ʘH���o�R�ł���)
+    // NavMeshが構築済みならそちらの経路で移動する(壁を突き抜けず確実にドアや通路を経由できる)
     Math::Vector3 nextPos;
     float huntSpeed = m_moveSpeed * m_huntSpeedMultiplier;
     if (!m_stairsCrossingLatched && IsInStairsArea(cTrans.m_position, m_stairsNavExitPadding) && m_isCrossingFloors) {
@@ -788,7 +788,7 @@ void GhostAI::UpdateHunt(float deltaTime, TransformData& cTrans)
             (int)GetGameObject()->GetEntityID(), cTrans.m_position, moveTarget, huntSpeed, deltaTime,
             m_pathUpdateInterval, m_pathNodeReachThreshold);
     } else {
-        // NavMesh���\�z���͒����ړ��Ƀt�H�[���o�b�N
+        // NavMesh未構築時は直線移動にフォールバック
         Math::Vector3 toTarget = target - cTrans.m_position;
         toTarget.y = 0.0f;
         if (toTarget.LengthSquared() > 0.0001f) toTarget.Normalize();
@@ -851,7 +851,7 @@ void GhostAI::Update(float deltaTime)
         return;
     }
 
-    // �n���g�͈ʒu�⎋�F�Ɋ֌W�Ȃ��A�����I�ɖ������ŊJ�n����(Room�ҋ@�E�p�j���̂�)
+    // ハントは位置や視認に関係なく、定期的に無条件で開始する(Room待機・徘徊中のみ)
     if (m_currentState == GhostAI::State::Wander || m_currentState == GhostAI::State::HouseWander) {
         // Debug: force-start a Hunt immediately, bypassing the random trigger timer, so testing
         // doesn't require waiting out m_huntTriggerIntervalMin/Max.
@@ -886,7 +886,7 @@ void GhostAI::Update(float deltaTime)
         case GhostAI::State::Hunt:
             m_huntTimer -= deltaTime;
             if (m_huntTimer <= 0.0f) {
-                // �n���g�I��: �e���|�[�g�����A�S�[�X�g���[���܂�NavMesh�o�R�œk���ŋA��
+                // ハント終了: テレポートせず、ゴーストルームまでNavMesh経由で徒歩で帰る
                 m_hasLastKnownPlayerPos = false;
                 if (m_targetRoom && NavMeshManager::Instance().IsBuilt()) {
                     m_houseWanderTargetPos = m_targetRoom->GetCenter();
@@ -896,7 +896,7 @@ void GhostAI::Update(float deltaTime)
                     m_houseWanderLastPos = cTrans.m_position;
                     SetState(GhostAI::State::HouseWander);
                 } else {
-                    // �ڕW�̕������Ȃ��A�܂���NavMesh�����\�z�Ȃ炻�̏��Room�ҋ@�����ɂ���
+                    // 目標の部屋がない、またはNavMesh未構築ならその場でRoom待機扱いにする
                     m_houseWanderTimer = Random::Instance().Range(m_houseWanderIntervalMin, m_houseWanderIntervalMax);
                     SetState(GhostAI::State::Wander);
                 }
@@ -919,7 +919,7 @@ void GhostAI::Update(float deltaTime)
         m_wasPassThroughActive = wantPassThrough;
     }
 
-    //---�d��(�ǂ̃X�e�[�g�ł���ɓK�p) ---
+    //---重力(どのステートでも常に適用) ---
     // Skipped while GetStairsCrossingMove just set height directly from Z-progress along the stairs
     // (see its own comment) - letting gravity/the ground raycast run afterward would immediately
     // override that with a raycast against individual step treads again, which is what caused the
@@ -939,14 +939,14 @@ void GhostAI::Update(float deltaTime)
         m_velocityY -= m_gravityStrength * deltaTime;
         cTrans.m_position.y += m_velocityY * deltaTime;
 
-        // --- �n�ʃ`�F�b�N (���C�L���X�g) ---
-        // origin �͏�� position + 0.5 (�Œ�)
-        // groundOffset = ���f�����_���牽m�ɂ��邩(�v���X�l)
+        // --- 地面チェック (レイキャスト) ---
+        // origin は常に position + 0.5 (固定)
+        // groundOffset = モデル原点から何m上にあるか(プラス値)
         Math::Vector3 origin = cTrans.m_position + Math::Vector3(0, 0.5f, 0);
         Math::Vector3 rayDir(0, -1, 0);
         RaycastHit hit = CollisionManager::Instance().RaycastAgainstMesh(origin, rayDir, 1000.0f, "Stage");
 
-        // 臒l = groundOffset(���_���瑫���܂ł̋���) + 0.5(origin offset) + 0.1(�]�T)
+        // 閾値 = groundOffset(原点から足元までの距離) + 0.5(origin offset) + 0.1(余裕)
         float snapThreshold = m_groundOffset + 0.5f + 0.1f;
 
         if (hit.hit && hit.distance <= snapThreshold)
@@ -955,8 +955,8 @@ void GhostAI::Update(float deltaTime)
             if (m_velocityY < 0.0f)
             {
                 m_velocityY = 0.0f;
-                // �ڒn�ʒu�ɍ��킹��: �V����Y = origin.y - distance
-                // ���_�𑫌��Ƃ��� groundOffset �Ԃ��ɒu��
+                // 接地位置に合わせる: 新しいY = origin.y - distance
+                // 原点を足元として groundOffset 分上に置く
                 cTrans.m_position.y = (origin.y - hit.distance) + m_groundOffset;
             }
         }
@@ -1159,9 +1159,9 @@ void GhostAI::OnCollisionEnter(GameObject* other)
 {
     if (m_isExorcised || m_currentState == GhostAI::State::Stun) return;
 
-    // Player��ECS�̓Ɨ�����Component�^�Ƃ��Ă͓o�^����Ă��Ȃ����߁A
-    // TryGetComponent<Player>()�͎g���Ȃ�(���o�^�̃R���|�[�l���g�^��assert�ŗ�����)�B
-    // NativeScriptData�o�R��dynamic_cast���邩�A���O�Ŕ��肷��B
+    // PlayerはECSの独立したComponent型としては登録されていないため、
+    // TryGetComponent<Player>()は使えない(未登録のコンポーネント型はassertで落ちる)。
+    // NativeScriptData経由でdynamic_castするか、名前で判定する。
     auto& ecs = GameManager::Instance().GetECS();
     bool isPlayer = (other->GetName() == "Player");
     if (!isPlayer) {

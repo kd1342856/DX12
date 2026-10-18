@@ -75,11 +75,15 @@ bool GraphicsDevice::Init(HWND  hWnd, int w, int h)
 	m_upShadowMap = std::make_unique<DepthStencil>();
 	if(!m_upShadowMap->Create(this, Math::Vector2(2048.0f, 2048.0f), DepthStencilFormat::DepthHighQuality, true)) return false;
 
-	// Point light shadow (nearest/strongest point light only, single perspective shadow - not a
-	// true 6-face cube shadow. Aimed toward the viewer each frame, which is a reasonable
-	// approximation for a single room-scale point light such as a candle/bulb near the player.
-	m_upPointLightShadowMap = std::make_unique<DepthStencil>();
-	if (!m_upPointLightShadowMap->Create(this, Math::Vector2(1024.0f, 1024.0f), DepthStencilFormat::DepthHighQuality, true)) return false;
+	// Point light shadow (nearest/strongest point light only): a true 6-face cube shadow,
+	// implemented as 6 independent 2D depth maps (one per cube face) rather than a native
+	// TextureCube resource - reuses the exact same ShadowShader/DepthStencil machinery as the
+	// directional light shadow, just run 6 times with a 90-degree FOV aimed down each axis.
+	for (int face = 0; face < 6; ++face)
+	{
+		m_upPointLightShadowMapFaces[face] = std::make_unique<DepthStencil>();
+		if (!m_upPointLightShadowMapFaces[face]->Create(this, Math::Vector2(768.0f, 768.0f), DepthStencilFormat::DepthHighQuality, true)) return false;
+	}
 
 	if (!CreateSwapChainRTV()) return false;
 	
@@ -180,7 +184,7 @@ bool GraphicsDevice::CreateDevice()
 	ComPtr<IDXGIAdapter>				pSelectAdapter = nullptr;
 	std::vector<ComPtr<IDXGIAdapter>>	pAdapters;
 	std::vector<DXGI_ADAPTER_DESC>		descs;
-	// ����GPU����PC�ɔ����ăA�_�v�^��񋓂��A�ł����\�̍������̂�I������
+	// 複数GPU搭載PCに備えてアダプタを列挙し、最も性能の高いものを選択する
 	for (UINT index = 0; 1; ++index)
 	{
 		pAdapters.push_back(nullptr);
@@ -237,14 +241,14 @@ bool GraphicsDevice::CreateDevice()
 		D3D_FEATURE_LEVEL_11_1,
 		D3D_FEATURE_LEVEL_11_0,
 	};
-	// Direct3D �f�o�C�X�̏�����
+	// Direct3D デバイスの初期化
 	D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_11_0;
 	for (auto lv : levels)
 	{
 		if (D3D12CreateDevice(pSelectAdapter.Get(), lv, IID_PPV_ARGS(&m_pDevice)) == S_OK)
 		{
 			featureLevel = lv;
-			break;	// �Ή����x�������������烋�[�v���I��
+			break;	// 対応レベルが見つかったらループを終了
 		}
 	}
 	pSelectAdapter.As(&m_pAdapter3);
@@ -275,7 +279,7 @@ bool GraphicsDevice::CreateSwapChain(HWND hWnd, int width, int height)
 	}
 	m_allowTearing = (allowTearing == TRUE);
 	swapchainDesc.Flags = m_allowTearing ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0;
-	// �܂��� SwapChain1 �Ƃ��č쐬����
+	// まずは SwapChain1 として作成する
 	ComPtr<IDXGISwapChain1> swapChain1;
 	HRESULT hr = m_pDxgiFactory->CreateSwapChainForHwnd(m_upQueueManager->GetGraphicsQueue()->GetQueue(), hWnd, &swapchainDesc,
 		nullptr, nullptr, swapChain1.GetAddressOf()
@@ -284,7 +288,7 @@ bool GraphicsDevice::CreateSwapChain(HWND hWnd, int width, int height)
 	{
 		return false;
 	}
-	// SwapChain4 �ɃL���X�g����
+	// SwapChain4 にキャストする
 	// Tearing only works in windowed mode, so DXGI must not take over Alt+Enter.
 	if (m_allowTearing)
 	{
@@ -335,8 +339,8 @@ void GraphicsDevice::EnableDebugLayer()
 }
 void GraphicsDevice::Shutdown()
 {
-	// �I�������J�n���ŏ��Ƀ}�[�N����BGPUResource���̃f�X�g���N�^��
-	// ���̌�ǂ̃^�C�~���O��(�ÓI�j�����������)�Ă΂�Ă����S�ɔ���ł���悤�ɁB
+	// 終了処理の開始を最初にマークする。GPUResource等のデストラクタが
+	// その後どのタイミングで(静的破棄の順序次第で)呼ばれても安全に判定できるように。
 	s_isShuttingDown = true;
 
 	if (!m_pDevice) return;
@@ -551,11 +555,11 @@ bool GraphicsDevice::CreateDefaultTextures()
 	return true;
 }
 // =============================================
-// GraphicsDevice.cpp (ImGui �֘A������)
+// GraphicsDevice.cpp (ImGui 関連を追加)
 // =============================================
 bool GraphicsDevice::InitImGui()
 {
-	// ImGui �p�� SRV �f�B�X�N���v�^�q�[�v���쐬
+	// ImGui 用の SRV ディスクリプタヒープを作成
 	D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
 	heapDesc.Type           = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	heapDesc.NumDescriptors = 100;
@@ -565,19 +569,19 @@ bool GraphicsDevice::InitImGui()
 	{
 		return false;
 	}
-	// ImGui �R���e�L�X�g���쐬
+	// ImGui コンテキストを作成
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;	// �h�b�L���O�@�\��L����
-	// �X�^�C���ݒ�
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;	// ドッキング機能を有効化
+	// スタイル設定
 	ImGui::StyleColorsDark();
     // Load Japanese font
     io.Fonts->AddFontFromFileTTF("c:/Windows/Fonts/meiryo.ttc", 16.0f, nullptr, io.Fonts->GetGlyphRangesJapanese());
-	// Win32�o�b�N�G���h�̏�������Win32Window������hWnd�Ɉˑ�����̂�
-	// �����ł� ImGui_ImplDX12 �̏������̂ݍs���AWin32���̏�������main/Application�ɔC����B
-	// �⑫: ImGui_ImplWin32_Init(hWnd) �� Application::Init()���ŌĂ΂��z��B
+	// Win32バックエンドの初期化はWin32Window側のhWndに依存するので
+	// ここでは ImGui_ImplDX12 の初期化のみ行い、Win32側の初期化はmain/Applicationに任せる。
+	// 補足: ImGui_ImplWin32_Init(hWnd) は Application::Init()内で呼ばれる想定。
 	ImGui_ImplDX12_InitInfo initInfo = {};
 	initInfo.Device            = m_pDevice.Get();
 	initInfo.CommandQueue      = m_upQueueManager->GetGraphicsQueue()->GetQueue();
@@ -586,7 +590,7 @@ bool GraphicsDevice::InitImGui()
 	initInfo.SrvDescriptorHeap = m_upImGuiSRVHeap.Get();
 	initInfo.SrvDescriptorAllocFn = [](ImGui_ImplDX12_InitInfo*, D3D12_CPU_DESCRIPTOR_HANDLE* out_cpu, D3D12_GPU_DESCRIPTOR_HANDLE* out_gpu)
 	{
-		// �o�͗p�t�H���g��1�X���b�g�����Œ�Ŋ��蓖�Ă�
+		// 出力用フォントは1スロット目を固定で割り当てる
 		auto& dev = GraphicsDevice::Instance();
 		int idx = dev.AllocateImGuiSRVIndex();
 		
@@ -617,7 +621,7 @@ void GraphicsDevice::RenderImGui()
 void GraphicsDevice::ShutdownImGui()
 {
 	ImGui_ImplDX12_Shutdown();
-	// Win32�o�b�N�G���h���̉����DestroyContext���O�ɌĂԕK�v������
+	// Win32バックエンド側の解放はDestroyContextより前に呼ぶ必要がある
 	ImGui_ImplWin32_Shutdown();
 	ImGui::DestroyContext();
 	m_upImGuiSRVHeap.Reset();

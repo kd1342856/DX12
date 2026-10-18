@@ -173,7 +173,7 @@ bool CheckCollisionShape(CollisionResult& result,
     std::vector<Math::Vector3> hitPushes;
 
     for (const auto &node : meshShape->m_model->GetNodes()) {
-      // �C��: �A�j���[�V�����ό`���l��
+      // 修正: アニメーション変形を考慮
       Math::Matrix nodeWorld = node.animDeltaTransform * worldB_withOffset; 
       DirectX::XMMATRIX mNodeWorld = DirectX::XMLoadFloat4x4(&nodeWorld);
 

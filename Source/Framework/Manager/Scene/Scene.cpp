@@ -1,4 +1,4 @@
-#include "../../../Pch.h"
+﻿#include "../../../Pch.h"
 #include "Scene.h"
 #include "../Collision/CollisionManager.h"
 #include "../Resource/PrefabManager.h"
@@ -96,12 +96,12 @@ void Scene::Init() {
 }
 
 void Scene::Update(float deltaTime) {
-    // System �� Update �� GameManager::Update() ���s���AE
+    // System の Update は GameManager::Update() が行う
 }
 
 void Scene::Draw() {
-    // Scene �ŗL?E�`��?E??E??�Ȃ�h���N���X�ŃI�[�o?E���C�h�IE
-    // RenderSystem / SpriteRenderSystem �� GameManager::Update() ���S�ZE
+    // Scene 固有の描画処理があれば派生クラスでオーバーライドする
+    // RenderSystem / SpriteRenderSystem は GameManager::Update() が担当
 }
 
 void Scene::ImGuiUpdate() {
@@ -199,7 +199,7 @@ void Scene::DeserializeGameObject(const nlohmann::json& oj, std::shared_ptr<Game
 }
 
 void Scene::Deserialize(const nlohmann::json& in) {
-    // GameObject���N���A��???�f�X�g���N�^��ECS��Entity���j?E??���
+    // GameObjectをクリアすると、デストラクタでECSのEntityも破棄される
     m_gameObjects.clear();
 
     if (in.contains("GameObjects")) {

@@ -1,4 +1,4 @@
-#include "../../../Pch.h"
+﻿#include "../../../Pch.h"
 #include "../../Manager/Scene/Scene.h"
 #include "../../Manager/Scene/SceneManager.h"
 #include "../../Manager/Collision/CollisionManager.h"
@@ -151,6 +151,19 @@ void Editor::DrawInspector() {
                     ImGui::DragFloat("FOV", &c.m_fov, 0.5f, 1.0f, 179.0f);
                     ImGui::DragFloat("Near Z", &c.m_nearZ, 0.1f);
                     ImGui::DragFloat("Far Z", &c.m_farZ, 1.0f);
+
+                    ImGui::Separator();
+                    ImGui::Checkbox("Debug Preview Camera", &c.m_isDebugPreview);
+                    ImGui::SameLine();
+                    ImGui::TextDisabled("(?)");
+                    if (ImGui::IsItemHovered()) {
+                        ImGui::SetTooltip(
+                            u8"ONにすると、このカメラのTransform(位置・回転)から見た絵を毎フレーム\n"
+                            u8"専用のプレビューRTに描画する。「Window > Preview Camera」で結果を確認できる。\n"
+                            u8"普通のGameObjectなので、Transformで自由に動かして任意の角度から\n"
+                            u8"シーンやガラス面の反射を確認できる(エディタのフリーカメラや反射カメラとは無関係)。\n"
+                            u8"同時に複数のカメラでONにした場合、見つかった最初の1つだけが使われる。");
+                    }
                 }
             }
 
@@ -228,6 +241,22 @@ void Editor::DrawInspector() {
                     ImGui::Checkbox("Is Loop", &animData.currentAnim.IsLoop);
                 }
             }
+            if (auto* pLight = ecs.TryGetComponent<PointLightData>(entity)) {
+                if (ImGui::CollapsingHeader("PointLightData", ImGuiTreeNodeFlags_DefaultOpen)) {
+                    auto& l = *pLight;
+                    ImGui::Checkbox("Enabled", &l.m_enabled);
+                    ImGui::ColorEdit3("Color", &l.m_color.x);
+                    ImGui::DragFloat("Intensity", &l.m_intensity, 0.05f, 0.0f, 50.0f);
+                    ImGui::DragFloat("Range", &l.m_range, 0.1f, 0.1f, 100.0f);
+                    ImGui::Separator();
+                    ImGui::Text("Flicker");
+                    ImGui::Checkbox("Flicker Enabled", &l.m_flickerEnabled);
+                    ImGui::DragFloat("Flicker Speed", &l.m_flickerSpeed, 0.1f, 0.0f, 60.0f);
+                    ImGui::DragFloat("Flicker Intensity", &l.m_flickerIntensity, 0.01f, 0.0f, 1.0f);
+                    ImGui::DragFloat("Flicker Seed", &l.m_flickerSeed, 0.1f);
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"同じ部屋に複数のフリッカーライトを置く時、位相をずらしてバラバラに明滅させたい場合に変える。");
+                }
+            }
             if (auto* pScript = ecs.TryGetComponent<NativeScriptData>(entity)) {
                 if (ImGui::CollapsingHeader("NativeScript", ImGuiTreeNodeFlags_DefaultOpen)) {
                     auto& scriptData = ecs.GetComponent<NativeScriptData>(entity);
@@ -282,7 +311,10 @@ void Editor::DrawInspector() {
 
                 bool hasAnim = ecs.TryGetComponent<AnimationDataComponent>(entity) != nullptr;
                 if (ImGui::MenuItem("AnimationDataComponent", nullptr, false, !hasAnim)) ecs.AddComponent<AnimationDataComponent>(entity, AnimationDataComponent{});
-                
+
+                bool hasPointLight = ecs.TryGetComponent<PointLightData>(entity) != nullptr;
+                if (ImGui::MenuItem("PointLightData", nullptr, false, !hasPointLight)) ecs.AddComponent<PointLightData>(entity, PointLightData{});
+
                 ImGui::EndPopup();
             }
 

@@ -19,6 +19,7 @@
 #include "../../../Graphics/Shader/BloomShader/BloomShader.h"
 #include "../../../Graphics/Shader/GodRaysShader/GodRaysShader.h"
 #include "../../../Graphics/Shader/SSAOShader/SSAOShader.h"
+#include "../../../Graphics/Shader/SSROpaqueShader/SSROpaqueShader.h"
 #include "../../../Framework/DirectX/Utility/Profiler.h"
 #include "../../../Framework/ECS/CompSystem/Systems/LightSystem.h"
 #include <algorithm>
@@ -27,21 +28,21 @@ void GameScene::Init()
 {
     auto pDevice = GraphicsDevice::Instance().GetDevice();
 
-    // GameManager::Init()??Application::Execute()??N??????1?????????z??B
-    // (????????ECS?S????V???????????????A??????SEntityID????????????????????
-    //  ????????????B???????????????GameManager::Init()???K?[?h??????????A
-    //  ????????????????????????)?B
+    // GameManager::Init()はApplication::Execute()の起動時に1回だけ呼ぶ想定。
+    // (ここで再度呼ぶとECSが全て新しく作り直されてしまい、既存の全EntityIDが無効になってしまうため
+    //  ここでは呼ばない。万一呼ばれた場合に備えてGameManager::Init()側にガードを入れてあるが、
+    //  ここではEditorの初期化のみ行う)。
     Editor::Init();
 
-    // Editor::Init()??Editor::s_scene???V????Scene?I?u?W?F?N?g?????????B
-    // ????^?C?~???O??u?O??V?[???v???????????GameObject?Q??shared_ptr??Q??J?E???g??
-    // 0??????j?????????AGameObject??f?X?g???N?^??ECS?R?}???h?o?b?t?@??
-    // DestroyEntity?????????????????f???????B
-    // ?????Deserialize()/Scene::Init()(Awake/Start)??V?????V?[?????????????_???A
-    // ????j???R?}???h?????f??????????u?O??V?[??????????R???|?[?l???g?v??
-    // ?V?V?[??????R?[?h??????????A????j????????????w???|?C???^?o?R??
-    // ?N???b?V????????????(SceneManager????Flush?????A?????Editor::s_scene????
-    // ?????????????????^?C?~???O?I?????????????)?B
+    // Editor::Init()はEditor::s_sceneに新しいSceneオブジェクトを代入する。
+    // このタイミングで「前のシーン」が保持していたGameObject群のshared_ptrの参照カウントが
+    // 0になって破棄されるため、GameObjectのデストラクタがECSコマンドバッファに
+    // DestroyEntityを積むが、それはまだ反映されていない。
+    // このままDeserialize()/Scene::Init()(Awake/Start)で新しいシーンを構築した時点で、
+    // その破棄コマンドが反映されていないと「前のシーンのまま残っているコンポーネント」が
+    // 新シーン側のコードから参照され、既に破棄されたオブジェクトを指すポインタ経由で
+    // クラッシュする(SceneManager側でもFlushしているが、初回のEditor::s_scene生成は
+    // SceneManagerを経由しないタイミングのため、ここで明示的に反映しておく)。
     GameManager::Instance().GetECS().FlushCommands();
 
     std::ifstream in("Asset/Data/Scene/GameScene.json");
@@ -69,12 +70,12 @@ void GameScene::Init()
         }
     }
 
-    Editor::GetScene()->Init(); // ????????[?h?????S?X?N???v?g??Awake/Start??????
+    Editor::GetScene()->Init(); // シーンをロードした後、全スクリプトのAwake/Startを呼ぶ
     JobSystem::Instance().Wait();
 
-    // m_fullscreenGame??true?????????J?n???AHandleModeSwitch()??F5?g???K??????
-    // ?????????}?E?X???[?h??Absolute???????B??Player??FPS?????????J?n?????邽??A
-    // ????????Relative???[?h???Z?b?g???Ă���
+    // m_fullscreenGameがtrueでゲームを開始した場合、HandleModeSwitch()のF5トリガを通らないため
+    // マウスモードがAbsoluteのままになる。PlayerはFPS視点で操作を開始するため、
+    // ここでRelativeモードをセットしておく
     if (m_fullscreenGame) {
         Input::Instance().SetMouseModeRelative();
     }
@@ -125,14 +126,23 @@ void GameScene::UpdateCamera()
     std::shared_ptr<GameObject> pEditorCameraObj = nullptr;
 
     std::function<void(const std::shared_ptr<GameObject>&)> findCameras = [&](const std::shared_ptr<GameObject>& obj) {
-        if (ecs.TryGetComponent<CameraData>(obj->GetEntityID()) != nullptr)
+        if (auto* pCam = ecs.TryGetComponent<CameraData>(obj->GetEntityID()))
         {
-            if (obj->GetName() == "MainCamera")
+            // Debug Preview Cameraはデバッグ専用の独立したカメラ(GameScene::RenderDebugPreviewCamera
+            // が別RTに描画する)なので、エディタ/ゲームの本編カメラ選定には一切関与させない。
+            // これを除外しないと、名前が「MainCamera」でないCameraDataは無条件でm_gameCameraEntityに
+            // なってしまうため、プレビュー用に置いた新しいカメラが本来のゲームカメラを乗っ取って
+            // 画面全体がそのカメラに切り替わってしまう(操作もできなくなる)。
+            if (pCam->m_isDebugPreview)
+            {
+                // スキップ
+            }
+            else if (obj->GetName() == "MainCamera")
             {
                 m_editorCameraEntity = obj->GetEntityID();
                 pEditorCameraObj = obj;
 
-                // ?G?f?B?^?J??????X?N???v?g??R???C?_?[?????????????????????C??(?t???[?J????????????????)
+                // エディタカメラにはスクリプトコンポーネントを付けていない前提(フリーカメラの操作はここで直接行う)
             }
             else
             {
@@ -226,7 +236,7 @@ void GameScene::UpdateCamera()
             findPlayer(obj);
         }
 
-        // ?G?f?B?^?J????(MainCamera)??Q?[???J??????????g???????A????Q?[???v???C??????????X?i?b?v?????
+        // エディタカメラ(MainCamera)がゲームカメラとして使われていない場合、またはゲームプレイ(全画面)中のみスナップする
         bool shouldSnap = (m_gameCameraEntity != m_editorCameraEntity) || m_fullscreenGame;
         if (pPlayerObj && pGameCamObj && shouldSnap) {
             auto* pPData = ecs.TryGetComponent<TransformData>(pPlayerObj->GetEntityID());
@@ -252,14 +262,14 @@ void GameScene::UpdateCamera()
                 Math::Vector3 right = Math::Vector3::TransformNormal(Math::Vector3(1, 0, 0), playerRot);
 
                 bool isChild = (pGameCamObj->GetParent() != nullptr);
-                Math::Vector3 pivotOffset(0, 1.0f, 0); // ?v???C???[??g?????S?????
+                Math::Vector3 pivotOffset(0, 1.0f, 0); // プレイヤーの身体の中心
 
-                // ?????????J???????????????????
-                // (Player??NativeScript??ECS????????Component?^??????o?^?????????????A
-                //  TryGetComponent<Player>()??g??????BNativeScriptData?o?R??dynamic_cast????)
+                // しゃがみ量に応じてカメラを下げる
+                // (PlayerはNativeScriptでありECSに独立したComponent型として登録されていないため、
+                //  TryGetComponent<Player>()は使えない。NativeScriptData経由でdynamic_castする)
                 if (auto* pScriptData = ecs.TryGetComponent<NativeScriptData>(pPlayerObj->GetEntityID())) {
                     if (auto* pPlayerScript = dynamic_cast<Player*>(pScriptData->Instance.get())) {
-                        const float kCrouchCameraLower = 0.5f; // ?????????J????????????
+                        const float kCrouchCameraLower = 0.5f; // 完全にしゃがんだ時にカメラを下げる量
                         pivotOffset.y -= pPlayerScript->GetCrouchAmount() * kCrouchCameraLower;
                     }
                 }
@@ -284,6 +294,71 @@ void GameScene::UpdateCamera()
                         cData.m_position = pData.m_position + pivotOffset + offset;
                         cData.m_rotation.y = pData.m_rotation.y;
                     }
+                }
+            }
+        }
+    }
+
+    // Debug Preview Camera: 「Preview Camera」ウィンドウにマウスが乗っている間だけ、右クリック
+    // ドラッグでエディタ自由カメラと同じ操作感で動かせるようにする(ShaderEditor内で反射RTを
+    // 直接覗くのをやめ、Transformで自由に置けるカメラに置き換えたことに伴う操作方法)。
+    {
+        auto& camArray = ecs.GetComponentArray<CameraData>();
+        Entity previewEntity = INVALID_ENTITY;
+        for (size_t i = 0; i < camArray.GetSize(); ++i) {
+            if ((camArray.begin() + i)->m_isDebugPreview) { previewEntity = camArray.GetEntityFromIndex(i); break; }
+        }
+
+        if (previewEntity != INVALID_ENTITY && Editor::IsPreviewCameraHovered() && Input::Instance().IsMouseRightTrigger()) {
+            Input::Instance().SetMouseModeRelative();
+            m_isPreviewCameraDragging = true;
+        }
+        // IsMouseRightRelease()の取りこぼし(フォーカスが外れる等でボタンアップのエッジイベントを
+        // 見逃す)でm_isPreviewCameraDraggingがtrueのまま固着すると、マウスの微小なノイズ入力が
+        // 毎フレーム蓄積し続け、いつの間にか回転が異常な値(例: Y軸が-1530°等)まで暴走してしまう。
+        // エッジイベントに頼らず、「今実際に右クリックが押されているか」を毎フレーム直接見て
+        // 判定すれば、取りこぼしがあっても次のフレームで確実に自己修復する。
+        if (m_isPreviewCameraDragging && !Input::Instance().IsMouseRightHold()) {
+            Input::Instance().SetMouseModeAbsolute();
+            m_isPreviewCameraDragging = false;
+        }
+
+        if (previewEntity != INVALID_ENTITY && m_isPreviewCameraDragging)
+        {
+            auto* pData = ecs.TryGetComponent<TransformData>(previewEntity);
+            auto* pCamData = ecs.TryGetComponent<CameraData>(previewEntity);
+            if (pData && pCamData)
+            {
+                auto& data = *pData;
+                auto& camData = *pCamData;
+
+                float rotSpeed = 0.002f;
+                data.m_rotation.y += Input::Instance().GetMouseDeltaX() * rotSpeed;
+                data.m_rotation.x += Input::Instance().GetMouseDeltaY() * rotSpeed;
+
+                float pitchLimit = DirectX::XMConvertToRadians(89.0f);
+                if (data.m_rotation.x > pitchLimit) data.m_rotation.x = pitchLimit;
+                if (data.m_rotation.x < -pitchLimit) data.m_rotation.x = -pitchLimit;
+
+                Math::Matrix mRot = Math::Matrix::CreateFromYawPitchRoll(data.m_rotation.y, data.m_rotation.x, data.m_rotation.z);
+                Math::Vector3 forward = Math::Vector3::TransformNormal(Math::Vector3(0, 0, 1), mRot);
+                Math::Vector3 right = Math::Vector3::TransformNormal(Math::Vector3(1, 0, 0), mRot);
+                Math::Vector3 up = Math::Vector3(0, 1, 0);
+
+                Math::Vector3 moveVec = Math::Vector3(0, 0, 0);
+                float moveSpeed = camData.m_moveSpeed;
+
+                if (Input::Instance().IsKeyHold('W')) moveVec += forward;
+                if (Input::Instance().IsKeyHold('S')) moveVec -= forward;
+                if (Input::Instance().IsKeyHold('D')) moveVec += right;
+                if (Input::Instance().IsKeyHold('A')) moveVec -= right;
+                if (Input::Instance().IsKeyHold('E')) moveVec += up;
+                if (Input::Instance().IsKeyHold('Q')) moveVec -= up;
+
+                if (moveVec.LengthSquared() > 0.0f)
+                {
+                    moveVec.Normalize();
+                    data.m_position += moveVec * moveSpeed;
                 }
             }
         }
@@ -352,7 +427,116 @@ void GameScene::Render()
     else
         RenderEditor();
 
+    RenderDebugPreviewCamera();
+
     Renderer::EndFrame();
+}
+
+void GameScene::RenderDebugPreviewCamera()
+{
+    auto renderSystem = GameManager::Instance().GetRenderSystem();
+    if (!renderSystem) return;
+
+    auto* pPreviewRT = Renderer::GetDebugPreviewRenderTarget();
+    if (!pPreviewRT) return;
+
+    // CameraData.m_isDebugPreviewを立てたカメラを探す。複数見つかった場合は「最後(＝Entity番号が
+    // 一番大きい=一番新しく作られた)もの」を使う。過去にGameObjectを削除/親子関係変更した際、
+    // ECS側にコンポーネントだけ孤児として残ってしまうケースがあり(表示上は1つしか無いのに実際は
+    // 複数ある)、それが古い方から見つかって優先されてしまう事故を避けるため。
+    auto& ecs = GameManager::Instance().GetECS();
+    auto& camArray = ecs.GetComponentArray<CameraData>();
+    Entity previewCameraEntity = INVALID_ENTITY;
+    {
+        // デバッグ: 該当するCameraDataが複数(重複/孤児)無いか~1秒おきに全部ログへ出す。
+        static int s_dbgFrame2 = 0;
+        bool doLog = ((s_dbgFrame2++ % 60) == 0);
+        int matchCount = 0;
+        for (size_t i = 0; i < camArray.GetSize(); ++i)
+        {
+            if ((camArray.begin() + i)->m_isDebugPreview)
+            {
+                Entity e = camArray.GetEntityFromIndex(i);
+                matchCount++;
+                if (doLog)
+                {
+                    Logger::Instance().AddLog(Logger::LogLevel::Info,
+                        "[PreviewCamera] candidate #%d entity=%u", matchCount, (uint32_t)e);
+                }
+                if (previewCameraEntity == INVALID_ENTITY || e > previewCameraEntity) previewCameraEntity = e;
+            }
+        }
+        if (doLog)
+        {
+            Logger::Instance().AddLog(Logger::LogLevel::Info,
+                "[PreviewCamera] total Debug Preview Camera candidates=%d, using entity=%u",
+                matchCount, (uint32_t)previewCameraEntity);
+        }
+    }
+
+    if (previewCameraEntity == INVALID_ENTITY) return;
+
+    // デバッグ: 実際にレンダーに使われているカメラのワールド座標・向きを~1秒おきにログへ出す。
+    // Position/Rotationの数値だけ合っていても、親子関係やコンポーネント登録の不整合で
+    // 実際のワールド変換がズレている可能性を切り分けるため。
+    {
+        static int s_dbgFrame = 0;
+        if ((s_dbgFrame++ % 60) == 0)
+        {
+            if (auto* pTrans = ecs.TryGetComponent<TransformData>(previewCameraEntity))
+            {
+                Math::Vector3 worldPos = pTrans->m_worldMatrix.Translation();
+                Math::Vector3 worldForward = pTrans->m_worldMatrix.Backward();
+                Logger::Instance().AddLog(Logger::LogLevel::Info,
+                    "[PreviewCamera] entity=%u localPos=(%.2f,%.2f,%.2f) worldPos=(%.2f,%.2f,%.2f) worldForward=(%.2f,%.2f,%.2f)",
+                    (uint32_t)previewCameraEntity,
+                    pTrans->m_position.x, pTrans->m_position.y, pTrans->m_position.z,
+                    worldPos.x, worldPos.y, worldPos.z,
+                    worldForward.x, worldForward.y, worldForward.z);
+            }
+        }
+    }
+
+    // RenderScene()は内部でRenderSystem::m_cameraEntityを書き換える(フラスタムカリング等が
+    // 参照するため)。プレビュー描画のためにこれを一時的に差し替えたら、他の処理(ポストプロセス等)
+    // が本来のメインカメラだと思って読んでいる値を壊さないよう、必ず元に戻す。
+    Entity savedCameraEntity = renderSystem->GetCameraEntity();
+
+    // ルーム単位のカリング(RoomVisibilityManager)は「今どの部屋にいるか」を基準に間引くため、
+    // 自由に置いたプレビューカメラがどの部屋にも属さない座標にあると全て非表示になってしまう。
+    // デバッグ用途では常にシーン全体が見えてほしいので、この描画の間だけ無効化する。
+    bool savedRoomCulling = RenderSystem::s_enableRoomCulling;
+    bool savedFrustumCulling = RenderSystem::s_enableFrustumCulling;
+    RenderSystem::s_enableRoomCulling = false;
+    RenderSystem::s_enableFrustumCulling = false; // 念のため視錐台カリングも無効化して切り分ける
+
+    // RenderScene(cameraEntity, pRT)はpRTを渡された時、SetRenderTarget()でバインドするだけで
+    // 中身(カラー・深度)を一切クリアしない(呼び出し側が既にクリア済みという前提の設計)。
+    // このRTは毎フレーム使い回しなので、クリアせずに描くと前フレームの深度バッファが残ったまま
+    // 新しいジオメトリの深度テストと衝突し、実質何も更新されないように見えるバグになる。
+    GraphicsDevice::Instance().SetRenderTarget(pPreviewRT);
+    pPreviewRT->Clear(0.0f, 0.0f, 0.0f, 1.0f);
+
+    renderSystem->RenderScene(previewCameraEntity, pPreviewRT);
+
+    RenderSystem::s_enableRoomCulling = savedRoomCulling;
+    RenderSystem::s_enableFrustumCulling = savedFrustumCulling;
+    renderSystem->SetCameraEntity(savedCameraEntity);
+
+    // RenderScene(previewCameraEntity, pPreviewRT)が小さいプレビュー用RT(640x360)を
+    // レンダーターゲットにバインドしたままなので、ここで戻さないと直後のRenderer::EndFrame()の
+    // ImGui描画がそのオフスクリーンRTに描かれてしまい、画面(バックバッファ)からImGuiパネルが
+    // 全て消えたように見える(ゲーム自体は別経路で既にバックバッファへ合成済みなので普通に動き続ける)。
+    GraphicsDevice::Instance().SetBackBuffer();
+    D3D12_VIEWPORT viewport = {};
+    viewport.Width = 1280.0f;
+    viewport.Height = 720.0f;
+    viewport.MinDepth = 0.0f;
+    viewport.MaxDepth = 1.0f;
+    D3D12_RECT scissorRect = { 0, 0, 1280, 720 };
+    auto* pCmdList = GraphicsDevice::Instance().GetCmdList();
+    pCmdList->RSSetViewports(1, &viewport);
+    pCmdList->RSSetScissorRects(1, &scissorRect);
 }
 
 void GameScene::RenderGame()
@@ -400,8 +584,8 @@ void GameScene::RenderGame()
             spriteRenderSystem->Render();
         }
 
-        // Script Draw (Player UI, GameClear/Over ?\?????)
-        // ?? DebugWire??Q?[?????[?h????\??
+        // Script Draw (Player UI, GameClear/Over 表示など)
+        // ※ DebugWireはゲームモードでは非表示
         auto scriptSystem = GameManager::Instance().GetScriptSystem();
         if (scriptSystem) {
             PROFILE_CPU_SCOPE("ScriptDraw");
@@ -440,7 +624,11 @@ void GameScene::UpdatePointLightShadow(Entity cameraEntity)
     const auto& lightData = ShaderManager::Instance().GetLightData();
     if (lightData.PL_Count <= 0)
     {
-        ShaderManager::Instance().SetPointLightShadowData(Math::Matrix::Identity, 0.0f, false);
+        Math::Matrix identity6[6] = {
+            Math::Matrix::Identity, Math::Matrix::Identity, Math::Matrix::Identity,
+            Math::Matrix::Identity, Math::Matrix::Identity, Math::Matrix::Identity
+        };
+        ShaderManager::Instance().SetPointLightShadowData(identity6, 0.0f, false);
         return;
     }
 
@@ -448,17 +636,7 @@ void GameScene::UpdatePointLightShadow(Entity cameraEntity)
     Math::Vector3 lightPos = lightData.PL[0].Pos;
     float range = lightData.PL[0].Range;
 
-    Math::Vector3 aimAt = lightPos + Math::Vector3(0, -1, 0);
-    auto& ecs = GameManager::Instance().GetECS();
-    if (cameraEntity != INVALID_ENTITY)
-    {
-        if (auto* pTrans = ecs.TryGetComponent<TransformData>(cameraEntity))
-        {
-            aimAt = pTrans->m_worldMatrix.Translation();
-        }
-    }
-
-    renderSystem->RenderPointLightShadow(lightPos, aimAt, range);
+    renderSystem->RenderPointLightShadowCube(lightPos, range);
 }
 
 void GameScene::RenderSSAO(Entity cameraEntity)
@@ -525,6 +703,22 @@ void GameScene::DoPostProcess(Entity cameraEntity, float clearR, float clearG, f
 
     const auto& postProcessSettings = ShaderManager::Instance().GetPostProcessSettings();
     const auto& postProcessData = ShaderManager::Instance().GetPostProcessData();
+
+    // 0. SSR (Opaque材質向け) - 専用のG-Bufferパスを追加せず、NormalPrepass(SSAO用)の法線+深度と
+    // Opaqueパスのカラーコピーを再利用してシーンHDRへ加算合成する。ガラス限定のSSR(LitShader内)
+    // とは別物で、床・タイル等のOpaque材質に効く。RenderScene直後、まだpSceneHDRがRENDER_TARGET
+    // 状態のこのタイミングでだけ加算できる(この後すぐSRVへ遷移してBloom等に読まれるため)。
+    auto& rendererSettings = ShaderManager::Instance().GetRendererSettings();
+    if (rendererSettings.EnableSSR)
+    {
+        auto* pNormalRT = Renderer::GetNormalPrepassRenderTarget();
+        auto* pSceneOpaqueCopy = Renderer::GetSceneOpaqueCopyRenderTarget();
+        auto& ssrOpaqueShader = ShaderLibrary::Instance().Get<SSROpaqueShader>();
+        SSROpaqueShader::Params ssrParams;
+        ssrParams.StepSize = rendererSettings.SSRStepSize;
+        ssrParams.Intensity = rendererSettings.SSROpaqueIntensity;
+        ssrOpaqueShader.Draw(pNormalRT, pSceneOpaqueCopy, pSceneHDR, ssrParams);
+    }
 
     // 1. Bloom Extract (輝度が閾値を超えた部分だけ抽出)
     auto* pExtractRT = Renderer::GetBloomExtractRenderTarget();

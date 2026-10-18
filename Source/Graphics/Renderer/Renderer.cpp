@@ -1,4 +1,4 @@
-#include "../../Pch.h"
+﻿#include "../../Pch.h"
 #include "Renderer.h"
 #include "../GPUResource/RenderTarget/RenderTarget.h"
 #include "../../Graphics/Device/GraphicsDevice.h"
@@ -62,7 +62,7 @@ RenderContext& Renderer::GetContext()
 
 static std::unique_ptr<RenderTarget> s_sceneHDR;
 static std::unique_ptr<RenderTarget> s_sceneOpaqueCopy;
-static std::unique_ptr<RenderTarget> s_planarReflection;
+static std::unique_ptr<RenderTarget> s_planarReflection[3];
 static std::unique_ptr<RenderTarget> s_bloomExtract;
 static std::unique_ptr<RenderTarget> s_bloomBlur[2];
 static std::unique_ptr<RenderTarget> s_dofBlur[2];
@@ -70,6 +70,7 @@ static std::unique_ptr<RenderTarget> s_godRays;
 static std::unique_ptr<RenderTarget> s_normalPrepass;
 static std::unique_ptr<RenderTarget> s_ssao;
 static std::unique_ptr<RenderTarget> s_ssaoBlur;
+static std::unique_ptr<RenderTarget> s_debugPreview;
 
 void Renderer::InitializeRenderTargets(int width, int height)
 {
@@ -81,9 +82,12 @@ void Renderer::InitializeRenderTargets(int width, int height)
 	s_sceneOpaqueCopy = std::make_unique<RenderTarget>();
 	s_sceneOpaqueCopy->Create(width, height, DXGI_FORMAT_R16G16B16A16_FLOAT);
 
-	// Planar Reflection (1024x1024 fixed or scaled, we use screen width/height for now or fixed 1024)
-	s_planarReflection = std::make_unique<RenderTarget>();
-	s_planarReflection->Create(1024, 1024, DXGI_FORMAT_R16G16B16A16_FLOAT);
+	// Planar Reflection (1024x1024 fixed or scaled, we use screen width/height for now or fixed 1024)。
+	// 最大3枚(3窓)まで同時にアクティブな鏡をサポートするため、スロットごとに1枚ずつ持つ。
+	for (int i = 0; i < 3; ++i) {
+		s_planarReflection[i] = std::make_unique<RenderTarget>();
+		s_planarReflection[i]->Create(1024, 1024, DXGI_FORMAT_R16G16B16A16_FLOAT);
+	}
 
 	// Bloom Extract (1/4解像度, HDR)。以前は1/2解像度+固定ぼかし半径5texelだったため、
 	// Intensityをいじってもほぼ変化が無かった。1/4解像度化＋可変半径＋複数回ブラーの
@@ -119,14 +123,21 @@ void Renderer::InitializeRenderTargets(int width, int height)
 	s_ssao->Create(width / 2, height / 2, DXGI_FORMAT_R16G16B16A16_FLOAT);
 	s_ssaoBlur = std::make_unique<RenderTarget>();
 	s_ssaoBlur->Create(width / 2, height / 2, DXGI_FORMAT_R16G16B16A16_FLOAT);
+
+	// Debug Preview Camera用: CameraData.m_isDebugPreviewを立てたカメラのTransformから見た絵を
+	// 毎フレーム描く専用RT。CameraSystemのProjectionが16:9固定(1280/720)なので、アスペクトを
+	// 合わせるため640x360にする(半分の解像度で十分、デバッグ用途のため)。
+	s_debugPreview = std::make_unique<RenderTarget>();
+	s_debugPreview->Create(640, 360, DXGI_FORMAT_R16G16B16A16_FLOAT);
 }
 
 RenderTarget* Renderer::GetSceneHDRRenderTarget() { return s_sceneHDR.get(); }
 RenderTarget* Renderer::GetSceneOpaqueCopyRenderTarget() { return s_sceneOpaqueCopy.get(); }
-RenderTarget* Renderer::GetPlanarReflectionRenderTarget() { return s_planarReflection.get(); }
+RenderTarget* Renderer::GetPlanarReflectionRenderTarget(int slot) { return (slot >= 0 && slot < 3) ? s_planarReflection[slot].get() : nullptr; }
 RenderTarget* Renderer::GetBloomExtractRenderTarget() { return s_bloomExtract.get(); }
 RenderTarget* Renderer::GetBloomBlurRenderTarget(int index) { return s_bloomBlur[index % 2].get(); }
 RenderTarget* Renderer::GetDOFBlurRenderTarget(int index) { return s_dofBlur[index % 2].get(); }
 RenderTarget* Renderer::GetGodRaysRenderTarget() { return s_godRays.get(); }
 RenderTarget* Renderer::GetNormalPrepassRenderTarget() { return s_normalPrepass.get(); }
 RenderTarget* Renderer::GetSSAORenderTarget(int index) { return index == 0 ? s_ssao.get() : s_ssaoBlur.get(); }
+RenderTarget* Renderer::GetDebugPreviewRenderTarget() { return s_debugPreview.get(); }

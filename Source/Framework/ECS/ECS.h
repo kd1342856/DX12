@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 // =============================================
 // ECS
@@ -10,7 +10,7 @@
 #include "CompSystem/System.h"
 #include "ECSCoordinator.h"
 
-// �R���|�[�l���g�f�[�^��`�iRenderSystem.h���O�ɃC���N���[�h�j
+// コンポーネントデータ定義（RenderSystem.hより前にインクルード）
 #include "Components/Data/TransformData.h"
 #include "Components/Data/ModelRenderData.h"
 #include "Components/Data/CameraData.h"
