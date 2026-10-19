@@ -26,6 +26,7 @@ bool Editor::s_showEditor = true;
 bool Editor::s_showProfilerOverlay = false;
 
 std::shared_ptr<Scene> Editor::s_scene = nullptr;
+std::string Editor::s_scenePath = "";
 
 bool Editor::s_showGameEditor = false;
 bool Editor::s_showShaderEditor = false;
@@ -34,6 +35,9 @@ bool Editor::s_showPreviewCamera = false;
 bool Editor::s_previewCameraHovered = false;
 
 void Editor::Init() {
+    s_selectedObject = nullptr;
+    s_scenePath.clear(); // 保存先は各シーンのInit()で設定する(前シーンのファイルを引き継がない)
+    LoadEditorData();    // パスが空なのでフォルダ構成も空に戻る(前シーンのフォルダを引き継がない)
     s_scene = std::make_shared<Scene>();
     s_scene->Init();
 }

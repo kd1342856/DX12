@@ -47,6 +47,11 @@ struct LightingSettings
     // 平行光(月明かり等)のシャドウマップで遮られている場所に残す間接光の下限。
     // 0 = 完全に光源が届かない場所は真っ黒、1 = 影の有無で環境光が変化しない(従来通り)。
     float IndirectShadowFloor = 0.05f;
+
+    // Indoor mask: pixels inside any RoomArea AABB never receive outside light (moon/ambient/sky),
+    // treated as fully in the moon's shadow regardless of whether the shadow map actually covers them.
+    bool EnableIndoorMask = true;
+    float IndoorMargin = 0.3f; // grows each RoomArea AABB by this much (m) so walls/floors on the boundary count as indoor
 };
 
 struct ShadowSettings

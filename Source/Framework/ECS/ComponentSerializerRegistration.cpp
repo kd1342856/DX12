@@ -261,4 +261,32 @@ void RegisterComponentSerializers() {
             return false;
         });
     reg.RegisterAlias("PointLightComponent", "PointLightData");
+
+    reg.Register("SpotLightData",
+        [](ECSCoordinator& ecs, Entity e, const nlohmann::json& cj, GameObject* obj) {
+            SpotLightData d;
+            if (cj.contains("Color")) { d.m_color = {cj["Color"][0], cj["Color"][1], cj["Color"][2]}; }
+            if (cj.contains("Intensity")) d.m_intensity = cj["Intensity"];
+            if (cj.contains("Range")) d.m_range = cj["Range"];
+            if (cj.contains("InnerAngle")) d.m_innerAngle = cj["InnerAngle"];
+            if (cj.contains("OuterAngle")) d.m_outerAngle = cj["OuterAngle"];
+            if (cj.contains("Enabled")) d.m_enabled = cj["Enabled"];
+            if (cj.contains("LocalOffset")) { d.m_localOffset = {cj["LocalOffset"][0], cj["LocalOffset"][1], cj["LocalOffset"][2]}; }
+            if (cj.contains("LocalDirection")) { d.m_localDirection = {cj["LocalDirection"][0], cj["LocalDirection"][1], cj["LocalDirection"][2]}; }
+            ecs.AddComponent(e, d);
+        },
+        [](ECSCoordinator& ecs, Entity e, nlohmann::json& cj, GameObject* obj) -> bool {
+            if (auto* p_d = ecs.TryGetComponent<SpotLightData>(e)) {
+                cj["Color"] = {p_d->m_color.x, p_d->m_color.y, p_d->m_color.z};
+                cj["Intensity"] = p_d->m_intensity;
+                cj["Range"] = p_d->m_range;
+                cj["InnerAngle"] = p_d->m_innerAngle;
+                cj["OuterAngle"] = p_d->m_outerAngle;
+                cj["Enabled"] = p_d->m_enabled;
+                cj["LocalOffset"] = {p_d->m_localOffset.x, p_d->m_localOffset.y, p_d->m_localOffset.z};
+                cj["LocalDirection"] = {p_d->m_localDirection.x, p_d->m_localDirection.y, p_d->m_localDirection.z};
+                return true;
+            }
+            return false;
+        });
 }

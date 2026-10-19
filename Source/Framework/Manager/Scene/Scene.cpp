@@ -153,6 +153,27 @@ void Scene::Serialize(nlohmann::json& out) const {
     fj["HuntDarkenAmount"] = fog.HuntDarkenAmount;
     fj["HuntTransitionSpeed"] = fog.HuntTransitionSpeed;
     out["Fog"] = fj;
+
+    // Lighting (directional/ambient) and Shadow settings from the ShaderEditor panels - saved
+    // per scene the same way as Fog, so tuning them doesn't reset on the next launch.
+    const auto& lit = ShaderManager::Instance().GetLightingSettings();
+    nlohmann::json lj;
+    lj["DirectionalLightDir"] = { lit.DirectionalLightDir.x, lit.DirectionalLightDir.y, lit.DirectionalLightDir.z };
+    lj["DirectionalLightColor"] = { lit.DirectionalLightColor.x, lit.DirectionalLightColor.y, lit.DirectionalLightColor.z };
+    lj["DirectionalLightIntensity"] = lit.DirectionalLightIntensity;
+    lj["AmbientLight"] = { lit.AmbientLight.x, lit.AmbientLight.y, lit.AmbientLight.z };
+    lj["IndirectShadowFloor"] = lit.IndirectShadowFloor;
+    lj["EnableIndoorMask"] = lit.EnableIndoorMask;
+    lj["IndoorMargin"] = lit.IndoorMargin;
+    out["Lighting"] = lj;
+
+    const auto& sh = ShaderManager::Instance().GetShadowSettings();
+    nlohmann::json sj;
+    sj["EnableShadows"] = sh.EnableShadows;
+    sj["ShadowPower"] = sh.ShadowPower;
+    sj["ShadowBias"] = sh.ShadowBias;
+    sj["CascadeSplits"] = { sh.CascadeSplits.x, sh.CascadeSplits.y, sh.CascadeSplits.z, sh.CascadeSplits.w };
+    out["Shadow"] = sj;
 }
 
 void Scene::DeserializeGameObject(const nlohmann::json& oj, std::shared_ptr<GameObject> parent) {
@@ -222,6 +243,39 @@ void Scene::Deserialize(const nlohmann::json& in) {
         if (fj.contains("HuntDarkenAmount")) fog.HuntDarkenAmount = fj["HuntDarkenAmount"];
         if (fj.contains("HuntTransitionSpeed")) fog.HuntTransitionSpeed = fj["HuntTransitionSpeed"];
         fog.IsDirty = true;
+    }
+
+    // Scenes saved before these sections existed simply keep whatever values are currently set.
+    auto readFloat3 = [](const nlohmann::json& a, DirectX::XMFLOAT3& out) {
+        if (a.is_array() && a.size() >= 3) out = { a[0].get<float>(), a[1].get<float>(), a[2].get<float>() };
+    };
+
+    if (in.contains("Lighting")) {
+        auto& lit = ShaderManager::Instance().GetLightingSettings();
+        const auto& lj = in["Lighting"];
+        if (lj.contains("DirectionalLightDir")) readFloat3(lj["DirectionalLightDir"], lit.DirectionalLightDir);
+        if (lj.contains("DirectionalLightColor")) readFloat3(lj["DirectionalLightColor"], lit.DirectionalLightColor);
+        if (lj.contains("DirectionalLightIntensity")) lit.DirectionalLightIntensity = lj["DirectionalLightIntensity"];
+        if (lj.contains("AmbientLight")) readFloat3(lj["AmbientLight"], lit.AmbientLight);
+        if (lj.contains("IndirectShadowFloor")) lit.IndirectShadowFloor = lj["IndirectShadowFloor"];
+        if (lj.contains("EnableIndoorMask")) lit.EnableIndoorMask = lj["EnableIndoorMask"];
+        if (lj.contains("IndoorMargin")) lit.IndoorMargin = lj["IndoorMargin"];
+        lit.IsDirty = true;
+    }
+
+    if (in.contains("Shadow")) {
+        auto& sh = ShaderManager::Instance().GetShadowSettings();
+        const auto& sj = in["Shadow"];
+        if (sj.contains("EnableShadows")) sh.EnableShadows = sj["EnableShadows"];
+        if (sj.contains("ShadowPower")) sh.ShadowPower = sj["ShadowPower"];
+        if (sj.contains("ShadowBias")) sh.ShadowBias = sj["ShadowBias"];
+        if (sj.contains("CascadeSplits")) {
+            const auto& c = sj["CascadeSplits"];
+            if (c.is_array() && c.size() >= 4) {
+                sh.CascadeSplits = { c[0].get<float>(), c[1].get<float>(), c[2].get<float>(), c[3].get<float>() };
+            }
+        }
+        sh.IsDirty = true;
     }
 }
 

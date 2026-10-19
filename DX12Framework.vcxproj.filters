@@ -324,6 +324,9 @@
     <ClCompile Include="Source\Application\Object\Script\Item\PickupItem.cpp">
       <Filter>Source\Application\Object\Script\Item</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Application\Object\Script\System\StimulusSource.cpp">
+      <Filter>Source\Application\Object\Script\System</Filter>
+    </ClCompile>
     <ClCompile Include="Source\Application\Application.cpp">
       <Filter>Source\Application</Filter>
     </ClCompile>
@@ -662,6 +665,9 @@
     <ClInclude Include="Source\Application\Object\Script\Item\PickupItem.h">
       <Filter>Source\Application\Object\Script\Item</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Application\Object\Script\System\StimulusSource.h">
+      <Filter>Source\Application\Object\Script\System</Filter>
+    </ClInclude>
     <ClInclude Include="Source\Application\Application.h">
       <Filter>Source\Application</Filter>
     </ClInclude>
@@ -723,6 +729,9 @@
       <Filter>Source\Framework\ECS\Components\Data</Filter>
     </ClInclude>
     <ClInclude Include="Source\Framework\ECS\Components\Data\PointLightData.h">
+      <Filter>Source\Framework\ECS\Components\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\ECS\Components\Data\SpotLightData.h">
       <Filter>Source\Framework\ECS\Components\Data</Filter>
     </ClInclude>
     <ClInclude Include="Source\Framework\ECS\CompSystem\Systems\LightSystem.h">

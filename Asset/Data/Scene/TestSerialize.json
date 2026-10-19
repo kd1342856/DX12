@@ -3,13 +3,13 @@
         "EnableFog": true,
         "EnableHuntDarken": true,
         "FogColor": [
-            0.5,
-            0.5,
-            0.550000011920929
+            0.0,
+            0.0,
+            0.0
         ],
         "FogDensity": 0.10000000149011612,
         "HuntDarkenAmount": 0.6000000238418579,
-        "HuntFogDensity": 0.2759999930858612,
+        "HuntFogDensity": 0.20000000298023224,
         "HuntTransitionSpeed": 0.800000011920929
     },
     "GameObjects": [
@@ -18,13 +18,13 @@
             "Components": [
                 {
                     "Position": [
-                        -2.2098302841186523,
-                        2.018723487854004,
-                        0.09740607440471649
+                        4.52614164352417,
+                        1.5644594430923462,
+                        -13.700366020202637
                     ],
                     "Rotation": [
-                        0.16534346342086792,
-                        -17.25765609741211,
+                        0.5253425240516663,
+                        -5.137609481811523,
                         0.0
                     ],
                     "Scale": [
@@ -43,6 +43,7 @@
                         1.5,
                         0.0
                     ],
+                    "IsDebugPreview": false,
                     "MoveSpeed": 0.10000000149011612,
                     "NearZ": 0.009999999776482582,
                     "TargetOffset": [
@@ -196,7 +197,7 @@
                             "AnimationIndex": 9,
                             "IsLoop": true,
                             "IsPlaying": true,
-                            "ProgressTime": 548.2925415039063,
+                            "ProgressTime": 3094.940185546875,
                             "Speed": 1.0,
                             "Type": "AnimationDataComponent"
                         }
@@ -215,7 +216,7 @@
                                 0.25
                             ],
                             "Rotation": [
-                                -0.01665891706943512,
+                                0.3113430142402649,
                                 0.0,
                                 0.0
                             ],
@@ -235,6 +236,7 @@
                                 1.100000023841858,
                                 0.25
                             ],
+                            "IsDebugPreview": false,
                             "MoveSpeed": 0.10000000149011612,
                             "NearZ": 0.009999999776482582,
                             "TargetOffset": [
@@ -296,13 +298,13 @@
             "Components": [
                 {
                     "Position": [
-                        1.4673023223876953,
+                        3.6625611782073975,
                         -0.31999921798706055,
-                        -14.387521743774414
+                        -15.479995727539063
                     ],
                     "Rotation": [
                         0.0,
-                        -12.589970588684082,
+                        1.7619785070419312,
                         0.0
                     ],
                     "Scale": [
@@ -320,6 +322,7 @@
                     "crouchCameraDelay": 0.10000000149011612,
                     "gravityStrength": 9.800000190734863,
                     "hasAmulet": true,
+                    "hasFlashLight": true,
                     "hasIncense": true,
                     "hasThermometer": true,
                     "heldItemExtraRotationDeg": [
@@ -333,6 +336,38 @@
                         0.5320000052452087
                     ],
                     "heldItemOffsetCalibrated": true,
+                    "heldPose1": [
+                        -0.10999999940395355,
+                        -0.04500000178813934,
+                        -0.054999999701976776,
+                        104.0,
+                        -16.0,
+                        0.0
+                    ],
+                    "heldPose2": [
+                        -0.06499999761581421,
+                        -0.02500000037252903,
+                        -0.07000000029802322,
+                        105.0,
+                        22.0,
+                        30.0
+                    ],
+                    "heldPose3": [
+                        -0.10999999940395355,
+                        -0.03500000014901161,
+                        -0.04500000178813934,
+                        14.0,
+                        85.0,
+                        109.0
+                    ],
+                    "heldPose4": [
+                        -0.10000000149011612,
+                        -0.054999999701976776,
+                        -0.009999999776482582,
+                        0.0,
+                        0.0,
+                        120.0
+                    ],
                     "moveSpeed": 3.0,
                     "useGravity": true
                 }
@@ -346,14 +381,14 @@
             "Components": [
                 {
                     "Position": [
-                        1.6946816444396973,
-                        1.3200007677078247,
-                        -13.850006103515625
+                        3.4793882369995117,
+                        1.3713734149932861,
+                        -11.75609016418457
                     ],
                     "Rotation": [
-                        0.0,
-                        -11.019174575805664,
-                        0.06981316953897476
+                        0.10228734463453293,
+                        -0.8248737454414368,
+                        -0.32656413316726685
                     ],
                     "Scale": [
                         1.0,
@@ -385,14 +420,14 @@
             "Components": [
                 {
                     "Position": [
-                        1.5707941055297852,
-                        1.3200007677078247,
-                        -8.547994613647461
+                        4.169362545013428,
+                        1.3311275243759155,
+                        -15.819111824035645
                     ],
                     "Rotation": [
-                        0.0,
-                        1.6128400564193726,
-                        0.06981316953897476
+                        0.01617378368973732,
+                        1.0212074518203735,
+                        -0.4548405110836029
                     ],
                     "Scale": [
                         0.3499999940395355,
@@ -410,7 +445,7 @@
                     "AnimationIndex": 0,
                     "IsLoop": false,
                     "IsPlaying": false,
-                    "ProgressTime": 0.0,
+                    "ProgressTime": 1874.9990234375,
                     "Speed": 1.0,
                     "Type": "AnimationDataComponent"
                 }
@@ -424,14 +459,14 @@
             "Components": [
                 {
                     "Position": [
-                        1.7246192693710327,
-                        1.3200002908706665,
-                        -8.602509498596191
+                        4.187497615814209,
+                        1.3782304525375366,
+                        -13.258197784423828
                     ],
                     "Rotation": [
-                        0.0,
-                        1.4568425416946411,
-                        0.06981316953897476
+                        0.4629647135734558,
+                        -0.7780197858810425,
+                        0.055223286151885986
                     ],
                     "Scale": [
                         0.8999999761581421,
@@ -449,6 +484,64 @@
             "IsActive": true,
             "Name": "HeldOfuda",
             "UUID": 1000000000000000303
+        },
+        {
+            "Children": [
+                {
+                    "Children": [],
+                    "Components": [
+                        {
+                            "Position": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "Rotation": [
+                                0.0,
+                                0.0,
+                                1.570796251296997
+                            ],
+                            "Scale": [
+                                0.019999999552965164,
+                                0.019999999552965164,
+                                0.019999999552965164
+                            ],
+                            "Type": "TransformData"
+                        },
+                        {
+                            "FilePath": "Asset/Model/Item/Flash Light/scene.gltf",
+                            "ModelType": 0,
+                            "Type": "ModelRenderData"
+                        }
+                    ],
+                    "IsActive": true,
+                    "Name": "Model",
+                    "UUID": 6087474938376669880
+                }
+            ],
+            "Components": [
+                {
+                    "Position": [
+                        4.138818264007568,
+                        1.4036626815795898,
+                        -14.345389366149902
+                    ],
+                    "Rotation": [
+                        -0.9520102739334106,
+                        -2.7934064865112305,
+                        0.2995712161064148
+                    ],
+                    "Scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "Type": "TransformData"
+                }
+            ],
+            "IsActive": true,
+            "Name": "HeldFlashLight",
+            "UUID": 3855040649026313913
         },
         {
             "Children": [],
@@ -476,7 +569,7 @@
                         1.0,
                         1.0,
                         1.0,
-                        1.0
+                        0.0
                     ],
                     "FilePath": "Asset/Texture/UI/thermometer_icon.png",
                     "OrderInLayer": 10,
@@ -521,7 +614,7 @@
                         1.0,
                         1.0,
                         1.0,
-                        0.0
+                        1.0
                     ],
                     "FilePath": "Asset/Texture/UI/smudgestick_icon.png",
                     "OrderInLayer": 10,
@@ -687,12 +780,12 @@
                     "Type": "NativeScriptData",
                     "isCandidate": true,
                     "isStairs": false,
-                    "maxX": 4.599999904632568,
+                    "maxX": 6.650000095367432,
                     "maxY": 4.0,
-                    "maxZ": 6.599999904632568,
-                    "minX": -4.400000095367432,
+                    "maxZ": 10.029999732971191,
+                    "minX": -6.650000095367432,
                     "minY": 0.0,
-                    "minZ": 2.4000000953674316
+                    "minZ": 3.4800000190734863
                 }
             ],
             "IsActive": true,
@@ -725,12 +818,12 @@
                     "Type": "NativeScriptData",
                     "isCandidate": true,
                     "isStairs": false,
-                    "maxX": 4.599999904632568,
+                    "maxX": 6.650000095367432,
                     "maxY": 8.300000190734863,
-                    "maxZ": 6.599999904632568,
-                    "minX": -4.400000095367432,
+                    "maxZ": 10.029999732971191,
+                    "minX": -6.650000095367432,
                     "minY": 4.300000190734863,
-                    "minZ": 2.4000000953674316
+                    "minZ": 3.4800000190734863
                 }
             ],
             "IsActive": true,
@@ -765,10 +858,10 @@
                     "isStairs": false,
                     "maxX": -0.20000000298023224,
                     "maxY": 8.199999809265137,
-                    "maxZ": 2.200000047683716,
-                    "minX": -4.300000190734863,
+                    "maxZ": 3.2799999713897705,
+                    "minX": -6.650000095367432,
                     "minY": 4.400000095367432,
-                    "minZ": -4.300000190734863
+                    "minZ": -6.650000095367432
                 }
             ],
             "IsActive": true,
@@ -803,6 +896,7 @@
                             "Type": "NativeScriptData",
                             "activationDistance": 4.0,
                             "debugSize": 2.4000000953674316,
+                            "fixedCameraSourceUUID": 0,
                             "planeNormal": [
                                 1.0,
                                 0.0,
@@ -813,7 +907,8 @@
                                 0.0,
                                 -0.10000000149011612
                             ],
-                            "roomName": "Room2"
+                            "roomName": "Room2",
+                            "useFixedCameraSource": false
                         }
                     ],
                     "IsActive": true,
@@ -847,10 +942,10 @@
                     "isStairs": false,
                     "maxX": -0.20000000298023224,
                     "maxY": 4.0,
-                    "maxZ": 2.0999999046325684,
-                    "minX": -4.300000190734863,
+                    "maxZ": 3.2799999713897705,
+                    "minX": -6.650000095367432,
                     "minY": 0.0,
-                    "minZ": -0.8999999761581421
+                    "minZ": -1.590000033378601
                 }
             ],
             "IsActive": true,
@@ -883,12 +978,12 @@
                     "Type": "NativeScriptData",
                     "isCandidate": true,
                     "isStairs": false,
-                    "maxX": 0.0,
+                    "maxX": -0.10000000149011612,
                     "maxY": 4.0,
-                    "maxZ": -1.2000000476837158,
-                    "minX": -4.400000095367432,
+                    "maxZ": -1.7899999618530273,
+                    "minX": -6.650000095367432,
                     "minY": 0.0,
-                    "minZ": -4.400000095367432
+                    "minZ": -6.650000095367432
                 }
             ],
             "IsActive": true,
@@ -924,11 +1019,11 @@
                             "Type": "ModelRenderData"
                         },
                         {
-                            "AnimationIndex": 1,
+                            "AnimationIndex": 3,
                             "IsLoop": true,
                             "IsPlaying": true,
-                            "ProgressTime": 3059.54833984375,
-                            "Speed": 1.0,
+                            "ProgressTime": 4300.01416015625,
+                            "Speed": 1.5,
                             "Type": "AnimationDataComponent"
                         }
                     ],
@@ -983,13 +1078,13 @@
             "Components": [
                 {
                     "Position": [
-                        -2.8130414485931396,
-                        9.5367431640625e-07,
-                        -0.5290544629096985
+                        5.653501510620117,
+                        0.0,
+                        -5.615969657897949
                     ],
                     "Rotation": [
                         0.0,
-                        28.246036529541016,
+                        -53.805110931396484,
                         0.0
                     ],
                     "Scale": [
@@ -1009,6 +1104,8 @@
                     "doorCheckInterval": 0.25,
                     "doorOpenRange": 2.0,
                     "eyeHeight": 1.5,
+                    "failHuntExtension": 5.0,
+                    "ghostType": 1,
                     "groundOffset": 0.0,
                     "houseBoundsMargin": 3.0,
                     "houseWanderDurationMax": 20.0,
@@ -1021,10 +1118,18 @@
                     "huntSpeedMultiplier": 1.7999999523162842,
                     "huntTriggerIntervalMax": 58.5,
                     "huntTriggerIntervalMin": 48.5,
+                    "lureArriveThreshold": 1.5,
+                    "lureCheckInterval": 0.5,
+                    "lureCooldown": 10.0,
+                    "lureDwellDuration": 20.0,
                     "moveSpeed": 1.0,
                     "pathNodeReachThreshold": 0.3499999940395355,
+                    "randomizeType": true,
                     "roomArriveThreshold": 1.5,
                     "searchGiveUpDistance": 1.0,
+                    "tellIntervalMax": 40.0,
+                    "tellIntervalMin": 20.0,
+                    "tellRange": 8.0,
                     "visionAngle": 100.0,
                     "visionRange": 15.0
                 }
@@ -1089,12 +1194,12 @@
                     "Type": "NativeScriptData",
                     "isCandidate": false,
                     "isStairs": false,
-                    "maxX": 4.5,
+                    "maxX": 6.650000095367432,
                     "maxY": 4.0,
-                    "maxZ": 2.25,
-                    "minX": 0.0,
+                    "maxZ": 3.2799999713897705,
+                    "minX": 0.10000000149011612,
                     "minY": 0.0,
-                    "minZ": -4.5
+                    "minZ": -10.359999656677246
                 }
             ],
             "IsActive": true,
@@ -1127,12 +1232,12 @@
                     "Type": "NativeScriptData",
                     "isCandidate": false,
                     "isStairs": false,
-                    "maxX": 4.610000133514404,
+                    "maxX": 6.860000133514404,
                     "maxY": 8.399999618530273,
-                    "maxZ": 2.359999895095825,
+                    "maxZ": 3.490000009536743,
                     "minX": -0.10999999940395355,
                     "minY": 4.050000190734863,
-                    "minZ": -4.610000133514404
+                    "minZ": -10.569999694824219
                 }
             ],
             "IsActive": true,
@@ -1165,17 +1270,227 @@
                     "Type": "NativeScriptData",
                     "isCandidate": false,
                     "isStairs": true,
-                    "maxX": 4.5,
+                    "maxX": 6.75,
                     "maxY": 4.349999904632568,
-                    "maxZ": -0.36000001430511475,
-                    "minX": 3.0,
+                    "maxZ": 0.9599999785423279,
+                    "minX": 5.25,
                     "minY": 0.0,
-                    "minZ": -5.360000133514404
+                    "minZ": -5.039999961853027
                 }
             ],
             "IsActive": true,
             "Name": "Stairs",
             "UUID": 7351902468135791359
+        },
+        {
+            "Children": [
+                {
+                    "Children": [],
+                    "Components": [
+                        {
+                            "Position": [
+                                0.0,
+                                -0.125,
+                                0.0
+                            ],
+                            "Rotation": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "Scale": [
+                                0.25,
+                                0.25,
+                                0.25
+                            ],
+                            "Type": "TransformData"
+                        },
+                        {
+                            "FilePath": "Asset/Model/Map/CeilingLight/scene.gltf",
+                            "ModelType": 0,
+                            "Type": "ModelRenderData"
+                        },
+                        {
+                            "Color": [
+                                1.0,
+                                0.9200000166893005,
+                                0.800000011920929
+                            ],
+                            "Enabled": true,
+                            "InnerAngle": 21.0,
+                            "Intensity": 4.349999904632568,
+                            "LocalDirection": [
+                                0.0,
+                                -1.0,
+                                0.0
+                            ],
+                            "LocalOffset": [
+                                0.0,
+                                -0.5,
+                                0.0
+                            ],
+                            "OuterAngle": 77.5,
+                            "Range": 9.899999618530273,
+                            "Type": "SpotLightData"
+                        }
+                    ],
+                    "IsActive": true,
+                    "Name": "Model",
+                    "UUID": 6647898537731207099
+                }
+            ],
+            "Components": [
+                {
+                    "Position": [
+                        1.4700000286102295,
+                        3.9000000953674316,
+                        -0.6610000133514404
+                    ],
+                    "Rotation": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "Scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "Type": "TransformData"
+                },
+                {
+                    "Active": true,
+                    "Interactable": true,
+                    "Radius": 12.0,
+                    "ScriptName": "StimulusSource",
+                    "StimulusType": 0,
+                    "Type": "NativeScriptData"
+                }
+            ],
+            "IsActive": true,
+            "Name": "CeilingLight",
+            "UUID": 5601977343754321203
+        },
+        {
+            "Children": [
+                {
+                    "Children": [],
+                    "Components": [
+                        {
+                            "Position": [
+                                0.0,
+                                -0.125,
+                                0.0
+                            ],
+                            "Rotation": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "Scale": [
+                                0.25,
+                                0.25,
+                                0.25
+                            ],
+                            "Type": "TransformData"
+                        },
+                        {
+                            "FilePath": "Asset/Model/Map/CeilingLight/scene.gltf",
+                            "ModelType": 0,
+                            "Type": "ModelRenderData"
+                        },
+                        {
+                            "Color": [
+                                1.0,
+                                0.9200000166893005,
+                                0.800000011920929
+                            ],
+                            "Enabled": true,
+                            "InnerAngle": 17.5,
+                            "Intensity": 2.450000047683716,
+                            "LocalDirection": [
+                                0.0,
+                                -1.0,
+                                0.0
+                            ],
+                            "LocalOffset": [
+                                0.0,
+                                -0.5,
+                                0.0
+                            ],
+                            "OuterAngle": 65.0,
+                            "Range": 8.600000381469727,
+                            "Type": "SpotLightData"
+                        }
+                    ],
+                    "IsActive": true,
+                    "Name": "Model",
+                    "UUID": 1571553469464797347
+                }
+            ],
+            "Components": [
+                {
+                    "Position": [
+                        1.7699999809265137,
+                        8.199999809265137,
+                        -0.6610000133514404
+                    ],
+                    "Rotation": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "Scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "Type": "TransformData"
+                },
+                {
+                    "Active": true,
+                    "Interactable": true,
+                    "Radius": 12.0,
+                    "ScriptName": "StimulusSource",
+                    "StimulusType": 0,
+                    "Type": "NativeScriptData"
+                }
+            ],
+            "IsActive": true,
+            "Name": "CeilingLightF2",
+            "UUID": 12801642757453076062
         }
-    ]
+    ],
+    "Lighting": {
+        "AmbientLight": [
+            0.3499999940395355,
+            0.3499999940395355,
+            0.3499999940395355
+        ],
+        "DirectionalLightColor": [
+            1.0,
+            1.0,
+            1.0
+        ],
+        "DirectionalLightDir": [
+            0.5,
+            -1.0,
+            0.30000001192092896
+        ],
+        "DirectionalLightIntensity": 1.0,
+        "EnableIndoorMask": true,
+        "IndirectShadowFloor": 0.05000000074505806,
+        "IndoorMargin": 0.30000001192092896
+    },
+    "Shadow": {
+        "CascadeSplits": [
+            0.10000000149011612,
+            0.30000001192092896,
+            0.6000000238418579,
+            1.0
+        ],
+        "EnableShadows": true,
+        "ShadowBias": 0.0010000000474974513,
+        "ShadowPower": 2.5
+    }
 }

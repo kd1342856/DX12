@@ -10,6 +10,7 @@
 #include "../System/RoomArea.h"
 #include "../Ghost/GhostAI.h"
 #include "../Item/PickupItem.h"
+#include "../System/StimulusSource.h"
 #include "../../../../Framework/DirectX/Utility/Profiler.h"
 #include <functional>
 
@@ -37,6 +38,7 @@ void Player::Start()
     }
 
     FindItemIconEntities();
+    CreateFlashLightBeam();
 }
 
 void Player::FindItemIconEntities()
@@ -66,6 +68,13 @@ void Player::FindItemIconEntities()
         if (obj->GetName() == "HeldThermometer") m_heldThermometerEntity = entity;
         else if (obj->GetName() == "HeldSmudgeStick") m_heldIncenseEntity = entity;
         else if (obj->GetName() == "HeldOfuda") m_heldAmuletEntity = entity;
+    }
+
+    // HeldFlashLight keeps its model on a child object, so the root itself has no ModelRenderData
+    // and isn't caught by the loop above - look it up among the scene's root objects by name.
+    for (const auto& obj : scene->GetGameObjects())
+    {
+        if (obj && obj->GetName() == "HeldFlashLight") { m_heldFlashLightEntity = obj->GetEntityID(); break; }
     }
 }
 
@@ -97,6 +106,16 @@ void Player::UpdateHeldItem()
     setVisible(m_heldThermometerEntity, m_hasThermometer && m_currentEquipped == Item::Thermometer);
     setVisible(m_heldIncenseEntity, m_hasIncense && m_currentEquipped == Item::Incense);
     setVisible(m_heldAmuletEntity, m_hasAmulet && m_currentEquipped == Item::Amulet);
+
+    if (m_heldFlashLightEntity != INVALID_ENTITY && GetGameObject() && GetGameObject()->GetScene())
+    {
+        bool visible = m_hasFlashLight && m_currentEquipped == Item::FlashLight;
+        std::function<void(GameObject*)> apply = [&](GameObject* obj) {
+            setVisible(obj->GetEntityID(), visible);
+            for (auto& child : obj->GetChildren()) apply(child.get());
+        };
+        if (auto obj = GetGameObject()->GetScene()->GetGameObject(m_heldFlashLightEntity)) apply(obj.get());
+    }
 }
 
 void Player::UpdateThermometerAnimation()
@@ -124,12 +143,109 @@ void Player::UpdateThermometerAnimation()
     pAnimData->currentAnim.ProgressTime = t * duration;
 }
 
+void Player::CreateFlashLightBeam()
+{
+    if (m_flashLightBeamEntity != INVALID_ENTITY) return;
+    if (!GetGameObject() || !GetGameObject()->GetScene()) return;
+
+    // 実行時だけの光源(Dynamic扱いなのでシーン保存には含まれない)。位置・向きは
+    // UpdateFlashLightBeam()が毎フレーム、カメラに合わせてワールド座標で直接書き込む。
+    auto beam = GetGameObject()->GetScene()->CreateGameObject("FlashLightBeam");
+    beam->SetDynamic(true);
+    SpotLightData light;
+    light.m_enabled = false;
+    light.m_color = { 1.0f, 0.97f, 0.9f };
+    light.m_intensity = 6.0f;
+    light.m_range = 15.0f;
+    light.m_innerAngle = 12.0f;
+    light.m_outerAngle = 22.0f;
+    GameManager::Instance().GetECS().AddComponent(beam->GetEntityID(), light);
+    m_flashLightBeamEntity = beam->GetEntityID();
+}
+
+Entity Player::FindGameCameraEntity() const
+{
+    // GameScene::UpdateCamera()と同じ選び方: デバッグプレビュー用以外で、"MainCamera"(エディタ
+    // カメラ)ではないものがゲームカメラ。無ければMainCameraを使う。
+    if (!GetGameObject() || !GetGameObject()->GetScene()) return INVALID_ENTITY;
+    auto* scene = GetGameObject()->GetScene();
+    auto& camArray = GameManager::Instance().GetECS().GetComponentArray<CameraData>();
+    Entity fallback = INVALID_ENTITY;
+    for (size_t i = 0; i < camArray.GetSize(); ++i)
+    {
+        if ((camArray.begin() + i)->m_isDebugPreview) continue;
+        Entity e = camArray.GetEntityFromIndex(i);
+        auto obj = scene->GetGameObject(e);
+        if (obj && obj->GetName() == "MainCamera") { fallback = e; continue; }
+        return e;
+    }
+    return fallback;
+}
+
+void Player::UpdateFlashLightBeam(const Math::Vector3& playerPos, float playerYaw)
+{
+    if (m_flashLightBeamEntity == INVALID_ENTITY) CreateFlashLightBeam();
+    auto& ecs = GameManager::Instance().GetECS();
+    auto* pLight = ecs.TryGetComponent<SpotLightData>(m_flashLightBeamEntity);
+    if (!pLight) return;
+
+    bool on = m_hasFlashLight && m_flashLightOn;
+    pLight->m_enabled = on;
+    if (!on) return;
+
+    if (m_cameraEntity == INVALID_ENTITY || !ecs.TryGetComponent<CameraData>(m_cameraEntity))
+    {
+        m_cameraEntity = FindGameCameraEntity();
+    }
+    auto* pCamTrans = ecs.TryGetComponent<TransformData>(m_cameraEntity);
+    auto* pBeamTrans = ecs.TryGetComponent<TransformData>(m_flashLightBeamEntity);
+    if (!pCamTrans || !pBeamTrans) { pLight->m_enabled = false; return; }
+
+    // カメラの視線方向(ピッチも含む)に向けて、目の少し右下(手元)から照らす。
+    // ビーム自体のTransformは回転なしのままにし、向きはLocalDirectionにワールドの向きをそのまま入れる。
+    const Math::Matrix& camWorld = pCamTrans->m_worldMatrix;
+    Math::Vector3 camPos = camWorld.Translation();
+    Math::Vector3 camForward = camWorld.Backward(); // SimpleMathのBackward()が+Z(=このエンジンの前方)
+    Math::Vector3 camRight = camWorld.Right();
+    Math::Vector3 camUp = camWorld.Up();
+    camForward.Normalize();
+    camRight.Normalize();
+    camUp.Normalize();
+
+    // 光の出どころは手に持ったフライトライト(UpdateHeldItemAttachと同じ体基準のオフセット)。
+    // 少し前に出してレンズ側から出ているようにする。
+    // 手のボーンに追従した位置を優先し、取れなければ従来の体基準オフセット。
+    Math::Vector3 origin, heldRot;
+    if (ComputeHeldItemWorld(Item::FlashLight, playerPos, playerYaw, origin, heldRot))
+    {
+        origin += camForward * 0.15f;
+    }
+    else
+    {
+        Math::Matrix yawMat = Math::Matrix::CreateRotationY(playerYaw);
+        origin = playerPos + Math::Vector3::TransformNormal(m_heldItemOffset, yawMat) + camForward * 0.15f;
+    }
+
+    // 向きは「カメラが見ている先」へ収束させる(手元から出ても照準位置が照らされるように)。
+    const float kAimDistance = 10.0f;
+    Math::Vector3 aimPoint = camPos + camForward * kAimDistance;
+    Math::Vector3 dir = aimPoint - origin;
+    dir.Normalize();
+
+    pBeamTrans->m_position = origin;
+    pBeamTrans->m_rotation = Math::Vector3::Zero;
+    pBeamTrans->m_scale = Math::Vector3::One;
+    pLight->m_localOffset = Math::Vector3::Zero;
+    pLight->m_localDirection = dir;
+}
+
 void Player::UpdateHeldItemAttach(const Math::Vector3& playerPos, float playerYaw, bool isMoving)
 {
     Entity visibleEntity = INVALID_ENTITY;
     if (m_hasThermometer && m_currentEquipped == Item::Thermometer) visibleEntity = m_heldThermometerEntity;
     else if (m_hasIncense && m_currentEquipped == Item::Incense) visibleEntity = m_heldIncenseEntity;
     else if (m_hasAmulet && m_currentEquipped == Item::Amulet) visibleEntity = m_heldAmuletEntity;
+    else if (m_hasFlashLight && m_currentEquipped == Item::FlashLight) visibleEntity = m_heldFlashLightEntity;
     if (visibleEntity == INVALID_ENTITY) return;
 
     auto& ecs = GameManager::Instance().GetECS();
@@ -159,8 +275,18 @@ void Player::UpdateHeldItemAttach(const Math::Vector3& playerPos, float playerYa
         }
     }
 
-    // Fixed body-relative offset (rotated by yaw, added to the player's position) - no per-frame
-    // bone-tracking. See m_heldItemOffset's declaration for why.
+    // 手のボーンがあれば毎フレーム追従する(アニメーションに合わせて持ち物も動く)。
+    {
+        Math::Vector3 pos, rotRad;
+        if (ComputeHeldItemWorld(m_currentEquipped, playerPos, playerYaw, pos, rotRad))
+        {
+            pHeldTrans->m_position = pos;
+            pHeldTrans->m_rotation = rotRad;
+            return;
+        }
+    }
+
+    // ボーンが無い場合のフォールバック: 体基準の固定オフセット(yawで回してプレイヤー位置に加える)。
     Math::Matrix yawMat = Math::Matrix::CreateRotationY(playerYaw);
     pHeldTrans->m_position = playerPos + Math::Vector3::TransformNormal(m_heldItemOffset, yawMat);
     const float kDegToRad = 3.14159265f / 180.0f;
@@ -168,6 +294,59 @@ void Player::UpdateHeldItemAttach(const Math::Vector3& playerPos, float playerYa
         m_heldItemExtraRotationDeg.x * kDegToRad,
         playerYaw + m_heldItemExtraRotationDeg.y * kDegToRad,
         m_heldItemExtraRotationDeg.z * kDegToRad);
+}
+
+bool Player::GetHandWorld(const Math::Vector3& playerPos, float playerYaw, Math::Vector3& outPos, Math::Quaternion& outRot) const
+{
+    if (m_animEntity == INVALID_ENTITY) return false;
+
+    auto& ecs = GameManager::Instance().GetECS();
+    auto* pModel = ecs.TryGetComponent<ModelRenderData>(m_animEntity);
+    auto* pModelTrans = ecs.TryGetComponent<TransformData>(m_animEntity);
+    if (!pModel || !pModel->m_spModelData || !pModel->m_spModelData->IsLoaded() || !pModelTrans) return false;
+
+    const auto& nodes = pModel->m_spModelData->GetNodes();
+    int nodeIndex = -1;
+    for (int i = 0; i < (int)nodes.size(); ++i)
+    {
+        if (nodes[i].name == "Attach_RightHand") { nodeIndex = i; break; }
+    }
+    if (nodeIndex < 0) return false;
+
+    // m_worldMatrixはTransformSystemが1フレームに1回しか更新しないので、CalibrateHeldItemOffset同様
+    // ローカルのPosition/Rotation/Scaleとプレイヤーの位置・yawから自前でワールド行列を組む。
+    Math::Matrix modelLocalMat = Math::Matrix::CreateScale(pModelTrans->m_scale)
+        * Math::Matrix::CreateFromYawPitchRoll(pModelTrans->m_rotation.y, pModelTrans->m_rotation.x, pModelTrans->m_rotation.z)
+        * Math::Matrix::CreateTranslation(pModelTrans->m_position);
+    Math::Matrix playerWorldMat = Math::Matrix::CreateRotationY(playerYaw) * Math::Matrix::CreateTranslation(playerPos);
+    Math::Matrix handWorld = nodes[nodeIndex].globalTransform * modelLocalMat * playerWorldMat;
+
+    Math::Vector3 scale;
+    if (!handWorld.Decompose(scale, outRot, outPos)) return false;
+    outRot.Normalize();
+    return true;
+}
+
+bool Player::ComputeHeldItemWorld(Item item, const Math::Vector3& playerPos, float playerYaw, Math::Vector3& outPos, Math::Vector3& outRotRad) const
+{
+    int idx = (int)item;
+    if (idx < 1 || idx > 4) return false;
+
+    Math::Vector3 handPos;
+    Math::Quaternion handRot;
+    if (!GetHandWorld(playerPos, playerYaw, handPos, handRot)) return false;
+
+    const HeldPose& pose = m_heldPose[idx];
+    const float kDegToRad = 3.14159265f / 180.0f;
+    // 行ベクトル規約: ローカル回転を先に、親(手)の回転を後に掛ける。
+    Math::Quaternion localRot = Math::Quaternion::CreateFromYawPitchRoll(
+        pose.rotDeg.y * kDegToRad, pose.rotDeg.x * kDegToRad, pose.rotDeg.z * kDegToRad);
+    Math::Quaternion worldRot = localRot * handRot;
+    worldRot.Normalize();
+
+    outPos = handPos + Math::Vector3::Transform(pose.pos, handRot);
+    outRotRad = Math::Matrix::CreateFromQuaternion(worldRot).ToEuler(); // (pitch,yaw,roll) = (x,y,z)
+    return true;
 }
 
 bool Player::CalibrateHeldItemOffset(const Math::Vector3& playerPos, float playerYaw)
@@ -238,7 +417,20 @@ void Player::UpdateInteractionTarget(const Math::Vector3& playerPos, const Math:
         pickupEntity = FindNearestPickup(playerPos, forward, kInteractRange, pickupDist);
     }
 
-    if (hasDoor && (pickupEntity == INVALID_ENTITY || doorDist <= pickupDist))
+    float stimulusDist = FLT_MAX;
+    Entity stimulusEntity = FindNearestStimulus(playerPos, forward, kInteractRange, stimulusDist);
+    if (stimulusEntity != INVALID_ENTITY && stimulusDist < pickupDist)
+    {
+        // ピックアップとランプ/ラジカセが両方範囲内なら近い方を対象にする
+        pickupEntity = INVALID_ENTITY;
+        pickupDist = stimulusDist;
+    }
+    else
+    {
+        stimulusEntity = INVALID_ENTITY;
+    }
+
+    if (hasDoor && ((pickupEntity == INVALID_ENTITY && stimulusEntity == INVALID_ENTITY) || doorDist <= pickupDist))
     {
         m_interactKind = InteractKind::Door;
         m_interactEntity = INVALID_ENTITY;
@@ -247,6 +439,11 @@ void Player::UpdateInteractionTarget(const Math::Vector3& playerPos, const Math:
     {
         m_interactKind = InteractKind::Pickup;
         m_interactEntity = pickupEntity;
+    }
+    else if (stimulusEntity != INVALID_ENTITY)
+    {
+        m_interactKind = InteractKind::Stimulus;
+        m_interactEntity = stimulusEntity;
     }
     else
     {
@@ -362,11 +559,57 @@ Entity Player::FindNearestPickup(const Math::Vector3& playerPos, const Math::Vec
     return best;
 }
 
+Entity Player::FindNearestStimulus(const Math::Vector3& playerPos, const Math::Vector3& forward, float maxRange, float& outDist) const
+{
+    auto& ecs = GameManager::Instance().GetECS();
+    Entity best = INVALID_ENTITY;
+    outDist = FLT_MAX;
+
+    for (auto& scriptData : ecs.GetComponentArray<NativeScriptData>())
+    {
+        auto* src = dynamic_cast<StimulusSource*>(scriptData.Instance.get());
+        if (!src || !src->m_interactable) continue;
+        GameObject* obj = src->GetGameObject();
+        if (!obj) continue;
+
+        // 天井照明のように頭より高い位置にある物も操作できるよう、高さは無視して水平距離・水平方向で判定する
+        Math::Vector3 srcPos = src->GetWorldPosition();
+        Math::Vector3 toSrc = srcPos - playerPos;
+        toSrc.y = 0.0f;
+        float dist = toSrc.Length();
+        if (dist >= maxRange || dist >= outDist) continue;
+        if (dist > 0.001f)
+        {
+            Math::Vector3 dir = toSrc;
+            dir.Normalize();
+            if (dir.Dot(forward) < 0.5f) continue; // 正面方向の円錐の外(半角60度)
+        }
+
+        // 高さを無視しているので、真上/真下の別の階にある照明も同じ距離に見えてしまう。
+        // 目の高さから発生源までの間に床・天井(Stageメッシュ)があれば対象外にする。
+        Math::Vector3 eyePos = playerPos + Math::Vector3(0.0f, 1.5f, 0.0f);
+        Math::Vector3 toSrc3D = srcPos - eyePos;
+        float dist3D = toSrc3D.Length();
+        if (dist3D > 0.35f)
+        {
+            toSrc3D /= dist3D;
+            // 発生源のすぐ手前で止める(天井照明は天井面に接しているので、天井自体に当たらないよう余裕を持たせる)
+            RaycastHit hit = CollisionManager::Instance().RaycastAgainstMesh(eyePos, toSrc3D, dist3D - 0.3f, "Stage");
+            if (hit.hit) continue;
+        }
+
+        outDist = dist;
+        best = obj->GetEntityID();
+    }
+    return best;
+}
+
 bool Player::IsHoldingVisibleItem() const
 {
     return (m_hasThermometer && m_currentEquipped == Item::Thermometer)
         || (m_hasIncense && m_currentEquipped == Item::Incense)
-        || (m_hasAmulet && m_currentEquipped == Item::Amulet);
+        || (m_hasAmulet && m_currentEquipped == Item::Amulet)
+        || (m_hasFlashLight && m_currentEquipped == Item::FlashLight);
 }
 
 void Player::UpdateAnimationState(bool isMoving)
@@ -380,8 +623,31 @@ void Player::UpdateAnimationState(bool isMoving)
     std::string clipName = clip;
     if (IsHoldingVisibleItem()) clipName = std::string("UseItem_") + clip;
 
+    // 停止状態のしゃがみ(Crouch)は「立ち→しゃがみ」の遷移アニメなので、ループせず最終ポーズで固定する。
+    // 再生終了後(IsPlaying=false)に毎フレーム呼ぶと先頭から再生し直してしまうため、クリップが変わった時だけ再生する。
+    const bool holdLastPose = (std::string(clip) == "Crouch");
+    if (holdLastPose && clipName == m_lastAnimClip) return;
+    // しゃがみ歩き→停止の場合は既にしゃがんでいるので、遷移アニメを飛ばして最終ポーズから始める。
+    const bool fromCrouchWalk = holdLastPose && m_lastAnimClip.find("CrouchWalk") != std::string::npos;
+    m_lastAnimClip = clipName;
+
     float speed = isMoving ? m_animWalkSpeed : 1.0f;
-    AnimationManager::Instance().PlayAnimationByName(m_animEntity, clipName, true, speed);
+    AnimationManager::Instance().PlayAnimationByName(m_animEntity, clipName, !holdLastPose, speed);
+
+    if (fromCrouchWalk)
+    {
+        auto& ecs = GameManager::Instance().GetECS();
+        auto* pAnim = ecs.TryGetComponent<AnimationDataComponent>(m_animEntity);
+        auto* pModel = ecs.TryGetComponent<ModelRenderData>(m_animEntity);
+        if (pAnim && pModel && pModel->m_spModelData)
+        {
+            const auto& anims = pModel->m_spModelData->GetAnimations();
+            int idx = pAnim->currentAnim.AnimationIndex;
+            // 終端の直前へ。次の更新で終端に達して最終ポーズのまま停止する。
+            if (idx >= 0 && idx < (int)anims.size())
+                pAnim->currentAnim.ProgressTime = anims[idx].duration - 0.001f;
+        }
+    }
 }
 
 void Player::AddItem(ItemType item)
@@ -391,11 +657,80 @@ void Player::AddItem(ItemType item)
     case ItemType::Thermometer: m_hasThermometer = true; break;
     case ItemType::Incense:     m_hasIncense = true; break;
     case ItemType::Amulet:      m_hasAmulet = true; break;
+    case ItemType::FlashLight:  m_hasFlashLight = true; break;
     }
     if (!alreadyHad) {
         m_currentEquipped = item; // auto-equip on first pickup
         Logger::Instance().AddLog(Logger::LogLevel::Info, "[Player] Item acquired.");
     }
+}
+
+void Player::DropEquippedItem(const Math::Vector3& playerPos, const Math::Vector3& forward, float playerYaw)
+{
+    Item item = m_currentEquipped;
+    if (!HasItem(item)) return;
+
+    const char* prefabPath = nullptr;
+    switch (item) {
+    case ItemType::Thermometer: prefabPath = "Asset/Data/Prefab/Thermometer.json"; break;
+    case ItemType::Incense:     prefabPath = "Asset/Data/Prefab/SmudgeStick.json"; break;
+    case ItemType::Amulet:      prefabPath = "Asset/Data/Prefab/Ofuda.json"; break;
+    case ItemType::FlashLight:  prefabPath = "Asset/Data/Prefab/FlashLight.json"; break;
+    }
+    auto* scene = GetGameObject() ? GetGameObject()->GetScene() : nullptr;
+    if (!prefabPath || !scene) return;
+
+    // 手元(腰〜胸の高さ、少し前)から、視線の方向へ軽く放る。手元のすぐ先が壁なら壁の手前から出す。
+    const float kHandHeight = 1.1f;
+    const float kHandForward = 0.35f;
+    const float kWallClearance = 0.15f;
+    const float kThrowSpeed = 2.5f;   // 視線方向の初速(m/s)
+    const float kThrowUpSpeed = 1.2f; // 少し山なりにするための上向きの初速(m/s)
+    auto& cm = CollisionManager::Instance();
+    Math::Vector3 handBase = playerPos + Math::Vector3(0, kHandHeight, 0);
+    float handDist = kHandForward;
+    RaycastHit wallHit = cm.RaycastAgainstMesh(handBase, forward, kHandForward + kWallClearance, "Stage");
+    if (wallHit.hit) handDist = (std::max)(0.0f, wallHit.distance - kWallClearance);
+    Math::Vector3 spawnPos = handBase + forward * handDist;
+
+    // 投げる向きはカメラの視線(上下も含む)。カメラが見つからなければ体の向き。
+    Math::Vector3 throwDir = forward;
+    if (m_cameraEntity == INVALID_ENTITY) m_cameraEntity = FindGameCameraEntity();
+    if (auto* pCamTrans = GameManager::Instance().GetECS().TryGetComponent<TransformData>(m_cameraEntity)) {
+        Math::Vector3 camForward = pCamTrans->m_worldMatrix.Backward();
+        if (camForward.LengthSquared() > 0.0001f) { camForward.Normalize(); throwDir = camForward; }
+    }
+
+    // Instantiate()で出したものはDynamic扱いになり、シーン保存には含まれない(実行中だけの落とし物)
+    auto obj = scene->Instantiate(prefabPath, spawnPos);
+    if (!obj) {
+        Logger::Instance().AddLog(Logger::LogLevel::Error, "[Player] Drop failed: could not instantiate %s", prefabPath);
+        return;
+    }
+    auto& ecs = GameManager::Instance().GetECS();
+    if (auto* pTrans = ecs.TryGetComponent<TransformData>(obj->GetEntityID())) {
+        pTrans->m_rotation.y = playerYaw; // プレイヤーの向きに合わせて放る
+    }
+    if (auto* pScript = ecs.TryGetComponent<NativeScriptData>(obj->GetEntityID())) {
+        if (auto* pickup = dynamic_cast<PickupItem*>(pScript->Instance.get())) {
+            pickup->Launch(throwDir * kThrowSpeed + Math::Vector3(0, kThrowUpSpeed, 0));
+            // 点灯したまま落としたら、落ちたライトも点灯したままにする
+            if (item == ItemType::FlashLight) pickup->SetLightOn(m_flashLightOn);
+        }
+    }
+
+    switch (item) {
+    case ItemType::Thermometer: m_hasThermometer = false; break;
+    case ItemType::Incense:     m_hasIncense = false; break;
+    case ItemType::Amulet:      m_hasAmulet = false; break;
+    case ItemType::FlashLight:  m_hasFlashLight = false; m_flashLightOn = false; break;
+    }
+
+    // 残っているアイテムがあれば次のものに持ち替える(何も無ければ手ぶら)
+    for (Item next : { Item::Thermometer, Item::Incense, Item::Amulet, Item::FlashLight }) {
+        if (HasItem(next)) { m_currentEquipped = next; break; }
+    }
+    Logger::Instance().AddLog(Logger::LogLevel::Info, "[Player] Item dropped.");
 }
 
 bool Player::HasItem(ItemType item) const
@@ -404,6 +739,7 @@ bool Player::HasItem(ItemType item) const
     case ItemType::Thermometer: return m_hasThermometer;
     case ItemType::Incense:     return m_hasIncense;
     case ItemType::Amulet:      return m_hasAmulet;
+    case ItemType::FlashLight:  return m_hasFlashLight;
     }
     return false;
 }
@@ -422,6 +758,13 @@ void Player::Update(float deltaTime)
     if (input.IsKeyTrigger('1') && m_hasThermometer) m_currentEquipped = Item::Thermometer;
     if (input.IsKeyTrigger('2') && m_hasIncense)      m_currentEquipped = Item::Incense;
     if (input.IsKeyTrigger('3') && m_hasAmulet)       m_currentEquipped = Item::Amulet;
+    if (input.IsKeyTrigger('4') && m_hasFlashLight)   m_currentEquipped = Item::FlashLight;
+
+    // FlashLight: T toggles it whenever owned (even while another item is equipped)
+    if (input.IsKeyTrigger('T') && m_hasFlashLight) m_flashLightOn = !m_flashLightOn;
+
+    // G: drop the equipped item in front of the player
+    if (input.IsKeyTrigger('G')) DropEquippedItem(cTrans.m_position, forward, cTrans.m_rotation.y);
 
     GhostAI* ghost = nullptr;
     for (auto& scriptData : ecs.GetComponentArray<NativeScriptData>()) {
@@ -440,18 +783,36 @@ void Player::Update(float deltaTime)
         }
     }
 
+    // --- 落ちているフラッシュライトを左クリックでオンオフ(Fで拾える範囲・正面にあるもの) ---
+    if (input.IsMouseLeftTrigger() && m_interactKind == InteractKind::Pickup && m_interactEntity != INVALID_ENTITY)
+    {
+        if (auto* pScript = ecs.TryGetComponent<NativeScriptData>(m_interactEntity))
+        {
+            auto* pickup = dynamic_cast<PickupItem*>(pScript->Instance.get());
+            if (pickup && pickup->m_itemType == ItemType::FlashLight) pickup->ToggleLight();
+        }
+    }
+
     // --- Use equipped item: right-click ---
-    if (input.IsMouseRightTrigger()) {
+    // (G で全部落とした後は m_currentEquipped が手放したアイテムのまま残るので、所持も確認する)
+    if (input.IsMouseRightTrigger() && HasItem(m_currentEquipped)) {
         if (m_currentEquipped == Item::Incense && ghost) {
             auto& gTrans = ecs.GetComponent<TransformData>(ghost->GetGameObject()->GetEntityID());
             float dist = (cTrans.m_position - gTrans.m_position).Length();
             if (dist < 10.0f) {
-                ghost->ApplyStun(5.0f);
-                Logger::Instance().AddLog(Logger::LogLevel::Info, "Incense Used: Ghost Stunned!");
+                // 効くかどうかはゴーストの種類ごとの条件次第(鬼火は光源に留まっている間だけ等)
+                if (ghost->TryIncenseStun(5.0f)) {
+                    Logger::Instance().AddLog(Logger::LogLevel::Info, "Incense Used: Ghost Stunned!");
+                } else {
+                    Logger::Instance().AddLog(Logger::LogLevel::Info, "Incense Used: no effect on this ghost right now.");
+                }
                 if (m_heldIncenseEntity != INVALID_ENTITY) {
                     AnimationManager::Instance().PlayAnimation(m_heldIncenseEntity, 0, false, 1.0f);
                 }
             }
+        }
+        else if (m_currentEquipped == Item::FlashLight && m_hasFlashLight) {
+            m_flashLightOn = !m_flashLightOn;
         }
         else if (m_currentEquipped == Item::Amulet && ghost) {
             if (ghost->GetState() == GhostAI::State::Stun) {
@@ -560,6 +921,14 @@ void Player::Update(float deltaTime)
                 }
             }
         }
+        else if (m_interactKind == InteractKind::Stimulus && m_interactEntity != INVALID_ENTITY)
+        {
+            if (auto* scriptData = ecs.TryGetComponent<NativeScriptData>(m_interactEntity)) {
+                if (auto* src = dynamic_cast<StimulusSource*>(scriptData->Instance.get())) {
+                    src->Toggle();
+                }
+            }
+        }
         else
         {
             // TryInteractDoor() has always had its own, more forgiving proximity-only door search
@@ -576,6 +945,7 @@ void Player::Update(float deltaTime)
     UpdateHeldItem();
     UpdateHeldItemAttach(cTrans.m_position, cTrans.m_rotation.y, isMoving);
     UpdateThermometerAnimation();
+    UpdateFlashLightBeam(cTrans.m_position, cTrans.m_rotation.y);
 }
 
 void Player::TryInteractDoor(const Math::Vector3& playerPos)
@@ -706,9 +1076,15 @@ void Player::Serialize(nlohmann::json& out) const
     out["hasThermometer"] = m_hasThermometer;
     out["hasIncense"] = m_hasIncense;
     out["hasAmulet"] = m_hasAmulet;
+    out["hasFlashLight"] = m_hasFlashLight;
     out["heldItemOffset"] = { m_heldItemOffset.x, m_heldItemOffset.y, m_heldItemOffset.z };
     out["heldItemOffsetCalibrated"] = m_heldItemOffsetCalibrated;
     out["heldItemExtraRotationDeg"] = { m_heldItemExtraRotationDeg.x, m_heldItemExtraRotationDeg.y, m_heldItemExtraRotationDeg.z };
+    for (int i = 1; i <= 4; ++i)
+    {
+        const HeldPose& p = m_heldPose[i];
+        out["heldPose" + std::to_string(i)] = { p.pos.x, p.pos.y, p.pos.z, p.rotDeg.x, p.rotDeg.y, p.rotDeg.z };
+    }
 }
 
 void Player::Deserialize(const nlohmann::json& in)
@@ -722,6 +1098,7 @@ void Player::Deserialize(const nlohmann::json& in)
     if (in.contains("hasThermometer"))      m_hasThermometer = in["hasThermometer"];
     if (in.contains("hasIncense"))          m_hasIncense = in["hasIncense"];
     if (in.contains("hasAmulet"))           m_hasAmulet = in["hasAmulet"];
+    if (in.contains("hasFlashLight"))       m_hasFlashLight = in["hasFlashLight"];
     if (in.contains("heldItemOffset")) {
         m_heldItemOffset.x = in["heldItemOffset"][0];
         m_heldItemOffset.y = in["heldItemOffset"][1];
@@ -732,6 +1109,16 @@ void Player::Deserialize(const nlohmann::json& in)
         m_heldItemExtraRotationDeg.x = in["heldItemExtraRotationDeg"][0];
         m_heldItemExtraRotationDeg.y = in["heldItemExtraRotationDeg"][1];
         m_heldItemExtraRotationDeg.z = in["heldItemExtraRotationDeg"][2];
+    }
+    for (int i = 1; i <= 4; ++i)
+    {
+        std::string key = "heldPose" + std::to_string(i);
+        if (in.contains(key) && in[key].size() >= 6)
+        {
+            const auto& a = in[key];
+            m_heldPose[i].pos    = { a[0], a[1], a[2] };
+            m_heldPose[i].rotDeg = { a[3], a[4], a[5] };
+        }
     }
 }
 
@@ -745,7 +1132,20 @@ void Player::ImGuiUpdate()
     }
 
     ImGui::Separator();
-    ImGui::Text("[Held Item] Offset from body (right/up/forward, meters)");
+    ImGui::Text("[Held Item] Attach_RightHand bone-local pose per item (tracks the hand every frame)");
+    {
+        static const char* kNames[5] = { "", "Thermometer", "Incense", "Amulet", "FlashLight" };
+        for (int i = 1; i <= 4; ++i)
+        {
+            ImGui::PushID(i);
+            ImGui::Text("%s", kNames[i]);
+            ImGui::DragFloat3("Hand Offset (m)", &m_heldPose[i].pos.x, 0.005f, -1.0f, 1.0f);
+            ImGui::DragFloat3("Hand Rotation (deg)", &m_heldPose[i].rotDeg.x, 1.0f, -180.0f, 180.0f);
+            ImGui::PopID();
+        }
+    }
+    ImGui::Separator();
+    ImGui::Text("[Held Item] Fallback (no hand bone): offset from body (right/up/forward, meters)");
     ImGui::DragFloat3("Held Item Offset", &m_heldItemOffset.x, 0.01f, -2.0f, 2.0f);
     ImGui::Text("[Held Item] Calibrated from Attach_RightHand: %s", m_heldItemOffsetCalibrated ? "true" : "false");
     if (ImGui::Button("Recalibrate from Attach Point")) {
@@ -769,11 +1169,14 @@ void Player::ImGuiUpdate()
     const char* itemName = "Thermometer";
     if (m_currentEquipped == Item::Incense) itemName = "Incense";
     else if (m_currentEquipped == Item::Amulet) itemName = "Amulet";
+    else if (m_currentEquipped == Item::FlashLight) itemName = "FlashLight";
     ImGui::Text("[Debug] Equipped: %s", itemName);
-    ImGui::Text("[Debug] Has: Thermo=%s Incense=%s Amulet=%s",
+    ImGui::Text("[Debug] Has: Thermo=%s Incense=%s Amulet=%s FlashLight=%s",
         m_hasThermometer ? "true" : "false",
         m_hasIncense ? "true" : "false",
-        m_hasAmulet ? "true" : "false");
+        m_hasAmulet ? "true" : "false",
+        m_hasFlashLight ? "true" : "false");
+    ImGui::Text("[Debug] FlashLight: %s (T / right-click to toggle)", m_flashLightOn ? "ON" : "OFF");
     auto& ecs = GameManager::Instance().GetECS();
     auto& cTrans = ecs.GetComponent<TransformData>(GetGameObject()->GetEntityID());
     ImGui::Text("[Debug] Pos: (%.1f, %.1f, %.1f)", cTrans.m_position.x, cTrans.m_position.y, cTrans.m_position.z);

@@ -1,5 +1,6 @@
 ﻿#include "../../../../Pch.h"
 #include "GhostAI.h"
+#include "../System/StimulusSource.h"
 #include "../../../../Framework/Manager/Animation/AnimationManager.h"
 #include "../../../../Framework/Object/GameObject.h"
 #include "../System/GameSequence.h"
@@ -13,6 +14,16 @@
 #include <functional>
 
 REGISTER_COMPONENT(GhostAI);
+
+// Log Windowはログ本文をSJISとして変換して表示するため、UTF-8の日本語は文字化けする - ローマ字で出す
+static const char* GetGhostTypeName(GhostAI::GhostType type)
+{
+    switch (type) {
+        case GhostAI::GhostType::Onibi:  return "Onibi (Light)";
+        case GhostAI::GhostType::Yanari: return "Yanari (Sound)";
+        default:                         return "Jibakurei (Normal)";
+    }
+}
 
 void GhostAI::Awake()
 {
@@ -43,8 +54,16 @@ void GhostAI::Start()
     EnsureHouseBounds();
     EnsureStairsRoom();
 
+    if (m_randomizeType) {
+        // 家鳴(Yanari)はまだ未実装のため、現状は地縛霊と鬼火から抽選する
+        m_ghostType = (Random::Instance().Range(0, 1) == 0) ? GhostType::Jibakurei : GhostType::Onibi;
+    }
+    Logger::Instance().AddLog(Logger::LogLevel::Info, "[GhostAI] Ghost type: %s", GetGhostTypeName(m_ghostType));
+    Logger::Instance().SetPinnedLine("Ghost Type", GetGhostTypeName(m_ghostType));
+
     m_houseWanderTimer = Random::Instance().Range(m_houseWanderIntervalMin, m_houseWanderIntervalMax);
     m_huntTriggerTimer = Random::Instance().Range(m_huntTriggerIntervalMin, m_huntTriggerIntervalMax);
+    m_tellTimer = Random::Instance().Range(m_tellIntervalMin, m_tellIntervalMax);
     SetState(GhostAI::State::Wander);
 }
 
@@ -316,13 +335,24 @@ void GhostAI::SetState(GhostAI::State state)
         ShaderManager::Instance().SetHuntActive(false);
     }
 
+    // 誘導を抜けたら発生源を手放し、同じ発生源へすぐ戻らないようクールダウンを始める
+    if (m_currentState == State::Lured && state != State::Lured) {
+        m_lureCooldownTimer = m_lureCooldown;
+    }
+    if (state != State::Lured) {
+        m_lureSource = nullptr;
+        m_lureArrived = false;
+    }
+
     m_currentState = state;
 
     // 基本的に姿は非表示。プレイヤーに気付かれるべき状態(ハント・死亡時)になった時だけ表示する。
+    // Luredは発生源に到着した時点でUpdateLured側から表示する。
     switch (state) {
         case GhostAI::State::Wander:
         case GhostAI::State::HouseWander:
         case GhostAI::State::Idle:
+        case GhostAI::State::Lured:
             SetModelVisible(false);
             break;
         case GhostAI::State::Hunt:
@@ -341,6 +371,7 @@ void GhostAI::SetState(GhostAI::State state)
             break;
         case GhostAI::State::Wander:
         case GhostAI::State::HouseWander:
+        case GhostAI::State::Lured:
             AnimationManager::Instance().PlayAnimation(m_animEntity, m_animWander, true);
             break;
         case GhostAI::State::Hunt:
@@ -452,14 +483,10 @@ void GhostAI::StartHouseWander(const Math::Vector3& currentPos)
     SetState(GhostAI::State::HouseWander);
 }
 
-void GhostAI::UpdateHouseWander(float deltaTime, TransformData& cTrans)
+void GhostAI::MoveTowardTarget(float deltaTime, TransformData& cTrans, const Math::Vector3& finalTarget, float speed)
 {
-    // 徘徊: ゴーストルームの外側、家の範囲内に限定してNavMesh経由で歩き回る
-    EnsureHouseBounds();
-    TryOpenNearbyDoor(cTrans.m_position, deltaTime);
-
-    Math::Vector3 moveTarget = GetEffectiveMoveTarget(cTrans.m_position, m_houseWanderTargetPos);
-    m_debugFinalTarget = m_houseWanderTargetPos;
+    Math::Vector3 moveTarget = GetEffectiveMoveTarget(cTrans.m_position, finalTarget);
+    m_debugFinalTarget = finalTarget;
     m_debugMoveTarget = moveTarget;
 
     Math::Vector3 nextPos;
@@ -473,7 +500,7 @@ void GhostAI::UpdateHouseWander(float deltaTime, TransformData& cTrans)
     // already has a working connector into the adjacent room) the moment it's no longer needed.
     if (!m_stairsCrossingLatched && IsInStairsArea(cTrans.m_position, m_stairsNavExitPadding) && m_isCrossingFloors) {
         m_stairsCrossingLatched = true;
-        StartStairsCrossing(cTrans.m_position, m_houseWanderTargetPos, m_moveSpeed);
+        StartStairsCrossing(cTrans.m_position, finalTarget, speed);
     }
     bool crossingStairs = m_stairsCrossingLatched;
     if (crossingStairs) {
@@ -485,14 +512,14 @@ void GhostAI::UpdateHouseWander(float deltaTime, TransformData& cTrans)
         NavMeshManager::Instance().ClearPath((int)GetGameObject()->GetEntityID());
     } else if (NavMeshManager::Instance().IsBuilt()) {
         nextPos = NavMeshManager::Instance().MoveToward(
-            (int)GetGameObject()->GetEntityID(), cTrans.m_position, moveTarget, m_moveSpeed, deltaTime,
+            (int)GetGameObject()->GetEntityID(), cTrans.m_position, moveTarget, speed, deltaTime,
             m_pathUpdateInterval, m_pathNodeReachThreshold);
     } else {
         // NavMesh未構築時は直線移動にフォールバック
-        Math::Vector3 toTarget = m_houseWanderTargetPos - cTrans.m_position;
+        Math::Vector3 toTarget = finalTarget - cTrans.m_position;
         toTarget.y = 0.0f;
         if (toTarget.LengthSquared() > 0.0001f) toTarget.Normalize();
-        nextPos = cTrans.m_position + toTarget * m_moveSpeed * deltaTime;
+        nextPos = cTrans.m_position + toTarget * speed * deltaTime;
     }
     nextPos = ClampToHouseBounds(nextPos);
 
@@ -514,6 +541,16 @@ void GhostAI::UpdateHouseWander(float deltaTime, TransformData& cTrans)
         m_moveDir.Normalize();
     }
     FacePosition(cTrans, m_moveDir, deltaTime);
+}
+
+void GhostAI::UpdateHouseWander(float deltaTime, TransformData& cTrans)
+{
+    // 徘徊: ゴーストルームの外側、家の範囲内に限定してNavMesh経由で歩き回る
+    EnsureHouseBounds();
+    TryOpenNearbyDoor(cTrans.m_position, deltaTime);
+
+    MoveTowardTarget(deltaTime, cTrans, m_houseWanderTargetPos, m_moveSpeed);
+    const Math::Vector3& moveTarget = m_debugMoveTarget;
 
     if (!m_houseWanderReturning) {
         m_houseWanderDurationTimer -= deltaTime;
@@ -767,50 +804,8 @@ void GhostAI::UpdateHunt(float deltaTime, TransformData& cTrans)
     EnsureHouseBounds();
     TryOpenNearbyDoor(cTrans.m_position, deltaTime);
 
-    Math::Vector3 moveTarget = GetEffectiveMoveTarget(cTrans.m_position, target);
-    m_debugFinalTarget = target;
-    m_debugMoveTarget = moveTarget;
-
     // NavMeshが構築済みならそちらの経路で移動する(壁を突き抜けず確実にドアや通路を経由できる)
-    Math::Vector3 nextPos;
-    float huntSpeed = m_moveSpeed * m_huntSpeedMultiplier;
-    if (!m_stairsCrossingLatched && IsInStairsArea(cTrans.m_position, m_stairsNavExitPadding) && m_isCrossingFloors) {
-        m_stairsCrossingLatched = true;
-        StartStairsCrossing(cTrans.m_position, target, huntSpeed);
-    }
-    bool crossingStairsHunt = m_stairsCrossingLatched;
-    if (crossingStairsHunt) {
-        nextPos = GetStairsCrossingMove(deltaTime);
-        if (!m_isCrossingFloors) m_stairsCrossingLatched = false;
-        NavMeshManager::Instance().ClearPath((int)GetGameObject()->GetEntityID());
-    } else if (NavMeshManager::Instance().IsBuilt()) {
-        nextPos = NavMeshManager::Instance().MoveToward(
-            (int)GetGameObject()->GetEntityID(), cTrans.m_position, moveTarget, huntSpeed, deltaTime,
-            m_pathUpdateInterval, m_pathNodeReachThreshold);
-    } else {
-        // NavMesh未構築時は直線移動にフォールバック
-        Math::Vector3 toTarget = target - cTrans.m_position;
-        toTarget.y = 0.0f;
-        if (toTarget.LengthSquared() > 0.0001f) toTarget.Normalize();
-        nextPos = cTrans.m_position + toTarget * huntSpeed * deltaTime;
-    }
-    nextPos = ClampToHouseBounds(nextPos);
-
-    Math::Vector3 moveDelta = nextPos - cTrans.m_position;
-    moveDelta.y = 0.0f;
-    cTrans.m_position.x = nextPos.x;
-    cTrans.m_position.z = nextPos.z;
-    if (crossingStairsHunt) {
-        cTrans.m_position.y = nextPos.y;
-        m_skipGravityThisFrame = true;
-    }
-
-    if (moveDelta.LengthSquared() > 0.0001f) {
-        m_moveDir = moveDelta;
-        m_moveDir.Normalize();
-    }
-
-    FacePosition(cTrans, m_moveDir, deltaTime);
+    MoveTowardTarget(deltaTime, cTrans, target, m_moveSpeed * m_huntSpeedMultiplier);
 
     // Hunt previously had no stuck-detection at all (unlike UpdateHouseWander), so once physically
     // caught on something the ghost would just stand there fighting collision for the rest of the
@@ -834,6 +829,174 @@ void GhostAI::UpdateHunt(float deltaTime, TransformData& cTrans)
     }
 }
 
+// 種類ごとに感知する刺激。感知しない種類(地縛霊、未実装の家鳴)はfalseを返す。
+static bool GetSensedStimulusType(GhostAI::GhostType type, StimulusType& outType)
+{
+    switch (type) {
+        case GhostAI::GhostType::Onibi: outType = StimulusType::Light; return true;
+        default: return false;
+    }
+}
+
+void GhostAI::ReturnToGhostRoom(const Math::Vector3& currentPos)
+{
+    // テレポートせず、ゴーストルームまでNavMesh経由で徒歩で帰る
+    if (m_targetRoom && NavMeshManager::Instance().IsBuilt()) {
+        m_houseWanderTargetPos = m_targetRoom->GetCenter();
+        m_houseWanderReturning = true;
+        m_houseWanderDurationTimer = 0.0f;
+        m_houseWanderStuckTimer = 0.0f;
+        m_houseWanderLastPos = currentPos;
+        SetState(GhostAI::State::HouseWander);
+    } else {
+        // 目標の部屋がない、またはNavMesh未構築ならその場でRoom待機扱いにする
+        m_houseWanderTimer = Random::Instance().Range(m_houseWanderIntervalMin, m_houseWanderIntervalMax);
+        SetState(GhostAI::State::Wander);
+    }
+}
+
+void GhostAI::CheckStimulus(float deltaTime, const Math::Vector3& currentPos)
+{
+    StimulusType sensed;
+    if (!GetSensedStimulusType(m_ghostType, sensed)) return;
+
+    if (m_lureCooldownTimer > 0.0f) {
+        m_lureCooldownTimer -= deltaTime;
+        return;
+    }
+
+    // 毎フレーム全スクリプトを走査しないよう間引く
+    m_lureCheckTimer -= deltaTime;
+    if (m_lureCheckTimer > 0.0f) return;
+    m_lureCheckTimer = m_lureCheckInterval;
+
+    StimulusSource* src = StimulusSource::FindNearestActive(sensed, currentPos);
+    if (!src) return;
+
+    // NavMeshで繋がっていない場所の発生源へ向かうと立ち往生するので無視する
+    Math::Vector3 srcPos = src->GetWorldPosition();
+    if (NavMeshManager::Instance().IsBuilt() && !NavMeshManager::Instance().IsReachable(currentPos, srcPos)) return;
+
+    SetState(GhostAI::State::Lured);
+    m_lureSource = src;
+    m_lureArrived = false;
+    m_houseWanderStuckTimer = 0.0f;
+    m_houseWanderStuckCheckTimer = 0.0f;
+    m_houseWanderLastPos = currentPos;
+    Logger::Instance().AddLog(Logger::LogLevel::Info,
+        "[GhostAI] Lured by stimulus at (%.1f, %.1f, %.1f)", srcPos.x, srcPos.y, srcPos.z);
+}
+
+void GhostAI::UpdateLured(float deltaTime, TransformData& cTrans)
+{
+    // 発生源が消された(プレイヤーが消灯した等)ら誘導終了
+    if (!m_lureSource || !m_lureSource->IsActive()) {
+        ReturnToGhostRoom(cTrans.m_position);
+        return;
+    }
+
+    Math::Vector3 srcPos = m_lureSource->GetWorldPosition();
+
+    if (m_lureArrived) {
+        // 到着後: 発生源の方を向いてその場に留まる(この間だけ鬼火に香が効く)
+        Math::Vector3 toSrc = srcPos - cTrans.m_position;
+        toSrc.y = 0.0f;
+        FacePosition(cTrans, toSrc, deltaTime);
+
+        m_lureDwellTimer -= deltaTime;
+        if (m_lureDwellTimer <= 0.0f) {
+            ReturnToGhostRoom(cTrans.m_position);
+        }
+        return;
+    }
+
+    EnsureHouseBounds();
+    TryOpenNearbyDoor(cTrans.m_position, deltaTime);
+    MoveTowardTarget(deltaTime, cTrans, srcPos, m_moveSpeed);
+
+    Math::Vector3 flatToSrc = srcPos - cTrans.m_position;
+    flatToSrc.y = 0.0f;
+    if (flatToSrc.Length() <= m_lureArriveThreshold) {
+        m_lureArrived = true;
+        m_lureDwellTimer = m_lureDwellDuration;
+        SetModelVisible(true);
+        NavMeshManager::Instance().ClearPath((int)GetGameObject()->GetEntityID());
+        return;
+    }
+
+    // 立ち往生検知(UpdateHouseWanderと同じ区間ごとの判定)。進めなければ誘導を諦めて帰る。
+    m_houseWanderStuckCheckTimer += deltaTime;
+    if (m_houseWanderStuckCheckTimer >= m_stuckCheckWindow) {
+        float windowProgress = Math::Vector3::Distance(cTrans.m_position, m_houseWanderLastPos);
+        if (windowProgress > m_stuckCheckMinProgress) {
+            m_houseWanderStuckTimer = 0.0f;
+        } else {
+            m_houseWanderStuckTimer += m_houseWanderStuckCheckTimer;
+        }
+        m_houseWanderLastPos = cTrans.m_position;
+        m_houseWanderStuckCheckTimer = 0.0f;
+    }
+    if (m_houseWanderStuckTimer >= m_quickStuckPassThroughDelay && m_doorPassThroughTimer <= 0.0f) {
+        m_doorPassThroughTimer = m_doorPassThroughDuration;
+    }
+    if (m_houseWanderStuckTimer >= m_houseWanderStuckTimeout) {
+        Logger::Instance().AddLog(Logger::LogLevel::Warning, "[GhostAI] UpdateLured: stuck, giving up the lure.");
+        ReturnToGhostRoom(cTrans.m_position);
+    }
+}
+
+void GhostAI::UpdateTell(float deltaTime, const Math::Vector3& currentPos)
+{
+    StimulusType sensed;
+    if (!GetSensedStimulusType(m_ghostType, sensed)) return;
+
+    m_tellTimer -= deltaTime;
+    if (m_tellTimer > 0.0f) return;
+    m_tellTimer = Random::Instance().Range(m_tellIntervalMin, m_tellIntervalMax);
+
+    // 近くの無効な発生源を勝手に有効にする(鬼火なら照明がつく)。
+    // プレイヤーが消し直せるよう、Fキーで操作できる発生源だけを対象にする。
+    auto& ecs = GameManager::Instance().GetECS();
+    StimulusSource* best = nullptr;
+    float bestDist = m_tellRange;
+    for (auto& scriptData : ecs.GetComponentArray<NativeScriptData>()) {
+        auto* src = dynamic_cast<StimulusSource*>(scriptData.Instance.get());
+        if (!src || src->IsActive() || !src->m_interactable || src->m_type != sensed) continue;
+        float dist = Math::Vector3::Distance(currentPos, src->GetWorldPosition());
+        if (dist < bestDist) {
+            best = src;
+            bestDist = dist;
+        }
+    }
+    if (best) {
+        best->SetActive(true);
+        Logger::Instance().AddLog(Logger::LogLevel::Info, "[GhostAI] Tell: turned on a stimulus source by itself.");
+    }
+}
+
+bool GhostAI::TryIncenseStun(float stunTime)
+{
+    if (m_isExorcised) return false;
+
+    bool canStun = true;
+    switch (m_ghostType) {
+        case GhostType::Onibi: canStun = IsLuredAndArrived(); break;
+        default: break;
+    }
+
+    if (canStun) {
+        ApplyStun(stunTime);
+        return true;
+    }
+
+    // 失敗: Hunt中ならHuntが続いたまま時間が延長される
+    if (m_currentState == State::Hunt) {
+        m_huntTimer += m_failHuntExtension;
+        Logger::Instance().AddLog(Logger::LogLevel::Info, "[GhostAI] Incense failed: Hunt extended by %.1fs.", m_failHuntExtension);
+    }
+    return false;
+}
+
 void GhostAI::Update(float deltaTime)
 {
     if (m_isExorcised) return;
@@ -851,8 +1014,9 @@ void GhostAI::Update(float deltaTime)
         return;
     }
 
-    // ハントは位置や視認に関係なく、定期的に無条件で開始する(Room待機・徘徊中のみ)
-    if (m_currentState == GhostAI::State::Wander || m_currentState == GhostAI::State::HouseWander) {
+    // ハントは位置や視認に関係なく、定期的に無条件で開始する(Room待機・徘徊・誘導中)
+    if (m_currentState == GhostAI::State::Wander || m_currentState == GhostAI::State::HouseWander ||
+        m_currentState == GhostAI::State::Lured) {
         // Debug: force-start a Hunt immediately, bypassing the random trigger timer, so testing
         // doesn't require waiting out m_huntTriggerIntervalMin/Max.
         bool debugForceHunt = Input::Instance().IsKeyTrigger('H');
@@ -869,7 +1033,19 @@ void GhostAI::Update(float deltaTime)
         }
     }
 
+    if (m_currentState == GhostAI::State::Wander || m_currentState == GhostAI::State::HouseWander) {
+        CheckStimulus(deltaTime, cTrans.m_position);
+    }
+    if (m_currentState == GhostAI::State::Wander || m_currentState == GhostAI::State::HouseWander ||
+        m_currentState == GhostAI::State::Lured) {
+        UpdateTell(deltaTime, cTrans.m_position);
+    }
+
     switch (m_currentState) {
+        case GhostAI::State::Lured:
+            UpdateLured(deltaTime, cTrans);
+            break;
+
         case GhostAI::State::Wander:
             m_houseWanderTimer -= deltaTime;
             if (m_houseWanderTimer <= 0.0f) {
@@ -888,18 +1064,7 @@ void GhostAI::Update(float deltaTime)
             if (m_huntTimer <= 0.0f) {
                 // ハント終了: テレポートせず、ゴーストルームまでNavMesh経由で徒歩で帰る
                 m_hasLastKnownPlayerPos = false;
-                if (m_targetRoom && NavMeshManager::Instance().IsBuilt()) {
-                    m_houseWanderTargetPos = m_targetRoom->GetCenter();
-                    m_houseWanderReturning = true;
-                    m_houseWanderDurationTimer = 0.0f;
-                    m_houseWanderStuckTimer = 0.0f;
-                    m_houseWanderLastPos = cTrans.m_position;
-                    SetState(GhostAI::State::HouseWander);
-                } else {
-                    // 目標の部屋がない、またはNavMesh未構築ならその場でRoom待機扱いにする
-                    m_houseWanderTimer = Random::Instance().Range(m_houseWanderIntervalMin, m_houseWanderIntervalMax);
-                    SetState(GhostAI::State::Wander);
-                }
+                ReturnToGhostRoom(cTrans.m_position);
             } else {
                 UpdateHunt(deltaTime, cTrans);
             }
@@ -989,12 +1154,14 @@ void GhostAI::OnDestroy()
     if (m_currentState == State::Hunt) {
         ShaderManager::Instance().SetHuntActive(false);
     }
+    // シーンを抜けた後に古いゴーストタイプが表示され続けないようにする
+    Logger::Instance().RemovePinnedLine("Ghost Type");
 }
 
 void GhostAI::Draw()
 {
     if (!m_showPathDebug) return;
-    if (m_currentState != State::HouseWander && m_currentState != State::Hunt) return;
+    if (m_currentState != State::HouseWander && m_currentState != State::Hunt && m_currentState != State::Lured) return;
 
     auto& ecs = GameManager::Instance().GetECS();
     auto* pTrans = ecs.TryGetComponent<TransformData>(GetGameObject()->GetEntityID());
@@ -1055,6 +1222,16 @@ void GhostAI::Serialize(nlohmann::json& out) const
     out["doorCheckInterval"]  = m_doorCheckInterval;
     out["doorOpenRange"]      = m_doorOpenRange;
     out["pathNodeReachThreshold"] = m_pathNodeReachThreshold;
+    out["ghostType"]          = static_cast<int>(m_ghostType);
+    out["randomizeType"]      = m_randomizeType;
+    out["lureCheckInterval"]  = m_lureCheckInterval;
+    out["lureArriveThreshold"] = m_lureArriveThreshold;
+    out["lureDwellDuration"]  = m_lureDwellDuration;
+    out["lureCooldown"]       = m_lureCooldown;
+    out["failHuntExtension"]  = m_failHuntExtension;
+    out["tellIntervalMin"]    = m_tellIntervalMin;
+    out["tellIntervalMax"]    = m_tellIntervalMax;
+    out["tellRange"]          = m_tellRange;
 }
 
 void GhostAI::Deserialize(const nlohmann::json& in)
@@ -1084,12 +1261,41 @@ void GhostAI::Deserialize(const nlohmann::json& in)
     if (in.contains("doorCheckInterval"))   m_doorCheckInterval    = in["doorCheckInterval"];
     if (in.contains("doorOpenRange"))       m_doorOpenRange        = in["doorOpenRange"];
     if (in.contains("pathNodeReachThreshold")) m_pathNodeReachThreshold = in["pathNodeReachThreshold"];
+    if (in.contains("ghostType"))           m_ghostType = static_cast<GhostType>((int)in["ghostType"]);
+    if (in.contains("randomizeType"))       m_randomizeType = in["randomizeType"];
+    if (in.contains("lureCheckInterval"))   m_lureCheckInterval = in["lureCheckInterval"];
+    if (in.contains("lureArriveThreshold")) m_lureArriveThreshold = in["lureArriveThreshold"];
+    if (in.contains("lureDwellDuration"))   m_lureDwellDuration = in["lureDwellDuration"];
+    if (in.contains("lureCooldown"))        m_lureCooldown = in["lureCooldown"];
+    if (in.contains("failHuntExtension"))   m_failHuntExtension = in["failHuntExtension"];
+    if (in.contains("tellIntervalMin"))     m_tellIntervalMin = in["tellIntervalMin"];
+    if (in.contains("tellIntervalMax"))     m_tellIntervalMax = in["tellIntervalMax"];
+    if (in.contains("tellRange"))           m_tellRange = in["tellRange"];
 }
 
 void GhostAI::ImGuiUpdate()
 {
     ImGui::DragFloat("Move Speed",     &m_moveSpeed,     0.1f,  0.1f, 10.0f);
     ImGui::DragFloat("Ground Offset",  &m_groundOffset,  0.01f, -2.0f, 2.0f);
+    ImGui::Separator();
+    ImGui::Text("Ghost Type");
+    {
+        int current = static_cast<int>(m_ghostType);
+        const char* names[] = { "Jibakurei (Normal)", "Onibi (Light)", "Yanari (Sound, not implemented)" };
+        if (ImGui::Combo("Type", &current, names, IM_ARRAYSIZE(names))) {
+            m_ghostType = static_cast<GhostType>(current);
+            Logger::Instance().SetPinnedLine("Ghost Type", GetGhostTypeName(m_ghostType));
+        }
+    }
+    ImGui::Checkbox("Randomize Type On Start", &m_randomizeType);
+    ImGui::DragFloat("Lure Arrive Threshold", &m_lureArriveThreshold, 0.1f, 0.1f, 5.0f);
+    ImGui::DragFloat("Lure Dwell Duration", &m_lureDwellDuration, 0.5f, 0.0f, 120.0f);
+    ImGui::DragFloat("Lure Cooldown", &m_lureCooldown, 0.5f, 0.0f, 120.0f);
+    ImGui::DragFloat("Lure Check Interval", &m_lureCheckInterval, 0.05f, 0.05f, 5.0f);
+    ImGui::DragFloat("Fail Hunt Extension", &m_failHuntExtension, 0.5f, 0.0f, 60.0f);
+    ImGui::DragFloat("Tell Interval Min", &m_tellIntervalMin, 0.5f, 1.0f, 300.0f);
+    ImGui::DragFloat("Tell Interval Max", &m_tellIntervalMax, 0.5f, 1.0f, 300.0f);
+    ImGui::DragFloat("Tell Range", &m_tellRange, 0.1f, 0.5f, 50.0f);
     ImGui::Separator();
     ImGui::Text("House Bounds");
     ImGui::DragFloat("Bounds Margin", &m_houseBoundsMargin, 0.1f, 0.0f, 20.0f);
@@ -1134,7 +1340,8 @@ void GhostAI::ImGuiUpdate()
                               m_currentState == State::Wander ? "Wander (Room)" :
                               m_currentState == State::HouseWander ? "HouseWander" :
                               m_currentState == State::Hunt ? "Hunt" :
-                              m_currentState == State::Stun ? "Stun" : "Dead");
+                              m_currentState == State::Stun ? "Stun" :
+                              m_currentState == State::Lured ? (m_lureArrived ? "Lured (dwelling)" : "Lured (moving)") : "Dead");
     ImGui::Text("NavMesh Built: %s", NavMeshManager::Instance().IsBuilt() ? "true" : "false");
     {
         auto gs = GameSequence::GetInstance();

@@ -21,6 +21,12 @@ public:
     // Called by PickupItem. Sets the matching possession flag and auto-equips if not yet equipped.
     void AddItem(ItemType item);
     bool HasItem(ItemType item) const;
+    void SetFlashLightOn(bool on) { m_flashLightOn = on; }
+    bool IsFlashLightOn() const { return m_flashLightOn; }
+    // G key: lightly tosses the equipped item from hand height along the camera's view, as a
+    // PickupItem (spawned from Asset/Data/Prefab/<item>.json, see PickupItem::Launch), and equips
+    // the next owned item, if any.
+    void DropEquippedItem(const Math::Vector3& playerPos, const Math::Vector3& forward, float playerYaw);
 
     //しゃがみ具合(0=立ち,1=完全にしゃがみ)。Crouchアニメーションの実際の再生位置と同期しているので、
     // カメラの高さもこれに合わせるとアニメーションとズレない。
@@ -44,6 +50,19 @@ private:
     bool m_hasThermometer = false;
     bool m_hasIncense = false;
     bool m_hasAmulet = false;
+    bool m_hasFlashLight = false;
+
+    // --- FlashLight ---
+    // Toggled with T at any time while owned, or right-click while it's the equipped item. The beam
+    // is a runtime-only (dynamic, never saved) entity holding a SpotLightData, placed at the game
+    // camera each frame and aimed along its view direction (so it follows pitch as well as yaw) -
+    // it keeps shining even while another item is equipped, like a light clipped to the chest.
+    bool m_flashLightOn = false;
+    Entity m_flashLightBeamEntity = INVALID_ENTITY;
+    Entity m_cameraEntity = INVALID_ENTITY;
+    void CreateFlashLightBeam();
+    void UpdateFlashLightBeam(const Math::Vector3& playerPos, float playerYaw);
+    Entity FindGameCameraEntity() const;
 
     // The 3 HUD icon Sprite entities (expected to exist in GameScene.json named
     // "ThermometerIcon"/"SmudgeStickIcon"/"OfudaIcon"). Looked up by name and cached in Start();
@@ -59,6 +78,9 @@ private:
     Entity m_heldThermometerEntity = INVALID_ENTITY;
     Entity m_heldIncenseEntity = INVALID_ENTITY;
     Entity m_heldAmuletEntity = INVALID_ENTITY;
+    // "HeldFlashLight": unlike the other three, its model sits on a child "Model" object (to apply
+    // the model's own scale/orientation fix), so visibility is applied to the whole subtree.
+    Entity m_heldFlashLightEntity = INVALID_ENTITY;
     void UpdateHeldItem();
     // Scrubs the held thermometer's baked "mercury drop" animation to match m_temperature
     // (no auto-playback - we just set ProgressTime directly each frame).
@@ -83,6 +105,21 @@ private:
     Entity m_calibWaitEntity = INVALID_ENTITY;
     float m_calibWaitTimer = 0.0f;
     void UpdateHeldItemAttach(const Math::Vector3& playerPos, float playerYaw, bool isMoving);
+
+    // --- 手のボーン追従(Attach_RightHand) ---
+    // 持ち物は毎フレーム、手のボーンのワールド位置・回転に追従する。アイテムごとに「手から見た
+    // ローカルのオフセット(m)と回転(度)」を持ち、ImGuiUpdate()で調整できる(添字は(int)ItemType、1〜4)。
+    // ボーンが無いモデルでは従来の体基準の固定オフセット(m_heldItemOffset)にフォールバックする。
+    struct HeldPose
+    {
+        Math::Vector3 pos = Math::Vector3::Zero;
+        Math::Vector3 rotDeg = Math::Vector3::Zero;
+    };
+    HeldPose m_heldPose[5];
+    // 手のボーンのワールド位置・回転(スケールは除く)。取得できなければfalse。
+    bool GetHandWorld(const Math::Vector3& playerPos, float playerYaw, Math::Vector3& outPos, Math::Quaternion& outRot) const;
+    // itemを手に持ったときのワールド位置・回転(オイラー角,ラジアン)。ボーンが無ければfalse。
+    bool ComputeHeldItemWorld(Item item, const Math::Vector3& playerPos, float playerYaw, Math::Vector3& outPos, Math::Vector3& outRotRad) const;
     // One-shot: reads Attach_RightHand's current world position and converts it into a body-local
     // offset (undoing the player's current position/yaw), storing it into m_heldItemOffset. Only
     // runs while the player is standing still, so it captures the neutral idle hand pose rather than
@@ -90,9 +127,9 @@ private:
     bool CalibrateHeldItemOffset(const Math::Vector3& playerPos, float playerYaw);
 
     // --- F-key interaction (doors + pickups) ---
-    enum class InteractKind { None, Door, Pickup };
+    enum class InteractKind { None, Door, Pickup, Stimulus };
     InteractKind m_interactKind = InteractKind::None;
-    // Only meaningful when m_interactKind == Pickup: the targeted PickupItem's entity.
+    // Only meaningful when m_interactKind == Pickup/Stimulus: the targeted PickupItem's/StimulusSource's entity.
     Entity m_interactEntity = INVALID_ENTITY;
     // "Press F" HUD prompt Sprite entity (named "InteractPrompt" in GameScene.json).
     Entity m_interactPromptEntity = INVALID_ENTITY;
@@ -103,6 +140,8 @@ private:
     // in TryInteractDoor() on F press).
     bool FindNearestDoor(const Math::Vector3& playerPos, const Math::Vector3& forward, float maxRange, float& outDist) const;
     Entity FindNearestPickup(const Math::Vector3& playerPos, const Math::Vector3& forward, float maxRange, float& outDist) const;
+    // Fキーでon/offできるStimulusSource(ランプ/ラジカセ)のうち、範囲内・正面にある最も近いもの
+    Entity FindNearestStimulus(const Math::Vector3& playerPos, const Math::Vector3& forward, float maxRange, float& outDist) const;
 
     // FindNearestDoorは以前、「近くにドアがあるか」に答えるためだけに、毎フレーム全
     // エンティティの全アニメーションを再スキャンし(ドアだった場合はさらにモデルの
@@ -119,6 +158,7 @@ private:
     // AnimationDataComponentは自分自身ではなく子の"Model"オブジェクトに付いているため、
     // 子階層を探して覚えておく(毎フレーム探索しなくていいようにStart()でキャッシュする)
     Entity m_animEntity = INVALID_ENTITY;
+    std::string m_lastAnimClip; // 直近に再生要求したクリップ名(Crouchの再生し直し防止用)
 
     bool m_isCrouching = false;
     float m_crouchBlend = 0.0f; // 0=立ち,1=完全にしゃがみ。毎フレーム目標値へ滑らかに近づける

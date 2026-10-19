@@ -266,9 +266,18 @@ PSOutput main(VSOutput In) : SV_Target0
     // 「光源が届かない場所は現実のように暗くなる」を実現する(g_IndirectShadowFloorが下限)。
     float moonVisibility = 1;
 
+    // 室内(RoomAreaの範囲内)は外の光が届かない。屋根/上階の床がシャドウマップで正しく
+    // 遮れているかに関係なく、常に月の影の中と同じ扱いにする。
+    const bool indoor = IsIndoor(In.wPos);
+
     //------------------
     // 平行光
     //------------------
+    if (indoor)
+    {
+        moonVisibility = g_IndirectShadowFloor;
+    }
+    else
     {
         // Half vector
         const float3 H = normalize(-g_DL_Dir + vCam);

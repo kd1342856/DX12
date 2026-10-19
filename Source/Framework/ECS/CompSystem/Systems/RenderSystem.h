@@ -138,7 +138,7 @@ public:
 
 						for (const auto& meshHandle : node.meshes) {
 							Mesh* pMesh = MeshManager::Instance().Get(meshHandle);
-							if (pMesh) {
+							if (pMesh && pMesh->IsReady()) {
 								if (isSkinned) skinningShader.BeforeDrawMesh(*pMesh, pMesh->GetMaterial());
 								else shadowShader.BeforeDrawMesh(*pMesh, pMesh->GetMaterial());
 
@@ -252,7 +252,7 @@ public:
 
 						for (const auto& meshHandle : node.meshes) {
 							Mesh* pMesh = MeshManager::Instance().Get(meshHandle);
-							if (pMesh) {
+							if (pMesh && pMesh->IsReady()) {
 								if (isSkinned) skinningShader.BeforeDrawMesh(*pMesh, pMesh->GetMaterial());
 								else shadowShader.BeforeDrawMesh(*pMesh, pMesh->GetMaterial());
 
@@ -394,7 +394,7 @@ public:
 
 						for (const auto& meshHandle : node.meshes) {
 							Mesh* pMesh = MeshManager::Instance().Get(meshHandle);
-							if (pMesh) {
+							if (pMesh && pMesh->IsReady()) {
 								bool isMeshBlend = (pMesh->GetMaterial().Constants.alphaMode == 2); // 2: Blend
 								if (isMeshBlend == isBlendPass) {
 									if (isSkinned) skinningShader.BeforeDrawMesh(*pMesh, pMesh->GetMaterial());
@@ -585,7 +585,7 @@ public:
 				for (const auto& meshHandle : node.meshes)
 				{
 					Mesh* pMesh = MeshManager::Instance().Get(meshHandle);
-					if (pMesh)
+					if (pMesh && pMesh->IsReady())
 					{
 						bool isMeshBlend = (pMesh->GetMaterial().Constants.alphaMode == 2);
 						if (isMeshBlend) continue; // 半透明はAO/SSRの元データに含めない
@@ -759,7 +759,7 @@ public:
 
 						for (const auto& meshHandle : node.meshes) {
 							Mesh* pMesh = MeshManager::Instance().Get(meshHandle);
-							if (pMesh) {
+							if (pMesh && pMesh->IsReady()) {
 								bool isMeshBlend = (pMesh->GetMaterial().Constants.alphaMode == 2);
 								if (isBlendPass != isMeshBlend) continue;
 

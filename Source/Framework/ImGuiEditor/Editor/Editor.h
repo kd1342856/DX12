@@ -24,6 +24,14 @@ public:
 
     static std::shared_ptr<Scene> GetScene() { return s_scene; }
 
+    // 現在のヒエラルキー(s_scene)の保存先JSON。シーンごとに異なるファイルを持たせ、
+    // 別シーンのヒエラルキーを別シーンのファイルに上書き保存しないようにする。
+    // Init()で空に戻るので、各シーンのInit()でEditor::Init()の後に設定すること。
+    // 空の場合は保存不可(File > Save Sceneは何もしない)。
+    // 設定時に、同じ場所のエディタ専用JSON(XXX.editor.json: ヒエラルキーのフォルダ構成)も読み込む。
+    static void SetScenePath(const std::string& path);
+    static const std::string& GetScenePath() { return s_scenePath; }
+
     // 「Preview Camera」ウィンドウに今マウスが乗っているか。GameSceneの右クリックドラッグでの
     // カメラ操作(通常のエディタ自由カメラと同じ操作感)を、どちらのウィンドウを操作しているかで
     // 出し分けるために使う。PreviewCameraWindow.cppがDrawPreviewCamera()内で毎フレーム更新する。
@@ -34,6 +42,11 @@ public:
     // C++オブジェクトだけ残る)、Inspector/AssetBrowserがそれを参照して
     // 「存在しないEntity」でクラッシュする原因になる。
     static void ClearSelection() { s_selectedObject = nullptr; }
+
+    // ヒエラルキーのフォルダ構成(表示専用。GameObjectの親子関係には影響しない)。
+    // シーンJSONとは別の「XXX.editor.json」に保存し、Save Sceneと一緒に書き出す。
+    static void LoadEditorData();
+    static void SaveEditorData();
 
 private:
     // Core
@@ -51,6 +64,7 @@ private:
 
     // Helper
     static void DrawHierarchyNode(std::shared_ptr<GameObject> obj);
+    static void DrawHierarchyFolder(uint32_t folderId, const std::vector<std::shared_ptr<GameObject>>& roots);
 
 private:
     static std::shared_ptr<GameObject> s_selectedObject;
@@ -62,6 +76,7 @@ private:
     static bool s_showProfilerOverlay;
 
     static std::shared_ptr<Scene> s_scene;
+    static std::string s_scenePath;
 
     static bool s_showGameEditor;
     static bool s_showShaderEditor;

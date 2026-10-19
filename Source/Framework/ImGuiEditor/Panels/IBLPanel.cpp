@@ -22,6 +22,17 @@ void IBLPanel::Draw(EditorContext& ctx)
             ImGui::SetTooltip("Ambient/IBL kept in areas the moon/sun shadow doesn't reach.\n0 = pitch black indoors, 1 = no darkening (old behavior).");
         }
 
+        lChanged |= ImGui::Checkbox("Indoor Mask (RoomArea)", &ctx.Lighting->EnableIndoorMask);
+        if (ImGui::IsItemHovered())
+        {
+            ImGui::SetTooltip(u8"RoomAreaの範囲内は外の光(月明かり・環境光・空の反射光)を受けず、\n月の影の中と同じ扱い(Indirect Shadow Floorまで暗くなる)にする。");
+        }
+        lChanged |= ImGui::SliderFloat("Indoor Margin", &ctx.Lighting->IndoorMargin, 0.0f, 2.0f, "%.2f m");
+        if (ImGui::IsItemHovered())
+        {
+            ImGui::SetTooltip(u8"RoomAreaの範囲をこの分だけ広げて判定する(境界上の壁・床も室内扱いにするため)。");
+        }
+
         if (iChanged) ctx.IBL->IsDirty = true;
         if (lChanged) ctx.Lighting->IsDirty = true;
     }

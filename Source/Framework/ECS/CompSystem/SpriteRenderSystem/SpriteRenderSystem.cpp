@@ -79,5 +79,37 @@ void SpriteRenderSystem::Render() {
     pSpriteBatch->End();
 }
 
+bool SpriteRenderSystem::IsMouseOver(Entity entity) const
+{
+    if (!m_pCoordinator || entity == INVALID_ENTITY) return false;
+    if (ImGui::GetIO().WantCaptureMouse) return false;
+
+    auto* pSprite = m_pCoordinator->TryGetComponent<SpriteData>(entity);
+    auto* pTransform = m_pCoordinator->TryGetComponent<TransformData>(entity);
+    if (!pSprite || !pTransform) return false;
+
+    // クライアント座標 -> Render()のビューポート(1280x720)座標へ変換
+    auto& input = Input::Instance();
+    RECT rc = {};
+    GetClientRect(input.GetHWnd(), &rc);
+    float cw = (float)(rc.right - rc.left);
+    float ch = (float)(rc.bottom - rc.top);
+    if (cw <= 0.0f || ch <= 0.0f) return false;
+    float mx = (float)input.GetMouseX() * (1280.0f / cw);
+    float my = (float)input.GetMouseY() * (720.0f / ch);
+
+    // Render()と同じ計算: 描画サイズ = m_size * scale、左上 = 位置 - 描画サイズ * pivot
+    float w = pSprite->m_size.x * pTransform->m_scale.x;
+    float h = pSprite->m_size.y * pTransform->m_scale.y;
+    float left = pTransform->m_position.x - w * pSprite->m_pivot.x;
+    float top  = pTransform->m_position.y - h * pSprite->m_pivot.y;
+    return mx >= left && mx <= left + w && my >= top && my <= top + h;
+}
+
+bool SpriteRenderSystem::IsClicked(Entity entity) const
+{
+    return Input::Instance().IsMouseLeftTrigger() && IsMouseOver(entity);
+}
+
 
 

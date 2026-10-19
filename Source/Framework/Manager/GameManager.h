@@ -9,6 +9,7 @@ class CameraSystem;
 class AnimationSystem;
 class ScriptSystem;
 class LightSystem;
+class SpotLightSystem;
 class Scene;
 
 // =============================================
@@ -44,6 +45,7 @@ public:
     std::shared_ptr<CameraSystem>       GetCameraSystem()       const { return m_spCameraSystem; }
     std::shared_ptr<ScriptSystem>       GetScriptSystem()       const { return m_spScriptSystem; }
     std::shared_ptr<LightSystem>        GetLightSystem()        const { return m_spLightSystem; }
+    std::shared_ptr<SpotLightSystem>    GetSpotLightSystem()    const { return m_spSpotLightSystem; }
 
     void Shutdown();
 
@@ -63,6 +65,7 @@ private:
     std::shared_ptr<RenderSystem>       m_spRenderSystem;
     std::shared_ptr<SpriteRenderSystem> m_spSpriteRenderSystem;
     std::shared_ptr<LightSystem>        m_spLightSystem;
+    std::shared_ptr<SpotLightSystem>    m_spSpotLightSystem;
 
     // シャットダウンの二重アクセス防止フラグ
     static bool s_alive;

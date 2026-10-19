@@ -9,57 +9,66 @@
 #include "../../../Framework/ECS/CompSystem/SpriteRenderSystem/SpriteRenderSystem.h"
 #include "../../../Framework/ImGuiEditor/Editor/Editor.h"
 #include "../../../Graphics/Renderer/Renderer.h"
+#include "../../../Framework/Manager/Scene/Scene.h"
+#include "../../../Framework/Object/GameObject.h"
 
 void TitleScene::Init()
 {
     m_time = 0.0f;
     m_cursorIndex = 0;
 
+    // GameSceneのFPS視点(Relative)モードのままだとカーソルが毎フレーム中央に戻され、ボタンをクリックできない
+    Input::Instance().SetMouseModeAbsolute();
+
     auto& ecs = GameManager::Instance().GetECS();
 
-    // 背景画像
-    m_bgEntity = ecs.CreateEntity();
-    TransformData bgTransform;
-    bgTransform.m_position = { 640.0f, 360.0f, 0.0f }; // 画面中央
-    SpriteData bgSprite;
-    bgSprite.m_filePath = "Asset/Texture/UI/bg_title.png"; // 新しい背景
-    bgSprite.m_size = { 1280.0f, 720.0f }; // 画面全体
-    bgSprite.m_orderInLayer = 100; // 最背面 (1.0f depth)
-    ecs.AddComponent(m_bgEntity, bgTransform);
-    ecs.AddComponent(m_bgEntity, bgSprite);
+    // Editor::s_sceneはシーン遷移で自動的には破棄されないため、GameSceneのGameObjectがヒエラルキーに
+    // 残ってしまう。GameScene::Init()と同様にEditor::Init()で空のSceneに差し替え、破棄コマンドを反映する。
+    Editor::Init();
+    ecs.FlushCommands();
 
-    // タイトルロゴ
-    m_titleEntity = ecs.CreateEntity();
-    TransformData tTransform;
-    tTransform.m_position = { 640.0f, 250.0f, 0.0f }; // 画面中央上部
-    SpriteData tSprite;
-    tSprite.m_filePath = "Asset/Texture/UI/Haihu.png"; // AI生成画像
-    tSprite.m_size = { 600.0f, 400.0f };
-    tSprite.m_orderInLayer = 50;
-    ecs.AddComponent(m_titleEntity, tTransform);
-    ecs.AddComponent(m_titleEntity, tSprite);
+    Editor::SetScenePath("Asset/Data/Scene/TitleScene.json");
 
-    // Startボタン
-    m_startEntity = ecs.CreateEntity();
-    TransformData sTransform;
-    sTransform.m_position = { 640.0f, 500.0f, 0.0f };
-    SpriteData sSprite;
-    sSprite.m_filePath = "Asset/Texture/UI/Start.png"; // AI生成画像
-    sSprite.m_size = { 300.0f, 200.0f }; // 600x400だと大きすぎるので半分にスケール
-    sSprite.m_orderInLayer = 50;
-    ecs.AddComponent(m_startEntity, sTransform);
-    ecs.AddComponent(m_startEntity, sSprite);
+    auto editorScene = Editor::GetScene();
+    std::ifstream in(Editor::GetScenePath());
+    if (in.is_open())
+    {
+        nlohmann::json j;
+        in >> j;
+        editorScene->Deserialize(j);
+    }
+    else
+    {
+        // 初回(JSON未作成)は既定のオブジェクトを作る。以降はヒエラルキーで編集してSave Sceneで保存する。
+        auto create = [&](const char* name, Math::Vector3 pos, const char* tex, Math::Vector2 size, int order)
+        {
+            auto obj = editorScene->CreateGameObject(name);
+            obj->GetComponent<TransformData>().m_position = pos;
+            SpriteData sprite;
+            sprite.m_filePath = tex;
+            sprite.m_size = size;
+            sprite.m_orderInLayer = order;
+            obj->AddComponent(sprite);
+        };
+        create("TitleBackground", { 640.0f, 360.0f, 0.0f }, "Asset/Texture/UI/bg_title.png", { 1280.0f, 720.0f }, 100);
+        create("TitleLogo",       { 640.0f, 250.0f, 0.0f }, "Asset/Texture/UI/Haihu.png",    { 600.0f, 400.0f }, 50);
+        create("StartButton",     { 640.0f, 500.0f, 0.0f }, "Asset/Texture/UI/Start.png",    { 300.0f, 200.0f }, 50);
+        create("ExitButton",      { 640.0f, 620.0f, 0.0f }, "Asset/Texture/UI/Exit.png",     { 300.0f, 200.0f }, 50);
+    }
 
-    // Exitボタン
-    m_exitEntity = ecs.CreateEntity();
-    TransformData eTransform;
-    eTransform.m_position = { 640.0f, 620.0f, 0.0f };
-    SpriteData eSprite;
-    eSprite.m_filePath = "Asset/Texture/UI/Exit.png"; // AI生成画像
-    eSprite.m_size = { 300.0f, 200.0f }; // 半分にスケール
-    eSprite.m_orderInLayer = 50;
-    ecs.AddComponent(m_exitEntity, eTransform);
-    ecs.AddComponent(m_exitEntity, eSprite);
+    // 名前で演出対象のオブジェクトを探す(見つからなければINVALID_ENTITYのまま演出をスキップ)
+    auto find = [&](const char* name) -> Entity
+    {
+        for (auto& obj : editorScene->GetGameObjects())
+            if (obj->GetName() == name) return obj->GetEntityID();
+        return INVALID_ENTITY;
+    };
+    m_bgEntity    = find("TitleBackground");
+    m_titleEntity = find("TitleLogo");
+    m_startEntity = find("StartButton");
+    m_exitEntity  = find("ExitButton");
+
+    editorScene->Init();
 }
 
 void TitleScene::Update(float deltaTime)
@@ -75,8 +84,21 @@ void TitleScene::Update(float deltaTime)
     }
 
     // 決定キー
-    if (Input::Instance().IsKeyTrigger(DirectX::Keyboard::Keys::Enter) || 
-        Input::Instance().IsKeyTrigger(DirectX::Keyboard::Keys::Space))
+    bool decided = Input::Instance().IsKeyTrigger(DirectX::Keyboard::Keys::Enter) ||
+                   Input::Instance().IsKeyTrigger(DirectX::Keyboard::Keys::Space);
+
+    // マウス: スプライトにホバーで選択、クリックで決定
+    if (auto spriteSys = GameManager::Instance().GetSpriteRenderSystem()) {
+        const Entity buttons[2] = { m_startEntity, m_exitEntity };
+        for (int i = 0; i < 2; ++i) {
+            if (spriteSys->IsMouseOver(buttons[i])) {
+                m_cursorIndex = i;
+                if (Input::Instance().IsMouseLeftTrigger()) decided = true;
+            }
+        }
+    }
+
+    if (decided)
     {
         if (m_cursorIndex == 0) {
             SceneManager::Instance().ChangeScene(std::make_unique<GameScene>(), 1.0f);
@@ -92,19 +114,19 @@ void TitleScene::Update(float deltaTime)
         SceneManager::Instance().ChangeScene(std::make_unique<ResultScene>(false), 1.0f);
     }
 
-    // スプライトのアニメーションと選択状態の反映
-    auto& tTransform = ecs.GetComponent<TransformData>(m_titleEntity);
-    auto& tSprite    = ecs.GetComponent<SpriteData>(m_titleEntity);
-    tTransform.m_position.y = 200.0f + sinf(m_time * 2.0f) * 10.0f; // フワフワ揺れる
-    tSprite.m_color = { 1.0f, 1.0f, 1.0f, 0.7f + 0.3f * sinf(m_time * 3.0f) }; // 明滅
+    // スプライトのアニメーションと選択状態の反映(SpriteData/Transformが無いオブジェクトはスキップ)
+    if (auto* t = ecs.TryGetComponent<TransformData>(m_titleEntity))
+        t->m_position.y = 200.0f + sinf(m_time * 2.0f) * 10.0f; // フワフワ揺れる
+    if (auto* s = ecs.TryGetComponent<SpriteData>(m_titleEntity))
+        s->m_color = { 1.0f, 1.0f, 1.0f, 0.7f + 0.3f * sinf(m_time * 3.0f) }; // 明滅
 
-    auto& sSprite = ecs.GetComponent<SpriteData>(m_startEntity);
-    sSprite.m_color = (m_cursorIndex == 0) ? Math::Vector4{1.0f, 0.2f, 0.2f, 1.0f} : Math::Vector4{1.0f, 1.0f, 1.0f, 1.0f};
-    sSprite.m_size  = (m_cursorIndex == 0) ? Math::Vector2{220.0f, 66.0f} : Math::Vector2{200.0f, 60.0f};
-
-    auto& eSprite = ecs.GetComponent<SpriteData>(m_exitEntity);
-    eSprite.m_color = (m_cursorIndex == 1) ? Math::Vector4{1.0f, 0.2f, 0.2f, 1.0f} : Math::Vector4{1.0f, 1.0f, 1.0f, 1.0f};
-    eSprite.m_size  = (m_cursorIndex == 1) ? Math::Vector2{220.0f, 66.0f} : Math::Vector2{200.0f, 60.0f};
+    const Entity buttons[2] = { m_startEntity, m_exitEntity };
+    for (int i = 0; i < 2; ++i) {
+        if (auto* s = ecs.TryGetComponent<SpriteData>(buttons[i])) {
+            s->m_color = (m_cursorIndex == i) ? Math::Vector4{1.0f, 0.2f, 0.2f, 1.0f} : Math::Vector4{1.0f, 1.0f, 1.0f, 1.0f};
+            s->m_size  = (m_cursorIndex == i) ? Math::Vector2{220.0f, 66.0f} : Math::Vector2{200.0f, 60.0f};
+        }
+    }
 
     // 背景色（不気味な脈打ち）
     float red = 0.1f + 0.05f * sinf(m_time * 2.0f);
@@ -112,6 +134,7 @@ void TitleScene::Update(float deltaTime)
 
     Renderer::BeginFrame();
     GraphicsDevice::Instance().SetBackBuffer();
+    Renderer::BindDefaultViewport(); // 未設定だとシザーが空でスプライトが全てクリップされる
     GraphicsDevice::Instance().ClearBackBuffer(red, 0.0f, blue, 1.0f);
 
     auto spriteRenderSystem = GameManager::Instance().GetSpriteRenderSystem();
@@ -126,10 +149,7 @@ void TitleScene::Update(float deltaTime)
 
 void TitleScene::Unload()
 {
-    auto& ecs = GameManager::Instance().GetECS();
-    ecs.DestroyEntity(m_bgEntity);
-    ecs.DestroyEntity(m_titleEntity);
-    ecs.DestroyEntity(m_startEntity);
-    ecs.DestroyEntity(m_exitEntity);
+    // オブジェクトはEditor::s_scene(ヒエラルキー)が所有する。次のシーンのInit()でEditor::Init()
+    // により空のSceneへ差し替わる時に一緒に破棄されるので、ここでEntityを直接消さない。
+    Editor::ClearSelection();
 }
-

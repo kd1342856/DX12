@@ -74,6 +74,16 @@ public:
 		ImGui::SameLine();
 		bool copy = ImGui::Button("Copy");
 
+		std::lock_guard<std::mutex> lock(m_mutex);
+
+		// 常時表示の行(ログが流れたりClearされても消えない)
+		if (!m_pinnedLines.empty()) {
+			ImGui::Separator();
+			for (const auto& pair : m_pinnedLines) {
+				ImGui::TextColored(ImVec4(0.4f, 0.9f, 1.0f, 1.0f), "%s: %s", pair.first.c_str(), pair.second.c_str());
+			}
+		}
+
 		ImGui::Separator();
 		ImGui::BeginChild("scrolling", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
 
@@ -81,7 +91,6 @@ public:
 			ImGui::LogToClipboard();
 		}
 
-		std::lock_guard<std::mutex> lock(m_mutex);
 		for (const auto& log : m_logs)
 		{
 			ImVec4 color;
@@ -111,6 +120,20 @@ public:
 		m_logs.clear();
 	}
 
+	// Log Window上部に「key: text」を常時表示する(同じkeyなら上書き)。
+	// 文字列はASCIIのみ想定(ログ本文と違いSJIS変換はしない)。
+	void SetPinnedLine(const std::string& key, const std::string& text)
+	{
+		std::lock_guard<std::mutex> lock(m_mutex);
+		m_pinnedLines[key] = text;
+	}
+
+	void RemovePinnedLine(const std::string& key)
+	{
+		std::lock_guard<std::mutex> lock(m_mutex);
+		m_pinnedLines.erase(key);
+	}
+
 private:
 	Logger() { fopen_s(&m_logFile, "debug_log.txt", "a"); }
 	~Logger() { if (m_logFile) { fclose(m_logFile); m_logFile = nullptr; } }
@@ -123,6 +146,7 @@ private:
 	};
 
 	std::vector<LogEntry> m_logs;
+	std::map<std::string, std::string> m_pinnedLines;
 	std::mutex m_mutex;
 	bool m_scrollToBottom = true;
 	FILE* m_logFile = nullptr;

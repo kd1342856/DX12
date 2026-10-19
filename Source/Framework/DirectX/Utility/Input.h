@@ -22,6 +22,7 @@ public:
 
 	int GetMouseX() const { return m_mouseX; }
 	int GetMouseY() const { return m_mouseY; }
+	HWND GetHWnd() const { return m_hWnd; }
 	int GetMouseDeltaX() const { return m_mouseDeltaX; }
 	int GetMouseDeltaY() const { return m_mouseDeltaY; }
 

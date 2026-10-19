@@ -1,0 +1,37 @@
+{
+    "Name": "FlashLight",
+    "IsActive": true,
+    "Components": [
+        {
+            "Type": "TransformData",
+            "Position": [0.0, 0.0, 0.0],
+            "Rotation": [0.0, 0.0, 0.0],
+            "Scale": [1.0, 1.0, 1.0]
+        },
+        {
+            "Type": "NativeScriptData",
+            "ScriptName": "PickupItem",
+            "ItemType": 4
+        }
+    ],
+    "Children": [
+        {
+            "Name": "Model",
+            "IsActive": true,
+            "Components": [
+                {
+                    "Type": "TransformData",
+                    "Position": [0.0, 0.03, 0.0],
+                    "Rotation": [1.5707963, 0.0, 0.0],
+                    "Scale": [0.02, 0.02, 0.02]
+                },
+                {
+                    "Type": "ModelRenderData",
+                    "FilePath": "Asset/Model/Item/Flash Light/scene.gltf",
+                    "ModelType": 0
+                }
+            ],
+            "Children": []
+        }
+    ]
+}

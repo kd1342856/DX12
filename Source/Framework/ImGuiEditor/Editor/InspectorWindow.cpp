@@ -257,6 +257,23 @@ void Editor::DrawInspector() {
                     if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"同じ部屋に複数のフリッカーライトを置く時、位相をずらしてバラバラに明滅させたい場合に変える。");
                 }
             }
+            if (auto* pSpot = ecs.TryGetComponent<SpotLightData>(entity)) {
+                if (ImGui::CollapsingHeader("SpotLightData", ImGuiTreeNodeFlags_DefaultOpen)) {
+                    auto& l = *pSpot;
+                    ImGui::PushID("SpotLightData");
+                    ImGui::Checkbox("Enabled", &l.m_enabled);
+                    ImGui::ColorEdit3("Color", &l.m_color.x);
+                    ImGui::DragFloat("Intensity", &l.m_intensity, 0.05f, 0.0f, 50.0f);
+                    ImGui::DragFloat("Range", &l.m_range, 0.1f, 0.1f, 100.0f);
+                    ImGui::DragFloat("Inner Angle", &l.m_innerAngle, 0.5f, 0.0f, 89.0f);
+                    ImGui::DragFloat("Outer Angle", &l.m_outerAngle, 0.5f, 0.1f, 89.0f);
+                    ImGui::DragFloat3("Local Offset", &l.m_localOffset.x, 0.01f);
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"光源位置(このオブジェクトのローカル空間。Scaleも掛かる)");
+                    ImGui::DragFloat3("Local Direction", &l.m_localDirection.x, 0.01f, -1.0f, 1.0f);
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"照らす向き(このオブジェクトのローカル空間)");
+                    ImGui::PopID();
+                }
+            }
             if (auto* pScript = ecs.TryGetComponent<NativeScriptData>(entity)) {
                 if (ImGui::CollapsingHeader("NativeScript", ImGuiTreeNodeFlags_DefaultOpen)) {
                     auto& scriptData = ecs.GetComponent<NativeScriptData>(entity);
@@ -314,6 +331,9 @@ void Editor::DrawInspector() {
 
                 bool hasPointLight = ecs.TryGetComponent<PointLightData>(entity) != nullptr;
                 if (ImGui::MenuItem("PointLightData", nullptr, false, !hasPointLight)) ecs.AddComponent<PointLightData>(entity, PointLightData{});
+
+                bool hasSpotLight = ecs.TryGetComponent<SpotLightData>(entity) != nullptr;
+                if (ImGui::MenuItem("SpotLightData", nullptr, false, !hasSpotLight)) ecs.AddComponent<SpotLightData>(entity, SpotLightData{});
 
                 ImGui::EndPopup();
             }

@@ -9,6 +9,7 @@
 #include "../../../Framework/Manager/Collision/CollisionManager.h"
 #include "../../../Framework/Manager/NavMesh/NavMeshManager.h"
 #include "../../Object/Script/System/GameSequence.h"
+#include "../../Object/Script/System/RoomArea.h"
 #include "../../../Framework/System/JobSystem/JobSystem.h"
 #include "../../../Framework/ImGuiEditor/Editor/Editor.h"
 #include "../../../Framework/ECS/CompSystem/Systems/ScriptSystem.h"
@@ -33,6 +34,7 @@ void GameScene::Init()
     //  ここでは呼ばない。万一呼ばれた場合に備えてGameManager::Init()側にガードを入れてあるが、
     //  ここではEditorの初期化のみ行う)。
     Editor::Init();
+    Editor::SetScenePath("Asset/Data/Scene/GameScene.json");
 
     // Editor::Init()はEditor::s_sceneに新しいSceneオブジェクトを代入する。
     // このタイミングで「前のシーン」が保持していたGameObject群のshared_ptrの参照カウントが
@@ -447,55 +449,16 @@ void GameScene::RenderDebugPreviewCamera()
     auto& ecs = GameManager::Instance().GetECS();
     auto& camArray = ecs.GetComponentArray<CameraData>();
     Entity previewCameraEntity = INVALID_ENTITY;
+    for (size_t i = 0; i < camArray.GetSize(); ++i)
     {
-        // デバッグ: 該当するCameraDataが複数(重複/孤児)無いか~1秒おきに全部ログへ出す。
-        static int s_dbgFrame2 = 0;
-        bool doLog = ((s_dbgFrame2++ % 60) == 0);
-        int matchCount = 0;
-        for (size_t i = 0; i < camArray.GetSize(); ++i)
+        if ((camArray.begin() + i)->m_isDebugPreview)
         {
-            if ((camArray.begin() + i)->m_isDebugPreview)
-            {
-                Entity e = camArray.GetEntityFromIndex(i);
-                matchCount++;
-                if (doLog)
-                {
-                    Logger::Instance().AddLog(Logger::LogLevel::Info,
-                        "[PreviewCamera] candidate #%d entity=%u", matchCount, (uint32_t)e);
-                }
-                if (previewCameraEntity == INVALID_ENTITY || e > previewCameraEntity) previewCameraEntity = e;
-            }
-        }
-        if (doLog)
-        {
-            Logger::Instance().AddLog(Logger::LogLevel::Info,
-                "[PreviewCamera] total Debug Preview Camera candidates=%d, using entity=%u",
-                matchCount, (uint32_t)previewCameraEntity);
+            Entity e = camArray.GetEntityFromIndex(i);
+            if (previewCameraEntity == INVALID_ENTITY || e > previewCameraEntity) previewCameraEntity = e;
         }
     }
 
     if (previewCameraEntity == INVALID_ENTITY) return;
-
-    // デバッグ: 実際にレンダーに使われているカメラのワールド座標・向きを~1秒おきにログへ出す。
-    // Position/Rotationの数値だけ合っていても、親子関係やコンポーネント登録の不整合で
-    // 実際のワールド変換がズレている可能性を切り分けるため。
-    {
-        static int s_dbgFrame = 0;
-        if ((s_dbgFrame++ % 60) == 0)
-        {
-            if (auto* pTrans = ecs.TryGetComponent<TransformData>(previewCameraEntity))
-            {
-                Math::Vector3 worldPos = pTrans->m_worldMatrix.Translation();
-                Math::Vector3 worldForward = pTrans->m_worldMatrix.Backward();
-                Logger::Instance().AddLog(Logger::LogLevel::Info,
-                    "[PreviewCamera] entity=%u localPos=(%.2f,%.2f,%.2f) worldPos=(%.2f,%.2f,%.2f) worldForward=(%.2f,%.2f,%.2f)",
-                    (uint32_t)previewCameraEntity,
-                    pTrans->m_position.x, pTrans->m_position.y, pTrans->m_position.z,
-                    worldPos.x, worldPos.y, worldPos.z,
-                    worldForward.x, worldForward.y, worldForward.z);
-            }
-        }
-    }
 
     // RenderScene()は内部でRenderSystem::m_cameraEntityを書き換える(フラスタムカリング等が
     // 参照するため)。プレビュー描画のためにこれを一時的に差し替えたら、他の処理(ポストプロセス等)
@@ -614,6 +577,43 @@ void GameScene::UpdateLights(Entity cameraEntity)
         camPos = pTrans->m_worldMatrix.Translation();
     }
     lightSystem->Update(GameTimer::Instance().DeltaTime(), camPos);
+
+    if (auto spotLightSystem = GameManager::Instance().GetSpotLightSystem())
+    {
+        spotLightSystem->Update(camPos);
+    }
+
+    // 室内判定: RoomAreaのAABB(余白付き)をシェーダーへ送る。範囲内は外の光を受けなくなる。
+    constexpr int kMaxIndoorVolumes = 16;
+    const auto& lighting = ShaderManager::Instance().GetLightingSettings();
+    auto& lightData = ShaderManager::Instance().GetMutableLightData();
+    int indoorCount = 0;
+    if (lighting.EnableIndoorMask)
+    {
+        if (auto gs = GameSequence::GetInstance())
+        {
+            const float m = lighting.IndoorMargin;
+            for (RoomArea* room : gs->GetRooms())
+            {
+                if (!room) continue;
+                if (indoorCount >= kMaxIndoorVolumes)
+                {
+                    static bool s_warned = false;
+                    if (!s_warned)
+                    {
+                        Logger::Instance().AddLog(Logger::LogLevel::Warning,
+                            "[GameScene] More than %d RoomAreas - the rest are not treated as indoor.", kMaxIndoorVolumes);
+                        s_warned = true;
+                    }
+                    break;
+                }
+                lightData.IndoorMin[indoorCount] = { room->m_min.x - m, room->m_min.y - m, room->m_min.z - m, 0.0f };
+                lightData.IndoorMax[indoorCount] = { room->m_max.x + m, room->m_max.y + m, room->m_max.z + m, 0.0f };
+                ++indoorCount;
+            }
+        }
+    }
+    lightData.IndoorCount = indoorCount;
 }
 
 void GameScene::UpdatePointLightShadow(Entity cameraEntity)

@@ -1,0 +1,61 @@
+{
+    "Name": "SmudgeStick",
+    "IsActive": true,
+    "Components": [
+        {
+            "Type": "TransformData",
+            "Position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "Rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "Scale": [
+                1.0,
+                1.0,
+                1.0
+            ]
+        },
+        {
+            "Type": "NativeScriptData",
+            "ScriptName": "PickupItem",
+            "ItemType": 2
+        }
+    ],
+    "Children": [
+        {
+            "Name": "Model",
+            "IsActive": true,
+            "Components": [
+                {
+                    "Type": "TransformData",
+                    "Position": [
+                        0.0,
+                        0.025,
+                        0.0
+                    ],
+                    "Rotation": [
+                        1.5707963,
+                        0.0,
+                        0.0
+                    ],
+                    "Scale": [
+                        0.35,
+                        0.35,
+                        0.35
+                    ]
+                },
+                {
+                    "Type": "ModelRenderData",
+                    "FilePath": "Asset/Model/Item/SmudgeStick/SmudgeStick.gltf",
+                    "ModelType": 0
+                }
+            ],
+            "Children": []
+        }
+    ]
+}

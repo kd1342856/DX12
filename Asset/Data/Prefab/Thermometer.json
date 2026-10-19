@@ -1,0 +1,61 @@
+{
+    "Name": "Thermometer",
+    "IsActive": true,
+    "Components": [
+        {
+            "Type": "TransformData",
+            "Position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "Rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "Scale": [
+                1.0,
+                1.0,
+                1.0
+            ]
+        },
+        {
+            "Type": "NativeScriptData",
+            "ScriptName": "PickupItem",
+            "ItemType": 1
+        }
+    ],
+    "Children": [
+        {
+            "Name": "Model",
+            "IsActive": true,
+            "Components": [
+                {
+                    "Type": "TransformData",
+                    "Position": [
+                        0.0,
+                        0.04,
+                        0.0
+                    ],
+                    "Rotation": [
+                        1.5707963,
+                        0.0,
+                        0.0
+                    ],
+                    "Scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ]
+                },
+                {
+                    "Type": "ModelRenderData",
+                    "FilePath": "Asset/Model/Item/Thermometer/Thermometer.gltf",
+                    "ModelType": 0
+                }
+            ],
+            "Children": []
+        }
+    ]
+}

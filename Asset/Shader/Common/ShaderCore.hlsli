@@ -139,7 +139,26 @@ cbuffer cbLight : register(b3)
     float g_PL0_ShadowBias;
     int   g_PL0_ShadowEnabled;
     float2 g_PadPL0Shadow;
+
+    //-------------------------
+    // 室内判定 (RoomAreaのAABB、xyzのみ使用)。範囲内のピクセルは外の光(月明かり・環境光・
+    // 空の反射光)を受けず、月の影の中と同じ扱いになる
+    //-------------------------
+    int    g_IndoorCount;
+    float3 g_PadIndoor;
+    float4 g_IndoorMin[16];
+    float4 g_IndoorMax[16];
 };
+
+// ワールド座標がいずれかの室内範囲(RoomArea)に入っているか
+bool IsIndoor(float3 wPos)
+{
+    for (int r = 0; r < g_IndoorCount; r++)
+    {
+        if (all(wPos >= g_IndoorMin[r].xyz) && all(wPos <= g_IndoorMax[r].xyz)) return true;
+    }
+    return false;
+}
 
 //----------------------------------------
 // 定数バッファ[10]：UI

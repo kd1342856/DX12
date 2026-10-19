@@ -96,3 +96,81 @@ private:
 
     static float saturate(float v) { return v < 0.0f ? 0.0f : (v > 1.0f ? 1.0f : v); }
 };
+
+// SpotLightDataを持つエンティティを毎フレーム集めてShaderManagerへ送るシステム。
+// シェーダー側の配列(g_SL[10])に上限があるので、カメラに近い順で上位10個だけを送る。
+class SpotLightSystem : public SystemBase
+{
+public:
+    void Update(const Math::Vector3& viewerPos)
+    {
+        struct Candidate { float distSq; CBufferData::SpotLight data; };
+        std::vector<Candidate> candidates;
+        candidates.reserve(m_entities.size());
+
+        for (auto const& entity : m_entities)
+        {
+            auto& trans = m_pCoordinator->GetComponent<TransformData>(entity);
+            auto& light = m_pCoordinator->GetComponent<SpotLightData>(entity);
+            if (!light.m_enabled) continue;
+
+            Math::Vector3 pos = Math::Vector3::Transform(light.m_localOffset, trans.m_worldMatrix);
+            Math::Vector3 dir = Math::Vector3::TransformNormal(light.m_localDirection, trans.m_worldMatrix);
+            if (dir.LengthSquared() < 1e-8f) continue;
+            dir.Normalize();
+
+            // シェーダーは角度ではなくcosで比較する(InnerCorn > OuterCornである必要がある)
+            float outerDeg = (std::max)(light.m_outerAngle, 0.1f);
+            float innerDeg = (std::min)(light.m_innerAngle, outerDeg - 0.05f);
+            const float kDegToRad = 3.14159265f / 180.0f;
+
+            CBufferData::SpotLight sl = {};
+            sl.Pos = pos;
+            sl.Dir = dir;
+            sl.Range = light.m_range;
+            sl.Color = light.m_color * light.m_intensity;
+            sl.InnerCorn = cosf(innerDeg * kDegToRad);
+            sl.OuterCorn = cosf(outerDeg * kDegToRad);
+            sl.EnableShadow = 0.0f;
+            sl.mLightVP = Math::Matrix::Identity;
+
+            candidates.push_back({ Math::Vector3::DistanceSquared(pos, viewerPos), sl });
+
+            DrawGizmo(pos, dir, light.m_range, outerDeg * kDegToRad, light.m_color);
+        }
+
+        std::sort(candidates.begin(), candidates.end(),
+            [](const Candidate& a, const Candidate& b) { return a.distSq < b.distSq; });
+
+        constexpr int kMaxSpotLights = 10;
+        auto& lightData = ShaderManager::Instance().GetMutableLightData();
+        int count = (std::min)((int)candidates.size(), kMaxSpotLights);
+        for (int i = 0; i < count; ++i)
+        {
+            lightData.SL[i] = candidates[i].data;
+        }
+        lightData.SL_Count = count;
+    }
+
+private:
+    // 光源位置から照射方向への線と、Range先の円錐の縁(4本)を描く
+    static void DrawGizmo(const Math::Vector3& pos, const Math::Vector3& dir, float range, float outerRad, const Math::Vector3& color)
+    {
+        auto sat = [](float v) { return v < 0.0f ? 0.0f : (v > 1.0f ? 1.0f : v); };
+        ImU32 col = IM_COL32((int)(sat(color.x) * 255), (int)(sat(color.y) * 255), (int)(sat(color.z) * 255), 255);
+        auto& cm = CollisionManager::Instance();
+
+        Math::Vector3 up = (fabsf(dir.y) < 0.99f) ? Math::Vector3(0, 1, 0) : Math::Vector3(1, 0, 0);
+        Math::Vector3 side = dir.Cross(up);
+        side.Normalize();
+        Math::Vector3 up2 = side.Cross(dir);
+
+        Math::Vector3 tip = pos + dir * range;
+        float radius = tanf((std::min)(outerRad, 1.5f)) * range;
+        cm.AddDebugLine(pos, tip, col);
+        cm.AddDebugLine(pos, tip + side * radius, col);
+        cm.AddDebugLine(pos, tip - side * radius, col);
+        cm.AddDebugLine(pos, tip + up2 * radius, col);
+        cm.AddDebugLine(pos, tip - up2 * radius, col);
+    }
+};

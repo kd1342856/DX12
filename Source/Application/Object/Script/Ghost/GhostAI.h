@@ -1,6 +1,8 @@
 ﻿#pragma once
 #include "../System/RoomArea.h"
 
+class StimulusSource;
+
 class GhostAI : public NativeScript {
 public:
     enum class State
@@ -10,7 +12,16 @@ public:
         HouseWander, // 徘徊: ゴーストルームの外(家の中)をNavMeshで歩き回る
         Hunt,        // Playerを追う(定期的に無条件で開始)
         Stun,
-        Dead
+        Dead,
+        Lured        // 刺激(StimulusSource)に誘導されて向かう/その場に留まる
+    };
+
+    // ゴーストの種類。ゲーム開始時(Start)にランダムで抽選する(m_randomizeType)。
+    enum class GhostType
+    {
+        Jibakurei, // 地縛霊: 刺激に反応しない。香はいつでも効く
+        Onibi,     // 鬼火: 点灯中の光源に誘導される。光源に留まっている間だけ香が効く。勝手に照明をつける
+        Yanari,    // 家鳴: 音に誘導される(未実装 - 現状は地縛霊と同じ挙動。抽選対象外)
     };
 
     void Awake() override;
@@ -39,10 +50,27 @@ public:
 
     bool IsExorcised() const { return m_isExorcised; }
 
+    GhostType GetGhostType() const { return m_ghostType; }
+
+    // 香を当てられた時にPlayerから呼ばれる。種類ごとの条件を満たしていればスタンしてtrueを返す。
+    // 条件を満たしていない場合(失敗)、Hunt中ならHuntが続いたまま残り時間が延長される。
+    bool TryIncenseStun(float stunTime);
+
 private:
     void UpdateWander(float deltaTime, TransformData& cTrans);
     void UpdateHouseWander(float deltaTime, TransformData& cTrans);
     void UpdateHunt(float deltaTime, TransformData& cTrans);
+    void UpdateLured(float deltaTime, TransformData& cTrans);
+    // HouseWander/Hunt/Luredで共通の、finalTargetへNavMesh(階段区間は直接補間)で1フレーム分進む処理。
+    // 位置・向き(m_moveDir)まで更新する。
+    void MoveTowardTarget(float deltaTime, TransformData& cTrans, const Math::Vector3& finalTarget, float speed);
+    // 鬼火/家鳴: 対応する刺激を感知したらLuredへ遷移する(Wander/HouseWander中に呼ぶ)
+    void CheckStimulus(float deltaTime, const Math::Vector3& currentPos);
+    // 鬼火/家鳴の兆候: 近くの無効な発生源を勝手に有効にする
+    void UpdateTell(float deltaTime, const Math::Vector3& currentPos);
+    // Luredを終えてゴーストルームへ歩いて帰る(Hunt終了時と同じ帰り方)
+    void ReturnToGhostRoom(const Math::Vector3& currentPos);
+    bool IsLuredAndArrived() const { return m_currentState == State::Lured && m_lureArrived; }
     void StartHouseWander(const Math::Vector3& currentPos);
     std::vector<RoomArea*> CollectReachableCandidateRooms(const Math::Vector3& currentPos) const;
     void FacePosition(TransformData& cTrans, const Math::Vector3& dir, float deltaTime);
@@ -65,6 +93,34 @@ private:
     bool m_isExorcised = false;
 
     State m_currentState = State::Idle;
+
+    // --- 種類 ---
+    GhostType m_ghostType = GhostType::Jibakurei;
+    bool m_randomizeType = true; // trueならStart()で種類を抽選する(falseならm_ghostTypeをそのまま使う)
+
+    // --- 誘導(Lured) ---
+    // Wander/HouseWander中、m_lureCheckIntervalごとに対応する刺激を探し、見つかればそこへ向かう。
+    // 到着後はm_lureDwellDurationだけ留まり(この間だけ鬼火に香が効く)、時間切れか発生源が
+    // 無効になったらゴーストルームへ帰る。帰った直後に同じ発生源へ即座に戻らないよう
+    // m_lureCooldownの間は再感知しない。
+    StimulusSource* m_lureSource = nullptr;
+    bool  m_lureArrived = false;
+    float m_lureCheckTimer = 0.0f;
+    float m_lureCheckInterval = 0.5f;
+    float m_lureArriveThreshold = 1.5f;  // 発生源にこの距離(XZ)まで近づいたら到着とみなす
+    float m_lureDwellTimer = 0.0f;
+    float m_lureDwellDuration = 20.0f;   // 到着後に留まる時間(秒)
+    float m_lureCooldownTimer = 0.0f;
+    float m_lureCooldown = 10.0f;        // 誘導を終えてから再感知するまでの時間(秒)
+
+    // --- 香の失敗ペナルティ ---
+    float m_failHuntExtension = 5.0f;    // 条件外で香を使われた時、Hunt中ならこの秒数だけHuntを延長する
+
+    // --- 兆候(鬼火: 勝手に照明をつける) ---
+    float m_tellTimer = 0.0f;
+    float m_tellIntervalMin = 20.0f;
+    float m_tellIntervalMax = 40.0f;
+    float m_tellRange = 8.0f;            // この距離以内の無効な発生源を勝手に有効にする
 
     // --- 家の範囲(HouseWander/Huntの移動先をこの範囲内に制限する) ---
     // 全RoomAreaのAABBを合成し、部屋同士の境界(廊下など)も含まれるように少し余裕を持たせたもの。

@@ -91,6 +91,13 @@ namespace CBufferData
 		float PL0_ShadowBias;
 		int32_t PL0_ShadowEnabled;
 		float PadPL0Shadow[2];
+
+		// 室内判定(RoomAreaのAABB、xyzのみ使用)。範囲内のピクセルは外の光(月明かり・環境光・
+		// 空の反射光)を受けず、月の影の中と同じ扱いになる(GameScene::UpdateLightsが毎フレーム更新)。
+		int32_t IndoorCount;
+		float PadIndoor[3];
+		Math::Vector4 IndoorMin[16];
+		Math::Vector4 IndoorMax[16];
 	};
 
 	struct SSAO

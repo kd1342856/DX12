@@ -20,5 +20,6 @@
 #include "Components/Data/ColliderData.h"
 #include "Components/Data/NativeScriptData.h"
 #include "Components/Data/PointLightData.h"
+#include "Components/Data/SpotLightData.h"
 
 #include "CompSystem/Systems/RenderSystem.h"

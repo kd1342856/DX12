@@ -35,6 +35,11 @@ void ResultScene::Init()
 
     auto& ecs = GameManager::Instance().GetECS();
 
+    // Hierarchy is per-scene: drop the previous scene's GameObjects. ResultScene builds raw ECS
+    // entities, so its hierarchy stays empty and has no save path (Save Scene is a no-op here).
+    Editor::Init();
+    ecs.FlushCommands();
+
     if (m_isClear) {
         m_bgEntity = ecs.CreateEntity();
         TransformData bgTransform;
@@ -130,7 +135,8 @@ void ResultScene::Update(float deltaTime)
 
     ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | 
                                    ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | 
-                                   ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoBackground;
+                                   ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoBackground |
+                                   ImGuiWindowFlags_NoInputs; // text only - must not swallow sprite clicks
     
     const ImGuiViewport* viewport = ImGui::GetMainViewport();
     ImVec2 center = viewport->GetCenter();
@@ -148,15 +154,17 @@ void ResultScene::Update(float deltaTime)
         ImGui::PopStyleColor();
     }
     
+    ImGui::End();
+
+    // Click directly on the BackToTitle sprite (hit-tested in the sprite's own 1280x720 space).
+    // The old ImGui InvisibleButton used window-local SetCursorPos with screen-center coordinates
+    // inside an auto-resizing window, so it never actually sat over the sprite.
     if (uiAlpha > 0.5f) {
-        // Invisible button to catch clicks over the sprite area
-        ImGui::SetCursorPos(ImVec2(center.x - 150.0f, center.y + 150.0f));
-        if (ImGui::InvisibleButton("ReturnBtn", ImVec2(300.0f, 200.0f))) {
+        auto spriteSys = GameManager::Instance().GetSpriteRenderSystem();
+        if (spriteSys && spriteSys->IsClicked(m_buttonEntity)) {
             SceneManager::Instance().ChangeScene(std::make_unique<TitleScene>(), 1.0f);
         }
     }
-
-    ImGui::End();
 
     // F1 toggles Editor::Draw()'s own s_showEditor flag internally, same as GameScene/TitleScene -
     // hidden by default here since the debug windows would clutter the result screen, but callable

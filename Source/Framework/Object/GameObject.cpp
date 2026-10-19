@@ -32,12 +32,25 @@ void GameObject::ExecuteDestroy() {
         }
     }
 
+    // Destroy the whole subtree, not just this node. Just clearing m_children used to leave every
+    // child alive: Scene::m_entityToObject still held a shared_ptr to each of them (it registers
+    // children too, see Scene::DeserializeGameObject), so their entities/components were never
+    // destroyed - e.g. picking up an item whose model sits on a child "Model" object left that model
+    // lying on the floor, and deleting a parent in the editor left orphaned child components behind.
+    // Iterate a copy: each child's ExecuteDestroy() erases itself from this m_children.
+    auto children = m_children;
+    for (auto& child : children) {
+        if (child) child->ExecuteDestroy();
+    }
     m_children.clear();
 
     if (auto p = m_wpParent.lock()) {
         auto it = std::find(p->m_children.begin(), p->m_children.end(), self);
         if (it != p->m_children.end()) p->m_children.erase(it);
-    } else if (m_scene) {
+    }
+    // Also drop the scene's Entity -> GameObject entry for child objects (RemoveGameObject only
+    // finds root objects in its list, but always erases the mapping), so nothing keeps them alive.
+    if (m_scene) {
         m_scene->RemoveGameObject(self);
     }
     m_wpParent.reset();

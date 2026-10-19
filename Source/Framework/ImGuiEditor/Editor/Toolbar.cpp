@@ -25,14 +25,18 @@ void Editor::DrawMenuBar() {
         if (ImGui::BeginMenu("File")) {
             if (ImGui::MenuItem("Save Scene", "Ctrl+S")) {
                 auto sceneObj = GetCurrentScenePtr();
-                if (sceneObj) {
+                const std::string& path = GetScenePath();
+                if (sceneObj && !path.empty()) {
                     nlohmann::json j;
                     sceneObj->Serialize(j);
-                    std::ofstream o("Asset/Data/Scene/GameScene.json");
+                    std::ofstream o(path);
                     if (o.is_open()) {
                         o << std::setw(4) << j << std::endl;
-                        Logger::Instance().AddLog(Logger::LogLevel::Info, "Scene Saved.");
+                        Logger::Instance().AddLog(Logger::LogLevel::Info, "Scene Saved: %s", path.c_str());
                     }
+                    SaveEditorData();
+                } else {
+                    Logger::Instance().AddLog(Logger::LogLevel::Warning, "このシーンには保存先がありません(保存しませんでした)");
                 }
             }
             ImGui::EndMenu();

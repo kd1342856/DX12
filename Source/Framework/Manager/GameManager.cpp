@@ -56,6 +56,7 @@ void GameManager::Init()
     m_ecs.RegisterComponent<NativeScriptData>();
     m_ecs.RegisterComponent<SpriteData>();
     m_ecs.RegisterComponent<PointLightData>();
+    m_ecs.RegisterComponent<SpotLightData>();
 
     // --- System 登録 & Signature 設定 ---
     m_spScriptSystem = m_ecs.RegisterSystem<ScriptSystem>();
@@ -117,6 +118,15 @@ void GameManager::Init()
         sig.set(m_ecs.GetComponentType<PointLightData>());
         m_ecs.SetSystemSignature<LightSystem>(sig);
         m_spLightSystem->m_pCoordinator = &m_ecs;
+    }
+
+    m_spSpotLightSystem = m_ecs.RegisterSystem<SpotLightSystem>();
+    {
+        Signature sig;
+        sig.set(m_ecs.GetComponentType<TransformData>());
+        sig.set(m_ecs.GetComponentType<SpotLightData>());
+        m_ecs.SetSystemSignature<SpotLightSystem>(sig);
+        m_spSpotLightSystem->m_pCoordinator = &m_ecs;
     }
 
     CollisionManager::Instance().Init();

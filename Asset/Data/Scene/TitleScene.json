@@ -1,0 +1,197 @@
+{
+    "Fog": {
+        "EnableFog": true,
+        "EnableHuntDarken": true,
+        "FogColor": [
+            0.5,
+            0.5,
+            0.550000011920929
+        ],
+        "FogDensity": 0.10000000149011612,
+        "HuntDarkenAmount": 0.6000000238418579,
+        "HuntFogDensity": 0.2759999930858612,
+        "HuntTransitionSpeed": 0.800000011920929
+    },
+    "GameObjects": [
+        {
+            "Children": [],
+            "Components": [
+                {
+                    "Position": [
+                        640.0,
+                        360.0,
+                        0.0
+                    ],
+                    "Rotation": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "Scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "Type": "TransformData"
+                },
+                {
+                    "Color": [
+                        1.0,
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "FilePath": "Asset/Texture/UI/bg_title.png",
+                    "OrderInLayer": 100,
+                    "Pivot": [
+                        0.5,
+                        0.5
+                    ],
+                    "Size": [
+                        1280.0,
+                        720.0
+                    ],
+                    "Type": "SpriteData"
+                }
+            ],
+            "IsActive": true,
+            "Name": "TitleBackground",
+            "UUID": 5427923782322619724
+        },
+        {
+            "Children": [],
+            "Components": [
+                {
+                    "Position": [
+                        640.0,
+                        203.47129821777344,
+                        0.0
+                    ],
+                    "Rotation": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "Scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "Type": "TransformData"
+                },
+                {
+                    "Color": [
+                        1.0,
+                        1.0,
+                        1.0,
+                        0.44142672419548035
+                    ],
+                    "FilePath": "Asset/Texture/UI/Haihu.png",
+                    "OrderInLayer": 50,
+                    "Pivot": [
+                        0.5,
+                        0.5
+                    ],
+                    "Size": [
+                        600.0,
+                        400.0
+                    ],
+                    "Type": "SpriteData"
+                }
+            ],
+            "IsActive": true,
+            "Name": "TitleLogo",
+            "UUID": 17542367867490919729
+        },
+        {
+            "Children": [],
+            "Components": [
+                {
+                    "Position": [
+                        400.0,
+                        500.0,
+                        0.0
+                    ],
+                    "Rotation": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "Scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "Type": "TransformData"
+                },
+                {
+                    "Color": [
+                        1.0,
+                        0.20000000298023224,
+                        0.20000000298023224,
+                        1.0
+                    ],
+                    "FilePath": "Asset/Texture/UI/Start.png",
+                    "OrderInLayer": 50,
+                    "Pivot": [
+                        0.5,
+                        0.5
+                    ],
+                    "Size": [
+                        220.0,
+                        66.0
+                    ],
+                    "Type": "SpriteData"
+                }
+            ],
+            "IsActive": true,
+            "Name": "StartButton",
+            "UUID": 394910379562024796
+        },
+        {
+            "Children": [],
+            "Components": [
+                {
+                    "Position": [
+                        800.0,
+                        500.0,
+                        0.0
+                    ],
+                    "Rotation": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "Scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "Type": "TransformData"
+                },
+                {
+                    "Color": [
+                        1.0,
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "FilePath": "Asset/Texture/UI/Exit.png",
+                    "OrderInLayer": 50,
+                    "Pivot": [
+                        0.5,
+                        0.5
+                    ],
+                    "Size": [
+                        200.0,
+                        60.0
+                    ],
+                    "Type": "SpriteData"
+                }
+            ],
+            "IsActive": true,
+            "Name": "ExitButton",
+            "UUID": 10759173476812567429
+        }
+    ]
+}

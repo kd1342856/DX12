@@ -5,5 +5,6 @@
 enum class ItemType {
     Thermometer = 1,
     Incense = 2,
-    Amulet = 3
+    Amulet = 3,
+    FlashLight = 4
 };
