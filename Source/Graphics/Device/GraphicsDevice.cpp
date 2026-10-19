@@ -130,25 +130,31 @@ void GraphicsDevice::EndFrame()
 	queue->Execute(m_upContextManager->GetGraphicsContext());
 	uint64_t fenceVal = queue->Signal();
 	m_upFrameManager->GetCurrentFrameResource().SetFenceValue(fenceVal);
-	m_pSwapChain->Present(0, m_allowTearing ? DXGI_PRESENT_ALLOW_TEARING : 0);
+	{
+		PROFILE_CPU_SCOPE("Present");
+		m_pSwapChain->Present(0, m_allowTearing ? DXGI_PRESENT_ALLOW_TEARING : 0);
+	}
 	m_graphicsMemory->Commit(queue->GetQueue());
 	m_upFrameManager->MoveNextFrame();
 }
 void GraphicsDevice::BeginFrame()
 {
-	Profiler::Instance().ResetPerFrameCounters();
-
-	// Present～Present間の実時間、つまりプレイヤーが体感するfpsそのもの。
-	static auto s_lastBeginFrameTime = std::chrono::high_resolution_clock::now();
-	auto now = std::chrono::high_resolution_clock::now();
-	Profiler::Instance().AddFrameTime(std::chrono::duration<float, std::milli>(now - s_lastBeginFrameTime).count());
-	s_lastBeginFrameTime = now;
+	// フレーム時間の記録とカウンタのリセットはGDF::BeginFrame()の先頭(Profiler::BeginCPUFrame)で行う
 
 	// Process deferred deletion queue before acquiring the new frame
-	uint64_t completedFence = m_upQueueManager->GetGraphicsQueue()->GetFence()->GetCompletedValue();
-	m_upResourceLifetimeManager->ProcessDeleteQueue(completedFence);
+	{
+		PROFILE_CPU_SCOPE("ProcessDeleteQueue");
+		uint64_t completedFence = m_upQueueManager->GetGraphicsQueue()->GetFence()->GetCompletedValue();
+		m_upResourceLifetimeManager->ProcessDeleteQueue(completedFence);
+	}
 
-	FrameResource& fr = m_upFrameManager->AcquireFrame();
+	FrameResource* pFr = nullptr;
+	{
+		// ここが長い = GPUが前のフレームを処理し終わるのを待っている(GPU側が重い)
+		PROFILE_CPU_SCOPE("WaitForGPU(AcquireFrame)");
+		pFr = &m_upFrameManager->AcquireFrame();
+	}
+	FrameResource& fr = *pFr;
 	m_upContextManager->GetGraphicsContext()->Begin(fr);
 	auto cmdList = m_upContextManager->GetGraphicsContext()->GetCmdList();
 	Profiler::Instance().BeginGPUFrame(cmdList);

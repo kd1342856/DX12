@@ -145,7 +145,13 @@ public:
     const std::array<float, kFrameHistorySize>& GetFrameTimeHistory() const { return m_frameTimeHistory; }
     int GetFrameTimeHistoryIndex() const { return m_frameTimeHistoryIdx; }
 
+    // フレームの先頭で1回呼ぶ。前フレームの所要時間を記録し、平均より極端に遅かったら
+    // そのフレームのCPU区間計測をログに出してから、毎フレームのカウンタをリセットする。
+    void BeginCPUFrame();
+
 private:
+    void ReportFrameSpike(float frameMs) const;
+
     Profiler() = default;
     ~Profiler() = default;
 
@@ -180,6 +186,10 @@ private:
     // フレーム時間の履歴
     std::array<float, kFrameHistorySize> m_frameTimeHistory = {};
     int m_frameTimeHistoryIdx = 0;
+
+    // スパイク検出用の平均フレーム時間(ms)と、平均が安定するまでの待ちフレーム数
+    float m_avgFrameMs = 0.0f;
+    int m_spikeWarmupFrames = 120;
 };
 
 // 使い方: 計測したいブロックの先頭で PROFILE_CPU_SCOPE("Shadow"); のように呼ぶ。

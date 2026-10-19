@@ -66,7 +66,11 @@ void Mesh::CreateGPU(GraphicsDevice* pDevice,
 
 void Mesh::DrawInstanced(UINT vertexCount) const
 {
-    OutputDebugStringA("DrawMesh\n");
+    // 非同期ロード中のモデルは、ModelData::IsLoaded()がtrueになった後もGPUUploadQueue::Process()が
+    // CreateGPU()するまでの間はGPUバッファが無い(m_pDevice==nullptr)。呼び出し側はIsReady()を
+    // 確認する想定だが、確認漏れがあってもクラッシュしないようにここでも弾く。
+    if (!m_pDevice || !IsReady()) return;
+
     std::string name = m_material.Name.empty() ? "Unnamed Mesh" : m_material.Name;
     Profiler::Instance().AddDrawCall(name, 1);
 

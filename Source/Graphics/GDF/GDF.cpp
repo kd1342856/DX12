@@ -1,5 +1,6 @@
 #include "../../Pch.h"
 #include "../GPUUploadQueue/GPUUploadQueue.h"
+#include "../../Framework/DirectX/Utility/Profiler.h"
 
 // デバイス初期化
 bool GDF::Init(HWND hwnd, int width, int height)
@@ -10,8 +11,13 @@ bool GDF::Init(HWND hwnd, int width, int height)
 // フレーム開始（ヒープセット・定数バッファリセット・ImGuiNewFrame）
 void GDF::BeginFrame()
 {
-	// Process pending GPU uploads from worker threads (main thread only)
-	GPUUploadQueue::Instance().Process();
+	Profiler::Instance().BeginCPUFrame();
+
+	{
+		// Process pending GPU uploads from worker threads (main thread only)
+		PROFILE_CPU_SCOPE("GPUUploadQueue::Process");
+		GPUUploadQueue::Instance().Process();
+	}
 
 	GraphicsDevice::Instance().BeginFrame();
 	

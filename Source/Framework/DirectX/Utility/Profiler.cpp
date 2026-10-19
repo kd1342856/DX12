@@ -196,3 +196,55 @@ void Profiler::AddFrameTime(float ms)
     m_frameTimeHistory[m_frameTimeHistoryIdx] = ms;
     m_frameTimeHistoryIdx = (m_frameTimeHistoryIdx + 1) % kFrameHistorySize;
 }
+
+// ---------------------------------------------------------------
+// フレーム境界 + スパイク検出
+// ---------------------------------------------------------------
+void Profiler::BeginCPUFrame()
+{
+    // 前回のBeginCPUFrame～今回までの実時間 = 直前の1フレーム全体(アップロード処理・GPU待ち・Present込み)。
+    // m_cpuTimingsにはまだ同じフレームの区間計測が残っているので、リセット前に判定する。
+    static auto s_last = std::chrono::high_resolution_clock::now();
+    auto now = std::chrono::high_resolution_clock::now();
+    float frameMs = std::chrono::duration<float, std::milli>(now - s_last).count();
+    s_last = now;
+
+    AddFrameTime(frameMs);
+
+    if (m_spikeWarmupFrames > 0)
+    {
+        // 起動直後はロード等で荒れるので、平均を作るだけで判定はしない
+        --m_spikeWarmupFrames;
+        m_avgFrameMs = (m_avgFrameMs == 0.0f) ? frameMs : m_avgFrameMs * 0.9f + frameMs * 0.1f;
+    }
+    else if (frameMs > m_avgFrameMs * 3.0f && frameMs > m_avgFrameMs + 10.0f)
+    {
+        // スパイクは平均に混ぜない(混ぜると直後の判定が鈍る)
+        ReportFrameSpike(frameMs);
+    }
+    else
+    {
+        m_avgFrameMs = m_avgFrameMs * 0.95f + frameMs * 0.05f;
+    }
+
+    ResetPerFrameCounters();
+}
+
+void Profiler::ReportFrameSpike(float frameMs) const
+{
+    std::vector<std::pair<std::string, float>> sorted(m_cpuTimings.begin(), m_cpuTimings.end());
+    std::sort(sorted.begin(), sorted.end(), [](const auto& a, const auto& b) { return a.second > b.second; });
+
+    // 区間は入れ子になっている(SceneManager::Updateの中にShadow等がある)ので合計は一致しない
+    std::string detail;
+    const size_t count = (std::min)(sorted.size(), static_cast<size_t>(10));
+    for (size_t i = 0; i < count; ++i)
+    {
+        char buf[128];
+        snprintf(buf, sizeof(buf), "%s%s=%.2fms", i ? ", " : "", sorted[i].first.c_str(), sorted[i].second);
+        detail += buf;
+    }
+
+    Logger::Instance().AddLog(Logger::LogLevel::Warning,
+        "[Spike] frame %.1fms (avg %.1fms) : %s", frameMs, m_avgFrameMs, detail.c_str());
+}
