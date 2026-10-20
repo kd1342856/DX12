@@ -13,6 +13,15 @@
     <Filter Include="Asset\Shader\Common">
       <UniqueIdentifier>{C0FEF6D9-F61E-41CA-9745-9DCC882C7A94}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Asset\Shader\ParticleShader">
+      <UniqueIdentifier>{6b1c3e52-8f0a-4d7e-9a41-2c5d8e7f1a03}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Graphics\Shader\ParticleShader">
+      <UniqueIdentifier>{7c2d4f63-9a1b-4e8f-8b52-3d6e9f802b14}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Framework\Manager\Particle">
+      <UniqueIdentifier>{8d3e5074-ab2c-4f90-9c63-4e7fa0913c25}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Asset\Shader\FogShader">
       <UniqueIdentifier>{2D7871BD-84E9-4D8A-B028-27A8A8004861}</UniqueIdentifier>
     </Filter>
@@ -327,6 +336,9 @@
     <ClCompile Include="Source\Application\Object\Script\System\StimulusSource.cpp">
       <Filter>Source\Application\Object\Script\System</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Application\Object\Script\System\LightSwitch.cpp">
+      <Filter>Source\Application\Object\Script\System</Filter>
+    </ClCompile>
     <ClCompile Include="Source\Application\Application.cpp">
       <Filter>Source\Application</Filter>
     </ClCompile>
@@ -367,6 +379,9 @@
       <Filter>Source\Framework\ImGuiEditor\Editor</Filter>
     </ClCompile>
     <ClCompile Include="Source\Framework\ImGuiEditor\Editor\StatisticsWindow.cpp">
+      <Filter>Source\Framework\ImGuiEditor\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Framework\ImGuiEditor\Editor\SoundManagerWindow.cpp">
       <Filter>Source\Framework\ImGuiEditor\Editor</Filter>
     </ClCompile>
     <ClCompile Include="Source\Framework\ImGuiEditor\Editor\PreviewCameraWindow.cpp">
@@ -500,6 +515,12 @@
     </ClCompile>
     <ClCompile Include="Source\Graphics\Shader\SSROpaqueShader\SSROpaqueShader.cpp">
       <Filter>Source\Graphics\Shader\SSROpaqueShader</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Graphics\Shader\ParticleShader\ParticleShader.cpp">
+      <Filter>Source\Graphics\Shader\ParticleShader</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Framework\Manager\Particle\ParticleManager.cpp">
+      <Filter>Source\Framework\Manager\Particle</Filter>
     </ClCompile>
     <ClCompile Include="Source\Graphics\Shader\FogShader\FogShader.cpp">
       <Filter>Source\Graphics\Shader\FogShader</Filter>
@@ -666,6 +687,12 @@
       <Filter>Source\Application\Object\Script\Item</Filter>
     </ClInclude>
     <ClInclude Include="Source\Application\Object\Script\System\StimulusSource.h">
+      <Filter>Source\Application\Object\Script\System</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Application\Object\Script\System\DoorLock.h">
+      <Filter>Source\Application\Object\Script\System</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Application\Object\Script\System\LightSwitch.h">
       <Filter>Source\Application\Object\Script\System</Filter>
     </ClInclude>
     <ClInclude Include="Source\Application\Application.h">
@@ -919,6 +946,12 @@
     </ClInclude>
     <ClInclude Include="Source\Graphics\Shader\SSROpaqueShader\SSROpaqueShader.h">
       <Filter>Source\Graphics\Shader\SSROpaqueShader</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Graphics\Shader\ParticleShader\ParticleShader.h">
+      <Filter>Source\Graphics\Shader\ParticleShader</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\Manager\Particle\ParticleManager.h">
+      <Filter>Source\Framework\Manager\Particle</Filter>
     </ClInclude>
     <ClInclude Include="Source\Graphics\Shader\FogShader\FogShader.h">
       <Filter>Source\Graphics\Shader\FogShader</Filter>
@@ -1189,6 +1222,12 @@
     </None>
     <None Include="Asset\Shader\BloomShader\BloomExtract_PS.hlsl">
       <Filter>Asset\Shader\BloomShader</Filter>
+    </None>
+    <None Include="Asset\Shader\ParticleShader\ParticleShader_PS.hlsl">
+      <Filter>Asset\Shader\ParticleShader</Filter>
+    </None>
+    <None Include="Asset\Shader\ParticleShader\ParticleShader_VS.hlsl">
+      <Filter>Asset\Shader\ParticleShader</Filter>
     </None>
     <None Include="Asset\Shader\FogShader\FogShader_PS.hlsl">
       <Filter>Asset\Shader\FogShader</Filter>

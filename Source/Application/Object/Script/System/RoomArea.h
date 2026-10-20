@@ -1,5 +1,14 @@
 #pragma once
 
+// Floor surface of a room, used to pick the player's footstep sound. Anywhere outside every
+// RoomArea counts as Soil (the yard). Values are saved as ints, so only append new ones.
+enum class FloorType
+{
+    Wood,
+    Tatami,
+    Soil,
+};
+
 class RoomArea : public NativeScript {
 public:
     void Serialize(nlohmann::json& out) const override;
@@ -18,6 +27,8 @@ public:
     // usual same-floor adjacency check (which would otherwise reject it as touching nothing, since
     // a staircase's whole point is to span more height than kSameFloorTolerance allows).
     bool m_isStairs = false;
+
+    FloorType m_floorType = FloorType::Wood;
 
     Math::Vector3 m_min = { -5.0f, -5.0f, -5.0f };
     Math::Vector3 m_max = {  5.0f,  5.0f,  5.0f };

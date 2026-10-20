@@ -1,0 +1,53 @@
+{
+    "Name": "RoomCeilingLight",
+    "IsActive": true,
+    "Components": [
+        {
+            "Type": "TransformData",
+            "Position": [0.0, 0.0, 0.0],
+            "Rotation": [0.0, 0.0, 0.0],
+            "Scale": [1.0, 1.0, 1.0]
+        },
+        {
+            "Type": "NativeScriptData",
+            "ScriptName": "StimulusSource",
+            "StimulusType": 0,
+            "Active": false,
+            "Radius": 12.0,
+            "Interactable": true
+        }
+    ],
+    "Children": [
+        {
+            "Name": "Model",
+            "IsActive": true,
+            "Components": [
+                {
+                    "Type": "TransformData",
+                    "Position": [0.0, 0.0, 0.0],
+                    "Rotation": [0.0, 0.0, 0.0],
+                    "Scale": [1.0, 1.0, 1.0]
+                },
+                {
+                    "Type": "ModelRenderData",
+                    "FilePath": "Asset/Model/Map/CeilingLight/Room/CeilingLight.gltf",
+                    "ModelType": 0
+                },
+                {
+                    "Type": "SpotLightData",
+                    "Enabled": false,
+                    "Color": [0.95, 0.98, 1.0],
+                    "Intensity": 3.0,
+                    "Range": 8.0,
+                    "InnerAngle": 40.0,
+                    "OuterAngle": 80.0,
+                    "LocalOffset": [0.0, -0.5, 0.0],
+                    "LocalDirection": [0.0, -1.0, 0.0],
+                    "ModelGlow": 8.0,
+                    "GlowMaterial": "FL_Tube_Baked"
+                }
+            ],
+            "Children": []
+        }
+    ]
+}

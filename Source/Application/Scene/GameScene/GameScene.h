@@ -41,6 +41,8 @@ private:
     bool m_isPreviewCameraDragging = false; // Debug Preview Cameraを右クリックドラッグで操作中か
     bool m_flashlightOn = false;
 
+    float m_navMeshWaitTime = 0.0f; // NavMesh構築前に家のモデルの読み込みを待った時間
+
     Entity m_editorCameraEntity = INVALID_ENTITY;
     Entity m_gameCameraEntity = INVALID_ENTITY;
 };

@@ -1,0 +1,46 @@
+{
+    "Name": "LightSwitch",
+    "IsActive": true,
+    "Components": [
+        {
+            "Type": "TransformData",
+            "Position": [0.0, 1.2, 0.0],
+            "Rotation": [0.0, 0.0, 0.0],
+            "Scale": [1.0, 1.0, 1.0]
+        },
+        {
+            "Type": "NativeScriptData",
+            "ScriptName": "LightSwitch",
+            "Targets": "CeilingLight",
+            "PilotMaterial": "Pilot_Lamp",
+            "Interactable": true
+        }
+    ],
+    "Children": [
+        {
+            "Name": "Model",
+            "IsActive": true,
+            "Components": [
+                {
+                    "Type": "TransformData",
+                    "Position": [0.0, 0.0, 0.0],
+                    "Rotation": [0.0, 0.0, 0.0],
+                    "Scale": [1.0, 1.0, 1.0]
+                },
+                {
+                    "Type": "ModelRenderData",
+                    "FilePath": "Asset/Model/Map/CeilingLight/Switch/Switch.gltf",
+                    "ModelType": 0,
+                    "PerInstanceAnimation": true
+                },
+                {
+                    "Type": "AnimationDataComponent",
+                    "AnimationIndex": -1,
+                    "IsPlaying": false,
+                    "IsLoop": false
+                }
+            ],
+            "Children": []
+        }
+    ]
+}

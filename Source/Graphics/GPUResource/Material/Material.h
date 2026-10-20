@@ -33,6 +33,13 @@ struct MaterialConstants
     // 使うか。RenderSystem::RenderReflection()が毎フレーム、アクティブなReflectionComponent
     // の分だけ動的に割り当てる(-1=このフレームは専用カメラの反射が無い→SSRフォールバック)。
     int32_t reflectionSlot = -1;
+
+    // 足元からのディゾルブ(proceduralType==5。今はSkinningShaderだけが対応 - 除霊されたゴースト等)。
+    // ワールド座標のYがdissolveHeightより下を消し、その境界のすぐ上をdissolveEdgeColor(HDR)で光らせる。
+    // HLSLのパッキングに合わせてfloat3を先に置く(16byte境界をまたがないように)。
+    Math::Vector3 dissolveEdgeColor = { 0.0f, 0.0f, 0.0f };
+    float dissolveHeight = 0.0f;
+    float dissolveEdgeWidth = 0.15f; // 光る帯の幅と、境界のギザギザの大きさ(m)
 };
 
 class Material

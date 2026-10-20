@@ -1,4 +1,4 @@
-#include "../../Pch.h"
+﻿#include "../../Pch.h"
 #include "ComponentSerializerRegistration.h"
 #include "ComponentSerializerRegistry.h"
 #include "ECS.h"
@@ -52,7 +52,9 @@ void RegisterComponentSerializers() {
             if (cj.contains("Fov")) d.m_fov = cj["Fov"];
             if (cj.contains("NearZ")) d.m_nearZ = cj["NearZ"];
             if (cj.contains("FarZ")) d.m_farZ = cj["FarZ"];
-            if (cj.contains("MoveSpeed")) d.m_moveSpeed = cj["MoveSpeed"];
+            // 旧形式の"MoveSpeed"は1フレームあたりの移動量だったので、60fps想定で秒速に換算する
+            if (cj.contains("MoveSpeedPerSec")) d.m_moveSpeed = cj["MoveSpeedPerSec"];
+            else if (cj.contains("MoveSpeed")) d.m_moveSpeed = cj["MoveSpeed"].get<float>() * 60.0f;
             if (cj.contains("CameraMode")) d.m_cameraMode = static_cast<CameraMode>(cj["CameraMode"]);
             if (cj.contains("TargetOffset")) { d.m_targetOffset = {cj["TargetOffset"][0], cj["TargetOffset"][1], cj["TargetOffset"][2]}; }
             if (cj.contains("FpsOffset")) { d.m_fpsOffset = {cj["FpsOffset"][0], cj["FpsOffset"][1], cj["FpsOffset"][2]}; }
@@ -64,7 +66,7 @@ void RegisterComponentSerializers() {
                 cj["Fov"] = p_d->m_fov;
                 cj["NearZ"] = p_d->m_nearZ;
                 cj["FarZ"] = p_d->m_farZ;
-                cj["MoveSpeed"] = p_d->m_moveSpeed;
+                cj["MoveSpeedPerSec"] = p_d->m_moveSpeed;
                 cj["CameraMode"] = static_cast<int>(p_d->m_cameraMode);
                 cj["TargetOffset"] = {p_d->m_targetOffset.x, p_d->m_targetOffset.y, p_d->m_targetOffset.z};
                 cj["FpsOffset"] = {p_d->m_fpsOffset.x, p_d->m_fpsOffset.y, p_d->m_fpsOffset.z};
@@ -79,6 +81,7 @@ void RegisterComponentSerializers() {
         [](ECSCoordinator& ecs, Entity e, const nlohmann::json& cj, GameObject* obj) {
             ModelRenderData d;
             if (cj.contains("ModelType")) d.m_modelType = static_cast<ModelType>(cj["ModelType"]);
+            if (cj.contains("PerInstanceAnimation")) d.m_perInstanceAnimation = cj["PerInstanceAnimation"];
             if (cj.contains("FilePath")) {
                 d.m_filePath = cj["FilePath"];
                 if (!d.m_filePath.empty()) {
@@ -104,6 +107,7 @@ void RegisterComponentSerializers() {
             if (auto* p_d = ecs.TryGetComponent<ModelRenderData>(e)) {
                 cj["FilePath"] = p_d->m_filePath;
                 cj["ModelType"] = static_cast<int>(p_d->m_modelType);
+                if (p_d->m_perInstanceAnimation) cj["PerInstanceAnimation"] = true;
                 return true;
             }
             return false;
@@ -273,6 +277,8 @@ void RegisterComponentSerializers() {
             if (cj.contains("Enabled")) d.m_enabled = cj["Enabled"];
             if (cj.contains("LocalOffset")) { d.m_localOffset = {cj["LocalOffset"][0], cj["LocalOffset"][1], cj["LocalOffset"][2]}; }
             if (cj.contains("LocalDirection")) { d.m_localDirection = {cj["LocalDirection"][0], cj["LocalDirection"][1], cj["LocalDirection"][2]}; }
+            if (cj.contains("ModelGlow")) d.m_modelGlow = cj["ModelGlow"];
+            if (cj.contains("GlowMaterial")) d.m_glowMaterial = cj["GlowMaterial"].get<std::string>();
             ecs.AddComponent(e, d);
         },
         [](ECSCoordinator& ecs, Entity e, nlohmann::json& cj, GameObject* obj) -> bool {
@@ -285,6 +291,8 @@ void RegisterComponentSerializers() {
                 cj["Enabled"] = p_d->m_enabled;
                 cj["LocalOffset"] = {p_d->m_localOffset.x, p_d->m_localOffset.y, p_d->m_localOffset.z};
                 cj["LocalDirection"] = {p_d->m_localDirection.x, p_d->m_localDirection.y, p_d->m_localDirection.z};
+                cj["ModelGlow"] = p_d->m_modelGlow;
+                cj["GlowMaterial"] = p_d->m_glowMaterial;
                 return true;
             }
             return false;

@@ -16,6 +16,25 @@ public:
             const auto& anims = modelData.m_spModelData->GetAnimations();
             bool anyUpdated = false;
 
+            // Per-instance animation (ModelRenderData::m_perInstanceAnimation): node poses live on the shared
+            // ModelData, so load this entity's own node locals into it right before sampling, and copy the
+            // result back out afterwards. The renderer then draws this entity with its own deltas.
+            auto& sharedNodes = modelData.m_spModelData->GetNodesRef();
+            if (modelData.m_perInstanceAnimation && modelData.m_instanceNodeLocal.size() != sharedNodes.size())
+            {
+                modelData.m_instanceNodeLocal.resize(sharedNodes.size());
+                modelData.m_instanceNodeDelta.assign(sharedNodes.size(), Math::Matrix::Identity);
+                for (size_t i = 0; i < sharedNodes.size(); ++i)
+                    modelData.m_instanceNodeLocal[i] = sharedNodes[i].originalLocalTransform;
+            }
+            bool instanceLoaded = false;
+            auto loadInstancePose = [&]() {
+                if (!modelData.m_perInstanceAnimation || instanceLoaded) return;
+                for (size_t i = 0; i < sharedNodes.size(); ++i)
+                    sharedNodes[i].localTransform = modelData.m_instanceNodeLocal[i];
+                instanceLoaded = true;
+            };
+
             // ---- 通常の1つのアニメーション再生 ----
             {
                 auto& data = animComp.currentAnim;
@@ -67,6 +86,7 @@ public:
                     // が表示されてしまっていた(目標まで何周必要かで見た目が変わっていた不具合の原因)。
                     float sampleTime = std::fmod(data.ProgressTime, animInfo.duration);
                     if (sampleTime < 0.0f) sampleTime += animInfo.duration;
+                    loadInstancePose();
                     modelData.m_spModelData->UpdateAnimation(data.AnimationIndex, sampleTime);
                     anyUpdated = true;
                 }
@@ -127,8 +147,18 @@ public:
                 //          entity, animIdx, data.ProgressTime, animInfo.duration, data.Speed, data.IsPlaying);
                 //Logger::Instance().AddLog(Logger::LogLevel::Info, msg);
 
+                loadInstancePose();
                 modelData.m_spModelData->UpdateAnimation(animIdx, data.ProgressTime);
                 anyUpdated = true;
+            }
+
+            if (instanceLoaded)
+            {
+                for (size_t i = 0; i < sharedNodes.size(); ++i)
+                {
+                    modelData.m_instanceNodeLocal[i] = sharedNodes[i].localTransform;
+                    modelData.m_instanceNodeDelta[i] = sharedNodes[i].animDeltaTransform;
+                }
             }
         }
     }

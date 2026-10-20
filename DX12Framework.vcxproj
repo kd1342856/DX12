@@ -176,6 +176,8 @@ xcopy /y /d "$(ProjectDir)dxil.dll" "$(OutDir)"</Command>
     <ClInclude Include="Source\Application\Object\Script\Item\ItemTypes.h" />
     <ClInclude Include="Source\Application\Object\Script\Item\PickupItem.h" />
     <ClInclude Include="Source\Application\Object\Script\System\StimulusSource.h" />
+    <ClInclude Include="Source\Application\Object\Script\System\LightSwitch.h" />
+    <ClInclude Include="Source\Application\Object\Script\System\DoorLock.h" />
     <ClInclude Include="Source\Application\Application.h" />
     <ClInclude Include="Source\Application\Scene\GameScene\GameScene.h" />
     <ClInclude Include="Source\Application\Scene\ResultScene\ResultScene.h" />
@@ -261,6 +263,8 @@ xcopy /y /d "$(ProjectDir)dxil.dll" "$(OutDir)"</Command>
     <ClInclude Include="Source\Graphics\Shader\SSAOShader\SSAOShader.h" />
     <ClInclude Include="Source\Graphics\Shader\SSROpaqueShader\SSROpaqueShader.h" />
     <ClInclude Include="Source\Graphics\Shader\FogShader\FogShader.h" />
+    <ClInclude Include="Source\Graphics\Shader\ParticleShader\ParticleShader.h" />
+    <ClInclude Include="Source\Framework\Manager\Particle\ParticleManager.h" />
     <ClInclude Include="Source\Graphics\Shader\LitShader\LitShader.h" />
     <ClInclude Include="Source\Graphics\Shader\SkyShader\SkyShader.h" />
     <ClInclude Include="Source\Graphics\Shader\ShaderSettings.h" />
@@ -342,6 +346,7 @@ xcopy /y /d "$(ProjectDir)dxil.dll" "$(OutDir)"</Command>
     <ClCompile Include="Source\Application\Object\Script\Player\Player.cpp" />
     <ClCompile Include="Source\Application\Object\Script\Item\PickupItem.cpp" />
     <ClCompile Include="Source\Application\Object\Script\System\StimulusSource.cpp" />
+    <ClCompile Include="Source\Application\Object\Script\System\LightSwitch.cpp" />
     <ClCompile Include="Source\Application\Application.cpp" />
     <ClCompile Include="Source\Application\Scene\GameScene\GameScene.cpp" />
     <ClCompile Include="Source\Application\Scene\ResultScene\ResultScene.cpp" />
@@ -357,6 +362,7 @@ xcopy /y /d "$(ProjectDir)dxil.dll" "$(OutDir)"</Command>
     <ClCompile Include="Source\Framework\ImGuiEditor\Editor\InspectorWindow.cpp" />
     <ClCompile Include="Source\Framework\ImGuiEditor\Editor\StatisticsWindow.cpp" />
     <ClCompile Include="Source\Framework\ImGuiEditor\Editor\PreviewCameraWindow.cpp" />
+    <ClCompile Include="Source\Framework\ImGuiEditor\Editor\SoundManagerWindow.cpp" />
     <ClCompile Include="Source\Framework\ImGuiEditor\Editor\ConsoleWindow.cpp" />
     <ClCompile Include="Source\Framework\ImGuiEditor\Editor\AssetBrowserWindow.cpp" />
     <ClCompile Include="Source\Framework\ImGuiEditor\Editor\Toolbar.cpp" />
@@ -401,6 +407,8 @@ xcopy /y /d "$(ProjectDir)dxil.dll" "$(OutDir)"</Command>
     <ClCompile Include="Source\Graphics\Shader\SSAOShader\SSAOShader.cpp" />
     <ClCompile Include="Source\Graphics\Shader\SSROpaqueShader\SSROpaqueShader.cpp" />
     <ClCompile Include="Source\Graphics\Shader\FogShader\FogShader.cpp" />
+    <ClCompile Include="Source\Graphics\Shader\ParticleShader\ParticleShader.cpp" />
+    <ClCompile Include="Source\Framework\Manager\Particle\ParticleManager.cpp" />
     <ClCompile Include="Source\Graphics\Shader\LitShader\LitShader.cpp" />
     <ClCompile Include="Source\Graphics\Shader\SkyShader\SkyShader.cpp" />
     <ClCompile Include="Source\Graphics\Shader\ShadowShader\ShadowShader.cpp" />
@@ -520,6 +528,12 @@ xcopy /y /d "$(ProjectDir)dxil.dll" "$(OutDir)"</Command>
       <FileType>Document</FileType>
     </None>
     <None Include="Asset\Shader\FogShader\FogShader_VS.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Asset\Shader\ParticleShader\ParticleShader_PS.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Asset\Shader\ParticleShader\ParticleShader_VS.hlsl">
       <FileType>Document</FileType>
     </None>
     <FxCompile Include="Asset\Shader\SkinningShader\SkinningShader_PS.hlsl">

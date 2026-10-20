@@ -1,17 +1,22 @@
 ﻿#include "../../../../Pch.h"
 #include "GhostAI.h"
 #include "../System/StimulusSource.h"
+#include "../System/DoorLock.h"
+#include "../../../../Framework/Manager/Audio/AudioManager.h"
 #include "../../../../Framework/Manager/Animation/AnimationManager.h"
 #include "../../../../Framework/Object/GameObject.h"
 #include "../System/GameSequence.h"
 #include "../Player/Player.h"
+#include "../Item/PickupItem.h"
 #include "../../../../Framework/Manager/Collision/CollisionManager.h"
 #include "../../../../Framework/Manager/NavMesh/NavMeshManager.h"
 #include "../../../../Framework/Manager/Scene/Scene.h"
 #include "../../../../Framework/ImGuiEditor/Editor/Editor.h"
 #include "../../../../Framework/DirectX/Utility/Logger.h"
 #include "../../../../Graphics/Shader/ShaderManager/ShaderManager.h"
+#include "../../../../Framework/Manager/Particle/ParticleManager.h"
 #include <functional>
+#include <unordered_set>
 
 REGISTER_COMPONENT(GhostAI);
 
@@ -19,7 +24,7 @@ REGISTER_COMPONENT(GhostAI);
 static const char* GetGhostTypeName(GhostAI::GhostType type)
 {
     switch (type) {
-        case GhostAI::GhostType::Onibi:  return "Onibi (Light)";
+        case GhostAI::GhostType::Kageonna: return "Kageonna (Light)";
         case GhostAI::GhostType::Yanari: return "Yanari (Sound)";
         default:                         return "Jibakurei (Normal)";
     }
@@ -55,8 +60,8 @@ void GhostAI::Start()
     EnsureStairsRoom();
 
     if (m_randomizeType) {
-        // 家鳴(Yanari)はまだ未実装のため、現状は地縛霊と鬼火から抽選する
-        m_ghostType = (Random::Instance().Range(0, 1) == 0) ? GhostType::Jibakurei : GhostType::Onibi;
+        // 家鳴(Yanari)はまだ未実装のため、現状は地縛霊と影女から抽選する
+        m_ghostType = (Random::Instance().Range(0, 1) == 0) ? GhostType::Jibakurei : GhostType::Kageonna;
     }
     Logger::Instance().AddLog(Logger::LogLevel::Info, "[GhostAI] Ghost type: %s", GetGhostTypeName(m_ghostType));
     Logger::Instance().SetPinnedLine("Ghost Type", GetGhostTypeName(m_ghostType));
@@ -246,9 +251,20 @@ Math::Vector3 GhostAI::GetEffectiveMoveTarget(const Math::Vector3& currentPos, c
     // landing's Y, so this would keep re-selecting the same already-reached point forever with
     // nothing to walk toward next, which looked like stopping dead in the middle of the stairs.
     // Aiming for the exit landing instead gives it a reason to walk the entire staircase in one go.
-    Math::Vector3 stairsPos = m_stairsRoom->GetCenter();
-    stairsPos.y = exitLandingY;
-    return stairsPos;
+    // 渡る時は、まず今いる階の階段の入口までNavMeshで歩かせる(昇り降り自体は入口に着いてから
+    // StartStairsCrossing/GetStairsCrossingMoveが階段に沿って行う)。以前は階段の中心(出口の高さ)を
+    // 目指させていたため、階段の周りのどこからでも昇り降りが始まり、階段の横から天井をすり抜けていた。
+    return GetStairsEntryPoint(exitLandingY);
+}
+
+Math::Vector3 GhostAI::GetStairsEntryPoint(float exitLandingY) const
+{
+    if (!m_stairsRoom) return Math::Vector3::Zero;
+    float centerX = (m_stairsRoom->m_min.x + m_stairsRoom->m_max.x) * 0.5f;
+    // 下端(低い方の床)はmin.z側、上端(高い方の床)はmax.z側
+    bool goingUp = fabsf(exitLandingY - m_stairsRoom->m_max.y) < fabsf(exitLandingY - m_stairsRoom->m_min.y);
+    if (goingUp) return Math::Vector3(centerX, m_stairsRoom->m_min.y, m_stairsRoom->m_min.z - m_stairsEntryOffset);
+    return Math::Vector3(centerX, m_stairsRoom->m_max.y, m_stairsRoom->m_max.z + m_stairsEntryOffset);
 }
 
 bool GhostAI::IsInStairsArea(const Math::Vector3& pos, float padOverride) const
@@ -267,21 +283,43 @@ void GhostAI::StartStairsCrossing(const Math::Vector3& currentPos, const Math::V
     if (!m_stairsRoom) return;
 
     const float kOvershoot = m_stairsNavExitPadding + 0.1f; // must clear IsInStairsArea's nav-exit pad
-    bool towardBottom = fabsf(finalTarget.y - m_stairsRoom->m_min.y) <= fabsf(finalTarget.y - m_stairsRoom->m_max.y);
-    float targetZ = towardBottom ? (m_stairsRoom->m_min.z - kOvershoot) : (m_stairsRoom->m_max.z + kOvershoot);
+    // 上りか下りかは、GetEffectiveMoveTargetが渡ると決めた時に記録した出口の高さ(m_frozenExitLandingY)で
+    // 決める。以前はここで「今の」finalTargetから決め直していたため、ハント中に目的地(プレイヤー位置・
+    // 見失った地点など)が渡ると決めた後で反対の階に変わると、今いる階の出口へ向かってしまい、
+    // 着いても記録した出口の高さには届かないので昇り降り中の状態が解除されず、出口でずっと止まっていた。
+    (void)finalTarget;
+    bool towardBottom = fabsf(m_frozenExitLandingY - m_stairsRoom->m_min.y) <= fabsf(m_frozenExitLandingY - m_stairsRoom->m_max.y);
     float centerX = (m_stairsRoom->m_min.x + m_stairsRoom->m_max.x) * 0.5f;
-    float exitY = towardBottom ? m_stairsRoom->m_min.y : m_stairsRoom->m_max.y;
+    const float minY = m_stairsRoom->m_min.y, maxY = m_stairsRoom->m_max.y;
+    const float minZ = m_stairsRoom->m_min.z, maxZ = m_stairsRoom->m_max.z;
 
-    m_stairsCrossStart = currentPos;
-    m_stairsCrossEnd = Math::Vector3(centerX, exitY, targetZ);
+    // 入口付近の今の位置 -> 今いる階側の階段の端 -> 反対側の端 -> 出口(ナビ用の余白の外)。
+    // 最初の区間は今いる階の高さのまま水平に、階段区間だけで高さが変わる。
+    m_stairsCrossPoints.clear();
+    m_stairsCrossPoints.push_back(currentPos);
+    if (towardBottom) {
+        m_stairsCrossPoints.push_back(Math::Vector3(centerX, maxY, maxZ));
+        m_stairsCrossPoints.push_back(Math::Vector3(centerX, minY, minZ));
+        m_stairsCrossPoints.push_back(Math::Vector3(centerX, minY, minZ - kOvershoot));
+    } else {
+        m_stairsCrossPoints.push_back(Math::Vector3(centerX, minY, minZ));
+        m_stairsCrossPoints.push_back(Math::Vector3(centerX, maxY, maxZ));
+        m_stairsCrossPoints.push_back(Math::Vector3(centerX, maxY, maxZ + kOvershoot));
+    }
+    m_stairsCrossPoints[1].y = currentPos.y; // 最初の区間は高さを変えない(床の上を歩いて階段の端へ)
+
+    float length = 0.0f;
+    for (size_t i = 1; i < m_stairsCrossPoints.size(); ++i) {
+        length += Math::Vector3::Distance(m_stairsCrossPoints[i - 1], m_stairsCrossPoints[i]);
+    }
+    m_stairsCrossSpeed = (speed > 0.0001f) ? speed : 1.0f;
     m_stairsCrossElapsed = 0.0f;
-    float dist = Math::Vector3::Distance(m_stairsCrossStart, m_stairsCrossEnd);
-    m_stairsCrossDuration = (speed > 0.0001f) ? (dist / speed) : 1.0f;
+    m_stairsCrossDuration = length / m_stairsCrossSpeed;
 
+    const Math::Vector3& end = m_stairsCrossPoints.back();
     Logger::Instance().AddLog(Logger::LogLevel::Info,
         "[GhostAI] StartStairsCrossing: start=(%.2f,%.2f,%.2f) end=(%.2f,%.2f,%.2f) duration=%.2f",
-        m_stairsCrossStart.x, m_stairsCrossStart.y, m_stairsCrossStart.z,
-        m_stairsCrossEnd.x, m_stairsCrossEnd.y, m_stairsCrossEnd.z, m_stairsCrossDuration);
+        currentPos.x, currentPos.y, currentPos.z, end.x, end.y, end.z, m_stairsCrossDuration);
 }
 
 // While inside the stairwell, drive movement directly instead of going through NavMesh at all: the
@@ -300,9 +338,20 @@ void GhostAI::StartStairsCrossing(const Math::Vector3& currentPos, const Math::V
 Math::Vector3 GhostAI::GetStairsCrossingMove(float deltaTime)
 {
     m_stairsCrossElapsed += deltaTime;
-    float t = (m_stairsCrossDuration > 0.0001f) ? std::clamp(m_stairsCrossElapsed / m_stairsCrossDuration, 0.0f, 1.0f) : 1.0f;
-    Math::Vector3 nextPos = Math::Vector3::Lerp(m_stairsCrossStart, m_stairsCrossEnd, t);
-    return nextPos;
+    if (m_stairsCrossPoints.empty()) return Math::Vector3::Zero;
+
+    // 経過時間 x 速度 だけ折れ線に沿って進んだ位置(位置ではなく時間だけで決まるので逆戻りしない)
+    float distLeft = m_stairsCrossElapsed * m_stairsCrossSpeed;
+    for (size_t i = 1; i < m_stairsCrossPoints.size(); ++i) {
+        const Math::Vector3& a = m_stairsCrossPoints[i - 1];
+        const Math::Vector3& b = m_stairsCrossPoints[i];
+        float segLen = Math::Vector3::Distance(a, b);
+        if (distLeft <= segLen && segLen > 0.0001f) {
+            return Math::Vector3::Lerp(a, b, distLeft / segLen);
+        }
+        distLeft -= segLen;
+    }
+    return m_stairsCrossPoints.back();
 }
 
 void GhostAI::SetDoorPassThrough(bool enabled)
@@ -331,8 +380,12 @@ void GhostAI::SetState(GhostAI::State state)
     // interpolates the actual density toward it, see ShaderManager::UpdateFogCB).
     if (m_currentState != State::Hunt && state == State::Hunt) {
         ShaderManager::Instance().SetHuntActive(true);
+        LockEntranceDoor();
     } else if (m_currentState == State::Hunt && state != State::Hunt) {
         ShaderManager::Instance().SetHuntActive(false);
+        // ハント終了: 玄関の施錠を解き、家中の電気を消す
+        DoorLock::UnlockAll();
+        TurnOffAllLights();
     }
 
     // 誘導を抜けたら発生源を手放し、同じ発生源へすぐ戻らないようクールダウンを始める
@@ -346,8 +399,8 @@ void GhostAI::SetState(GhostAI::State state)
 
     m_currentState = state;
 
-    // 基本的に姿は非表示。プレイヤーに気付かれるべき状態(ハント・死亡時)になった時だけ表示する。
-    // Luredは発生源に到着した時点でUpdateLured側から表示する。
+    // 基本的に姿は非表示。実体化するのはハント中(とそこからのスタン・死亡)だけ。
+    // Luredで光源に張り付いている間も姿は見せない(実体化はハントとPlayerを脅かす演出に限る方針)。
     switch (state) {
         case GhostAI::State::Wander:
         case GhostAI::State::HouseWander:
@@ -412,7 +465,7 @@ void GhostAI::UpdateWander(float deltaTime, TransformData& cTrans)
         m_changeDirTimer = Random::Instance().Range(1.0f, 3.0f);
     }
 
-    Math::Vector3 nextPos = cTrans.m_position + m_moveDir * m_moveSpeed * deltaTime;
+    Math::Vector3 nextPos = cTrans.m_position + m_moveDir * (m_moveSpeedKmh * kKmhToMs) * deltaTime;
     if (m_targetRoom == nullptr || m_targetRoom->IsInside(nextPos)) {
         cTrans.m_position = nextPos;
     } else {
@@ -498,7 +551,17 @@ void GhostAI::MoveTowardTarget(float deltaTime, TransformData& cTrans, const Mat
     // pushes it further past the real landing into the house's exterior void. Gate on height as well
     // so arrival cuts the straight-line walk short and hands off to normal NavMesh movement (which
     // already has a working connector into the adjacent room) the moment it's no longer needed.
-    if (!m_stairsCrossingLatched && IsInStairsArea(cTrans.m_position, m_stairsNavExitPadding) && m_isCrossingFloors) {
+    // 昇り降りは、今いる階の階段の入口に着いてから始める(階段の周りのどこからでも始めると、
+    // 階段の横から壁や天井をすり抜けてしまう)
+    bool atStairsEntry = false;
+    if (m_isCrossingFloors && m_stairsRoom) {
+        Math::Vector3 entry = GetStairsEntryPoint(m_frozenExitLandingY);
+        Math::Vector3 toEntry = entry - cTrans.m_position;
+        float dy = fabsf(toEntry.y);
+        toEntry.y = 0.0f;
+        atStairsEntry = (toEntry.Length() <= m_stairsEntryReach) && (dy <= m_floorHeightThreshold);
+    }
+    if (!m_stairsCrossingLatched && atStairsEntry) {
         m_stairsCrossingLatched = true;
         StartStairsCrossing(cTrans.m_position, finalTarget, speed);
     }
@@ -506,6 +569,19 @@ void GhostAI::MoveTowardTarget(float deltaTime, TransformData& cTrans, const Mat
     if (crossingStairs) {
         nextPos = GetStairsCrossingMove(deltaTime);
         if (!m_isCrossingFloors) m_stairsCrossingLatched = false; // height has arrived - release the latch
+        // 保険: 補間が終わって(少し待っても)まだ渡り切った判定にならない時は、昇り降り中の状態を
+        // 強制的に解除する。解除しないとGetStairsCrossingMoveが終点を返し続け、その場から一生動けない。
+        const float kCrossReleaseGrace = 0.5f;
+        if (m_stairsCrossingLatched && m_stairsCrossElapsed >= m_stairsCrossDuration + kCrossReleaseGrace) {
+            Logger::Instance().AddLog(Logger::LogLevel::Warning,
+                "[GhostAI] Stairs crossing finished without reaching the exit landing - force-releasing.");
+            m_stairsCrossingLatched = false;
+            m_isCrossingFloors = false;
+            m_recentlyExitedStairs = true;
+            // 直後の高さ固定(holdAtExitLanding)が、実際には着いていない出口の高さへ吸い寄せないよう、
+            // 今いる高さを出口として扱う
+            m_frozenExitLandingY = nextPos.y;
+        }
         // Keep the cached NavMesh path cleared for the whole crossing so the moment it steps back
         // outside the stairwell, MoveToward computes a fresh route instead of resuming whatever
         // stale/irrelevant path happened to be cached from before it entered.
@@ -536,7 +612,11 @@ void GhostAI::MoveTowardTarget(float deltaTime, TransformData& cTrans, const Mat
         m_skipGravityThisFrame = true;
     }
 
-    if (moveDelta.LengthSquared() > 0.0001f) {
+    // 向き更新の閾値は1フレームの想定移動量に対する割合で判定する。固定値(0.01m/フレーム)だと
+    // 高FPS時(ハント速度1.8m/sなら180fps超)に毎フレームの移動量が閾値を下回り、m_moveDirが
+    // 更新されず向きが固定されたまま後ろ歩きで追ってくる不具合になっていた。
+    const float minStep = speed * deltaTime * 0.1f;
+    if (moveDelta.LengthSquared() > minStep * minStep && moveDelta.LengthSquared() > 1e-10f) {
         m_moveDir = moveDelta;
         m_moveDir.Normalize();
     }
@@ -549,7 +629,7 @@ void GhostAI::UpdateHouseWander(float deltaTime, TransformData& cTrans)
     EnsureHouseBounds();
     TryOpenNearbyDoor(cTrans.m_position, deltaTime);
 
-    MoveTowardTarget(deltaTime, cTrans, m_houseWanderTargetPos, m_moveSpeed);
+    MoveTowardTarget(deltaTime, cTrans, m_houseWanderTargetPos, m_moveSpeedKmh * kKmhToMs);
     const Math::Vector3& moveTarget = m_debugMoveTarget;
 
     if (!m_houseWanderReturning) {
@@ -673,7 +753,9 @@ bool GhostAI::CanSeePlayer(const TransformData& cTrans, Math::Vector3& outPlayer
     // 視野角チェック(水平方向のみ。Ghostの向き=rotation.yを基準にする)
     Math::Vector3 forward(sinf(cTrans.m_rotation.y), 0.0f, cosf(cTrans.m_rotation.y));
     Math::Vector3 flatDir(dir.x, 0.0f, dir.z);
-    if (flatDir.LengthSquared() > 0.0001f) {
+    // 近距離(m_proximitySenseDistance以内)は背後でも気付く。遮蔽チェックは下で行うので壁越しは不可
+    float flatDist = flatDir.Length() * distance;
+    if (flatDist > m_proximitySenseDistance && flatDir.LengthSquared() > 0.0001f) {
         flatDir.Normalize();
         float cosHalfFov = cosf(DirectX::XMConvertToRadians(m_visionAngle * 0.5f));
         if (forward.Dot(flatDir) < cosHalfFov) return false;
@@ -752,6 +834,7 @@ void GhostAI::TryOpenNearbyDoor(const Math::Vector3& ghostPos, float deltaTime)
             // 既に開いている(または開いている最中の)ドアは対象外 - 閉じているものだけ開ける
             const auto& state = pAnim->multiAnims[i];
             if (state.IsPlaying || state.ProgressTime > 0.0f) continue;
+            if (DoorLock::IsLocked(entity, i)) continue; // 施錠中(ハント中の玄関)は開けない
 
             float dist = (ghostPos - doorPos).Length();
             if (dist < m_doorOpenRange && dist < bestDist)
@@ -766,6 +849,8 @@ void GhostAI::TryOpenNearbyDoor(const Math::Vector3& ghostPos, float deltaTime)
     if (bestEntity == INVALID_ENTITY || bestAnimIdx < 0) return;
 
     animMgr.PlayMultiAnimation(bestEntity, bestAnimIdx, false, 1.0f);
+    // 誰もいないのにドアが軋む音がする -> 近くにいればプレイヤーにも聞こえる
+    AudioManager::Instance().PlaySEAt("Asset/Sound/SE/door_open.wav", ghostPos, m_doorSoundVolume, 15.0f);
 
     // While the door swings open, its collider is briefly non-static and can physically shove the
     // Ghost's own capsule collider back away from the doorway (both are dynamic colliders, so the
@@ -785,27 +870,78 @@ void GhostAI::TryOpenNearbyDoor(const Math::Vector3& ghostPos, float deltaTime)
 
 void GhostAI::UpdateHunt(float deltaTime, TransformData& cTrans)
 {
-    // ハント: 位置や視認に関わらず開始するので、Player の現在位置を直接追跡する
-    // (CanSeePlayer による視認ゲートはHunt開始・継続どちらにも使わない)
+    // ハント: 視認できている間はPlayerの現在位置を追跡する。見失ったら最終目撃地点へ向かい、
+    // そこでも見つからなければ到達可能な部屋を巡回して捜索する(ハント時間が切れるまで)。
     if (m_playerEntity == INVALID_ENTITY) {
         m_playerEntity = FindPlayerEntity();
     }
 
-    Math::Vector3 target = cTrans.m_position;
-    auto& ecs = GameManager::Instance().GetECS();
-    if (m_playerEntity != INVALID_ENTITY) {
-        if (auto* pPlayerTrans = ecs.TryGetComponent<TransformData>(m_playerEntity)) {
-            target = pPlayerTrans->m_position;
-            m_lastKnownPlayerPos = target;
-            m_hasLastKnownPlayerPos = true;
+    Math::Vector3 seenPos;
+    m_isSeeingPlayer = CanSeePlayer(cTrans, seenPos);
+    // 点灯したフラッシュライトを手に持っている間は、壁越し・視野外でも居場所が分かる
+    m_isSensingLight = IsPlayerHoldingLitFlashLight();
+    // 視認加速: 全身が見えている間は溜まり、見失うとm_losDecayTime秒かけて戻る
+    m_isSeeingFullBody = m_isSeeingPlayer && CanSeePlayerFullBody(cTrans);
+    if (m_isSeeingFullBody) {
+        m_losTimer = (std::min)(m_losTimer + deltaTime, m_losTimeToMax);
+    } else {
+        float decayPerSec = (m_losDecayTime > 0.0001f) ? (m_losTimeToMax / m_losDecayTime) : FLT_MAX;
+        m_losTimer = (std::max)(0.0f, m_losTimer - decayPerSec * deltaTime);
+    }
+    // 照明による減速: 体(胴の高さ)が点いている照明に照らされているか
+    m_isInLight = IsPositionLit(cTrans.m_position + Math::Vector3(0.0f, 1.0f, 0.0f));
+
+    // 追跡: 一度視認したら、壁に隠れても現在位置を追い続ける。視認加速が溜まらない(全身が見えていない)
+    // 状態がm_trackGiveUpTime秒続いたら追跡をやめ、最後に分かっていた位置からの捜索に移る。
+    if (m_isSeeingPlayer) m_isTrackingPlayer = true;
+    if (m_isTrackingPlayer) {
+        if (m_isSeeingFullBody) {
+            m_trackGiveUpTimer = 0.0f;
+        } else {
+            m_trackGiveUpTimer += deltaTime;
+            if (m_trackGiveUpTimer >= m_trackGiveUpTime) {
+                m_isTrackingPlayer = false;
+                m_trackGiveUpTimer = 0.0f;
+            }
         }
+    }
+    bool knowsPlayerPos = m_isTrackingPlayer || m_isSensingLight;
+
+    if (knowsPlayerPos && m_playerEntity != INVALID_ENTITY) {
+        auto& ecs = GameManager::Instance().GetECS();
+        if (auto* pPlayerTrans = ecs.TryGetComponent<TransformData>(m_playerEntity)) {
+            m_lastKnownPlayerPos = pPlayerTrans->m_position;
+            m_hasLastKnownPlayerPos = true;
+            m_huntSearchRoom = nullptr;
+        }
+    }
+
+    Math::Vector3 target = cTrans.m_position;
+    if (m_hasLastKnownPlayerPos) {
+        target = m_lastKnownPlayerPos;
+        if (!knowsPlayerPos) {
+            // 最終目撃地点に着いても見つからなければ捜索に切り替える(別の階は着いたとみなさない)
+            Math::Vector3 toLast = m_lastKnownPlayerPos - cTrans.m_position;
+            float dy = fabsf(toLast.y);
+            toLast.y = 0.0f;
+            if (toLast.Length() <= m_searchGiveUpDistance && dy <= m_floorHeightThreshold) {
+                m_hasLastKnownPlayerPos = false;
+                PickHuntSearchRoom(cTrans.m_position);
+            }
+        }
+    }
+    if (!m_hasLastKnownPlayerPos) {
+        if (!m_huntSearchRoom || m_huntSearchRoom->IsInside(cTrans.m_position)) {
+            PickHuntSearchRoom(cTrans.m_position);
+        }
+        if (m_huntSearchRoom) target = m_huntSearchRoom->GetCenter();
     }
 
     EnsureHouseBounds();
     TryOpenNearbyDoor(cTrans.m_position, deltaTime);
 
     // NavMeshが構築済みならそちらの経路で移動する(壁を突き抜けず確実にドアや通路を経由できる)
-    MoveTowardTarget(deltaTime, cTrans, target, m_moveSpeed * m_huntSpeedMultiplier);
+    MoveTowardTarget(deltaTime, cTrans, target, GetHuntSpeed());
 
     // Hunt previously had no stuck-detection at all (unlike UpdateHouseWander), so once physically
     // caught on something the ghost would just stand there fighting collision for the rest of the
@@ -829,11 +965,235 @@ void GhostAI::UpdateHunt(float deltaTime, TransformData& cTrans)
     }
 }
 
+float GhostAI::GetHuntSpeed() const
+{
+    float t = (m_losTimeToMax > 0.0001f) ? std::clamp(m_losTimer / m_losTimeToMax, 0.0f, 1.0f) : 1.0f;
+    float speedKmh = m_huntSpeedKmh + (m_huntMaxSpeedKmh - m_huntSpeedKmh) * t;
+    if (m_isInLight) speedKmh *= m_litSpeedMultiplier;
+    return speedKmh * kKmhToMs;
+}
+
+bool GhostAI::CanSeePlayerFullBody(const TransformData& cTrans)
+{
+    if (m_playerEntity == INVALID_ENTITY) return false;
+    auto* pPlayerTrans = GameManager::Instance().GetECS().TryGetComponent<TransformData>(m_playerEntity);
+    if (!pPlayerTrans) return false;
+
+    // 視野角・距離はCanSeePlayer(胴の高さ)で確認済みの前提。ここでは足元・胴・頭の3点すべてに
+    // 遮蔽物が無いかだけを見る(家具の陰で下半身が隠れている等は「全身は見えていない」扱い)。
+    Math::Vector3 eyePos = cTrans.m_position + Math::Vector3(0.0f, m_eyeHeight, 0.0f);
+    const float kBodyHeights[] = { 0.2f, 1.0f, 1.6f };
+    for (float h : kBodyHeights) {
+        Math::Vector3 toPoint = pPlayerTrans->m_position + Math::Vector3(0.0f, h, 0.0f) - eyePos;
+        float dist = toPoint.Length();
+        if (dist <= 0.3f) continue;
+        toPoint /= dist;
+        RaycastHit hit = CollisionManager::Instance().RaycastAgainstMesh(eyePos, toPoint, dist - 0.2f, "Stage");
+        if (hit.hit) return false;
+    }
+    return true;
+}
+
+bool GhostAI::IsPositionLit(const Math::Vector3& pos) const
+{
+    auto& ecs = GameManager::Instance().GetECS();
+
+    auto inSpot = [&](Entity e, const SpotLightData& light) {
+        auto* pTrans = ecs.TryGetComponent<TransformData>(e);
+        if (!pTrans) return false;
+        Math::Vector3 lightPos = Math::Vector3::Transform(light.m_localOffset, pTrans->m_worldMatrix);
+        Math::Vector3 dir = Math::Vector3::TransformNormal(light.m_localDirection, pTrans->m_worldMatrix);
+        Math::Vector3 toPos = pos - lightPos;
+        float dist = toPos.Length();
+        if (dist > light.m_range) return false;
+        if (dist < 0.001f || dir.LengthSquared() < 1e-8f) return true;
+        dir.Normalize();
+        return (toPos / dist).Dot(dir) >= cosf(DirectX::XMConvertToRadians(light.m_outerAngle));
+    };
+    auto inPoint = [&](Entity e, const PointLightData& light) {
+        auto* pTrans = ecs.TryGetComponent<TransformData>(e);
+        return pTrans && Math::Vector3::Distance(pTrans->m_worldMatrix.Translation(), pos) <= light.m_range;
+    };
+
+    // 照明(StimulusSource)配下のライト: 点滅(Flicker)で一瞬消えていても、照明が点いていれば点灯扱い
+    std::unordered_set<Entity> managed;
+    for (auto& scriptData : ecs.GetComponentArray<NativeScriptData>()) {
+        auto* src = dynamic_cast<StimulusSource*>(scriptData.Instance.get());
+        if (!src || src->m_type != StimulusType::Light || !src->GetGameObject()) continue;
+        bool lit = false;
+        std::function<void(GameObject*)> visit = [&](GameObject* obj) {
+            Entity e = obj->GetEntityID();
+            managed.insert(e);
+            if (src->IsActive() && !lit) {
+                if (auto* pSpot = ecs.TryGetComponent<SpotLightData>(e)) lit = inSpot(e, *pSpot);
+                if (!lit) {
+                    if (auto* pPoint = ecs.TryGetComponent<PointLightData>(e)) lit = inPoint(e, *pPoint);
+                }
+            }
+            for (auto& child : obj->GetChildren()) visit(child.get());
+        };
+        visit(src->GetGameObject());
+        if (lit) return true;
+    }
+
+    // それ以外のスポットライト(持っている/落ちているフラッシュライト等)は実際の点灯状態で判定する。
+    // 照明に属さないポイントライト(ロウソク等の演出)は「電気」ではないので対象外。
+    auto& spots = ecs.GetComponentArray<SpotLightData>();
+    for (size_t i = 0; i < spots.GetSize(); ++i) {
+        Entity e = spots.GetEntityFromIndex(i);
+        const SpotLightData& light = *(spots.begin() + i);
+        if (!light.m_enabled || managed.count(e)) continue;
+        if (inSpot(e, light)) return true;
+    }
+    return false;
+}
+
+bool GhostAI::IsPlayerHoldingLitFlashLight()
+{
+    if (m_playerEntity == INVALID_ENTITY) return false;
+    // PlayerはECSのComponent型として登録されていないので、NativeScriptData経由でdynamic_castする
+    auto& ecs = GameManager::Instance().GetECS();
+    if (auto* pScriptData = ecs.TryGetComponent<NativeScriptData>(m_playerEntity)) {
+        if (auto* pPlayer = dynamic_cast<Player*>(pScriptData->Instance.get())) {
+            return pPlayer->IsHoldingLitFlashLight();
+        }
+    }
+    return false;
+}
+
+void GhostAI::LockEntranceDoor()
+{
+    if (m_entranceDoorName.empty()) return;
+    auto& ecs = GameManager::Instance().GetECS();
+
+    for (Entity entity = 0; entity < MAX_ENTITIES; ++entity)
+    {
+        auto* pModel = ecs.TryGetComponent<ModelRenderData>(entity);
+        if (!pModel || !pModel->m_spModelData || !pModel->m_spModelData->IsLoaded()) continue;
+        if (!ecs.TryGetComponent<TransformData>(entity)) continue;
+
+        const auto& anims = pModel->m_spModelData->GetAnimations();
+        for (int i = 0; i < (int)anims.size(); ++i)
+        {
+            if (anims[i].name.find(m_entranceDoorName) == std::string::npos) continue;
+
+            auto* pAnim = ecs.TryGetComponent<AnimationDataComponent>(entity);
+            if (!pAnim) {
+                ecs.AddComponent<AnimationDataComponent>(entity, AnimationDataComponent{});
+                pAnim = ecs.TryGetComponent<AnimationDataComponent>(entity);
+                if (!pAnim) continue;
+            }
+
+            // 開いている/開いている最中なら逆再生で閉める(Player::TryInteractDoorの閉める処理と同じ)
+            auto& state = pAnim->multiAnims[i];
+            bool isClosingOrClosed = (state.IsPlaying && state.Speed < 0.0f) || (!state.IsPlaying && state.ProgressTime <= 0.0f);
+            if (!isClosingOrClosed) {
+                float currentTime = state.ProgressTime;
+                AnimationManager::Instance().PlayMultiAnimation(entity, i, false, -1.0f);
+                pAnim->multiAnims[i].ProgressTime = currentTime;
+                if (auto* pCollider = ecs.TryGetComponent<ColliderData>(entity)) {
+                    pCollider->m_isStatic = false;
+                }
+            }
+            DoorLock::Lock(entity, i);
+            Logger::Instance().AddLog(Logger::LogLevel::Info, "[GhostAI] Hunt: entrance door '%s' closed and locked.", m_entranceDoorName.c_str());
+        }
+    }
+}
+
+void GhostAI::UpdateLightFlicker(float deltaTime, const Math::Vector3& ghostPos)
+{
+    // 毎フレーム全スクリプトを走査しないよう間引く(点滅時間を間隔より長くして途切れないようにする)
+    const float kCheckInterval = 0.2f;
+    m_lightFlickerCheckTimer -= deltaTime;
+    if (m_lightFlickerCheckTimer > 0.0f) return;
+    m_lightFlickerCheckTimer = kCheckInterval;
+
+    const bool hunting = (m_currentState == State::Hunt);
+    auto& ecs = GameManager::Instance().GetECS();
+    for (auto& scriptData : ecs.GetComponentArray<NativeScriptData>()) {
+        auto* src = dynamic_cast<StimulusSource*>(scriptData.Instance.get());
+        if (!src || src->m_type != StimulusType::Light || !src->IsActive()) continue;
+
+        Math::Vector3 lightPos = src->GetWorldPosition();
+        // Y+方向(足元より上)の照明だけを対象にする。2階にいる時、1階の天井照明は足元より
+        // わずかに下にあるので除外され、上の階の照明はm_lightFlickerVerticalRangeで除外される
+        float dy = lightPos.y - ghostPos.y;
+        if (dy <= 0.0f || dy > m_lightFlickerVerticalRange) continue;
+        Math::Vector3 flat = lightPos - ghostPos;
+        flat.y = 0.0f;
+        if (flat.Length() > m_lightFlickerRange) continue;
+
+        if (hunting) {
+            // ハント中は近くにいる間ずっと点滅させる
+            src->Flicker(kCheckInterval * 2.5f);
+        } else if (!src->IsFlickering() &&
+                   Random::Instance().Range(0.0f, 1.0f) < m_wanderFlickerChance * kCheckInterval) {
+            // ハント以外は時々、短く点滅させる
+            src->Flicker(Random::Instance().Range(0.3f, 1.0f));
+        }
+    }
+
+    // フラッシュライト(手持ち・床に落ちている物)にも干渉する。消しはせず、見た目だけ点滅させる。
+    // 同じ階(高さの差がm_floorHeightThreshold以内)で、m_flashLightFlickerRange以内にある時だけ。
+    auto nearFlashLight = [&](const Math::Vector3& pos) {
+        if (fabsf(pos.y - ghostPos.y) > m_floorHeightThreshold) return false;
+        return Math::Vector3::Distance(pos, ghostPos) <= m_flashLightFlickerRange;
+    };
+    // ハント中は近くにいる間ずっと、それ以外は時々「しばらく」(1〜3秒)点滅させる
+    auto flickerDuration = [&](bool alreadyFlickering) -> float {
+        if (hunting) return kCheckInterval * 2.5f;
+        if (alreadyFlickering) return 0.0f;
+        if (Random::Instance().Range(0.0f, 1.0f) >= m_wanderFlickerChance * kCheckInterval) return 0.0f;
+        return Random::Instance().Range(1.0f, 3.0f);
+    };
+
+    if (m_playerEntity == INVALID_ENTITY) m_playerEntity = FindPlayerEntity();
+    if (auto* pScriptData = ecs.TryGetComponent<NativeScriptData>(m_playerEntity)) {
+        auto* pPlayer = dynamic_cast<Player*>(pScriptData->Instance.get());
+        auto* pPlayerTrans = ecs.TryGetComponent<TransformData>(m_playerEntity);
+        if (pPlayer && pPlayerTrans && pPlayer->IsFlashLightOn() && pPlayer->HasItem(ItemType::FlashLight) &&
+            nearFlashLight(pPlayerTrans->m_position)) {
+            float d = flickerDuration(pPlayer->IsFlashLightFlickering());
+            if (d > 0.0f) pPlayer->FlickerFlashLight(d);
+        }
+    }
+    for (auto& scriptData : ecs.GetComponentArray<NativeScriptData>()) {
+        auto* pickup = dynamic_cast<PickupItem*>(scriptData.Instance.get());
+        if (!pickup || pickup->m_itemType != ItemType::FlashLight || !pickup->IsLightOn() || pickup->m_collected) continue;
+        if (!pickup->GetGameObject()) continue;
+        auto* pTrans = ecs.TryGetComponent<TransformData>(pickup->GetGameObject()->GetEntityID());
+        if (!pTrans || !nearFlashLight(pTrans->m_position)) continue;
+        float d = flickerDuration(pickup->IsLightFlickering());
+        if (d > 0.0f) pickup->FlickerLight(d);
+    }
+}
+
+void GhostAI::TurnOffAllLights()
+{
+    auto& ecs = GameManager::Instance().GetECS();
+    for (auto& scriptData : ecs.GetComponentArray<NativeScriptData>()) {
+        auto* src = dynamic_cast<StimulusSource*>(scriptData.Instance.get());
+        if (src && src->m_type == StimulusType::Light) src->SetActive(false);
+    }
+}
+
+// ハント中に見失った後の捜索先として、到達可能な部屋をランダムに選ぶ(今いる部屋は除く)
+void GhostAI::PickHuntSearchRoom(const Math::Vector3& currentPos)
+{
+    std::vector<RoomArea*> candidates = CollectReachableCandidateRooms(currentPos);
+    candidates.erase(std::remove_if(candidates.begin(), candidates.end(),
+        [&](RoomArea* room) { return room == m_huntSearchRoom || room->IsInside(currentPos); }),
+        candidates.end());
+    m_huntSearchRoom = candidates.empty() ? nullptr
+        : candidates[Random::Instance().Range(0, (int)candidates.size() - 1)];
+}
+
 // 種類ごとに感知する刺激。感知しない種類(地縛霊、未実装の家鳴)はfalseを返す。
 static bool GetSensedStimulusType(GhostAI::GhostType type, StimulusType& outType)
 {
     switch (type) {
-        case GhostAI::GhostType::Onibi: outType = StimulusType::Light; return true;
+        case GhostAI::GhostType::Kageonna: outType = StimulusType::Light; return true;
         default: return false;
     }
 }
@@ -898,7 +1258,7 @@ void GhostAI::UpdateLured(float deltaTime, TransformData& cTrans)
     Math::Vector3 srcPos = m_lureSource->GetWorldPosition();
 
     if (m_lureArrived) {
-        // 到着後: 発生源の方を向いてその場に留まる(この間だけ鬼火に香が効く)
+        // 到着後: 発生源の方を向いてその場に留まる(姿は見せない)
         Math::Vector3 toSrc = srcPos - cTrans.m_position;
         toSrc.y = 0.0f;
         FacePosition(cTrans, toSrc, deltaTime);
@@ -912,14 +1272,13 @@ void GhostAI::UpdateLured(float deltaTime, TransformData& cTrans)
 
     EnsureHouseBounds();
     TryOpenNearbyDoor(cTrans.m_position, deltaTime);
-    MoveTowardTarget(deltaTime, cTrans, srcPos, m_moveSpeed);
+    MoveTowardTarget(deltaTime, cTrans, srcPos, m_moveSpeedKmh * kKmhToMs);
 
     Math::Vector3 flatToSrc = srcPos - cTrans.m_position;
     flatToSrc.y = 0.0f;
     if (flatToSrc.Length() <= m_lureArriveThreshold) {
         m_lureArrived = true;
         m_lureDwellTimer = m_lureDwellDuration;
-        SetModelVisible(true);
         NavMeshManager::Instance().ClearPath((int)GetGameObject()->GetEntityID());
         return;
     }
@@ -947,40 +1306,65 @@ void GhostAI::UpdateLured(float deltaTime, TransformData& cTrans)
 
 void GhostAI::UpdateTell(float deltaTime, const Math::Vector3& currentPos)
 {
-    StimulusType sensed;
-    if (!GetSensedStimulusType(m_ghostType, sensed)) return;
-
     m_tellTimer -= deltaTime;
     if (m_tellTimer > 0.0f) return;
     m_tellTimer = Random::Instance().Range(m_tellIntervalMin, m_tellIntervalMax);
 
-    // 近くの無効な発生源を勝手に有効にする(鬼火なら照明がつく)。
-    // プレイヤーが消し直せるよう、Fキーで操作できる発生源だけを対象にする。
+    // 照明のいたずら(全種類)。影女は点いている照明を消すだけで、点けることはしない。
+    // それ以外のゴーストは、近くの照明をランダムに選んで点けたり消したりする。
+    // プレイヤーが元に戻せるよう、Fキーか壁スイッチで操作できる照明だけを対象にする。
+    const bool onlyTurnOff = (m_ghostType == GhostType::Kageonna);
     auto& ecs = GameManager::Instance().GetECS();
-    StimulusSource* best = nullptr;
-    float bestDist = m_tellRange;
+    std::vector<StimulusSource*> candidates;
     for (auto& scriptData : ecs.GetComponentArray<NativeScriptData>()) {
         auto* src = dynamic_cast<StimulusSource*>(scriptData.Instance.get());
-        if (!src || src->IsActive() || !src->m_interactable || src->m_type != sensed) continue;
-        float dist = Math::Vector3::Distance(currentPos, src->GetWorldPosition());
-        if (dist < bestDist) {
-            best = src;
-            bestDist = dist;
-        }
+        if (!src || src->m_type != StimulusType::Light) continue;
+        if (!(src->m_interactable || src->m_controlledBySwitch)) continue;
+        if (onlyTurnOff && !src->IsActive()) continue;
+        if (Math::Vector3::Distance(currentPos, src->GetWorldPosition()) > m_tellRange) continue;
+        candidates.push_back(src);
     }
-    if (best) {
-        best->SetActive(true);
-        Logger::Instance().AddLog(Logger::LogLevel::Info, "[GhostAI] Tell: turned on a stimulus source by itself.");
+    if (candidates.empty()) return;
+
+    StimulusSource* target = candidates[Random::Instance().Range(0, (int)candidates.size() - 1)];
+    bool turnOn = !target->IsActive();
+    target->SetActive(turnOn);
+    target->PlayToggleSound(); // 壁スイッチ式ならスイッチ音、紐スイッチ式なら点灯/消灯音
+    Logger::Instance().AddLog(Logger::LogLevel::Info, "[GhostAI] Tell: turned %s a light by itself.", turnOn ? "on" : "off");
+}
+
+bool GhostAI::IsAnyLightLitNear(const Math::Vector3& ghostPos) const
+{
+    auto& ecs = GameManager::Instance().GetECS();
+    const float radiusSq = m_kageonnaLightRadius * m_kageonnaLightRadius;
+
+    // 数えるのは「部屋の電気」= Room Lightの照明(StimulusSource: 天井照明等)だけ。ランプ等の小さな
+    // 明かり(m_isRoomLight=false)とフラッシュライト(手持ち・床)は数えない(部屋の電気を点けないと倒せない)。演出用に置いただけの消せない
+    // ポイントライト(ロウソク等)も対象外。点滅中も点灯扱い(IsActive)で判定する。
+    for (auto& scriptData : ecs.GetComponentArray<NativeScriptData>()) {
+        auto* src = dynamic_cast<StimulusSource*>(scriptData.Instance.get());
+        if (!src || !src->IsActive() || src->m_type != StimulusType::Light || !src->m_isRoomLight) continue;
+        if (Math::Vector3::DistanceSquared(src->GetWorldPosition(), ghostPos) <= radiusSq) return true;
     }
+    return false;
 }
 
 bool GhostAI::TryIncenseStun(float stunTime)
 {
     if (m_isExorcised) return false;
 
+    // 退治(香でのスタン)はハント中だけ。それ以外の時に当てても何も起きない。
+    if (m_currentState != State::Hunt) return false;
+
     bool canStun = true;
     switch (m_ghostType) {
-        case GhostType::Onibi: canStun = IsLuredAndArrived(); break;
+        case GhostType::Kageonna: {
+            // 影女は周りで部屋の電気(天井照明等。ランプ・フラッシュライトは除く)が点いている時だけ効く(影は光の中にしか映らない)
+            auto& ecs = GameManager::Instance().GetECS();
+            auto* pTrans = ecs.TryGetComponent<TransformData>(GetGameObject()->GetEntityID());
+            canStun = pTrans && IsAnyLightLitNear(pTrans->m_position);
+            break;
+        }
         default: break;
     }
 
@@ -999,12 +1383,15 @@ bool GhostAI::TryIncenseStun(float stunTime)
 
 void GhostAI::Update(float deltaTime)
 {
-    if (m_isExorcised) return;
-
-    EnsureStairsRoom();
-
     auto& ecs = GameManager::Instance().GetECS();
     auto& cTrans = ecs.GetComponent<TransformData>(GetGameObject()->GetEntityID());
+
+    if (m_isExorcised) {
+        UpdateExorciseEffect(deltaTime, cTrans);
+        return;
+    }
+
+    EnsureStairsRoom();
 
     if (m_currentState == GhostAI::State::Stun) {
         m_stunTimer -= deltaTime;
@@ -1027,6 +1414,17 @@ void GhostAI::Update(float deltaTime)
             m_huntTriggerTimer = Random::Instance().Range(m_huntTriggerIntervalMin, m_huntTriggerIntervalMax);
             m_huntStuckTimer = 0.0f;
             m_huntStuckLastPos = cTrans.m_position;
+            // 開始時点のPlayer位置だけは把握している(そこへ向かう間に視認できなければ捜索になる)
+            m_huntSearchRoom = nullptr;
+            m_hasLastKnownPlayerPos = false;
+            m_isTrackingPlayer = false;
+            m_trackGiveUpTimer = 0.0f;
+            m_losTimer = 0.0f;
+            if (m_playerEntity == INVALID_ENTITY) m_playerEntity = FindPlayerEntity();
+            if (auto* pPlayerTrans = ecs.TryGetComponent<TransformData>(m_playerEntity)) {
+                m_lastKnownPlayerPos = pPlayerTrans->m_position;
+                m_hasLastKnownPlayerPos = true;
+            }
             if (debugForceHunt) {
                 Logger::Instance().AddLog(Logger::LogLevel::Info, "[GhostAI] Debug: Hunt force-started via H key.");
             }
@@ -1040,6 +1438,8 @@ void GhostAI::Update(float deltaTime)
         m_currentState == GhostAI::State::Lured) {
         UpdateTell(deltaTime, cTrans.m_position);
     }
+
+    UpdateLightFlicker(deltaTime, cTrans.m_position);
 
     switch (m_currentState) {
         case GhostAI::State::Lured:
@@ -1064,6 +1464,14 @@ void GhostAI::Update(float deltaTime)
             if (m_huntTimer <= 0.0f) {
                 // ハント終了: テレポートせず、ゴーストルームまでNavMesh経由で徒歩で帰る
                 m_hasLastKnownPlayerPos = false;
+                m_isSeeingPlayer = false;
+                m_isSensingLight = false;
+                m_isTrackingPlayer = false;
+                m_trackGiveUpTimer = 0.0f;
+                m_huntSearchRoom = nullptr;
+                m_losTimer = 0.0f;
+                m_isSeeingFullBody = false;
+                m_isInLight = false;
                 ReturnToGhostRoom(cTrans.m_position);
             } else {
                 UpdateHunt(deltaTime, cTrans);
@@ -1078,7 +1486,9 @@ void GhostAI::Update(float deltaTime)
         m_doorPassThroughTimer -= deltaTime;
     }
 
-    bool wantPassThrough = (m_doorPassThroughTimer > 0.0f) || IsInStairsArea(cTrans.m_position);
+    // 階段の段差(蹴上げ)に当たらないよう、壁抜けは実際に昇り降りしている間だけ許可する
+    // (以前は階段の周り1.5mに入っただけで許可していたため、階段の横の壁をすり抜けていた)
+    bool wantPassThrough = (m_doorPassThroughTimer > 0.0f) || m_stairsCrossingLatched;
     if (wantPassThrough != m_wasPassThroughActive) {
         SetDoorPassThrough(wantPassThrough);
         m_wasPassThroughActive = wantPassThrough;
@@ -1154,6 +1564,7 @@ void GhostAI::OnDestroy()
     if (m_currentState == State::Hunt) {
         ShaderManager::Instance().SetHuntActive(false);
     }
+    DoorLock::UnlockAll();
     // シーンを抜けた後に古いゴーストタイプが表示され続けないようにする
     Logger::Instance().RemovePinnedLine("Ghost Type");
 }
@@ -1197,7 +1608,7 @@ void GhostAI::Draw()
 
 void GhostAI::Serialize(nlohmann::json& out) const
 {
-    out["moveSpeed"]    = m_moveSpeed;
+    out["moveSpeedKmh"] = m_moveSpeedKmh;
     out["animIdle"]     = m_animIdle;
     out["animWander"]   = m_animWander;
     out["animHunt"]     = m_animHunt;
@@ -1212,15 +1623,26 @@ void GhostAI::Serialize(nlohmann::json& out) const
     out["houseWanderStuckTimeout"] = m_houseWanderStuckTimeout;
     out["huntDurationMin"]    = m_huntDurationMin;
     out["huntDurationMax"]    = m_huntDurationMax;
-    out["huntSpeedMultiplier"] = m_huntSpeedMultiplier;
+    out["huntSpeedKmh"]       = m_huntSpeedKmh;
+    out["huntMaxSpeedKmh"]    = m_huntMaxSpeedKmh;
+    out["losTimeToMax"]       = m_losTimeToMax;
+    out["losDecayTime"]       = m_losDecayTime;
+    out["litSpeedMultiplier"] = m_litSpeedMultiplier;
     out["huntTriggerIntervalMin"] = m_huntTriggerIntervalMin;
     out["huntTriggerIntervalMax"] = m_huntTriggerIntervalMax;
     out["visionRange"]        = m_visionRange;
     out["visionAngle"]        = m_visionAngle;
+    out["proximitySenseDistance"] = m_proximitySenseDistance;
+    out["trackGiveUpTime"]    = m_trackGiveUpTime;
+    out["entranceDoorName"] = m_entranceDoorName;
+    out["lightFlickerRange"] = m_lightFlickerRange;
+    out["lightFlickerVerticalRange"] = m_lightFlickerVerticalRange;
+    out["wanderFlickerChance"] = m_wanderFlickerChance;
     out["eyeHeight"]          = m_eyeHeight;
     out["searchGiveUpDistance"] = m_searchGiveUpDistance;
     out["doorCheckInterval"]  = m_doorCheckInterval;
     out["doorOpenRange"]      = m_doorOpenRange;
+    out["doorSoundVolume"]    = m_doorSoundVolume;
     out["pathNodeReachThreshold"] = m_pathNodeReachThreshold;
     out["ghostType"]          = static_cast<int>(m_ghostType);
     out["randomizeType"]      = m_randomizeType;
@@ -1229,6 +1651,18 @@ void GhostAI::Serialize(nlohmann::json& out) const
     out["lureDwellDuration"]  = m_lureDwellDuration;
     out["lureCooldown"]       = m_lureCooldown;
     out["failHuntExtension"]  = m_failHuntExtension;
+    out["exorciseDuration"]       = m_exorciseDuration;
+    out["exorciseModelHeight"]    = m_exorciseModelHeight;
+    out["exorciseEdgeWidth"]      = m_exorciseEdgeWidth;
+    out["exorciseEdgeGlow"]       = m_exorciseEdgeGlow;
+    out["exorciseSoundVolume"]    = m_exorciseSoundVolume;
+    out["exorciseGlowStrength"]   = m_exorciseGlowStrength;
+    out["exorciseLightIntensity"] = m_exorciseLightIntensity;
+    out["exorciseParticleRate"]   = m_exorciseParticleRate;
+    out["exorciseParticleRadius"] = m_exorciseParticleRadius;
+    out["exorciseParticleBurst"]  = m_exorciseParticleBurst;
+    out["flashLightFlickerRange"] = m_flashLightFlickerRange;
+    out["kageonnaLightRadius"] = m_kageonnaLightRadius;
     out["tellIntervalMin"]    = m_tellIntervalMin;
     out["tellIntervalMax"]    = m_tellIntervalMax;
     out["tellRange"]          = m_tellRange;
@@ -1236,7 +1670,13 @@ void GhostAI::Serialize(nlohmann::json& out) const
 
 void GhostAI::Deserialize(const nlohmann::json& in)
 {
-    if (in.contains("moveSpeed"))    m_moveSpeed    = in["moveSpeed"];
+    // 旧形式(m/s・ハント倍率)で保存されたシーンはkm/hに換算して読む
+    float legacyMoveSpeedMs = 1.0f;
+    if (in.contains("moveSpeed")) {
+        legacyMoveSpeedMs = in["moveSpeed"];
+        m_moveSpeedKmh = legacyMoveSpeedMs * 3.6f;
+    }
+    if (in.contains("moveSpeedKmh")) m_moveSpeedKmh = in["moveSpeedKmh"];
     if (in.contains("animIdle"))     m_animIdle     = in["animIdle"];
     if (in.contains("animWander"))   m_animWander   = in["animWander"];
     if (in.contains("animHunt"))     m_animHunt     = in["animHunt"];
@@ -1251,15 +1691,27 @@ void GhostAI::Deserialize(const nlohmann::json& in)
     if (in.contains("houseWanderStuckTimeout")) m_houseWanderStuckTimeout = in["houseWanderStuckTimeout"];
     if (in.contains("huntDurationMin"))     m_huntDurationMin     = in["huntDurationMin"];
     if (in.contains("huntDurationMax"))     m_huntDurationMax     = in["huntDurationMax"];
-    if (in.contains("huntSpeedMultiplier")) m_huntSpeedMultiplier = in["huntSpeedMultiplier"];
+    if (in.contains("huntSpeedMultiplier")) m_huntSpeedKmh = legacyMoveSpeedMs * in["huntSpeedMultiplier"].get<float>() * 3.6f;
+    if (in.contains("huntSpeedKmh"))        m_huntSpeedKmh = in["huntSpeedKmh"];
+    if (in.contains("huntMaxSpeedKmh"))     m_huntMaxSpeedKmh = in["huntMaxSpeedKmh"];
+    if (in.contains("losTimeToMax"))        m_losTimeToMax = in["losTimeToMax"];
+    if (in.contains("losDecayTime"))        m_losDecayTime = in["losDecayTime"];
+    if (in.contains("litSpeedMultiplier"))  m_litSpeedMultiplier = in["litSpeedMultiplier"];
     if (in.contains("huntTriggerIntervalMin")) m_huntTriggerIntervalMin = in["huntTriggerIntervalMin"];
     if (in.contains("huntTriggerIntervalMax")) m_huntTriggerIntervalMax = in["huntTriggerIntervalMax"];
     if (in.contains("visionRange"))         m_visionRange         = in["visionRange"];
     if (in.contains("visionAngle"))         m_visionAngle         = in["visionAngle"];
+    if (in.contains("proximitySenseDistance")) m_proximitySenseDistance = in["proximitySenseDistance"];
+    if (in.contains("trackGiveUpTime"))     m_trackGiveUpTime = in["trackGiveUpTime"];
+    if (in.contains("entranceDoorName")) m_entranceDoorName = in["entranceDoorName"].get<std::string>();
+    if (in.contains("lightFlickerRange")) m_lightFlickerRange = in["lightFlickerRange"];
+    if (in.contains("lightFlickerVerticalRange")) m_lightFlickerVerticalRange = in["lightFlickerVerticalRange"];
+    if (in.contains("wanderFlickerChance")) m_wanderFlickerChance = in["wanderFlickerChance"];
     if (in.contains("eyeHeight"))           m_eyeHeight           = in["eyeHeight"];
     if (in.contains("searchGiveUpDistance")) m_searchGiveUpDistance = in["searchGiveUpDistance"];
     if (in.contains("doorCheckInterval"))   m_doorCheckInterval    = in["doorCheckInterval"];
     if (in.contains("doorOpenRange"))       m_doorOpenRange        = in["doorOpenRange"];
+    if (in.contains("doorSoundVolume"))     m_doorSoundVolume      = in["doorSoundVolume"];
     if (in.contains("pathNodeReachThreshold")) m_pathNodeReachThreshold = in["pathNodeReachThreshold"];
     if (in.contains("ghostType"))           m_ghostType = static_cast<GhostType>((int)in["ghostType"]);
     if (in.contains("randomizeType"))       m_randomizeType = in["randomizeType"];
@@ -1268,6 +1720,21 @@ void GhostAI::Deserialize(const nlohmann::json& in)
     if (in.contains("lureDwellDuration"))   m_lureDwellDuration = in["lureDwellDuration"];
     if (in.contains("lureCooldown"))        m_lureCooldown = in["lureCooldown"];
     if (in.contains("failHuntExtension"))   m_failHuntExtension = in["failHuntExtension"];
+    if (in.contains("exorciseDuration"))       m_exorciseDuration = in["exorciseDuration"];
+    if (in.contains("exorciseModelHeight"))    m_exorciseModelHeight = in["exorciseModelHeight"];
+    if (in.contains("exorciseEdgeWidth"))      m_exorciseEdgeWidth = in["exorciseEdgeWidth"];
+    if (in.contains("exorciseEdgeGlow"))       m_exorciseEdgeGlow = in["exorciseEdgeGlow"];
+    if (in.contains("exorciseSoundVolume"))    m_exorciseSoundVolume = in["exorciseSoundVolume"];
+    if (in.contains("exorciseGlowStrength"))   m_exorciseGlowStrength = in["exorciseGlowStrength"];
+    if (in.contains("exorciseLightIntensity")) m_exorciseLightIntensity = in["exorciseLightIntensity"];
+    if (in.contains("exorciseParticleRate"))   m_exorciseParticleRate = in["exorciseParticleRate"];
+    if (in.contains("exorciseParticleRadius")) m_exorciseParticleRadius = in["exorciseParticleRadius"];
+    if (in.contains("exorciseParticleBurst"))  m_exorciseParticleBurst = in["exorciseParticleBurst"];
+    if (in.contains("flashLightFlickerRange")) m_flashLightFlickerRange = in["flashLightFlickerRange"];
+    // 旧名(鬼火だった頃)のキーも読む
+    if (in.contains("onibiDarknessRadius")) m_kageonnaLightRadius = in["onibiDarknessRadius"];
+    if (in.contains("onibiLightRadius"))    m_kageonnaLightRadius = in["onibiLightRadius"];
+    if (in.contains("kageonnaLightRadius")) m_kageonnaLightRadius = in["kageonnaLightRadius"];
     if (in.contains("tellIntervalMin"))     m_tellIntervalMin = in["tellIntervalMin"];
     if (in.contains("tellIntervalMax"))     m_tellIntervalMax = in["tellIntervalMax"];
     if (in.contains("tellRange"))           m_tellRange = in["tellRange"];
@@ -1275,13 +1742,13 @@ void GhostAI::Deserialize(const nlohmann::json& in)
 
 void GhostAI::ImGuiUpdate()
 {
-    ImGui::DragFloat("Move Speed",     &m_moveSpeed,     0.1f,  0.1f, 10.0f);
+    ImGui::DragFloat("Move Speed (km/h)", &m_moveSpeedKmh, 0.1f, 0.1f, 40.0f, "%.1f km/h");
     ImGui::DragFloat("Ground Offset",  &m_groundOffset,  0.01f, -2.0f, 2.0f);
     ImGui::Separator();
     ImGui::Text("Ghost Type");
     {
         int current = static_cast<int>(m_ghostType);
-        const char* names[] = { "Jibakurei (Normal)", "Onibi (Light)", "Yanari (Sound, not implemented)" };
+        const char* names[] = { "Jibakurei (Normal)", "Kageonna (Light)", "Yanari (Sound, not implemented)" };
         if (ImGui::Combo("Type", &current, names, IM_ARRAYSIZE(names))) {
             m_ghostType = static_cast<GhostType>(current);
             Logger::Instance().SetPinnedLine("Ghost Type", GetGhostTypeName(m_ghostType));
@@ -1293,6 +1760,19 @@ void GhostAI::ImGuiUpdate()
     ImGui::DragFloat("Lure Cooldown", &m_lureCooldown, 0.5f, 0.0f, 120.0f);
     ImGui::DragFloat("Lure Check Interval", &m_lureCheckInterval, 0.05f, 0.05f, 5.0f);
     ImGui::DragFloat("Fail Hunt Extension", &m_failHuntExtension, 0.5f, 0.0f, 60.0f);
+    ImGui::DragFloat("Exorcise Duration", &m_exorciseDuration, 0.1f, 0.1f, 10.0f, "%.1f s");
+    ImGui::DragFloat("Exorcise Model Height", &m_exorciseModelHeight, 0.05f, 0.1f, 10.0f, "%.2f m");
+    ImGui::DragFloat("Exorcise Edge Width", &m_exorciseEdgeWidth, 0.01f, 0.01f, 1.0f, "%.2f m");
+    ImGui::DragFloat("Exorcise Edge Glow", &m_exorciseEdgeGlow, 0.1f, 0.0f, 50.0f);
+    ImGui::SliderFloat("Exorcise Sound Volume", &m_exorciseSoundVolume, 0.0f, 1.0f);
+    ImGui::DragFloat("Exorcise Glow Strength", &m_exorciseGlowStrength, 0.1f, 0.0f, 50.0f);
+    ImGui::DragFloat("Exorcise Light Intensity", &m_exorciseLightIntensity, 0.1f, 0.0f, 50.0f);
+    ImGui::DragFloat("Exorcise Particle Rate", &m_exorciseParticleRate, 1.0f, 0.0f, 500.0f, "%.0f /s");
+    ImGui::DragFloat("Exorcise Particle Radius", &m_exorciseParticleRadius, 0.05f, 0.0f, 5.0f, "%.2f m");
+    ImGui::DragInt("Exorcise Particle Burst", &m_exorciseParticleBurst, 1.0f, 0, 300);
+    ImGui::DragFloat("FlashLight Flicker Range", &m_flashLightFlickerRange, 0.1f, 0.0f, 30.0f, "%.1f m");
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"この距離以内の点いたフラッシュライト(手持ち・床)を点滅させる(消しはしない)");
+    ImGui::DragFloat("Kageonna Light Radius", &m_kageonnaLightRadius, 0.5f, 0.0f, 50.0f);
     ImGui::DragFloat("Tell Interval Min", &m_tellIntervalMin, 0.5f, 1.0f, 300.0f);
     ImGui::DragFloat("Tell Interval Max", &m_tellIntervalMax, 0.5f, 1.0f, 300.0f);
     ImGui::DragFloat("Tell Range", &m_tellRange, 0.1f, 0.5f, 50.0f);
@@ -1321,7 +1801,18 @@ void GhostAI::ImGuiUpdate()
     ImGui::Text("Hunt");
     ImGui::DragFloat("Hunt Duration Min", &m_huntDurationMin, 0.5f, 0.0f, 60.0f);
     ImGui::DragFloat("Hunt Duration Max", &m_huntDurationMax, 0.5f, 0.0f, 60.0f);
-    ImGui::DragFloat("Hunt Speed Multiplier", &m_huntSpeedMultiplier, 0.1f, 0.1f, 5.0f);
+    ImGui::DragFloat("Hunt Speed (km/h)", &m_huntSpeedKmh, 0.1f, 0.1f, 40.0f, "%.1f km/h");
+    ImGui::DragFloat("Hunt Max Speed (LoS, km/h)", &m_huntMaxSpeedKmh, 0.1f, 0.1f, 40.0f, "%.1f km/h");
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"Playerの全身を見続けた時に到達する最高速度(視認加速)");
+    ImGui::DragFloat("LoS Time To Max (s)", &m_losTimeToMax, 0.1f, 0.1f, 30.0f, "%.1f s");
+    ImGui::DragFloat("LoS Decay Time (s)", &m_losDecayTime, 0.1f, 0.0f, 30.0f, "%.1f s");
+    ImGui::DragFloat("Lit Speed Multiplier", &m_litSpeedMultiplier, 0.01f, 0.0f, 1.0f, "x%.2f");
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"ハント中、照明に照らされている間の速度倍率");
+    if (m_currentState == State::Hunt) {
+        ImGui::Text("[Debug] Hunt speed: %.1f km/h  LoS %.1f/%.1f s  FullBody=%s  InLight=%s",
+            GetHuntSpeed() / kKmhToMs, m_losTimer, m_losTimeToMax,
+            m_isSeeingFullBody ? "yes" : "no", m_isInLight ? "yes" : "no");
+    }
     ImGui::DragFloat("Hunt Trigger Interval Min", &m_huntTriggerIntervalMin, 0.5f, 1.0f, 300.0f);
     ImGui::DragFloat("Hunt Trigger Interval Max", &m_huntTriggerIntervalMax, 0.5f, 1.0f, 300.0f);
     ImGui::DragFloat("Path Node Reach Threshold", &m_pathNodeReachThreshold, 0.02f, 0.05f, 1.0f);
@@ -1329,11 +1820,25 @@ void GhostAI::ImGuiUpdate()
     ImGui::Separator();
     ImGui::Text("Door");
     ImGui::DragFloat("Door Open Range", &m_doorOpenRange, 0.1f, 0.5f, 10.0f);
+    ImGui::SliderFloat("Door Sound Volume", &m_doorSoundVolume, 0.0f, 1.0f);
     ImGui::DragFloat("Door Check Interval", &m_doorCheckInterval, 0.05f, 0.05f, 2.0f);
+    {
+        char buf[128] = {};
+        strncpy_s(buf, m_entranceDoorName.c_str(), _TRUNCATE);
+        if (ImGui::InputText("Entrance Door (locked in Hunt)", buf, sizeof(buf))) m_entranceDoorName = buf;
+    }
+    ImGui::Text("Light Flicker");
+    ImGui::DragFloat("Flicker Range", &m_lightFlickerRange, 0.1f, 0.0f, 20.0f);
+    ImGui::DragFloat("Flicker Vertical Range", &m_lightFlickerVerticalRange, 0.1f, 0.0f, 10.0f);
+    ImGui::SliderFloat("Wander Flicker Chance (/sec)", &m_wanderFlickerChance, 0.0f, 1.0f);
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"ハント以外で近くの照明が点滅し始める1秒あたりの確率。ハント中は常に点滅");
     ImGui::Separator();
-    ImGui::Text("Vision (currently unused for Hunt trigger)");
+    ImGui::Text("Vision (Hunt tracking)");
     ImGui::DragFloat("Vision Range", &m_visionRange, 0.5f, 0.0f, 50.0f);
     ImGui::DragFloat("Vision Angle", &m_visionAngle, 1.0f, 0.0f, 360.0f);
+    ImGui::DragFloat("Proximity Sense Dist", &m_proximitySenseDistance, 0.1f, 0.0f, 10.0f);
+    ImGui::DragFloat("Track Give Up Time (s)", &m_trackGiveUpTime, 0.1f, 0.0f, 60.0f, "%.1f s");
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"一度視認したら追い続ける。視認加速が入らない(全身が見えていない)状態がこの秒数続いたら追跡をやめる");
     ImGui::DragFloat("Eye Height", &m_eyeHeight, 0.05f, 0.0f, 3.0f);
     ImGui::DragFloat("Search GiveUp Dist", &m_searchGiveUpDistance, 0.1f, 0.1f, 10.0f);
     ImGui::Text("State: %s", m_currentState == State::Idle ? "Idle" :
@@ -1359,6 +1864,10 @@ void GhostAI::ImGuiUpdate()
         ImGui::Text("Time until next Hunt: %.1f s", m_huntTriggerTimer);
     } else if (m_currentState == State::Hunt) {
         ImGui::Text("Hunt time left: %.1f s", m_huntTimer);
+        ImGui::Text("Hunt mode: %s", m_isSeeingPlayer ? "Chasing (seeing player)" :
+                                     m_isSensingLight ? "Chasing (flashlight)" :
+                                     m_isTrackingPlayer ? "Chasing (tracking)" :
+                                     m_hasLastKnownPlayerPos ? "Going to last known pos" : "Searching rooms");
     }
 }
 
@@ -1395,7 +1904,141 @@ void GhostAI::Exorcise()
     m_isExorcised = true;
     SetState(GhostAI::State::Dead);
 
-    if (auto gs = GameSequence::GetInstance()) {
-        gs->NotifyExorcised();
+    // 除霊演出の開始。クリア通知は演出が終わってから(UpdateExorciseEffect)
+    auto& ecs = GameManager::Instance().GetECS();
+    auto& cTrans = ecs.GetComponent<TransformData>(GetGameObject()->GetEntityID());
+    m_exorciseTimer = 0.0f;
+    m_exorciseNotified = false;
+    m_exorciseStartPos = cTrans.m_position;
+    m_exorciseCutY = cTrans.m_position.y;
+    // 札の「パシッ」+りんの「チーン」+消えていく間のきらめき(演出の長さに合わせた1本のSE)
+    AudioManager::Instance().PlaySE("Asset/Sound/SE/exorcise.wav", m_exorciseSoundVolume);
+    m_exorciseParticleAccum = 0.0f;
+    for (int i = 0; i < m_exorciseParticleBurst; ++i) {
+        EmitExorciseParticle(true);
     }
+
+    // 閃光用の点光源(実行中だけの一時オブジェクト)
+    if (auto* scene = GetGameObject()->GetScene()) {
+        m_exorciseLightObj = scene->CreateGameObject("ExorciseLight");
+        auto& lTrans = m_exorciseLightObj->GetComponent<TransformData>();
+        lTrans.m_position = cTrans.m_position + Math::Vector3(0, m_eyeHeight * 0.8f, 0);
+        PointLightData light;
+        light.m_color = m_exorciseColor;
+        light.m_intensity = 0.0f;
+        light.m_range = m_exorciseLightRange;
+        m_exorciseLightObj->AddComponent<PointLightData>(light);
+    }
+}
+
+void GhostAI::UpdateExorciseEffect(float deltaTime, TransformData& cTrans)
+{
+    if (m_exorciseNotified) return;
+
+    m_exorciseTimer += deltaTime;
+    float t = (m_exorciseDuration > 0.0f) ? std::clamp(m_exorciseTimer / m_exorciseDuration, 0.0f, 1.0f) : 1.0f;
+
+    // 札を貼った瞬間(最初の15%)に一気に強く光る。その後は体の光を少し落として、
+    // 足元から消えていく境界の光が目立つようにする
+    constexpr float kFlashEnd = 0.15f;
+    float flash = (t < kFlashEnd) ? (t / kFlashEnd) : 1.0f;
+    // 閃光の直後に一瞬だけ跳ね上がるピーク(sinの山)
+    float burst = (t < kFlashEnd * 2.0f) ? sinf(t / (kFlashEnd * 2.0f) * DirectX::XM_PI) : 0.0f;
+    // 浄化の光が揺らめく感じ
+    float shimmer = 0.85f + 0.15f * sinf(m_exorciseTimer * 25.0f);
+
+    // 足元から消えていく: 閃光の後(15%〜90%)で境界を足元から頭の上まで上げる。
+    // その場から動かさない(位置・向き・大きさはそのまま)。
+    constexpr float kDissolveStart = 0.15f;
+    constexpr float kDissolveEnd = 0.9f;
+    float d = std::clamp((t - kDissolveStart) / (kDissolveEnd - kDissolveStart), 0.0f, 1.0f);
+    d = d * d * (3.0f - 2.0f * d); // ゆっくり始まりゆっくり終わる
+    float bottomY = m_exorciseStartPos.y - m_exorciseEdgeWidth;
+    float topY = m_exorciseStartPos.y + m_exorciseModelHeight + m_exorciseEdgeWidth;
+    m_exorciseCutY = bottomY + (topY - bottomY) * d;
+    cTrans.m_position = m_exorciseStartPos;
+    float remain = 1.0f - d; // 残っている体の割合(光の強さを合わせて落とす)
+
+    // 消えている境界から光の粒を湧かせる(消えている間だけ)
+    if (t >= kDissolveStart && t < kDissolveEnd) {
+        m_exorciseParticleAccum += m_exorciseParticleRate * deltaTime;
+        while (m_exorciseParticleAccum >= 1.0f) {
+            EmitExorciseParticle(false);
+            m_exorciseParticleAccum -= 1.0f;
+        }
+    }
+
+    // ゴースト自体の発光(Bloom)
+    if (m_animEntity != INVALID_ENTITY) {
+        auto& ecs = GameManager::Instance().GetECS();
+        if (auto* pModel = ecs.TryGetComponent<ModelRenderData>(m_animEntity)) {
+            float glow = m_exorciseGlowStrength * (0.35f * flash + burst) * shimmer;
+            pModel->m_glowColor = m_exorciseColor * glow;
+            pModel->m_glowMaterial.clear();
+            pModel->m_dissolveEnabled = true;
+            pModel->m_dissolveHeight = m_exorciseCutY;
+            pModel->m_dissolveEdgeWidth = m_exorciseEdgeWidth;
+            pModel->m_dissolveEdgeColor = m_exorciseColor * (m_exorciseEdgeGlow * shimmer);
+        }
+    }
+
+    // 周囲を照らす閃光
+    if (m_exorciseLightObj) {
+        auto& ecs = GameManager::Instance().GetECS();
+        if (auto* pLight = ecs.TryGetComponent<PointLightData>(m_exorciseLightObj->GetEntityID())) {
+            // 閃光のピークは最大強度、その後は4割程度の光を保ち、最後に消える
+            pLight->m_intensity = m_exorciseLightIntensity * (0.4f * flash * remain + 0.6f * burst) * shimmer;
+        }
+    }
+
+    if (t >= 1.0f) {
+        SetModelVisible(false);
+        if (m_exorciseLightObj) {
+            m_exorciseLightObj->Destroy();
+            m_exorciseLightObj.reset();
+        }
+        m_exorciseNotified = true;
+        if (auto gs = GameSequence::GetInstance()) {
+            gs->NotifyExorcised();
+        }
+    }
+}
+
+void GhostAI::EmitExorciseParticle(bool burst)
+{
+    auto& rnd = Random::Instance();
+
+    // 足元の円内のランダムな位置(中心寄りに偏らないようsqrtで半径を取る)
+    float angle = rnd.Range(0.0f, DirectX::XM_2PI);
+    float radius = m_exorciseParticleRadius * sqrtf(rnd.Range(0.0f, 1.0f));
+    Math::Vector3 offset(cosf(angle) * radius, 0.05f, sinf(angle) * radius);
+
+    Particle p;
+    p.m_position = m_exorciseStartPos + offset;
+    if (!burst) p.m_position.y = m_exorciseCutY; // 消えている境界から出す
+    if (burst) {
+        // 札を貼った瞬間: 体の高さあたりから外へ弾けて、ふわっと上へ
+        p.m_position.y += rnd.Range(0.3f, m_eyeHeight);
+        Math::Vector3 outward(cosf(angle), 0.0f, sinf(angle));
+        p.m_velocity = outward * rnd.Range(1.0f, 2.5f) + Math::Vector3(0, rnd.Range(0.8f, 2.0f), 0);
+        p.m_drag = 2.5f;
+        p.m_life = rnd.Range(0.8f, 1.4f);
+        p.m_sizeStart = rnd.Range(0.03f, 0.06f);
+    } else {
+        // 消えている境界から湧き上がって、昇りながら小さくなって消えていく
+        p.m_velocity = Math::Vector3(0, rnd.Range(0.8f, 1.8f), 0) - offset * 0.3f; // 少しだけ中心へ寄る
+        p.m_drag = 0.3f;
+        p.m_life = rnd.Range(1.0f, 1.8f);
+        p.m_sizeStart = rnd.Range(0.02f, 0.05f);
+        p.m_swayAmplitude = rnd.Range(0.03f, 0.1f);
+        p.m_swayFrequency = rnd.Range(2.0f, 5.0f);
+        p.m_swayPhase = rnd.Range(0.0f, DirectX::XM_2PI);
+    }
+    p.m_sizeEnd = 0.0f;
+    // 金色と白の間でばらつかせる(HDRなのでBloomで光る)
+    float whiteness = rnd.Range(0.0f, 1.0f);
+    Math::Vector3 color = m_exorciseColor + (Math::Vector3(1, 1, 1) - m_exorciseColor) * whiteness;
+    p.m_color = color * rnd.Range(4.0f, 8.0f);
+
+    ParticleManager::Instance().Emit(p);
 }

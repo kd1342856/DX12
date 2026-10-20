@@ -1,6 +1,7 @@
 ﻿#include "../../../Pch.h"
 #include "NormalPrepassShader.h"
 #include "../../GDF/GDF.h"
+#include "../../../Framework/Manager/Asset/TextureManager.h"
 
 void NormalPrepassShader::Create(GraphicsDevice* pGraphicsDevice)
 {
@@ -34,4 +35,17 @@ void NormalPrepassShader::BeginNode(const ModelData::Node& node, const Math::Mat
 
 	int b1 = GetRootParameterIndex(ShaderBindingType::CBV, 1);
 	if (b1 != -1) GDF::Instance().BindCBuffer(b1, cbDraw);
+}
+
+void NormalPrepassShader::BeforeDrawMesh(const Mesh& mesh, const Material& material)
+{
+	int b2 = GetRootParameterIndex(ShaderBindingType::CBV, 2);
+	if (b2 != -1) GDF::Instance().BindCBuffer(b2, material.Constants);
+
+	int t2 = GetRootParameterIndex(ShaderBindingType::SRV, 2);
+	if (t2 != -1) {
+		auto* pTex = TextureManager::Instance().Get(material.MetallicRoughness.handle);
+		if (pTex && material.MetallicRoughness.valid && pTex->IsReady()) pTex->Set(t2);
+		else GraphicsDevice::Instance().GetWhiteTex()->Set(t2);
+	}
 }

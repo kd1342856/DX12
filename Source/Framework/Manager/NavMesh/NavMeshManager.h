@@ -43,6 +43,11 @@ public:
 
     bool BuildManualNavMesh(const std::vector<RoomArea*>& rooms);
 
+    // 家のモデル("Stage"とその子)のメッシュが全部使える状態か。BuildManualNavMeshは、部屋同士の
+    // つながりを実際の開口部(ドア・通路)だけに絞るのにStageへのレイキャストとドアの位置を使うので、
+    // これがtrueになってから作るのが望ましい(falseの時は開口部の判定なしで壁の全長をつなぐ)。
+    static bool IsStageCollisionReady();
+
     bool IsBuilt() const { return m_navMesh != nullptr; }
 
     NavMeshBakeSettings GetBakeSettings() const { return m_bakeSettings; }
@@ -155,6 +160,9 @@ private:
     dtQueryFilter*  m_filter   = nullptr;
 
     void CleanupRecast();
+
+    // 非同期で届いた経路の、既に通り過ぎた先頭ウェイポイントを捨てる(MoveToward参照)
+    static void DropPassedWaypoints(std::vector<Math::Vector3>& waypoints, const Math::Vector3& current);
 
     Math::Vector3 AdvanceAlongPath(
         PathCache& cache,

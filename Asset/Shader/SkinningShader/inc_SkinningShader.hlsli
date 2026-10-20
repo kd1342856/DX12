@@ -5,6 +5,7 @@ struct VSOutput
     float3 Normal : NORMAL;
     float3 Tangent : TANGENT;
     float4 Color : COLOR;
+    float3 wPos : TEXCOORD1;
 };
 
 struct PSOutput
@@ -43,4 +44,11 @@ cbuffer cbPerMaterial : register(b3)
     float g_occlusionStrength;
     float g_emissiveStrength;
     float3 g_emissiveFactor;
+    int g_alphaMode;
+    int g_proceduralType; // 5: Dissolve from bottom (world Y)
+    float g_dissolveAmount;
+    int g_reflectionSlot;
+    float3 g_dissolveEdgeColor; // HDR color of the glowing band just above the cut
+    float g_dissolveHeight;     // world Y below which pixels are clipped
+    float g_dissolveEdgeWidth;  // width of the glowing band / raggedness of the cut (m)
 };

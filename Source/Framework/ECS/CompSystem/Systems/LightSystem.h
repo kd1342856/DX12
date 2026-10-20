@@ -112,7 +112,15 @@ public:
         {
             auto& trans = m_pCoordinator->GetComponent<TransformData>(entity);
             auto& light = m_pCoordinator->GetComponent<SpotLightData>(entity);
-            if (!light.m_enabled) continue;
+
+            // 同じエンティティにモデルがあれば、点灯中だけモデル自体を発光させる(Bloomで光って見える)
+            if (auto* pModel = m_pCoordinator->TryGetComponent<ModelRenderData>(entity))
+            {
+                pModel->m_glowColor = (light.m_enabled && !light.m_flickerOff) ? light.m_color * light.m_modelGlow : Math::Vector3::Zero;
+                pModel->m_glowMaterial = light.m_glowMaterial;
+            }
+
+            if (!light.m_enabled || light.m_flickerOff) continue;
 
             Math::Vector3 pos = Math::Vector3::Transform(light.m_localOffset, trans.m_worldMatrix);
             Math::Vector3 dir = Math::Vector3::TransformNormal(light.m_localDirection, trans.m_worldMatrix);

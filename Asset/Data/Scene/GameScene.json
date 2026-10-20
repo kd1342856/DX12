@@ -9,7 +9,7 @@
         ],
         "FogDensity": 0.10000000149011612,
         "HuntDarkenAmount": 0.6000000238418579,
-        "HuntFogDensity": 0.20000000298023224,
+        "HuntFogDensity": 0.15000000596046448,
         "HuntTransitionSpeed": 0.800000011920929
     },
     "GameObjects": [
@@ -18,13 +18,13 @@
             "Components": [
                 {
                     "Position": [
-                        4.52614164352417,
-                        1.5644594430923462,
-                        -13.700366020202637
+                        3.318575859069824,
+                        1.6549127101898193,
+                        -5.279060363769531
                     ],
                     "Rotation": [
-                        0.5253425240516663,
-                        -5.137609481811523,
+                        0.1693401038646698,
+                        -8.889713287353516,
                         0.0
                     ],
                     "Scale": [
@@ -44,7 +44,7 @@
                         0.0
                     ],
                     "IsDebugPreview": false,
-                    "MoveSpeed": 0.10000000149011612,
+                    "MoveSpeedPerSec": 6.0,
                     "NearZ": 0.009999999776482582,
                     "TargetOffset": [
                         0.0,
@@ -197,7 +197,7 @@
                             "AnimationIndex": 9,
                             "IsLoop": true,
                             "IsPlaying": true,
-                            "ProgressTime": 3094.940185546875,
+                            "ProgressTime": 3648.4833984375,
                             "Speed": 1.0,
                             "Type": "AnimationDataComponent"
                         }
@@ -212,11 +212,11 @@
                         {
                             "Position": [
                                 0.0,
-                                2.0999999046325684,
+                                2.0999813079833984,
                                 0.25
                             ],
                             "Rotation": [
-                                0.3113430142402649,
+                                0.9873485565185547,
                                 0.0,
                                 0.0
                             ],
@@ -237,7 +237,7 @@
                                 0.25
                             ],
                             "IsDebugPreview": false,
-                            "MoveSpeed": 0.10000000149011612,
+                            "MoveSpeedPerSec": 6.0,
                             "NearZ": 0.009999999776482582,
                             "TargetOffset": [
                                 0.0,
@@ -298,13 +298,13 @@
             "Components": [
                 {
                     "Position": [
-                        3.6625611782073975,
-                        -0.31999921798706055,
-                        -15.479995727539063
+                        2.9916188716888428,
+                        -0.31999966502189636,
+                        -13.007975578308105
                     ],
                     "Rotation": [
                         0.0,
-                        1.7619785070419312,
+                        -69.34706115722656,
                         0.0
                     ],
                     "Scale": [
@@ -320,6 +320,11 @@
                     "animWalkSpeed": 1.0,
                     "crouchBlendSpeed": 6.0,
                     "crouchCameraDelay": 0.10000000149011612,
+                    "crouchFootstepScale": 0.4000000059604645,
+                    "doorLockedSoundVolume": 0.10100000351667404,
+                    "doorSoundVolume": 0.10300000011920929,
+                    "flashLightSoundVolume": 0.3089999854564667,
+                    "footstepVolume": 0.2029999941587448,
                     "gravityStrength": 9.800000190734863,
                     "hasAmulet": true,
                     "hasFlashLight": true,
@@ -368,7 +373,17 @@
                         0.0,
                         120.0
                     ],
-                    "moveSpeed": 3.0,
+                    "itemOrder": [
+                        4,
+                        3,
+                        2,
+                        1
+                    ],
+                    "moveSpeedKmh": 10.0,
+                    "smudgeSoundDuration": 2.200000047683716,
+                    "smudgeSoundVolume": 0.4009999930858612,
+                    "soilFootstepVolume": 0.20399999618530273,
+                    "tatamiFootstepVolume": 0.20800000429153442,
                     "useGravity": true
                 }
             ],
@@ -381,14 +396,14 @@
             "Components": [
                 {
                     "Position": [
-                        3.4793882369995117,
-                        1.3713734149932861,
-                        -11.75609016418457
+                        3.061753988265991,
+                        1.371372938156128,
+                        -12.415191650390625
                     ],
                     "Rotation": [
-                        0.10228734463453293,
-                        -0.8248737454414368,
-                        -0.32656413316726685
+                        0.10228751599788666,
+                        -0.8328699469566345,
+                        -0.32656407356262207
                     ],
                     "Scale": [
                         1.0,
@@ -420,14 +435,14 @@
             "Components": [
                 {
                     "Position": [
-                        4.169362545013428,
-                        1.3311275243759155,
-                        -15.819111824035645
+                        3.063190460205078,
+                        0.9888503551483154,
+                        -12.438570022583008
                     ],
                     "Rotation": [
-                        0.01617378368973732,
-                        1.0212074518203735,
-                        -0.4548405110836029
+                        -0.21426261961460114,
+                        -1.0622426271438599,
+                        -0.23976464569568634
                     ],
                     "Scale": [
                         0.3499999940395355,
@@ -459,14 +474,14 @@
             "Components": [
                 {
                     "Position": [
-                        4.187497615814209,
-                        1.3782304525375366,
-                        -13.258197784423828
+                        3.7318830490112305,
+                        1.0312074422836304,
+                        -14.680497169494629
                     ],
                     "Rotation": [
-                        0.4629647135734558,
-                        -0.7780197858810425,
-                        0.055223286151885986
+                        0.215658038854599,
+                        0.330639511346817,
+                        -0.15099646151065826
                     ],
                     "Scale": [
                         0.8999999761581421,
@@ -522,14 +537,14 @@
             "Components": [
                 {
                     "Position": [
-                        4.138818264007568,
-                        1.4036626815795898,
-                        -14.345389366149902
+                        3.774509906768799,
+                        1.064255714416504,
+                        -14.988321304321289
                     ],
                     "Rotation": [
-                        -0.9520102739334106,
-                        -2.7934064865112305,
-                        0.2995712161064148
+                        -0.9868996143341064,
+                        1.2570525407791138,
+                        -0.2574315369129181
                     ],
                     "Scale": [
                         1.0,
@@ -548,8 +563,8 @@
             "Components": [
                 {
                     "Position": [
-                        60.0,
-                        650.0,
+                        511.0,
+                        666.0,
                         0.0
                     ],
                     "Rotation": [
@@ -569,7 +584,187 @@
                         1.0,
                         1.0,
                         1.0,
+                        0.6000000238418579
+                    ],
+                    "FilePath": "Asset/Texture/UI/item_slot_1.png",
+                    "OrderInLayer": 9,
+                    "Pivot": [
+                        0.5,
+                        0.5
+                    ],
+                    "Size": [
+                        76.0,
+                        76.0
+                    ],
+                    "Type": "SpriteData"
+                }
+            ],
+            "IsActive": true,
+            "Name": "ItemSlot1",
+            "UUID": 1000000000000000211
+        },
+        {
+            "Children": [],
+            "Components": [
+                {
+                    "Position": [
+                        597.0,
+                        666.0,
                         0.0
+                    ],
+                    "Rotation": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "Scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "Type": "TransformData"
+                },
+                {
+                    "Color": [
+                        1.0,
+                        1.0,
+                        1.0,
+                        0.6000000238418579
+                    ],
+                    "FilePath": "Asset/Texture/UI/item_slot_2.png",
+                    "OrderInLayer": 9,
+                    "Pivot": [
+                        0.5,
+                        0.5
+                    ],
+                    "Size": [
+                        76.0,
+                        76.0
+                    ],
+                    "Type": "SpriteData"
+                }
+            ],
+            "IsActive": true,
+            "Name": "ItemSlot2",
+            "UUID": 1000000000000000212
+        },
+        {
+            "Children": [],
+            "Components": [
+                {
+                    "Position": [
+                        683.0,
+                        666.0,
+                        0.0
+                    ],
+                    "Rotation": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "Scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "Type": "TransformData"
+                },
+                {
+                    "Color": [
+                        1.0,
+                        1.0,
+                        1.0,
+                        0.6000000238418579
+                    ],
+                    "FilePath": "Asset/Texture/UI/item_slot_3.png",
+                    "OrderInLayer": 9,
+                    "Pivot": [
+                        0.5,
+                        0.5
+                    ],
+                    "Size": [
+                        76.0,
+                        76.0
+                    ],
+                    "Type": "SpriteData"
+                }
+            ],
+            "IsActive": true,
+            "Name": "ItemSlot3",
+            "UUID": 1000000000000000213
+        },
+        {
+            "Children": [],
+            "Components": [
+                {
+                    "Position": [
+                        769.0,
+                        666.0,
+                        0.0
+                    ],
+                    "Rotation": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "Scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "Type": "TransformData"
+                },
+                {
+                    "Color": [
+                        1.0,
+                        0.8500000238418579,
+                        0.550000011920929,
+                        1.0
+                    ],
+                    "FilePath": "Asset/Texture/UI/item_slot_4.png",
+                    "OrderInLayer": 9,
+                    "Pivot": [
+                        0.5,
+                        0.5
+                    ],
+                    "Size": [
+                        76.0,
+                        76.0
+                    ],
+                    "Type": "SpriteData"
+                }
+            ],
+            "IsActive": true,
+            "Name": "ItemSlot4",
+            "UUID": 1000000000000000214
+        },
+        {
+            "Children": [],
+            "Components": [
+                {
+                    "Position": [
+                        769.0,
+                        666.0,
+                        0.0
+                    ],
+                    "Rotation": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "Scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "Type": "TransformData"
+                },
+                {
+                    "Color": [
+                        1.0,
+                        1.0,
+                        1.0,
+                        1.0
                     ],
                     "FilePath": "Asset/Texture/UI/thermometer_icon.png",
                     "OrderInLayer": 10,
@@ -578,8 +773,8 @@
                         0.5
                     ],
                     "Size": [
-                        64.0,
-                        64.0
+                        58.0,
+                        58.0
                     ],
                     "Type": "SpriteData"
                 }
@@ -593,8 +788,8 @@
             "Components": [
                 {
                     "Position": [
-                        150.0,
-                        650.0,
+                        683.0,
+                        666.0,
                         0.0
                     ],
                     "Rotation": [
@@ -623,8 +818,8 @@
                         0.5
                     ],
                     "Size": [
-                        64.0,
-                        64.0
+                        58.0,
+                        58.0
                     ],
                     "Type": "SpriteData"
                 }
@@ -638,8 +833,8 @@
             "Components": [
                 {
                     "Position": [
-                        240.0,
-                        650.0,
+                        597.0,
+                        666.0,
                         0.0
                     ],
                     "Rotation": [
@@ -659,7 +854,7 @@
                         1.0,
                         1.0,
                         1.0,
-                        0.0
+                        1.0
                     ],
                     "FilePath": "Asset/Texture/UI/ofuda_icon.png",
                     "OrderInLayer": 10,
@@ -668,8 +863,8 @@
                         0.5
                     ],
                     "Size": [
-                        64.0,
-                        64.0
+                        58.0,
+                        58.0
                     ],
                     "Type": "SpriteData"
                 }
@@ -677,6 +872,51 @@
             "IsActive": true,
             "Name": "OfudaIcon",
             "UUID": 1000000000000000203
+        },
+        {
+            "Children": [],
+            "Components": [
+                {
+                    "Position": [
+                        511.0,
+                        666.0,
+                        0.0
+                    ],
+                    "Rotation": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "Scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "Type": "TransformData"
+                },
+                {
+                    "Color": [
+                        1.0,
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "FilePath": "Asset/Texture/UI/flashlight_icon.png",
+                    "OrderInLayer": 10,
+                    "Pivot": [
+                        0.5,
+                        0.5
+                    ],
+                    "Size": [
+                        58.0,
+                        58.0
+                    ],
+                    "Type": "SpriteData"
+                }
+            ],
+            "IsActive": true,
+            "Name": "FlashLightIcon",
+            "UUID": 1000000000000000204
         },
         {
             "Children": [],
@@ -722,6 +962,51 @@
             "IsActive": true,
             "Name": "InteractPrompt",
             "UUID": 1000000000000000401
+        },
+        {
+            "Children": [],
+            "Components": [
+                {
+                    "Position": [
+                        640.0,
+                        360.0,
+                        0.0
+                    ],
+                    "Rotation": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "Scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "Type": "TransformData"
+                },
+                {
+                    "Color": [
+                        1.0,
+                        1.0,
+                        1.0,
+                        0.0
+                    ],
+                    "FilePath": "Asset/Texture/UI/crosshair_dot.png",
+                    "OrderInLayer": 20,
+                    "Pivot": [
+                        0.5,
+                        0.5
+                    ],
+                    "Size": [
+                        8.0,
+                        8.0
+                    ],
+                    "Type": "SpriteData"
+                }
+            ],
+            "IsActive": true,
+            "Name": "Crosshair",
+            "UUID": 1000000000000000402
         },
         {
             "Children": [],
@@ -778,6 +1063,7 @@
                 {
                     "ScriptName": "RoomArea",
                     "Type": "NativeScriptData",
+                    "floorType": 1,
                     "isCandidate": true,
                     "isStairs": false,
                     "maxX": 6.650000095367432,
@@ -816,6 +1102,7 @@
                 {
                     "ScriptName": "RoomArea",
                     "Type": "NativeScriptData",
+                    "floorType": 1,
                     "isCandidate": true,
                     "isStairs": false,
                     "maxX": 6.650000095367432,
@@ -854,6 +1141,7 @@
                 {
                     "ScriptName": "RoomArea",
                     "Type": "NativeScriptData",
+                    "floorType": 0,
                     "isCandidate": true,
                     "isStairs": false,
                     "maxX": -0.20000000298023224,
@@ -938,6 +1226,7 @@
                 {
                     "ScriptName": "RoomArea",
                     "Type": "NativeScriptData",
+                    "floorType": 0,
                     "isCandidate": true,
                     "isStairs": false,
                     "maxX": -0.20000000298023224,
@@ -976,6 +1265,7 @@
                 {
                     "ScriptName": "RoomArea",
                     "Type": "NativeScriptData",
+                    "floorType": 0,
                     "isCandidate": true,
                     "isStairs": false,
                     "maxX": -0.10000000149011612,
@@ -1019,11 +1309,11 @@
                             "Type": "ModelRenderData"
                         },
                         {
-                            "AnimationIndex": 3,
+                            "AnimationIndex": 1,
                             "IsLoop": true,
                             "IsPlaying": true,
-                            "ProgressTime": 4300.01416015625,
-                            "Speed": 1.5,
+                            "ProgressTime": 2918.9345703125,
+                            "Speed": 1.0,
                             "Type": "AnimationDataComponent"
                         }
                     ],
@@ -1078,13 +1368,13 @@
             "Components": [
                 {
                     "Position": [
-                        5.653501510620117,
-                        0.0,
-                        -5.615969657897949
+                        -5.115606784820557,
+                        4.172325134277344e-07,
+                        -4.120998382568359
                     ],
                     "Rotation": [
                         0.0,
-                        -53.805110931396484,
+                        -49.786075592041016,
                         0.0
                     ],
                     "Scale": [
@@ -1103,9 +1393,22 @@
                     "animWander": 1,
                     "doorCheckInterval": 0.25,
                     "doorOpenRange": 2.0,
+                    "doorSoundVolume": 0.40700000524520874,
+                    "entranceDoorName": "Door_Living_Entrance",
+                    "exorciseDuration": 3.0,
+                    "exorciseEdgeGlow": 12.0,
+                    "exorciseEdgeWidth": 0.15000000596046448,
+                    "exorciseGlowStrength": 6.0,
+                    "exorciseLightIntensity": 8.0,
+                    "exorciseModelHeight": 2.0,
+                    "exorciseParticleBurst": 50,
+                    "exorciseParticleRadius": 0.44999998807907104,
+                    "exorciseParticleRate": 90.0,
+                    "exorciseSoundVolume": 0.29899999499320984,
                     "eyeHeight": 1.5,
                     "failHuntExtension": 5.0,
-                    "ghostType": 1,
+                    "flashLightFlickerRange": 6.0,
+                    "ghostType": 0,
                     "groundOffset": 0.0,
                     "houseBoundsMargin": 3.0,
                     "houseWanderDurationMax": 20.0,
@@ -1115,23 +1418,33 @@
                     "houseWanderStuckTimeout": 5.0,
                     "huntDurationMax": 60.0,
                     "huntDurationMin": 21.5,
-                    "huntSpeedMultiplier": 1.7999999523162842,
+                    "huntMaxSpeedKmh": 12.0,
+                    "huntSpeedKmh": 11.0,
                     "huntTriggerIntervalMax": 58.5,
                     "huntTriggerIntervalMin": 48.5,
+                    "kageonnaLightRadius": 12.0,
+                    "lightFlickerRange": 4.0,
+                    "lightFlickerVerticalRange": 4.199999809265137,
+                    "litSpeedMultiplier": 0.25,
+                    "losDecayTime": 2.0,
+                    "losTimeToMax": 6.0,
                     "lureArriveThreshold": 1.5,
                     "lureCheckInterval": 0.5,
                     "lureCooldown": 10.0,
                     "lureDwellDuration": 20.0,
-                    "moveSpeed": 1.0,
+                    "moveSpeedKmh": 11.0,
                     "pathNodeReachThreshold": 0.3499999940395355,
+                    "proximitySenseDistance": 1.5,
                     "randomizeType": true,
                     "roomArriveThreshold": 1.5,
                     "searchGiveUpDistance": 1.0,
                     "tellIntervalMax": 40.0,
                     "tellIntervalMin": 20.0,
                     "tellRange": 8.0,
+                    "trackGiveUpTime": 5.0,
                     "visionAngle": 100.0,
-                    "visionRange": 15.0
+                    "visionRange": 15.0,
+                    "wanderFlickerChance": 0.20000000298023224
                 }
             ],
             "IsActive": true,
@@ -1192,6 +1505,7 @@
                 {
                     "ScriptName": "RoomArea",
                     "Type": "NativeScriptData",
+                    "floorType": 0,
                     "isCandidate": false,
                     "isStairs": false,
                     "maxX": 6.650000095367432,
@@ -1230,6 +1544,7 @@
                 {
                     "ScriptName": "RoomArea",
                     "Type": "NativeScriptData",
+                    "floorType": 0,
                     "isCandidate": false,
                     "isStairs": false,
                     "maxX": 6.860000133514404,
@@ -1268,6 +1583,7 @@
                 {
                     "ScriptName": "RoomArea",
                     "Type": "NativeScriptData",
+                    "floorType": 0,
                     "isCandidate": false,
                     "isStairs": true,
                     "maxX": 6.75,
@@ -1316,7 +1632,8 @@
                                 0.9200000166893005,
                                 0.800000011920929
                             ],
-                            "Enabled": true,
+                            "Enabled": false,
+                            "GlowMaterial": "",
                             "InnerAngle": 21.0,
                             "Intensity": 4.349999904632568,
                             "LocalDirection": [
@@ -1329,6 +1646,7 @@
                                 -0.5,
                                 0.0
                             ],
+                            "ModelGlow": 8.0,
                             "OuterAngle": 77.5,
                             "Range": 9.899999618530273,
                             "Type": "SpotLightData"
@@ -1342,7 +1660,7 @@
             "Components": [
                 {
                     "Position": [
-                        1.4700000286102295,
+                        2.6700000762939453,
                         3.9000000953674316,
                         -0.6610000133514404
                     ],
@@ -1359,10 +1677,12 @@
                     "Type": "TransformData"
                 },
                 {
-                    "Active": true,
-                    "Interactable": true,
+                    "Active": false,
+                    "Interactable": false,
                     "Radius": 12.0,
+                    "RoomLight": true,
                     "ScriptName": "StimulusSource",
+                    "SoundVolume": 0.800000011920929,
                     "StimulusType": 0,
                     "Type": "NativeScriptData"
                 }
@@ -1405,7 +1725,8 @@
                                 0.9200000166893005,
                                 0.800000011920929
                             ],
-                            "Enabled": true,
+                            "Enabled": false,
+                            "GlowMaterial": "",
                             "InnerAngle": 17.5,
                             "Intensity": 2.450000047683716,
                             "LocalDirection": [
@@ -1418,6 +1739,7 @@
                                 -0.5,
                                 0.0
                             ],
+                            "ModelGlow": 8.0,
                             "OuterAngle": 65.0,
                             "Range": 8.600000381469727,
                             "Type": "SpotLightData"
@@ -1448,10 +1770,12 @@
                     "Type": "TransformData"
                 },
                 {
-                    "Active": true,
-                    "Interactable": true,
+                    "Active": false,
+                    "Interactable": false,
                     "Radius": 12.0,
+                    "RoomLight": true,
                     "ScriptName": "StimulusSource",
+                    "SoundVolume": 0.800000011920929,
                     "StimulusType": 0,
                     "Type": "NativeScriptData"
                 }
@@ -1459,6 +1783,342 @@
             "IsActive": true,
             "Name": "CeilingLightF2",
             "UUID": 12801642757453076062
+        },
+        {
+            "Children": [
+                {
+                    "Children": [],
+                    "Components": [
+                        {
+                            "Position": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "Rotation": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "Scale": [
+                                1.0,
+                                1.0,
+                                1.0
+                            ],
+                            "Type": "TransformData"
+                        },
+                        {
+                            "FilePath": "Asset/Model/Map/CeilingLight/Switch/Switch.gltf",
+                            "ModelType": 0,
+                            "PerInstanceAnimation": true,
+                            "Type": "ModelRenderData"
+                        },
+                        {
+                            "AnimationIndex": 1,
+                            "IsLoop": false,
+                            "IsPlaying": false,
+                            "ProgressTime": 208.3323211669922,
+                            "Speed": 1.0,
+                            "Type": "AnimationDataComponent"
+                        }
+                    ],
+                    "IsActive": true,
+                    "Name": "Model",
+                    "UUID": 17614999385849098781
+                }
+            ],
+            "Components": [
+                {
+                    "Position": [
+                        4.210000038146973,
+                        1.847000002861023,
+                        -10.300000190734863
+                    ],
+                    "Rotation": [
+                        0.0,
+                        3.1415927410125732,
+                        0.0
+                    ],
+                    "Scale": [
+                        5.0,
+                        5.0,
+                        5.0
+                    ],
+                    "Type": "TransformData"
+                },
+                {
+                    "Interactable": true,
+                    "PilotMaterial": "Pilot_Lamp",
+                    "ScriptName": "LightSwitch",
+                    "SoundVolume": 0.30300000309944153,
+                    "Targets": "CeilingLight",
+                    "Type": "NativeScriptData"
+                }
+            ],
+            "IsActive": true,
+            "Name": "LightSwitch",
+            "UUID": 4799406210541874815
+        },
+        {
+            "Children": [
+                {
+                    "Children": [],
+                    "Components": [
+                        {
+                            "Position": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "Rotation": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "Scale": [
+                                1.0,
+                                1.0,
+                                1.0
+                            ],
+                            "Type": "TransformData"
+                        },
+                        {
+                            "FilePath": "Asset/Model/Map/CeilingLight/Room/CeilingLight.gltf",
+                            "ModelType": 0,
+                            "Type": "ModelRenderData"
+                        },
+                        {
+                            "Color": [
+                                0.949999988079071,
+                                0.9800000190734863,
+                                1.0
+                            ],
+                            "Enabled": false,
+                            "GlowMaterial": "FL_Tube_Baked",
+                            "InnerAngle": 40.0,
+                            "Intensity": 3.0,
+                            "LocalDirection": [
+                                0.0,
+                                -1.0,
+                                0.0
+                            ],
+                            "LocalOffset": [
+                                0.0,
+                                -0.5,
+                                0.0
+                            ],
+                            "ModelGlow": 8.0,
+                            "OuterAngle": 80.0,
+                            "Range": 8.0,
+                            "Type": "SpotLightData"
+                        }
+                    ],
+                    "IsActive": true,
+                    "Name": "Model",
+                    "UUID": 15543604363200203399
+                }
+            ],
+            "Components": [
+                {
+                    "Position": [
+                        -1.2999999523162842,
+                        4.0,
+                        6.800000190734863
+                    ],
+                    "Rotation": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "Scale": [
+                        2.0,
+                        2.0,
+                        2.0
+                    ],
+                    "Type": "TransformData"
+                },
+                {
+                    "Active": false,
+                    "Interactable": true,
+                    "Radius": 12.0,
+                    "RoomLight": true,
+                    "ScriptName": "StimulusSource",
+                    "SoundVolume": 0.30000001192092896,
+                    "StimulusType": 0,
+                    "Type": "NativeScriptData"
+                }
+            ],
+            "IsActive": true,
+            "Name": "RoomCeilingLight",
+            "UUID": 10669521301444440440
+        },
+        {
+            "Children": [
+                {
+                    "Children": [],
+                    "Components": [
+                        {
+                            "Position": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "Rotation": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "Scale": [
+                                1.0,
+                                1.0,
+                                1.0
+                            ],
+                            "Type": "TransformData"
+                        },
+                        {
+                            "FilePath": "Asset/Model/Map/CeilingLight/Switch/Switch.gltf",
+                            "ModelType": 0,
+                            "PerInstanceAnimation": true,
+                            "Type": "ModelRenderData"
+                        },
+                        {
+                            "AnimationIndex": 1,
+                            "IsLoop": false,
+                            "IsPlaying": false,
+                            "ProgressTime": 208.3323211669922,
+                            "Speed": 1.0,
+                            "Type": "AnimationDataComponent"
+                        }
+                    ],
+                    "IsActive": true,
+                    "Name": "Model",
+                    "UUID": 5510817297547424759
+                }
+            ],
+            "Components": [
+                {
+                    "Position": [
+                        6.610000133514404,
+                        6.046999931335449,
+                        2.0
+                    ],
+                    "Rotation": [
+                        0.0,
+                        1.5707963705062866,
+                        0.0
+                    ],
+                    "Scale": [
+                        5.0,
+                        5.0,
+                        5.0
+                    ],
+                    "Type": "TransformData"
+                },
+                {
+                    "Interactable": true,
+                    "PilotMaterial": "Pilot_Lamp",
+                    "ScriptName": "LightSwitch",
+                    "SoundVolume": 0.2980000078678131,
+                    "Targets": "CeilingLightF2",
+                    "Type": "NativeScriptData"
+                }
+            ],
+            "IsActive": true,
+            "Name": "LightSwitchF2",
+            "UUID": 14155990107876465306
+        },
+        {
+            "Children": [
+                {
+                    "Children": [],
+                    "Components": [
+                        {
+                            "Position": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "Rotation": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "Scale": [
+                                1.0,
+                                1.0,
+                                1.0
+                            ],
+                            "Type": "TransformData"
+                        },
+                        {
+                            "FilePath": "Asset/Model/Map/CeilingLight/Room/CeilingLight.gltf",
+                            "ModelType": 0,
+                            "Type": "ModelRenderData"
+                        },
+                        {
+                            "Color": [
+                                0.949999988079071,
+                                0.9800000190734863,
+                                1.0
+                            ],
+                            "Enabled": false,
+                            "GlowMaterial": "FL_Tube_Baked",
+                            "InnerAngle": 40.0,
+                            "Intensity": 3.0,
+                            "LocalDirection": [
+                                0.0,
+                                -1.0,
+                                0.0
+                            ],
+                            "LocalOffset": [
+                                0.0,
+                                -0.5,
+                                0.0
+                            ],
+                            "ModelGlow": 8.0,
+                            "OuterAngle": 80.0,
+                            "Range": 8.0,
+                            "Type": "SpotLightData"
+                        }
+                    ],
+                    "IsActive": true,
+                    "Name": "Model",
+                    "UUID": 4999031010547828605
+                }
+            ],
+            "Components": [
+                {
+                    "Position": [
+                        -1.2999999523162842,
+                        8.199999809265137,
+                        6.800000190734863
+                    ],
+                    "Rotation": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "Scale": [
+                        2.0,
+                        2.0,
+                        2.0
+                    ],
+                    "Type": "TransformData"
+                },
+                {
+                    "Active": false,
+                    "Interactable": true,
+                    "Radius": 12.0,
+                    "RoomLight": true,
+                    "ScriptName": "StimulusSource",
+                    "SoundVolume": 0.3019999861717224,
+                    "StimulusType": 0,
+                    "Type": "NativeScriptData"
+                }
+            ],
+            "IsActive": true,
+            "Name": "RoomCeilingLightF2",
+            "UUID": 11588783537782773580
         }
     ],
     "Lighting": {
@@ -1480,7 +2140,7 @@
         "DirectionalLightIntensity": 1.0,
         "EnableIndoorMask": true,
         "IndirectShadowFloor": 0.05000000074505806,
-        "IndoorMargin": 0.30000001192092896
+        "IndoorMargin": 0.28999999165534973
     },
     "Shadow": {
         "CascadeSplits": [

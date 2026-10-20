@@ -28,12 +28,16 @@ public:
     void SetLightOn(bool on) { m_lightOn = on; }
     bool IsLightOn() const { return m_lightOn; }
     void ToggleLight() { m_lightOn = !m_lightOn; }
+    // Ghost interference: flicker the light for a while (it stays on, only the look flickers).
+    void FlickerLight(float duration) { m_lightFlicker.Start(duration); }
+    bool IsLightFlickering() const { return m_lightFlicker.IsFlickering(); }
 
 private:
     void UpdateFlight(float deltaTime);
 
-    void SyncLight();
+    void SyncLight(float deltaTime);
     bool  m_lightOn = false;
+    LightFlickerState m_lightFlicker;
 
     bool  m_isFlying = false;
     Math::Vector3 m_velocity = { 0, 0, 0 };

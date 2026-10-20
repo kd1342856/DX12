@@ -89,6 +89,9 @@
     },
     {
       "uri": "textures/DefaultMaterial_normal.jpeg"
+    },
+    {
+      "uri": "textures/DefaultMaterial_emissive.png"
     }
   ],
   "materials": [
@@ -108,7 +111,15 @@
         "metallicRoughnessTexture": {
           "index": 1
         }
-      }
+      },
+      "emissiveTexture": {
+        "index": 3
+      },
+      "emissiveFactor": [
+        0.0,
+        0.0,
+        0.0
+      ]
     }
   ],
   "meshes": [
@@ -218,6 +229,10 @@
     {
       "sampler": 0,
       "source": 2
+    },
+    {
+      "sampler": 0,
+      "source": 3
     }
   ]
 }

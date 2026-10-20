@@ -46,6 +46,7 @@ void Editor::DrawMenuBar() {
             ImGui::MenuItem("Shader Editor", nullptr, &s_showShaderEditor);
             ImGui::MenuItem("NavMesh Editor", nullptr, &s_showNavMeshEditor);
             ImGui::MenuItem("Preview Camera", nullptr, &s_showPreviewCamera);
+            ImGui::MenuItem("Sound Manager", nullptr, &s_showSoundManager);
             ImGui::EndMenu();
         }
         ImGui::EndMainMenuBar();

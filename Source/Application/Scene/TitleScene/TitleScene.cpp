@@ -11,6 +11,7 @@
 #include "../../../Graphics/Renderer/Renderer.h"
 #include "../../../Framework/Manager/Scene/Scene.h"
 #include "../../../Framework/Object/GameObject.h"
+#include "../../../Framework/Manager/Audio/AudioManager.h"
 
 void TitleScene::Init()
 {
@@ -69,6 +70,8 @@ void TitleScene::Init()
     m_exitEntity  = find("ExitButton");
 
     editorScene->Init();
+
+    AudioManager::Instance().PlayBGM("Asset/Sound/BGM/shoujorei.wav", 0.6f);
 }
 
 void TitleScene::Update(float deltaTime)
@@ -152,4 +155,6 @@ void TitleScene::Unload()
     // オブジェクトはEditor::s_scene(ヒエラルキー)が所有する。次のシーンのInit()でEditor::Init()
     // により空のSceneへ差し替わる時に一緒に破棄されるので、ここでEntityを直接消さない。
     Editor::ClearSelection();
+
+    AudioManager::Instance().StopBGM();
 }

@@ -4,6 +4,10 @@
 #include "../../../Application/Object/Script/System/RoomArea.h"
 #include "../../Object/GameObject.h"
 #include "../../System/JobSystem/JobSystem.h"
+#include "../Collision/CollisionManager.h"
+#include "../Scene/Scene.h"
+#include "../../ImGuiEditor/Editor/Editor.h"
+#include <functional>
 #include "Recast/Recast.h"
 #include "Detour/DetourNavMesh.h"
 #include "Detour/DetourNavMeshBuilder.h"
@@ -382,6 +386,53 @@ bool NavMeshManager::BuildNavMesh(std::shared_ptr<ModelData> stageModel, const M
     return true;
 }
 
+bool NavMeshManager::IsStageCollisionReady()
+{
+    auto scene = Editor::GetScene();
+    if (!scene) return false;
+    auto& ecs = GameManager::Instance().GetECS();
+    bool foundAny = false;
+    bool allReady = true;
+    std::function<void(const std::shared_ptr<GameObject>&)> check = [&](const std::shared_ptr<GameObject>& obj) {
+        if (auto* pModel = ecs.TryGetComponent<ModelRenderData>(obj->GetEntityID())) {
+            if (!pModel->m_filePath.empty()) {
+                foundAny = true;
+                DirectX::BoundingBox bounds;
+                // TryGetLocalBoundsは全メッシュのGPU/CPUデータが揃っていない間はfalseを返す
+                if (!pModel->m_spModelData || !pModel->m_spModelData->IsLoaded() ||
+                    !pModel->m_spModelData->TryGetLocalBounds(bounds)) {
+                    allReady = false;
+                }
+            }
+        }
+        for (auto& child : obj->GetChildren()) check(child);
+    };
+    for (auto& obj : scene->GetGameObjects()) {
+        if (obj && obj->GetName() == "Stage") check(obj);
+    }
+    return foundAny && allReady;
+}
+
+// 家のモデル内のドア(名前に"Door"を含むアニメーション)が動かすノード名を集める。
+// 開口部を探すレイキャストではこれらのノード(ドアの板)を無視して、閉まっているドアでも
+// ドア枠の内側(実際の出入口)を通れる場所として拾えるようにする。
+static std::unordered_set<std::string> CollectDoorNodeNames()
+{
+    std::unordered_set<std::string> names;
+    auto& ecs = GameManager::Instance().GetECS();
+    for (Entity entity = 0; entity < MAX_ENTITIES; ++entity)
+    {
+        auto* pModel = ecs.TryGetComponent<ModelRenderData>(entity);
+        if (!pModel || !pModel->m_spModelData || !pModel->m_spModelData->IsLoaded()) continue;
+        for (const auto& anim : pModel->m_spModelData->GetAnimations())
+        {
+            if (anim.name.find("Door") == std::string::npos && anim.name.find("door") == std::string::npos) continue;
+            for (const auto& channel : anim.channels) names.insert(channel.nodeName);
+        }
+    }
+    return names;
+}
+
 bool NavMeshManager::BuildManualNavMesh(const std::vector<RoomArea*>& rooms)
 {
     CleanupRecast();
@@ -483,6 +534,67 @@ bool NavMeshManager::BuildManualNavMesh(const std::vector<RoomArea*>& rooms)
     struct ConnSide { int side; int connIdx; float lo, hi; }; // lo/hi along the wall (X for south/north sides, Z for east/west sides)
     std::vector<std::vector<ConnSide>> roomConnSides(rects.size());
 
+    // 部屋同士のつながりを、実際に通れる開口部だけに絞る。以前は隣り合う部屋の範囲が重なる区間
+    // (ほぼ壁の全長)をそのままつないでいたため、経路が壁の真ん中を突っ切り、壁にぶつかって詰まった
+    // ゴーストが「詰まった時の一時的な壁抜け」で壁を通り抜けていた。
+    // 共有する壁に沿って腰の高さでStageへレイを飛ばし(ドアの板は無視する)、抜ける区間を開口部とみなす。
+    // その中で一番広い区間を、ゴーストの体の半径分だけ両端から内側へ寄せてつなぐ(経路の曲がり角が
+    // ドア枠や壁の角ぎりぎりに来ると、体がぶつかってその地点に近づけず、壁の方を向いたまま進み続けるため)。
+    const bool detectOpenings = IsStageCollisionReady();
+    std::unordered_set<std::string> doorNodeNames;
+    if (detectOpenings) {
+        // RaycastAgainstMeshはCollisionManagerの対象シーンが未設定だと何にも当たらない(=全部開いている扱い)
+        CollisionManager::Instance().SetScene(Editor::GetScene().get());
+        doorNodeNames = CollectDoorNodeNames();
+        Logger::Instance().AddLog(Logger::LogLevel::Info,
+            "NavMesh (manual): detecting openings from Stage collision (%d door nodes ignored).", (int)doorNodeNames.size());
+    } else {
+        Logger::Instance().AddLog(Logger::LogLevel::Warning,
+            "NavMesh (manual): Stage collision not ready - connecting whole shared walls (ghosts may cut through walls).");
+    }
+    // rayAlongX: 壁がZ方向に伸びている(X-connector)ならtrue。acrossFrom/To: レイを飛ばす区間(壁をまたぐ)。
+    // [lo, hi]: 壁に沿った候補区間。開口部が見つかればoutLo/outHiに入れてtrue。
+    auto findOpening = [&](bool rayAlongX, float acrossFrom, float acrossTo, float floorY,
+                           float lo, float hi, float& outLo, float& outHi) -> bool {
+        const float kStep = 0.1f;
+        const float kRayHeight = 1.0f;   // 腰の高さ(テーブル等の家具より上、ドア枠の上端より下)
+        const float kMinWidth = 0.5f;    // これより狭い隙間は通れない
+        const float kAgentRadius = 0.45f; // ゴーストの当たり判定の半径(0.44m)。両端からこの分だけ内側へ寄せる
+        float bestLo = 0.0f, bestHi = -1.0f, runLo = 0.0f, lastOpen = 0.0f;
+        bool inRun = false;
+        int count = (int)ceilf((hi - lo) / kStep);
+        for (int k = 0; k <= count; ++k)
+        {
+            float s = (std::min)(lo + k * kStep, hi);
+            Math::Vector3 origin = rayAlongX ? Math::Vector3(acrossFrom, floorY + kRayHeight, s)
+                                             : Math::Vector3(s, floorY + kRayHeight, acrossFrom);
+            Math::Vector3 dir = rayAlongX ? Math::Vector3(1, 0, 0) : Math::Vector3(0, 0, 1);
+            RaycastHit hit = CollisionManager::Instance().RaycastAgainstMesh(origin, dir, acrossTo - acrossFrom, "Stage", &doorNodeNames);
+            bool open = !hit.hit;
+            if (open) {
+                if (!inRun) { inRun = true; runLo = s; }
+                lastOpen = s;
+            }
+            if (inRun && (!open || k == count)) {
+                if (lastOpen - runLo > bestHi - bestLo) { bestLo = runLo; bestHi = lastOpen; }
+                inRun = false;
+            }
+        }
+        if (bestHi - bestLo < kMinWidth) return false;
+        // 体の半径分だけ内側へ。狭い出入口で幅が残らない時は中央の一点を通らせる
+        float insetLo = bestLo + kAgentRadius;
+        float insetHi = bestHi - kAgentRadius;
+        if (insetHi - insetLo < 0.1f) {
+            float mid = (bestLo + bestHi) * 0.5f;
+            insetLo = mid - 0.05f;
+            insetHi = mid + 0.05f;
+        }
+        outLo = insetLo;
+        outHi = insetHi;
+        return true;
+    };
+    const float kOpeningRayMargin = 0.6f; // 壁をまたぐレイを、それぞれの部屋の内側この距離から飛ばす
+
     for (size_t i = 0; i < rects.size(); ++i)
     {
         for (size_t j = i + 1; j < rects.size(); ++j)
@@ -514,18 +626,34 @@ bool NavMeshManager::BuildManualNavMesh(const std::vector<RoomArea*>& rooms)
                     float clipMin = overlapMin + kConnEdgeEpsilon;
                     float clipMax = overlapMax - kConnEdgeEpsilon;
                     if (clipMin >= clipMax) { clipMin = overlapMin; clipMax = overlapMax; }
-                    Math::Vector3 c0(left->maxX,  left->floorY,  clipMax);
-                    Math::Vector3 c1(left->maxX,  left->floorY,  clipMin);
-                    Math::Vector3 c2(right->minX, right->floorY, clipMin);
-                    Math::Vector3 c3(right->minX, right->floorY, clipMax);
-                    int connIdx = (int)polyIndices.size();
-                    polyIndices.push_back({ getOrAdd(c0), getOrAdd(c1), getOrAdd(c2), getOrAdd(c3) });
-                    int leftIdx  = (left  == &A) ? (int)i : (int)j;
-                    int rightIdx = (right == &A) ? (int)i : (int)j;
-                    roomConnSides[leftIdx].push_back({ 1, connIdx, clipMin, clipMax });  // left room's east side
-                    roomConnSides[rightIdx].push_back({ 3, connIdx, clipMin, clipMax }); // right room's west side
-                    Logger::Instance().AddLog(Logger::LogLevel::Info,
-                        "NavMesh (manual): X-connector %s <-> %s", left->name.c_str(), right->name.c_str());
+                    bool connect = true;
+                    if (detectOpenings) {
+                        float acrossFrom = (std::min)(left->rawMaxX, right->rawMinX) - kOpeningRayMargin;
+                        float acrossTo   = (std::max)(left->rawMaxX, right->rawMinX) + kOpeningRayMargin;
+                        float oLo, oHi;
+                        if (findOpening(true, acrossFrom, acrossTo, (std::min)(left->floorY, right->floorY), clipMin, clipMax, oLo, oHi)) {
+                            clipMin = oLo;
+                            clipMax = oHi;
+                        } else {
+                            connect = false;
+                            Logger::Instance().AddLog(Logger::LogLevel::Info,
+                                "NavMesh (manual): no opening between %s and %s - not connected", left->name.c_str(), right->name.c_str());
+                        }
+                    }
+                    if (connect) {
+                        Math::Vector3 c0(left->maxX,  left->floorY,  clipMax);
+                        Math::Vector3 c1(left->maxX,  left->floorY,  clipMin);
+                        Math::Vector3 c2(right->minX, right->floorY, clipMin);
+                        Math::Vector3 c3(right->minX, right->floorY, clipMax);
+                        int connIdx = (int)polyIndices.size();
+                        polyIndices.push_back({ getOrAdd(c0), getOrAdd(c1), getOrAdd(c2), getOrAdd(c3) });
+                        int leftIdx  = (left  == &A) ? (int)i : (int)j;
+                        int rightIdx = (right == &A) ? (int)i : (int)j;
+                        roomConnSides[leftIdx].push_back({ 1, connIdx, clipMin, clipMax });  // left room's east side
+                        roomConnSides[rightIdx].push_back({ 3, connIdx, clipMin, clipMax }); // right room's west side
+                        Logger::Instance().AddLog(Logger::LogLevel::Info,
+                            "NavMesh (manual): X-connector %s <-> %s (z %.2f..%.2f)", left->name.c_str(), right->name.c_str(), clipMin, clipMax);
+                    }
                 }
             }
 
@@ -547,18 +675,34 @@ bool NavMeshManager::BuildManualNavMesh(const std::vector<RoomArea*>& rooms)
                     float clipMin = overlapMin + kConnEdgeEpsilon;
                     float clipMax = overlapMax - kConnEdgeEpsilon;
                     if (clipMin >= clipMax) { clipMin = overlapMin; clipMax = overlapMax; }
-                    Math::Vector3 c0(clipMin, south->floorY, south->maxZ);
-                    Math::Vector3 c1(clipMax, south->floorY, south->maxZ);
-                    Math::Vector3 c2(clipMax, north->floorY, north->minZ);
-                    Math::Vector3 c3(clipMin, north->floorY, north->minZ);
-                    int connIdx = (int)polyIndices.size();
-                    polyIndices.push_back({ getOrAdd(c0), getOrAdd(c1), getOrAdd(c2), getOrAdd(c3) });
-                    int southIdx = (south == &A) ? (int)i : (int)j;
-                    int northIdx = (north == &A) ? (int)i : (int)j;
-                    roomConnSides[southIdx].push_back({ 2, connIdx, clipMin, clipMax }); // south room's north side
-                    roomConnSides[northIdx].push_back({ 0, connIdx, clipMin, clipMax }); // north room's south side
-                    Logger::Instance().AddLog(Logger::LogLevel::Info,
-                        "NavMesh (manual): Z-connector %s <-> %s", south->name.c_str(), north->name.c_str());
+                    bool connect = true;
+                    if (detectOpenings) {
+                        float acrossFrom = (std::min)(south->rawMaxZ, north->rawMinZ) - kOpeningRayMargin;
+                        float acrossTo   = (std::max)(south->rawMaxZ, north->rawMinZ) + kOpeningRayMargin;
+                        float oLo, oHi;
+                        if (findOpening(false, acrossFrom, acrossTo, (std::min)(south->floorY, north->floorY), clipMin, clipMax, oLo, oHi)) {
+                            clipMin = oLo;
+                            clipMax = oHi;
+                        } else {
+                            connect = false;
+                            Logger::Instance().AddLog(Logger::LogLevel::Info,
+                                "NavMesh (manual): no opening between %s and %s - not connected", south->name.c_str(), north->name.c_str());
+                        }
+                    }
+                    if (connect) {
+                        Math::Vector3 c0(clipMin, south->floorY, south->maxZ);
+                        Math::Vector3 c1(clipMax, south->floorY, south->maxZ);
+                        Math::Vector3 c2(clipMax, north->floorY, north->minZ);
+                        Math::Vector3 c3(clipMin, north->floorY, north->minZ);
+                        int connIdx = (int)polyIndices.size();
+                        polyIndices.push_back({ getOrAdd(c0), getOrAdd(c1), getOrAdd(c2), getOrAdd(c3) });
+                        int southIdx = (south == &A) ? (int)i : (int)j;
+                        int northIdx = (north == &A) ? (int)i : (int)j;
+                        roomConnSides[southIdx].push_back({ 2, connIdx, clipMin, clipMax }); // south room's north side
+                        roomConnSides[northIdx].push_back({ 0, connIdx, clipMin, clipMax }); // north room's south side
+                        Logger::Instance().AddLog(Logger::LogLevel::Info,
+                            "NavMesh (manual): Z-connector %s <-> %s (x %.2f..%.2f)", south->name.c_str(), north->name.c_str(), clipMin, clipMax);
+                    }
                 }
             }
         }
@@ -836,10 +980,13 @@ bool NavMeshManager::BuildManualNavMesh(const std::vector<RoomArea*>& rooms)
             if (j == i || rects[j].isStair) continue;
             if (fabsf(rects[i].floorY - rects[j].floorY) > kSameFloorTolerance) continue;
 
-            float ox0 = (rects[i].minX > rects[j].minX) ? rects[i].minX : rects[j].minX;
-            float ox1 = (rects[i].maxX < rects[j].maxX) ? rects[i].maxX : rects[j].maxX;
-            float oz0 = (rects[i].minZ > rects[j].minZ) ? rects[i].minZ : rects[j].minZ;
-            float oz1 = (rects[i].maxZ < rects[j].maxZ) ? rects[i].maxZ : rects[j].maxZ;
+            // 重なりは壁から内側へ寄せる前の実際の範囲(raw)で判定する。寄せた後の範囲だと、幅1.5mしかない
+            // 階段は0.5mしか残らず、壁際に接している部屋(1階のLivingRoom)との重なりが0.4mになって
+            // kMinOverlapに届かず、1階からは階段へ経路がつながっていなかった。
+            float ox0 = (rects[i].rawMinX > rects[j].rawMinX) ? rects[i].rawMinX : rects[j].rawMinX;
+            float ox1 = (rects[i].rawMaxX < rects[j].rawMaxX) ? rects[i].rawMaxX : rects[j].rawMaxX;
+            float oz0 = (rects[i].rawMinZ > rects[j].rawMinZ) ? rects[i].rawMinZ : rects[j].rawMinZ;
+            float oz1 = (rects[i].rawMaxZ < rects[j].rawMaxZ) ? rects[i].rawMaxZ : rects[j].rawMaxZ;
             if (ox1 - ox0 >= kMinOverlap && oz1 - oz0 >= kMinOverlap)
             {
                 auto& subs = rectRoomPolys[j];
@@ -1099,6 +1246,7 @@ Math::Vector3 NavMeshManager::MoveToward(
             cache.pending->waypoints.clear();
             cache.pending->ready = false;
             cache.computing->store(false, std::memory_order_release);
+            DropPassedWaypoints(cache.waypoints, current);
         }
     }
 
@@ -1286,6 +1434,31 @@ void NavMeshManager::ClearAllPaths()
     m_pathCache.clear();
 }
 
+// 非同期で計算した経路を取り込む時に、既に通り過ぎた先頭のウェイポイントを捨てる。
+// findStraightPathの先頭は「計算を頼んだ時点の位置(をNavMesh上に寄せた点)」なので、結果が届く
+// までに進んだ分や、当たり判定でNavMeshの外へ少し押し出されていた分だけ、その点が後ろや横に
+// ずれていることがある。そのまま辿ると一度そこへ引き返そうとして、追跡中に急に向きを変えて
+// 見える(ハント中はターゲットが動くたびに経路を引き直すので頻繁に起きる)。
+// 対象は先頭の1点(=計算開始時の位置)だけ。近く(kNearDist以内)にあり、wp0->wp1の線分上で現在位置が
+// 既にwp0より先なら捨てる。2点目以降(階段の入口やドアなど、これから通る曲がり角)は絶対に捨てない:
+// 以前は近い点を続けて何個でも捨てていたため、階段の入口まで捨てて上の階の地点の真下へ向かい、
+// そこで「到着」扱いになって経路が空になり、階段前で止まってしまっていた。
+void NavMeshManager::DropPassedWaypoints(std::vector<Math::Vector3>& waypoints, const Math::Vector3& current)
+{
+    const float kNearDist = 1.5f;
+    if (waypoints.size() < 2) return;
+
+    Math::Vector3 seg = waypoints[1] - waypoints[0];
+    Math::Vector3 toCur = current - waypoints[0];
+    seg.y = 0.0f;
+    toCur.y = 0.0f;
+    if (toCur.LengthSquared() > kNearDist * kNearDist) return;
+    if (seg.LengthSquared() < 1e-6f || toCur.Dot(seg) >= 0.0f)
+    {
+        waypoints.erase(waypoints.begin());
+    }
+}
+
 Math::Vector3 NavMeshManager::AdvanceAlongPath(
     PathCache& cache,
     const Math::Vector3& current,
@@ -1300,6 +1473,23 @@ Math::Vector3 NavMeshManager::AdvanceAlongPath(
 
     while (distLeft > 0.0f && !cache.waypoints.empty())
     {
+        // 曲がり角の地点に(壁に押されるなどして)ぴったり触れなくても、近く(kPassNear以内)で既に
+        // 次の地点へ向かう側へ回り込んでいれば通過したとみなす。これが無いと、体が角に当たって
+        // nodeReachThreshold以内に入れない時に、その角(=壁の方)へ向かって進み続けてしまう。
+        const float kPassNear = 1.0f;
+        if (cache.waypoints.size() >= 2)
+        {
+            Math::Vector3 seg = cache.waypoints[1] - cache.waypoints[0];
+            Math::Vector3 fromNode = pos - cache.waypoints[0];
+            seg.y = 0;
+            fromNode.y = 0;
+            if (seg.LengthSquared() > 1e-6f && fromNode.LengthSquared() <= kPassNear * kPassNear && fromNode.Dot(seg) > 0.0f)
+            {
+                cache.waypoints.erase(cache.waypoints.begin());
+                continue;
+            }
+        }
+
         Math::Vector3 toNode = cache.waypoints[0] - pos;
         toNode.y = 0;
 

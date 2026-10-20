@@ -19,8 +19,8 @@ public:
     // ゴーストの種類。ゲーム開始時(Start)にランダムで抽選する(m_randomizeType)。
     enum class GhostType
     {
-        Jibakurei, // 地縛霊: 刺激に反応しない。香はいつでも効く
-        Onibi,     // 鬼火: 点灯中の光源に誘導される。光源に留まっている間だけ香が効く。勝手に照明をつける
+        Jibakurei, // 地縛霊: 刺激に反応しない。香はハント中ならいつでも効く
+        Kageonna,  // 影女: 徘徊中は点灯中の光源に誘導される。香はハント中、周り(m_kageonnaLightRadius)で部屋の電気(天井照明等。ランプ・フラッシュライトは除く)が点いている時だけ効く。勝手に照明を消す(点けることはしない)
         Yanari,    // 家鳴: 音に誘導される(未実装 - 現状は地縛霊と同じ挙動。抽選対象外)
     };
 
@@ -52,7 +52,8 @@ public:
 
     GhostType GetGhostType() const { return m_ghostType; }
 
-    // 香を当てられた時にPlayerから呼ばれる。種類ごとの条件を満たしていればスタンしてtrueを返す。
+    // 香を当てられた時にPlayerから呼ばれる。退治(スタン)できるのはハント中だけで、さらに種類ごとの
+    // 条件を満たしていればスタンしてtrueを返す。
     // 条件を満たしていない場合(失敗)、Hunt中ならHuntが続いたまま残り時間が延長される。
     bool TryIncenseStun(float stunTime);
 
@@ -60,17 +61,38 @@ private:
     void UpdateWander(float deltaTime, TransformData& cTrans);
     void UpdateHouseWander(float deltaTime, TransformData& cTrans);
     void UpdateHunt(float deltaTime, TransformData& cTrans);
+    void PickHuntSearchRoom(const Math::Vector3& currentPos);
+    // ハント開始時に玄関ドアを閉めて施錠する(終了時はDoorLock::UnlockAllで解錠)
+    void LockEntranceDoor();
+    // 近くの点灯中の照明を点滅させる
+    void UpdateLightFlicker(float deltaTime, const Math::Vector3& ghostPos);
+    // 全ての照明(StimulusSourceのLight)を消す。ハント終了時に呼ぶ
+    static void TurnOffAllLights();
+    bool IsPlayerHoldingLitFlashLight();
     void UpdateLured(float deltaTime, TransformData& cTrans);
     // HouseWander/Hunt/Luredで共通の、finalTargetへNavMesh(階段区間は直接補間)で1フレーム分進む処理。
     // 位置・向き(m_moveDir)まで更新する。
     void MoveTowardTarget(float deltaTime, TransformData& cTrans, const Math::Vector3& finalTarget, float speed);
-    // 鬼火/家鳴: 対応する刺激を感知したらLuredへ遷移する(Wander/HouseWander中に呼ぶ)
+    // 影女/家鳴: 対応する刺激を感知したらLuredへ遷移する(Wander/HouseWander中に呼ぶ)
     void CheckStimulus(float deltaTime, const Math::Vector3& currentPos);
-    // 鬼火/家鳴の兆候: 近くの無効な発生源を勝手に有効にする
+    // 影女/家鳴の兆候: 近くで点いている発生源を勝手に消す(影女なら照明を消す)
     void UpdateTell(float deltaTime, const Math::Vector3& currentPos);
     // Luredを終えてゴーストルームへ歩いて帰る(Hunt終了時と同じ帰り方)
     void ReturnToGhostRoom(const Math::Vector3& currentPos);
-    bool IsLuredAndArrived() const { return m_currentState == State::Lured && m_lureArrived; }
+    // 影女用: ghostPosからm_kageonnaLightRadius以内に点いている明かりがあるか
+    // (部屋の電気 = m_isRoomLightの光のStimulusSourceだけ。ランプ・フラッシュライトは含まない)
+    bool IsAnyLightLitNear(const Math::Vector3& ghostPos) const;
+    // posが点いている照明の照らす範囲内(スポットライトの円錐+距離、照明側のポイントライトの距離)にあるか。
+    // StimulusSource管理の照明は点滅中でも点灯扱い(IsActive)で判定する。ハント中の減速に使う。
+    bool IsPositionLit(const Math::Vector3& pos) const;
+    // Playerの全身(足元・胴・頭)が視界内・遮蔽なしで見えているか。ハント中の視認加速に使う。
+    bool CanSeePlayerFullBody(const TransformData& cTrans);
+    // ハント中の実際の移動速度(m/s)。視認加速と照明による減速を反映する。
+    float GetHuntSpeed() const;
+    // 札で退治された後の除霊演出(発光・閃光・昇天)。終わったらGameSequenceへクリアを通知する
+    void UpdateExorciseEffect(float deltaTime, TransformData& cTrans);
+    // 除霊の光の粒を1つ出す。burstなら札を貼った瞬間の勢いのある粒にする
+    void EmitExorciseParticle(bool burst);
     void StartHouseWander(const Math::Vector3& currentPos);
     std::vector<RoomArea*> CollectReachableCandidateRooms(const Math::Vector3& currentPos) const;
     void FacePosition(TransformData& cTrans, const Math::Vector3& dir, float deltaTime);
@@ -80,6 +102,8 @@ private:
     void EnsureHouseBounds();
     void EnsureStairsRoom();
     Math::Vector3 ClampToHouseBounds(const Math::Vector3& pos) const;
+    // 階段の入口(今いる階側の階段の端の少し手前)。exitLandingYは渡った先の床の高さ。
+    Math::Vector3 GetStairsEntryPoint(float exitLandingY) const;
     void TryOpenNearbyDoor(const Math::Vector3& ghostPos, float deltaTime);
     void SetDoorPassThrough(bool enabled);
     Math::Vector3 GetEffectiveMoveTarget(const Math::Vector3& currentPos, const Math::Vector3& finalTarget);
@@ -87,10 +111,36 @@ private:
     Math::Vector3 GetStairsCrossingMove(float deltaTime);
     void StartStairsCrossing(const Math::Vector3& currentPos, const Math::Vector3& finalTarget, float speed);
 
-    float m_moveSpeed = 1.0f;
+    // 速度はエディタではkm/hで扱う(内部の移動計算では/3.6してm/sにする)
+    static constexpr float kKmhToMs = 1.0f / 3.6f;
+    float m_moveSpeedKmh = 3.6f;           // 通常(待機・徘徊・誘導)の移動速度(km/h)
     float m_changeDirTimer = 0.0f;
     Math::Vector3 m_moveDir = { 0, 0, 0 };
     bool m_isExorcised = false;
+
+    // --- 除霊演出(札で退治された時) ---
+    // 札を貼った瞬間に強く光り(閃光)、その後はその場で足元から光の粒になって消えていく
+    // (SkinningShaderの足元からのディゾルブ + ParticleManagerの光の粒)。
+    // 演出が終わるまでGameSequenceへのクリア通知を遅らせる(結果画面に切り替わる前に見せるため)。
+    float m_exorciseDuration    = 3.0f;   // 演出全体の長さ(秒)
+    float m_exorciseModelHeight = 2.0f;   // 消えていく範囲(足元からこの高さまで)(m)
+    float m_exorciseEdgeWidth   = 0.15f;  // 消える境界の光る帯の幅(m)
+    float m_exorciseEdgeGlow    = 12.0f;  // 消える境界の光の強さ(HDR)
+    float m_exorciseGlowStrength = 6.0f;  // 発光(Bloomに乗るHDRの強さ)
+    float m_exorciseLightIntensity = 8.0f;// 閃光の点光源の最大強度
+    float m_exorciseLightRange  = 8.0f;   // 閃光の点光源の届く距離(m)
+    float m_exorciseSoundVolume = 0.9f;   // 除霊SE(札の音+りん+消えていく音)の音量
+    Math::Vector3 m_exorciseColor = { 1.0f, 0.85f, 0.55f }; // 浄化の光の色(淡い金色)
+    // 消える境界から湧き上がって消えていく光の粒(ParticleManager)
+    float m_exorciseParticleRate   = 90.0f; // 1秒あたりに出す数
+    float m_exorciseParticleRadius = 0.45f; // 消える境界のこの半径の円内から出す(m)
+    int   m_exorciseParticleBurst  = 50;    // 札を貼った瞬間にまとめて出す数
+    float m_exorciseParticleAccum  = 0.0f;
+    float m_exorciseTimer = 0.0f;
+    bool  m_exorciseNotified = false;
+    Math::Vector3 m_exorciseStartPos = { 0, 0, 0 };
+    float m_exorciseCutY = 0.0f;           // 今消えている境界の高さ(ワールドY)。光の粒はここから出す
+    std::shared_ptr<GameObject> m_exorciseLightObj; // 演出中だけ生成する点光源
 
     State m_currentState = State::Idle;
 
@@ -100,7 +150,7 @@ private:
 
     // --- 誘導(Lured) ---
     // Wander/HouseWander中、m_lureCheckIntervalごとに対応する刺激を探し、見つかればそこへ向かう。
-    // 到着後はm_lureDwellDurationだけ留まり(この間だけ鬼火に香が効く)、時間切れか発生源が
+    // 到着後はm_lureDwellDurationだけ留まり、時間切れか発生源が
     // 無効になったらゴーストルームへ帰る。帰った直後に同じ発生源へ即座に戻らないよう
     // m_lureCooldownの間は再感知しない。
     StimulusSource* m_lureSource = nullptr;
@@ -115,12 +165,13 @@ private:
 
     // --- 香の失敗ペナルティ ---
     float m_failHuntExtension = 5.0f;    // 条件外で香を使われた時、Hunt中ならこの秒数だけHuntを延長する
+    float m_kageonnaLightRadius = 12.0f;    // 影女: この距離以内で明かりが点いていないと香が効かない
 
-    // --- 兆候(鬼火: 勝手に照明をつける) ---
+    // --- 兆候(影女: 勝手に照明を消す) ---
     float m_tellTimer = 0.0f;
     float m_tellIntervalMin = 20.0f;
     float m_tellIntervalMax = 40.0f;
-    float m_tellRange = 8.0f;            // この距離以内の無効な発生源を勝手に有効にする
+    float m_tellRange = 8.0f;            // この距離以内で点いている発生源を勝手に消す
 
     // --- 家の範囲(HouseWander/Huntの移動先をこの範囲内に制限する) ---
     // 全RoomAreaのAABBを合成し、部屋同士の境界(廊下など)も含まれるように少し余裕を持たせたもの。
@@ -168,13 +219,24 @@ private:
     float m_huntStuckCheckTimer = 0.0f;
 
     // --- ハント(Hunt) ---
-    // 以前は視認(CanSeePlayer)によってのみ開始していたが、今は位置に関わらず定期的に無条件で開始する
-    // タイマーに変更(m_huntTriggerTimer)。Hunt中はPlayerの現在位置を直接追跡するので、
-    // CanSeePlayer/m_hasLastKnownPlayerPosはここでは使わず(関数自体は残している)。
+    // 開始は位置に関わらず定期的なタイマー(m_huntTriggerTimer)で無条件に行う。
+    // Hunt中の追跡は視認(CanSeePlayer)で行う: 見えている間はPlayerの現在位置を追い、
+    // 見失ったら最終目撃地点(m_lastKnownPlayerPos)へ向かい、そこでも見つからなければ部屋を巡回して探す。
     float m_huntTimer = 0.0f;              // ハント終了までの残り時間(Hunt中)
     float m_huntDurationMin = 4.0f;        // ハント継続時間の最小値(秒)
     float m_huntDurationMax = 8.0f;        // ハント継続時間の最大値(秒)
-    float m_huntSpeedMultiplier = 1.8f;    // ハント中の移動速度倍率
+    float m_huntSpeedKmh = 6.5f;           // ハント中の基本速度(km/h)。Playerを視認していない時はこの速度
+    // --- 視認加速(ハント中) ---
+    // Playerの全身を見続けている間、m_losTimerがm_losTimeToMax秒かけて溜まり、速度が
+    // m_huntSpeedKmhからm_huntMaxSpeedKmhまで徐々に上がる。見失うとm_losDecayTime秒かけて戻る。
+    float m_huntMaxSpeedKmh = 10.0f;       // 視認加速の最高速度(km/h)
+    float m_losTimeToMax = 6.0f;           // 最高速度に達するまで全身を見続ける時間(秒)
+    float m_losDecayTime = 2.0f;           // 見失ってから基本速度に戻るまでの時間(秒)
+    float m_losTimer = 0.0f;               // 溜まった視認時間(0..m_losTimeToMax)
+    bool  m_isSeeingFullBody = false;      // デバッグ表示用
+    // --- 照明による減速(ハント中、全種類) ---
+    float m_litSpeedMultiplier = 0.6f;     // 照らされている間の速度倍率
+    bool  m_isInLight = false;             // デバッグ表示用
     float m_huntTriggerTimer = 0.0f;       // 次にハントを開始するまでの残り時間(Room待機/徘徊中)
     float m_huntTriggerIntervalMin = 20.0f;// ハント開始までの間隔の最小値(秒)
     float m_huntTriggerIntervalMax = 40.0f;// ハント開始までの間隔の最大値(秒)
@@ -185,13 +247,29 @@ private:
     Math::Vector3 m_debugFinalTarget = { 0, 0, 0 }; // 実際に目指している最終目的地(Room中心かPlayer位置)
     Math::Vector3 m_debugMoveTarget  = { 0, 0, 0 }; // GetEffectiveMoveTarget後の実際のNavMesh移動目標
 
-    // --- 視認・経路探索 (現在はHunt開始には未使用。関数・フィールドは残している) ---
+    // --- 視認・捜索 (Hunt中の追跡に使用) ---
     float m_visionRange = 15.0f;           // 視認できる最大距離
     float m_visionAngle = 100.0f;          // 視野角(度)
+    float m_proximitySenseDistance = 1.5f; // この距離以内なら視野角外(背後)でも気付く(壁越しは不可)
+    // --- 追跡(ハント中) ---
+    // 一度視認したら、壁に隠れてもPlayerの現在位置をずっと追い続ける。視認加速が溜まらない
+    // (全身が見えていない)状態がm_trackGiveUpTime秒続いたら追跡をやめ、最後に分かっていた位置からの捜索に移る。
+    bool  m_isTrackingPlayer = false;
+    float m_trackGiveUpTime = 5.0f;        // 視認加速が入らないまま、この秒数経ったら追跡停止
+    float m_trackGiveUpTimer = 0.0f;
+    std::string m_entranceDoorName = "Door_Living_Entrance"; // ハント中に施錠する玄関ドア(ドアアニメーション名に含まれる文字列)
+    float m_lightFlickerRange = 4.0f;          // この水平距離以内の点灯中の照明を点滅させる
+    float m_lightFlickerVerticalRange = 4.2f;  // 照明がゴーストの足元より上、この高さ以内(=同じ階の天井まで)なら対象
+    float m_wanderFlickerChance = 0.2f;        // ハント以外で近くの照明が点滅し始める確率(1秒あたり)。ハント中は常に点滅
+    float m_flashLightFlickerRange = 6.0f;     // この距離以内の点いたフラッシュライト(手持ち・床)も点滅させる。消しはしない
+    float m_lightFlickerCheckTimer = 0.0f;
+    bool m_isSensingLight = false;         // 点灯したフラッシュライトを持つPlayerに向かっているか(デバッグ表示用)
     float m_eyeHeight = 1.5f;              // 視線レイの発射高さ(足元からの高さ)
     float m_searchGiveUpDistance = 1.0f;   // 最終目撃地点にこの距離まで近づいても見つからなければ捜索終了
     Math::Vector3 m_lastKnownPlayerPos = { 0, 0, 0 };
     bool m_hasLastKnownPlayerPos = false;
+    bool m_isSeeingPlayer = false;         // 直近のフレームでPlayerを視認していたか(デバッグ表示用)
+    RoomArea* m_huntSearchRoom = nullptr;  // 見失った後に捜索で向かっている部屋
 
     // --- ドア開閉(HouseWander/Huntの移動中に近づいた閉まっているドアを自動的に開ける) ---
     float m_doorCheckTimer = 0.0f;
@@ -282,12 +360,17 @@ private:
     // MoveToward interference (both were ruled out and it still happened) - time-based interpolation
     // between two fixed points removes cTrans.m_position from the calculation entirely, so nothing
     // can make it un-progress once started.
-    Math::Vector3 m_stairsCrossStart = { 0, 0, 0 };
-    Math::Vector3 m_stairsCrossEnd = { 0, 0, 0 };
+    // 階段の昇り降りは「入口 -> 階段の端 -> 反対側の端 -> 出口」の折れ線に沿って進む
+    // (以前は今いる場所から出口まで斜め一直線だったので、階段の横から入ると天井や壁をすり抜けていた)
+    std::vector<Math::Vector3> m_stairsCrossPoints;
+    float m_stairsCrossSpeed = 1.0f;
     float m_stairsCrossElapsed = 0.0f;
     float m_stairsCrossDuration = 1.0f;
+    float m_stairsEntryOffset = 0.6f;  // 入口(階段の端からこれだけ手前)の位置
+    float m_stairsEntryReach = 1.2f;   // 入口にこの水平距離まで近づいたら昇り降りを始める
     float m_doorCheckInterval = 0.25f;     // ドアの近接判定間隔(秒) - 毎フレーム全エンティティを走査しないよう間引く
     float m_doorOpenRange = 2.0f;          // この距離以内の閉まっているドアは自動的に開ける
+    float m_doorSoundVolume = 0.9f;        // ゴーストがドアを開けた時の音量(プレイヤーとの距離でさらに減衰する)
 
     // Ghost.gltfのアニメーションは 0:Ghost_Death, 1:Ghost_Move の2つしかない。
     // 専用のIdle/Huntモーションがないので、とりあえずMoveを使う

@@ -1,5 +1,7 @@
 ﻿#pragma once
 #include "../Item/ItemTypes.h"
+#include "../../../../Framework/Manager/Audio/AudioManager.h"
+#include "../System/RoomArea.h"
 
 class Player : public NativeScript {
 public:
@@ -23,6 +25,11 @@ public:
     bool HasItem(ItemType item) const;
     void SetFlashLightOn(bool on) { m_flashLightOn = on; }
     bool IsFlashLightOn() const { return m_flashLightOn; }
+    // Ghost interference: makes the beam flicker for a while (stays on - only the look flickers).
+    void FlickerFlashLight(float duration) { m_flashLightFlicker.Start(duration); }
+    bool IsFlashLightFlickering() const { return m_flashLightFlicker.IsFlickering(); }
+    // 点灯したフラッシュライトを手に持っている(装備中)か。ハント中のGhostはこれを目印に向かってくる
+    bool IsHoldingLitFlashLight() const { return m_flashLightOn && m_hasFlashLight && m_currentEquipped == Item::FlashLight; }
     // G key: lightly tosses the equipped item from hand height along the camera's view, as a
     // PickupItem (spawned from Asset/Data/Prefab/<item>.json, see PickupItem::Launch), and equips
     // the next owned item, if any.
@@ -36,7 +43,26 @@ public:
 private:
     // Fキーでドアを開閉する処理
     void TryInteractDoor(const Math::Vector3& playerPos);
-    float m_moveSpeed = 10.0f;
+
+    // --- Sound ---
+    // 足音は歩いている間ループ再生し、止まったら停止する。床の種類(FloorType)ごとに音を切り替える:
+    // いる部屋(RoomArea)の床の種類、どの部屋にも入っていなければ家の外(土)とみなす
+    std::unique_ptr<DirectX::SoundEffectInstance> m_footstepSounds[3]; // FloorTypeの順(木/畳/土)
+    float m_footstepVolumes[3] = { 0.6f, 0.6f, 0.6f };
+    float m_crouchFootstepScale = 0.4f;     // しゃがみ歩きの足音の音量倍率
+    FloorType m_currentFloor = FloorType::Wood;
+    FloorType DetectFloorType(const Math::Vector3& pos) const;
+    float m_flashLightSoundVolume = 1.0f;
+    float m_doorSoundVolume = 0.9f;
+    float m_doorLockedSoundVolume = 1.0f;
+    float m_smudgeSoundVolume = 1.0f;
+    // お香(smadge.wav)は長い燻る音なので、使ってから一定時間だけ鳴らしてフェードアウトする
+    std::unique_ptr<DirectX::SoundEffectInstance> m_smudgeSound;
+    float m_smudgeSoundTimer = 0.0f;
+    float m_smudgeSoundDuration = 6.0f;
+    void SetFlashLightOnWithSound(bool on);
+    void UpdateSounds(bool isMoving, float deltaTime);
+    float m_moveSpeedKmh = 10.8f; // 移動速度(km/h)。移動計算では/3.6してm/sにする
     bool m_useGravity = true;
     float m_gravityStrength = 9.8f;
     float m_velocityY = 0.0f;
@@ -58,18 +84,28 @@ private:
     // camera each frame and aimed along its view direction (so it follows pitch as well as yaw) -
     // it keeps shining even while another item is equipped, like a light clipped to the chest.
     bool m_flashLightOn = false;
+    LightFlickerState m_flashLightFlicker;
     Entity m_flashLightBeamEntity = INVALID_ENTITY;
     Entity m_cameraEntity = INVALID_ENTITY;
     void CreateFlashLightBeam();
     void UpdateFlashLightBeam(const Math::Vector3& playerPos, float playerYaw);
     Entity FindGameCameraEntity() const;
 
-    // The 3 HUD icon Sprite entities (expected to exist in GameScene.json named
-    // "ThermometerIcon"/"SmudgeStickIcon"/"OfudaIcon"). Looked up by name and cached in Start();
-    // stays INVALID_ENTITY if not found.
+    // HUD item slot bar (bottom center). Icon Sprite entities are expected in GameScene.json named
+    // "ThermometerIcon"/"SmudgeStickIcon"/"OfudaIcon"/"FlashLightIcon", and their slot frames
+    // "ItemSlot1".."ItemSlot4" (same order as the 1-4 equip keys). Looked up by name and cached in
+    // Start(); stays INVALID_ENTITY if not found.
     Entity m_thermometerIconEntity = INVALID_ENTITY;
     Entity m_incenseIconEntity = INVALID_ENTITY;
     Entity m_amuletIconEntity = INVALID_ENTITY;
+    Entity m_flashLightIconEntity = INVALID_ENTITY;
+    Entity m_itemSlotEntities[4] = { INVALID_ENTITY, INVALID_ENTITY, INVALID_ENTITY, INVALID_ENTITY };
+
+    // 所持アイテムを拾った順に並べたもの。スロットN(とキーN)にはN番目に拾ったアイテムが入る。
+    // AddItemで末尾に追加し、捨てたら詰める。シーンから読んだ初期所持品はSyncItemOrder()が既定順で補う。
+    std::vector<Item> m_itemOrder;
+    void SyncItemOrder();
+    Entity GetItemIconEntity(Item item) const;
     void FindItemIconEntities();
     void UpdateItemIcons();
 
@@ -131,8 +167,13 @@ private:
     InteractKind m_interactKind = InteractKind::None;
     // Only meaningful when m_interactKind == Pickup/Stimulus: the targeted PickupItem's/StimulusSource's entity.
     Entity m_interactEntity = INVALID_ENTITY;
+    // Fキー連打防止のクールダウン(秒)。以前は関数内staticで全Player共有だったため、
+    // 余分なPlayerスクリプトが1つあるだけで本物のPlayerのF入力が潰れていた。
+    float m_interactCooldown = 0.0f;
     // "Press F" HUD prompt Sprite entity (named "InteractPrompt" in GameScene.json).
     Entity m_interactPromptEntity = INVALID_ENTITY;
+    // 画面中央の点クロスヘア(GameScene.jsonの"Crosshair")。Fプロンプトと同じく操作対象を捉えている間だけ表示
+    Entity m_crosshairEntity = INVALID_ENTITY;
     void UpdateInteractionTarget(const Math::Vector3& playerPos, const Math::Vector3& forward);
     void UpdateInteractPrompt();
     // Lightweight, non-logging re-scan of TryInteractDoor's door search, plus a facing-cone check,

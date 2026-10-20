@@ -61,6 +61,7 @@ private:
     static void DrawStatistics();
     static void DrawConsole();
     static void DrawPreviewCamera();
+    static void DrawSoundManager();
 
     // Helper
     static void DrawHierarchyNode(std::shared_ptr<GameObject> obj);
@@ -82,5 +83,6 @@ private:
     static bool s_showShaderEditor;
     static bool s_showNavMeshEditor;
     static bool s_showPreviewCamera;
+    static bool s_showSoundManager;
     static bool s_previewCameraHovered;
 };

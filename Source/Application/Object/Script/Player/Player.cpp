@@ -11,6 +11,8 @@
 #include "../Ghost/GhostAI.h"
 #include "../Item/PickupItem.h"
 #include "../System/StimulusSource.h"
+#include "../System/LightSwitch.h"
+#include "../System/DoorLock.h"
 #include "../../../../Framework/DirectX/Utility/Profiler.h"
 #include <functional>
 
@@ -57,7 +59,14 @@ void Player::FindItemIconEntities()
         if (obj->GetName() == "ThermometerIcon") m_thermometerIconEntity = entity;
         else if (obj->GetName() == "SmudgeStickIcon") m_incenseIconEntity = entity;
         else if (obj->GetName() == "OfudaIcon") m_amuletIconEntity = entity;
+        else if (obj->GetName() == "FlashLightIcon") m_flashLightIconEntity = entity;
         else if (obj->GetName() == "InteractPrompt") m_interactPromptEntity = entity;
+        else if (obj->GetName() == "Crosshair") m_crosshairEntity = entity;
+        else {
+            for (int i = 0; i < 4; ++i) {
+                if (obj->GetName() == "ItemSlot" + std::to_string(i + 1)) m_itemSlotEntities[i] = entity;
+            }
+        }
     }
 
     for (Entity entity = 0; entity < MAX_ENTITIES; ++entity)
@@ -80,17 +89,62 @@ void Player::FindItemIconEntities()
 
 void Player::UpdateItemIcons()
 {
-    // Only the currently equipped AND owned item's icon is shown (alpha 1); the rest are hidden (alpha 0).
+    // 画面下中央のアイテムスロット: 拾った順(m_itemOrder)に1番から詰めてアイコンを並べ、
+    // 装備中のスロットだけ枠を明るい暖色で強調する(キー1〜4も同じ並び)。
+    SyncItemOrder();
     auto& ecs = GameManager::Instance().GetECS();
-    auto setAlpha = [&](Entity e, bool visible) {
-        if (e == INVALID_ENTITY) return;
-        if (auto* sprite = ecs.TryGetComponent<SpriteData>(e)) {
-            sprite->m_color.w = visible ? 1.0f : 0.0f;
+
+    // まず全アイコンを隠し、所持品だけ該当スロットの位置へ動かして表示する
+    for (Item item : { Item::Thermometer, Item::Incense, Item::Amulet, Item::FlashLight }) {
+        if (auto* sprite = ecs.TryGetComponent<SpriteData>(GetItemIconEntity(item))) sprite->m_color.w = 0.0f;
+    }
+
+    for (int i = 0; i < 4; ++i) {
+        const bool filled = i < (int)m_itemOrder.size();
+        const Item item = filled ? m_itemOrder[i] : Item::Thermometer;
+        auto* slotTrans = ecs.TryGetComponent<TransformData>(m_itemSlotEntities[i]);
+
+        if (filled) {
+            Entity icon = GetItemIconEntity(item);
+            if (auto* sprite = ecs.TryGetComponent<SpriteData>(icon)) sprite->m_color.w = 1.0f;
+            auto* iconTrans = ecs.TryGetComponent<TransformData>(icon);
+            if (iconTrans && slotTrans) {
+                iconTrans->m_position.x = slotTrans->m_position.x;
+                iconTrans->m_position.y = slotTrans->m_position.y;
+            }
         }
-    };
-    setAlpha(m_thermometerIconEntity, m_hasThermometer && m_currentEquipped == Item::Thermometer);
-    setAlpha(m_incenseIconEntity, m_hasIncense && m_currentEquipped == Item::Incense);
-    setAlpha(m_amuletIconEntity, m_hasAmulet && m_currentEquipped == Item::Amulet);
+
+        if (auto* sprite = ecs.TryGetComponent<SpriteData>(m_itemSlotEntities[i])) {
+            const bool selected = filled && m_currentEquipped == item;
+            sprite->m_color = selected ? Math::Vector4(1.0f, 0.85f, 0.55f, 1.0f) : Math::Vector4(1.0f, 1.0f, 1.0f, 0.6f);
+        }
+    }
+}
+
+void Player::SyncItemOrder()
+{
+    // 捨てた等で所持していないもの・重複を詰め、シーンから読んだ初期所持品など未登録のものを既定順で末尾に足す
+    std::vector<Item> kept;
+    for (Item item : m_itemOrder) {
+        if (HasItem(item) && std::find(kept.begin(), kept.end(), item) == kept.end()) kept.push_back(item);
+    }
+    m_itemOrder = std::move(kept);
+    for (Item item : { Item::Thermometer, Item::Incense, Item::Amulet, Item::FlashLight }) {
+        if (HasItem(item) && std::find(m_itemOrder.begin(), m_itemOrder.end(), item) == m_itemOrder.end()) {
+            m_itemOrder.push_back(item);
+        }
+    }
+}
+
+Entity Player::GetItemIconEntity(Item item) const
+{
+    switch (item) {
+    case ItemType::Thermometer: return m_thermometerIconEntity;
+    case ItemType::Incense:     return m_incenseIconEntity;
+    case ItemType::Amulet:      return m_amuletIconEntity;
+    case ItemType::FlashLight:  return m_flashLightIconEntity;
+    }
+    return INVALID_ENTITY;
 }
 
 void Player::UpdateHeldItem()
@@ -110,8 +164,14 @@ void Player::UpdateHeldItem()
     if (m_heldFlashLightEntity != INVALID_ENTITY && GetGameObject() && GetGameObject()->GetScene())
     {
         bool visible = m_hasFlashLight && m_currentEquipped == Item::FlashLight;
+        // 点灯中はレンズ("Glass"マテリアル)を発光させ、Bloomで光って見えるようにする
+        const Math::Vector3 glow = IsHoldingLitFlashLight() ? Math::Vector3(1.0f, 0.97f, 0.9f) * 8.0f : Math::Vector3::Zero;
         std::function<void(GameObject*)> apply = [&](GameObject* obj) {
             setVisible(obj->GetEntityID(), visible);
+            if (auto* model = ecs.TryGetComponent<ModelRenderData>(obj->GetEntityID())) {
+                model->m_glowColor = glow;
+                model->m_glowMaterial = "Glass";
+            }
             for (auto& child : obj->GetChildren()) apply(child.get());
         };
         if (auto obj = GetGameObject()->GetScene()->GetGameObject(m_heldFlashLightEntity)) apply(obj.get());
@@ -191,6 +251,9 @@ void Player::UpdateFlashLightBeam(const Math::Vector3& playerPos, float playerYa
 
     bool on = m_hasFlashLight && m_flashLightOn;
     pLight->m_enabled = on;
+    // ゴーストの干渉による点滅は見た目だけ(m_flickerOff)。点灯状態(m_enabled)は変えない
+    bool flickerOff = m_flashLightFlicker.Update(GameTimer::Instance().DeltaTime());
+    pLight->m_flickerOff = on && flickerOff;
     if (!on) return;
 
     if (m_cameraEntity == INVALID_ENTITY || !ecs.TryGetComponent<CameraData>(m_cameraEntity))
@@ -454,11 +517,15 @@ void Player::UpdateInteractionTarget(const Math::Vector3& playerPos, const Math:
 
 void Player::UpdateInteractPrompt()
 {
-    if (m_interactPromptEntity == INVALID_ENTITY) return;
     auto& ecs = GameManager::Instance().GetECS();
+    const float alpha = (m_interactKind != InteractKind::None) ? 1.0f : 0.0f;
     if (auto* sprite = ecs.TryGetComponent<SpriteData>(m_interactPromptEntity))
     {
-        sprite->m_color.w = (m_interactKind != InteractKind::None) ? 1.0f : 0.0f;
+        sprite->m_color.w = alpha;
+    }
+    if (auto* sprite = ecs.TryGetComponent<SpriteData>(m_crosshairEntity))
+    {
+        sprite->m_color.w = alpha;
     }
 }
 
@@ -567,13 +634,22 @@ Entity Player::FindNearestStimulus(const Math::Vector3& playerPos, const Math::V
 
     for (auto& scriptData : ecs.GetComponentArray<NativeScriptData>())
     {
-        auto* src = dynamic_cast<StimulusSource*>(scriptData.Instance.get());
-        if (!src || !src->m_interactable) continue;
-        GameObject* obj = src->GetGameObject();
+        // 照明/ラジカセ本体(StimulusSource)と、廊下照明などの壁スイッチ(LightSwitch)が対象
+        GameObject* obj = nullptr;
+        Math::Vector3 srcPos;
+        if (auto* src = dynamic_cast<StimulusSource*>(scriptData.Instance.get())) {
+            if (!src->m_interactable) continue;
+            obj = src->GetGameObject();
+            srcPos = src->GetWorldPosition();
+        }
+        else if (auto* sw = dynamic_cast<LightSwitch*>(scriptData.Instance.get())) {
+            if (!sw->m_interactable) continue;
+            obj = sw->GetGameObject();
+            srcPos = sw->GetWorldPosition();
+        }
         if (!obj) continue;
 
         // 天井照明のように頭より高い位置にある物も操作できるよう、高さは無視して水平距離・水平方向で判定する
-        Math::Vector3 srcPos = src->GetWorldPosition();
         Math::Vector3 toSrc = srcPos - playerPos;
         toSrc.y = 0.0f;
         float dist = toSrc.Length();
@@ -653,6 +729,9 @@ void Player::UpdateAnimationState(bool isMoving)
 void Player::AddItem(ItemType item)
 {
     bool alreadyHad = HasItem(item);
+    // 所持フラグを立てる前に既存の所持品を登録しておき、拾ったものはその後ろ(末尾)に入れる。
+    // (フラグを立てた後にSyncすると、そこで一度追加された上にpush_backでも追加されて重複していた)
+    SyncItemOrder();
     switch (item) {
     case ItemType::Thermometer: m_hasThermometer = true; break;
     case ItemType::Incense:     m_hasIncense = true; break;
@@ -660,6 +739,7 @@ void Player::AddItem(ItemType item)
     case ItemType::FlashLight:  m_hasFlashLight = true; break;
     }
     if (!alreadyHad) {
+        m_itemOrder.push_back(item); // 拾ったものをスロットの末尾へ
         m_currentEquipped = item; // auto-equip on first pickup
         Logger::Instance().AddLog(Logger::LogLevel::Info, "[Player] Item acquired.");
     }
@@ -726,10 +806,9 @@ void Player::DropEquippedItem(const Math::Vector3& playerPos, const Math::Vector
     case ItemType::FlashLight:  m_hasFlashLight = false; m_flashLightOn = false; break;
     }
 
-    // 残っているアイテムがあれば次のものに持ち替える(何も無ければ手ぶら)
-    for (Item next : { Item::Thermometer, Item::Incense, Item::Amulet, Item::FlashLight }) {
-        if (HasItem(next)) { m_currentEquipped = next; break; }
-    }
+    // 残っているアイテムがあればスロットの先頭のものに持ち替える(何も無ければ手ぶら)
+    SyncItemOrder();
+    if (!m_itemOrder.empty()) m_currentEquipped = m_itemOrder.front();
     Logger::Instance().AddLog(Logger::LogLevel::Info, "[Player] Item dropped.");
 }
 
@@ -755,13 +834,14 @@ void Player::Update(float deltaTime)
     Math::Vector3 forward = Math::Vector3::TransformNormal(Math::Vector3(0, 0, 1), playerRot);
     Math::Vector3 right   = Math::Vector3::TransformNormal(Math::Vector3(1, 0, 0), playerRot);
 
-    if (input.IsKeyTrigger('1') && m_hasThermometer) m_currentEquipped = Item::Thermometer;
-    if (input.IsKeyTrigger('2') && m_hasIncense)      m_currentEquipped = Item::Incense;
-    if (input.IsKeyTrigger('3') && m_hasAmulet)       m_currentEquipped = Item::Amulet;
-    if (input.IsKeyTrigger('4') && m_hasFlashLight)   m_currentEquipped = Item::FlashLight;
+    // キー1〜4は画面下のスロット番号(拾った順)に対応
+    SyncItemOrder();
+    for (int i = 0; i < (int)m_itemOrder.size() && i < 4; ++i) {
+        if (input.IsKeyTrigger('1' + i)) m_currentEquipped = m_itemOrder[i];
+    }
 
     // FlashLight: T toggles it whenever owned (even while another item is equipped)
-    if (input.IsKeyTrigger('T') && m_hasFlashLight) m_flashLightOn = !m_flashLightOn;
+    if (input.IsKeyTrigger('T') && m_hasFlashLight) SetFlashLightOnWithSound(!m_flashLightOn);
 
     // G: drop the equipped item in front of the player
     if (input.IsKeyTrigger('G')) DropEquippedItem(cTrans.m_position, forward, cTrans.m_rotation.y);
@@ -789,7 +869,10 @@ void Player::Update(float deltaTime)
         if (auto* pScript = ecs.TryGetComponent<NativeScriptData>(m_interactEntity))
         {
             auto* pickup = dynamic_cast<PickupItem*>(pScript->Instance.get());
-            if (pickup && pickup->m_itemType == ItemType::FlashLight) pickup->ToggleLight();
+            if (pickup && pickup->m_itemType == ItemType::FlashLight) {
+                pickup->ToggleLight();
+                AudioManager::Instance().PlaySE(pickup->IsLightOn() ? "Asset/Sound/SE/kaityudento_on.wav" : "Asset/Sound/SE/kaityudento_off.wav", m_flashLightSoundVolume);
+            }
         }
     }
 
@@ -800,7 +883,7 @@ void Player::Update(float deltaTime)
             auto& gTrans = ecs.GetComponent<TransformData>(ghost->GetGameObject()->GetEntityID());
             float dist = (cTrans.m_position - gTrans.m_position).Length();
             if (dist < 10.0f) {
-                // 効くかどうかはゴーストの種類ごとの条件次第(鬼火は光源に留まっている間だけ等)
+                // 効くかどうかはゴーストの種類ごとの条件次第(影女は近くで明かりが点いている時だけ等)
                 if (ghost->TryIncenseStun(5.0f)) {
                     Logger::Instance().AddLog(Logger::LogLevel::Info, "Incense Used: Ghost Stunned!");
                 } else {
@@ -809,10 +892,18 @@ void Player::Update(float deltaTime)
                 if (m_heldIncenseEntity != INVALID_ENTITY) {
                     AnimationManager::Instance().PlayAnimation(m_heldIncenseEntity, 0, false, 1.0f);
                 }
+                // 燻る音: 使うたびに頭から鳴らし直す
+                if (!m_smudgeSound) m_smudgeSound = AudioManager::Instance().CreateSEInstance("Asset/Sound/SE/smadge.wav");
+                if (m_smudgeSound) {
+                    m_smudgeSound->Stop();
+                    m_smudgeSound->SetVolume(m_smudgeSoundVolume * AudioManager::Instance().GetSEVolume());
+                    m_smudgeSound->Play(false);
+                    m_smudgeSoundTimer = m_smudgeSoundDuration;
+                }
             }
         }
         else if (m_currentEquipped == Item::FlashLight && m_hasFlashLight) {
-            m_flashLightOn = !m_flashLightOn;
+            SetFlashLightOnWithSound(!m_flashLightOn);
         }
         else if (m_currentEquipped == Item::Amulet && ghost) {
             if (ghost->GetState() == GhostAI::State::Stun) {
@@ -835,7 +926,7 @@ void Player::Update(float deltaTime)
 
     bool isMoving = (moveDir.LengthSquared() > 0.0f);
     if (isMoving) { moveDir.Normalize(); }
-    cTrans.m_position += moveDir * m_moveSpeed * GameTimer::Instance().DeltaTime();
+    cTrans.m_position += moveDir * (m_moveSpeedKmh / 3.6f) * GameTimer::Instance().DeltaTime();
 
     // --- Animation state --- (Idle/Walk/Crouch/CrouchWalk x UseItem_* picked in UpdateAnimationState())
     // Ctrl: toggles crouch on/off.
@@ -906,12 +997,11 @@ void Player::Update(float deltaTime)
     }
     UpdateInteractPrompt();
 
-    static float interactCooldown = 0.0f;
-    if (interactCooldown > 0.0f) {
-        interactCooldown -= GameTimer::Instance().DeltaTime();
+    if (m_interactCooldown > 0.0f) {
+        m_interactCooldown -= GameTimer::Instance().DeltaTime();
     }
 
-    if (input.IsKeyTrigger('F') && interactCooldown <= 0.0f)
+    if (input.IsKeyTrigger('F') && m_interactCooldown <= 0.0f)
     {
         if (m_interactKind == InteractKind::Pickup && m_interactEntity != INVALID_ENTITY)
         {
@@ -926,6 +1016,10 @@ void Player::Update(float deltaTime)
             if (auto* scriptData = ecs.TryGetComponent<NativeScriptData>(m_interactEntity)) {
                 if (auto* src = dynamic_cast<StimulusSource*>(scriptData->Instance.get())) {
                     src->Toggle();
+                    src->PlayToggleSound(); // 紐スイッチの点灯/消灯音
+                }
+                else if (auto* sw = dynamic_cast<LightSwitch*>(scriptData->Instance.get())) {
+                    sw->Toggle();
                 }
             }
         }
@@ -938,7 +1032,7 @@ void Player::Update(float deltaTime)
             // door interaction here - TryInteractDoor() itself is a no-op if nothing is in range.
             TryInteractDoor(cTrans.m_position);
         }
-        interactCooldown = 0.5f; // 0.5s cooldown to avoid repeat-triggering on a held key
+        m_interactCooldown = 0.5f; // 0.5s cooldown to avoid repeat-triggering on a held key
     }
 
     UpdateItemIcons();
@@ -946,6 +1040,86 @@ void Player::Update(float deltaTime)
     UpdateHeldItemAttach(cTrans.m_position, cTrans.m_rotation.y, isMoving);
     UpdateThermometerAnimation();
     UpdateFlashLightBeam(cTrans.m_position, cTrans.m_rotation.y);
+
+    // 耳の位置(おおよその目線の高さ)をリスナーにして、ゴーストや照明の音を距離・方向で鳴らし分ける
+    AudioManager::Instance().SetListener(cTrans.m_position + Math::Vector3(0, 1.6f, 0), forward);
+    UpdateSounds(isMoving, GameTimer::Instance().DeltaTime());
+}
+
+void Player::SetFlashLightOnWithSound(bool on)
+{
+    if (m_flashLightOn == on) return;
+    m_flashLightOn = on;
+    AudioManager::Instance().PlaySE(on ? "Asset/Sound/SE/kaityudento_on.wav" : "Asset/Sound/SE/kaityudento_off.wav", m_flashLightSoundVolume);
+}
+
+FloorType Player::DetectFloorType(const Math::Vector3& pos) const
+{
+    // 足元ぴったりだと部屋の床(minY)より僅かに下になることがあるので少し持ち上げて判定する
+    const Math::Vector3 p = pos + Math::Vector3(0.0f, 0.3f, 0.0f);
+    Math::Vector3 houseMin(FLT_MAX, FLT_MAX, FLT_MAX), houseMax(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+    bool anyRoom = false;
+
+    auto& ecs = GameManager::Instance().GetECS();
+    for (auto& scriptData : ecs.GetComponentArray<NativeScriptData>()) {
+        auto* room = dynamic_cast<RoomArea*>(scriptData.Instance.get());
+        if (!room) continue;
+        if (room->IsInside(p)) return room->m_floorType;
+        houseMin = Math::Vector3::Min(houseMin, room->m_min);
+        houseMax = Math::Vector3::Max(houseMax, room->m_max);
+        anyRoom = true;
+    }
+
+    // どの部屋にも入っていなくても、家の範囲内なら部屋同士の隙間(壁の厚み・ドア枠)なので直前の床のまま。
+    // 家の範囲の外に出たら庭(土)
+    const float margin = 0.3f;
+    const bool insideHouse = anyRoom &&
+        p.x >= houseMin.x - margin && p.x <= houseMax.x + margin &&
+        p.z >= houseMin.z - margin && p.z <= houseMax.z + margin;
+    return insideHouse ? m_currentFloor : FloorType::Soil;
+}
+
+void Player::UpdateSounds(bool isMoving, float deltaTime)
+{
+    // --- 足音: 接地して歩いている間だけ、今いる床の種類の音をループ再生。しゃがみ歩きは小さく、ゆっくりめに ---
+    static const char* kFootstepPaths[3] = {
+        "Asset/Sound/SE/wood-walk.wav",   // FloorType::Wood
+        "Asset/Sound/SE/tatami-walk.wav", // FloorType::Tatami
+        "Asset/Sound/SE/soil-walk.wav",   // FloorType::Soil
+    };
+    const bool walking = isMoving && m_isGrounded;
+    if (walking)
+    {
+        auto& cTrans = GameManager::Instance().GetECS().GetComponent<TransformData>(GetGameObject()->GetEntityID());
+        m_currentFloor = DetectFloorType(cTrans.m_position);
+    }
+    for (int i = 0; i < 3; ++i)
+    {
+        auto& sound = m_footstepSounds[i];
+        const bool active = walking && i == static_cast<int>(m_currentFloor);
+        if (active)
+        {
+            if (!sound) sound = AudioManager::Instance().CreateSEInstance(kFootstepPaths[i]);
+            if (!sound) continue;
+            float vol = m_footstepVolumes[i] * (m_isCrouching ? m_crouchFootstepScale : 1.0f);
+            sound->SetVolume(vol * AudioManager::Instance().GetSEVolume());
+            sound->SetPitch(m_isCrouching ? -0.25f : 0.0f);
+            if (sound->GetState() != DirectX::SoundState::PLAYING) sound->Play(true);
+        }
+        else if (sound && sound->GetState() == DirectX::SoundState::PLAYING)
+        {
+            // 止めると次に歩き出した時(床が変わった時)に頭から(1歩目から)鳴る
+            sound->Stop();
+        }
+    }
+
+    // --- お香: 一定時間鳴らしたら最後の1秒でフェードアウトして止める ---
+    if (m_smudgeSound && m_smudgeSoundTimer > 0.0f)
+    {
+        m_smudgeSoundTimer -= deltaTime;
+        if (m_smudgeSoundTimer <= 0.0f) m_smudgeSound->Stop();
+        else if (m_smudgeSoundTimer < 1.0f) m_smudgeSound->SetVolume(m_smudgeSoundVolume * AudioManager::Instance().GetSEVolume() * m_smudgeSoundTimer);
+    }
 }
 
 void Player::TryInteractDoor(const Math::Vector3& playerPos)
@@ -1023,6 +1197,14 @@ void Player::TryInteractDoor(const Math::Vector3& playerPos)
         }
     }
 
+    if (bestEntity != INVALID_ENTITY && bestAnimIdx >= 0 && DoorLock::IsLocked(bestEntity, bestAnimIdx))
+    {
+        // ハント中は玄関ドアが施錠されている(GhostAIが施錠/解錠する)
+        Logger::Instance().AddLog(Logger::LogLevel::Info, "[Player] The door is locked.");
+        AudioManager::Instance().PlaySE("Asset/Sound/SE/door_nobu.wav", m_doorLockedSoundVolume); // ドアノブをガチャガチャ
+        return;
+    }
+
     if (bestEntity != INVALID_ENTITY && bestAnimIdx >= 0)
     {
         auto* pAnim = ecs.TryGetComponent<AnimationDataComponent>(bestEntity);
@@ -1033,7 +1215,8 @@ void Player::TryInteractDoor(const Math::Vector3& playerPos)
         {
             auto& data = pAnim->multiAnims[bestAnimIdx];
             float currentTime = data.ProgressTime;
-            if (!data.IsPlaying && currentTime <= 0.0f)
+            const bool opening = (!data.IsPlaying && currentTime <= 0.0f);
+            if (opening)
             {
                 // Closed -> play forward to open
                 animMgr.PlayMultiAnimation(bestEntity, bestAnimIdx, false, 1.0f);
@@ -1044,6 +1227,8 @@ void Player::TryInteractDoor(const Math::Vector3& playerPos)
                 animMgr.PlayMultiAnimation(bestEntity, bestAnimIdx, false, -1.0f);
                 pAnim->multiAnims[bestAnimIdx].ProgressTime = currentTime;
             }
+            // 開け閉めどちらも同じ軋み音(閉める時は少し低めにして聞き分けられるようにする)
+            AudioManager::Instance().PlaySE("Asset/Sound/SE/door_open.wav", m_doorSoundVolume, opening ? 0.0f : -0.15f);
 
             // 追加: アニメーションするエンティティは動的オブジェクトとして扱い、
             // 衝突判定(CollisionManager::Solve)で毎フレームAABBが更新されるようにする
@@ -1067,16 +1252,33 @@ void Player::Draw() {}
 
 void Player::Serialize(nlohmann::json& out) const
 {
-    out["moveSpeed"] = m_moveSpeed;
+    out["moveSpeedKmh"] = m_moveSpeedKmh;
     out["useGravity"] = m_useGravity;
     out["gravityStrength"] = m_gravityStrength;
     out["animWalkSpeed"] = m_animWalkSpeed;
     out["crouchBlendSpeed"] = m_crouchBlendSpeed;
     out["crouchCameraDelay"] = m_crouchCameraDelay;
+    out["footstepVolume"] = m_footstepVolumes[0];
+    out["tatamiFootstepVolume"] = m_footstepVolumes[1];
+    out["soilFootstepVolume"] = m_footstepVolumes[2];
+    out["crouchFootstepScale"] = m_crouchFootstepScale;
+    out["flashLightSoundVolume"] = m_flashLightSoundVolume;
+    out["doorSoundVolume"] = m_doorSoundVolume;
+    out["doorLockedSoundVolume"] = m_doorLockedSoundVolume;
+    out["smudgeSoundVolume"] = m_smudgeSoundVolume;
+    out["smudgeSoundDuration"] = m_smudgeSoundDuration;
     out["hasThermometer"] = m_hasThermometer;
     out["hasIncense"] = m_hasIncense;
     out["hasAmulet"] = m_hasAmulet;
     out["hasFlashLight"] = m_hasFlashLight;
+    // アイテムスロットの並び(拾った順)。ItemTypeの値(1〜4)の配列で保存する
+    {
+        std::vector<Item> order = m_itemOrder;
+        order.erase(std::remove_if(order.begin(), order.end(), [&](Item item) { return !HasItem(item); }), order.end());
+        nlohmann::json orderJson = nlohmann::json::array();
+        for (Item item : order) orderJson.push_back(static_cast<int>(item));
+        out["itemOrder"] = orderJson;
+    }
     out["heldItemOffset"] = { m_heldItemOffset.x, m_heldItemOffset.y, m_heldItemOffset.z };
     out["heldItemOffsetCalibrated"] = m_heldItemOffsetCalibrated;
     out["heldItemExtraRotationDeg"] = { m_heldItemExtraRotationDeg.x, m_heldItemExtraRotationDeg.y, m_heldItemExtraRotationDeg.z };
@@ -1089,16 +1291,38 @@ void Player::Serialize(nlohmann::json& out) const
 
 void Player::Deserialize(const nlohmann::json& in)
 {
-    if (in.contains("moveSpeed"))       m_moveSpeed = in["moveSpeed"];
+    if (in.contains("moveSpeed"))       m_moveSpeedKmh = in["moveSpeed"].get<float>() * 3.6f; // 旧形式(m/s)
+    if (in.contains("moveSpeedKmh"))    m_moveSpeedKmh = in["moveSpeedKmh"];
     if (in.contains("useGravity"))      m_useGravity = in["useGravity"];
     if (in.contains("gravityStrength")) m_gravityStrength = in["gravityStrength"];
     if (in.contains("animWalkSpeed"))       m_animWalkSpeed = in["animWalkSpeed"];
     if (in.contains("crouchBlendSpeed"))    m_crouchBlendSpeed = in["crouchBlendSpeed"];
     if (in.contains("crouchCameraDelay"))   m_crouchCameraDelay = in["crouchCameraDelay"];
+    if (in.contains("footstepVolume"))          m_footstepVolumes[0] = in["footstepVolume"];
+    if (in.contains("tatamiFootstepVolume"))    m_footstepVolumes[1] = in["tatamiFootstepVolume"];
+    if (in.contains("soilFootstepVolume"))      m_footstepVolumes[2] = in["soilFootstepVolume"];
+    if (in.contains("crouchFootstepScale"))     m_crouchFootstepScale = in["crouchFootstepScale"];
+    if (in.contains("flashLightSoundVolume"))   m_flashLightSoundVolume = in["flashLightSoundVolume"];
+    if (in.contains("doorSoundVolume"))         m_doorSoundVolume = in["doorSoundVolume"];
+    if (in.contains("doorLockedSoundVolume"))   m_doorLockedSoundVolume = in["doorLockedSoundVolume"];
+    if (in.contains("smudgeSoundVolume"))       m_smudgeSoundVolume = in["smudgeSoundVolume"];
+    if (in.contains("smudgeSoundDuration"))     m_smudgeSoundDuration = in["smudgeSoundDuration"];
     if (in.contains("hasThermometer"))      m_hasThermometer = in["hasThermometer"];
     if (in.contains("hasIncense"))          m_hasIncense = in["hasIncense"];
     if (in.contains("hasAmulet"))           m_hasAmulet = in["hasAmulet"];
     if (in.contains("hasFlashLight"))       m_hasFlashLight = in["hasFlashLight"];
+    if (in.contains("itemOrder") && in["itemOrder"].is_array()) {
+        m_itemOrder.clear();
+        for (const auto& v : in["itemOrder"]) {
+            if (!v.is_number_integer()) continue;
+            int n = v.get<int>();
+            if (n >= static_cast<int>(Item::Thermometer) && n <= static_cast<int>(Item::FlashLight)) {
+                m_itemOrder.push_back(static_cast<Item>(n));
+            }
+        }
+        // 所持フラグと食い違う分(重複・未所持・抜け)はここで補正する
+        SyncItemOrder();
+    }
     if (in.contains("heldItemOffset")) {
         m_heldItemOffset.x = in["heldItemOffset"][0];
         m_heldItemOffset.y = in["heldItemOffset"][1];
@@ -1124,7 +1348,7 @@ void Player::Deserialize(const nlohmann::json& in)
 
 void Player::ImGuiUpdate()
 {
-    ImGui::DragFloat("Move Speed", &m_moveSpeed, 0.1f, 0.1f, 100.0f);
+    ImGui::DragFloat("Move Speed (km/h)", &m_moveSpeedKmh, 0.1f, 0.1f, 100.0f, "%.1f km/h");
     ImGui::Checkbox("Use Gravity", &m_useGravity);
     if (m_useGravity)
     {
@@ -1163,6 +1387,22 @@ void Player::ImGuiUpdate()
     ImGui::DragFloat("Crouch Camera Speed", &m_crouchBlendSpeed, 0.1f, 0.5f, 20.0f);
     ImGui::DragFloat("Crouch Camera Delay", &m_crouchCameraDelay, 0.01f, 0.0f, 1.0f);
     ImGui::Text("[Debug] Crouching: %s (blend=%.2f)", m_isCrouching ? "true" : "false", m_crouchBlend);
+
+    ImGui::Separator();
+    ImGui::Text("[Sound] Volume (0-1)");
+    ImGui::SliderFloat("Footstep (Wood)", &m_footstepVolumes[0], 0.0f, 1.0f);
+    ImGui::SliderFloat("Footstep (Tatami)", &m_footstepVolumes[1], 0.0f, 1.0f);
+    ImGui::SliderFloat("Footstep (Soil)", &m_footstepVolumes[2], 0.0f, 1.0f);
+    ImGui::SliderFloat("Crouch Footstep Scale", &m_crouchFootstepScale, 0.0f, 1.0f);
+    {
+        static const char* kFloorNames[3] = { "Wood", "Tatami", "Soil" };
+        ImGui::Text("[Debug] Floor: %s", kFloorNames[static_cast<int>(m_currentFloor)]);
+    }
+    ImGui::SliderFloat("FlashLight Switch", &m_flashLightSoundVolume, 0.0f, 1.0f);
+    ImGui::SliderFloat("Door Open/Close", &m_doorSoundVolume, 0.0f, 1.0f);
+    ImGui::SliderFloat("Door Locked", &m_doorLockedSoundVolume, 0.0f, 1.0f);
+    ImGui::SliderFloat("Smudge Stick", &m_smudgeSoundVolume, 0.0f, 1.0f);
+    ImGui::DragFloat("Smudge Sound Duration (s)", &m_smudgeSoundDuration, 0.1f, 1.0f, 40.0f);
 
     ImGui::Separator();
     ImGui::Text("[Debug] Temperature: %.1f C", m_temperature);

@@ -123,6 +123,8 @@ void Editor::DrawInspector() {
                     ImGui::RadioButton("Static", &modelType, 0); ImGui::SameLine();
                     ImGui::RadioButton("Dynamic", &modelType, 1);
                     m.m_modelType = static_cast<ModelType>(modelType);
+                    ImGui::Checkbox("Per-Instance Animation", &m.m_perInstanceAnimation);
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"同じモデルを複数置いても、このオブジェクトだけ別々にアニメーションさせる(ノードアニメーションのみ)");
                 }
             }
 
@@ -151,6 +153,7 @@ void Editor::DrawInspector() {
                     ImGui::DragFloat("FOV", &c.m_fov, 0.5f, 1.0f, 179.0f);
                     ImGui::DragFloat("Near Z", &c.m_nearZ, 0.1f);
                     ImGui::DragFloat("Far Z", &c.m_farZ, 1.0f);
+                    ImGui::DragFloat("Move Speed (m/s)", &c.m_moveSpeed, 0.1f, 0.1f, 100.0f);
 
                     ImGui::Separator();
                     ImGui::Checkbox("Debug Preview Camera", &c.m_isDebugPreview);
@@ -271,6 +274,12 @@ void Editor::DrawInspector() {
                     if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"光源位置(このオブジェクトのローカル空間。Scaleも掛かる)");
                     ImGui::DragFloat3("Local Direction", &l.m_localDirection.x, 0.01f, -1.0f, 1.0f);
                     if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"照らす向き(このオブジェクトのローカル空間)");
+                    ImGui::DragFloat("Model Glow", &l.m_modelGlow, 0.1f, 0.0f, 100.0f);
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"点灯中にモデル自体を光らせる強さ(Color×この値のEmissive。Bloomで光って見える)");
+                    char glowMatBuf[64] = {};
+                    strncpy_s(glowMatBuf, l.m_glowMaterial.c_str(), _TRUNCATE);
+                    if (ImGui::InputText("Glow Material", glowMatBuf, sizeof(glowMatBuf))) l.m_glowMaterial = glowMatBuf;
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"空なら全メッシュ。指定時はこの名前のマテリアルだけ光らせる");
                     ImGui::PopID();
                 }
             }

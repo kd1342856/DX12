@@ -30,10 +30,10 @@ void PickupItem::ImGuiUpdate()
 void PickupItem::Update(float deltaTime)
 {
     if (m_isFlying) UpdateFlight(deltaTime);
-    if (m_itemType == ItemType::FlashLight) SyncLight();
+    if (m_itemType == ItemType::FlashLight) SyncLight(deltaTime);
 }
 
-void PickupItem::SyncLight()
+void PickupItem::SyncLight(float deltaTime)
 {
     if (!m_pGameObject) return;
     auto& ecs = GameManager::Instance().GetECS();
@@ -52,11 +52,15 @@ void PickupItem::SyncLight()
         light.m_outerAngle = 22.0f;
         light.m_localOffset = { 0.0f, 0.06f, 0.15f };
         light.m_localDirection = { 0.0f, 0.0f, 1.0f };
+        light.m_glowMaterial = "Glass"; // only the lens glows, not the whole body
         light.m_enabled = m_lightOn;
         ecs.AddComponent(e, light);
         return;
     }
     pLight->m_enabled = m_lightOn;
+    // Ghost interference only flickers the look (m_flickerOff); the light itself stays on.
+    bool flickerOff = m_lightFlicker.Update(deltaTime);
+    pLight->m_flickerOff = m_lightOn && flickerOff;
 }
 
 void PickupItem::Launch(const Math::Vector3& velocity)

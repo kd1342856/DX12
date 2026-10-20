@@ -14,7 +14,8 @@
             "StimulusType": 0,
             "Active": false,
             "Radius": 12.0,
-            "Interactable": true
+            "Interactable": true,
+            "RoomLight": false
         }
     ],
     "Children": [

@@ -16,6 +16,7 @@ void RoomArea::Serialize(nlohmann::json& out) const
     out["maxZ"] = m_max.z;
     out["isCandidate"] = m_isGhostRoomCandidate;
     out["isStairs"] = m_isStairs;
+    out["floorType"] = static_cast<int>(m_floorType);
 }
 
 void RoomArea::Deserialize(const nlohmann::json& in)
@@ -28,6 +29,7 @@ void RoomArea::Deserialize(const nlohmann::json& in)
     if (in.contains("maxZ")) m_max.z = in["maxZ"];
     if (in.contains("isCandidate")) m_isGhostRoomCandidate = in["isCandidate"];
     if (in.contains("isStairs")) m_isStairs = in["isStairs"];
+    if (in.contains("floorType")) m_floorType = static_cast<FloorType>((int)in["floorType"]);
 }
 
 void RoomArea::PreDraw()
@@ -84,6 +86,12 @@ void RoomArea::ImGuiUpdate()
     ImGui::DragFloat3("Max", &m_max.x, 0.1f);
     ImGui::Checkbox("Ghost Room Candidate", &m_isGhostRoomCandidate);
     ImGui::Checkbox("Is Stairs", &m_isStairs);
+    int floor = static_cast<int>(m_floorType);
+    const char* floorNames[] = { "Wood", "Tatami", "Soil" };
+    if (ImGui::Combo("Floor Type", &floor, floorNames, IM_ARRAYSIZE(floorNames))) {
+        m_floorType = static_cast<FloorType>(floor);
+    }
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"足音の種類。どの部屋にも入っていない場所(家の外)は土になる");
 }
 
 Math::Vector3 RoomArea::GetCenter() const

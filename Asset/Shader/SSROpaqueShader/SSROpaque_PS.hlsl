@@ -2,8 +2,8 @@
 
 // SSR(Opaque材質向け)。専用のG-Bufferパスを増やさず、SSAOと同じNormalPrepassの
 // ビュー空間法線+深度と、Opaqueパスのカラーコピー(既存の屈折用バッファ)を再利用する。
-// 粗さ/金属度の情報が無いため、非金属(F0=0.04)前提のフレネル近似のみで、
-// 鏡面反射をそのまま加算する(粗さによるボケは無し)。
+// 粗さはNormalPrepassのアルファに書かれたものを使い、粗い面(壁・天井等)では反射させない。
+// 金属度の情報は無いため、非金属(F0=0.04)前提のフレネル近似(粗さによるボケは無し)。
 cbuffer cbSSROpaque : register(b2)
 {
     float g_SSROpaqueStepSize;
@@ -35,7 +35,13 @@ float4 main(PSInput In) : SV_Target0
     if (depth >= 0.9999) return float4(0, 0, 0, 0);
 
     float3 viewPos = ViewPosFromDepth(In.UV, depth);
-    float3 viewNormal = normalize(g_texNormal.Sample(g_ss_point_clamp, In.UV).rgb * 2.0 - 1.0);
+    float4 normalRough = g_texNormal.Sample(g_ss_point_clamp, In.UV);
+    float3 viewNormal = normalize(normalRough.rgb * 2.0 - 1.0);
+
+    // ボケを再現できない以上、ある程度粗い面はくっきりした鏡像がかえって不自然になるので消す
+    // (木材・漆喰等は粗さ0.6以上なので反射しない。濡れた床・磨いた面等だけが対象)
+    float roughFade = 1.0 - smoothstep(0.2, 0.5, normalRough.a);
+    if (roughFade <= 0.0) return float4(0, 0, 0, 0);
 
     float3 viewDir = normalize(viewPos);
     float3 reflectDir = reflect(viewDir, viewNormal);
@@ -61,9 +67,28 @@ float4 main(PSInput In) : SV_Target0
         float sceneViewZ = ViewPosFromDepth(uv, sceneDepthNdc).z;
 
         // 左手系: Zが大きいほど遠い。実際の表面が理論上のレイ位置より手前にあれば、
-        // その間に遮蔽物(=反射先)があるということ。
-        if (rayPos.z >= sceneViewZ)
+        // その間に遮蔽物(=反射先)があるということ。ただし表面よりずっと奥まで抜けている
+        // 場合は、手前の物体の「裏側」を通過しただけなので当たりにしない(厚みチェック)。
+        // これが無いと、明るい窓等の手前を通るレイがすべて窓の色を拾い、ステップ間隔で
+        // 窓のコピーが並んだ光の帯のように伸びてしまう。
+        float depthDiff = rayPos.z - sceneViewZ;
+        if (depthDiff >= 0.0 && depthDiff < g_SSROpaqueStepSize * 2.0)
         {
+            // 1ステップ分の区間を二分探索して交点を詰める(ステップ状の段差を消す)
+            float3 lo = rayPos - reflectDir * g_SSROpaqueStepSize;
+            float3 hi = rayPos;
+            [unroll]
+            for (int j = 0; j < 5; j++)
+            {
+                float3 mid = (lo + hi) * 0.5;
+                float4 midClip = mul(float4(mid, 1.0), g_mP);
+                float2 midUV = (midClip.xy / midClip.w) * float2(0.5, -0.5) + 0.5;
+                float midSceneZ = ViewPosFromDepth(midUV, g_texDepth.Sample(g_ss_point_clamp, midUV).r).z;
+                if (mid.z >= midSceneZ) hi = mid; else lo = mid;
+            }
+            clip = mul(float4(hi, 1.0), g_mP);
+            uv = (clip.xy / clip.w) * float2(0.5, -0.5) + 0.5;
+
             float2 edgeFade = saturate((0.5 - abs(uv - 0.5)) * 8.0);
             float fade = edgeFade.x * edgeFade.y;
             if (fade <= 0.0) break;
@@ -80,5 +105,5 @@ float4 main(PSInput In) : SV_Target0
     float NdotV = saturate(dot(-viewDir, viewNormal));
     float fresnel = 0.04 + (1.0 - 0.04) * pow(1.0 - NdotV, 5.0);
 
-    return float4(hitColor * fresnel * g_SSROpaqueIntensity, 1.0);
+    return float4(hitColor * fresnel * roughFade * g_SSROpaqueIntensity, 1.0);
 }

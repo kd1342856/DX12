@@ -64,7 +64,7 @@
                 {
                     "Position": [
                         640.0,
-                        203.47129821777344,
+                        197.05145263671875,
                         0.0
                     ],
                     "Rotation": [
@@ -84,7 +84,7 @@
                         1.0,
                         1.0,
                         1.0,
-                        0.44142672419548035
+                        0.830207347869873
                     ],
                     "FilePath": "Asset/Texture/UI/Haihu.png",
                     "OrderInLayer": 50,
@@ -127,8 +127,8 @@
                 {
                     "Color": [
                         1.0,
-                        0.20000000298023224,
-                        0.20000000298023224,
+                        1.0,
+                        1.0,
                         1.0
                     ],
                     "FilePath": "Asset/Texture/UI/Start.png",
@@ -138,8 +138,8 @@
                         0.5
                     ],
                     "Size": [
-                        220.0,
-                        66.0
+                        200.0,
+                        60.0
                     ],
                     "Type": "SpriteData"
                 }
@@ -172,8 +172,8 @@
                 {
                     "Color": [
                         1.0,
-                        1.0,
-                        1.0,
+                        0.20000000298023224,
+                        0.20000000298023224,
                         1.0
                     ],
                     "FilePath": "Asset/Texture/UI/Exit.png",
@@ -183,8 +183,8 @@
                         0.5
                     ],
                     "Size": [
-                        200.0,
-                        60.0
+                        220.0,
+                        66.0
                     ],
                     "Type": "SpriteData"
                 }
@@ -193,5 +193,37 @@
             "Name": "ExitButton",
             "UUID": 10759173476812567429
         }
-    ]
+    ],
+    "Lighting": {
+        "AmbientLight": [
+            0.3499999940395355,
+            0.3499999940395355,
+            0.3499999940395355
+        ],
+        "DirectionalLightColor": [
+            1.0,
+            1.0,
+            1.0
+        ],
+        "DirectionalLightDir": [
+            0.5,
+            -1.0,
+            0.30000001192092896
+        ],
+        "DirectionalLightIntensity": 1.0,
+        "EnableIndoorMask": true,
+        "IndirectShadowFloor": 0.05000000074505806,
+        "IndoorMargin": 0.28999999165534973
+    },
+    "Shadow": {
+        "CascadeSplits": [
+            0.10000000149011612,
+            0.30000001192092896,
+            0.6000000238418579,
+            1.0
+        ],
+        "EnableShadows": true,
+        "ShadowBias": 0.0010000000474974513,
+        "ShadowPower": 2.5
+    }
 }

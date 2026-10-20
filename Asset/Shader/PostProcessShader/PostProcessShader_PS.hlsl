@@ -34,9 +34,11 @@ float4 main(PSInput In) : SV_Target0
     {
         float2 dir = In.UV - 0.5;
         float2 offset = dir * g_ChromaticAberrationIntensity * 0.02;
-        float r = g_tex.Sample(g_ss, In.UV + offset).r;
+        // ずらした先が画面外(UV<0 / >1)になると、g_ssがWrapのため反対側の端の色を拾ってしまい、
+        // 画面の左右端に赤/水色の縦線が出ていた(しゃがんで手が右端にかかった時など)。画面内にクランプする。
+        float r = g_tex.Sample(g_ss, saturate(In.UV + offset)).r;
         float g = g_tex.Sample(g_ss, In.UV).g;
-        float b = g_tex.Sample(g_ss, In.UV - offset).b;
+        float b = g_tex.Sample(g_ss, saturate(In.UV - offset)).b;
         sceneColor = float3(r, g, b);
     }
     else

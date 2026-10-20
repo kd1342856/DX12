@@ -18,6 +18,7 @@
 #include "../../../../Graphics/GPUResource/RenderTarget/RenderTarget.h"
 #include "../../../../Graphics/GPUResource/DepthStencil/DepthStencil.h"
 #include "../../../Manager/GameManager.h"
+#include "../../../Manager/Particle/ParticleManager.h"
 #include "../../Components/Data/NativeScript.h"
 #include "../../../../Application/Object/Script/System/ReflectionComponent.h"
 #include "../../../Object/GameObject.h"
@@ -36,6 +37,33 @@ public:
 	// 起因するのか、それとは無関係なのかをA/Bテストするためにオフにする。
 	static inline bool s_enableFrustumCulling = true;
 	static inline bool s_enableRoomCulling = true;
+
+	// ModelRenderData.m_glowColorが設定されていれば(照明の点灯中など)、Emissiveを上書きした
+	// マテリアルのコピーをscratchに作って返す。共有マテリアル自体は書き換えない
+	// (同じモデルを使う消灯中の照明まで光ってしまうため)。対象外ならそのまま返す。
+	static const Material& ResolveGlowMaterial(const ModelRenderData& model, const Material& mat, Material& scratch)
+	{
+		bool glow = model.m_glowColor.LengthSquared() > 0.0f &&
+			(model.m_glowMaterial.empty() || model.m_glowMaterial == mat.Name);
+		if (!glow && !model.m_dissolveEnabled) return mat;
+		scratch = mat;
+		if (glow) {
+			// 発光マップがあればそれをマスクとして使う(例: シーリングライトはガラス部分だけ白いマップ)。
+			// 無ければ白テクスチャ扱いになり、メッシュ全体がFactorの色で光る。
+			scratch.Constants.emissiveFactorX = model.m_glowColor.x;
+			scratch.Constants.emissiveFactorY = model.m_glowColor.y;
+			scratch.Constants.emissiveFactorZ = model.m_glowColor.z;
+			scratch.Constants.emissiveStrength = 1.0f;
+		}
+		if (model.m_dissolveEnabled) {
+			// 足元からのディゾルブ(SkinningShader_PS.hlslのproceduralType==5)
+			scratch.Constants.proceduralType = 5;
+			scratch.Constants.dissolveHeight = model.m_dissolveHeight;
+			scratch.Constants.dissolveEdgeWidth = model.m_dissolveEdgeWidth;
+			scratch.Constants.dissolveEdgeColor = model.m_dissolveEdgeColor;
+		}
+		return scratch;
+	}
 
 	void RenderShadow()
 	{
@@ -132,7 +160,7 @@ public:
 						} else {
 							// animDeltaTransform is Identity for non-animated nodes
 							// so non-door geometry renders exactly as before
-							Math::Matrix nodeWorld = node.animDeltaTransform * world;
+							Math::Matrix nodeWorld = cModel.GetNodeAnimDelta(&node - cModel.m_spModelData->GetNodes().data(), node) * world;
 							shadowShader.BeginNode(node, nodeWorld);
 						}
 
@@ -246,7 +274,7 @@ public:
 						if (isSkinned) {
 							skinningShader.BeginNode(node, world);
 						} else {
-							Math::Matrix nodeWorld = node.animDeltaTransform * world;
+							Math::Matrix nodeWorld = cModel.GetNodeAnimDelta(&node - cModel.m_spModelData->GetNodes().data(), node) * world;
 							shadowShader.BeginNode(node, nodeWorld);
 						}
 
@@ -388,7 +416,7 @@ public:
 						} else if (isSky) {
 							skyShader.BeginNode(node, world);
 						} else {
-							Math::Matrix nodeWorld = node.animDeltaTransform * world;
+							Math::Matrix nodeWorld = cModel.GetNodeAnimDelta(&node - cModel.m_spModelData->GetNodes().data(), node) * world;
 							litShader.BeginNode(node, nodeWorld);
 						}
 
@@ -397,9 +425,11 @@ public:
 							if (pMesh && pMesh->IsReady()) {
 								bool isMeshBlend = (pMesh->GetMaterial().Constants.alphaMode == 2); // 2: Blend
 								if (isMeshBlend == isBlendPass) {
-									if (isSkinned) skinningShader.BeforeDrawMesh(*pMesh, pMesh->GetMaterial());
+									Material glowScratch;
+									const Material& drawMat = ResolveGlowMaterial(cModel, pMesh->GetMaterial(), glowScratch);
+									if (isSkinned) skinningShader.BeforeDrawMesh(*pMesh, drawMat);
 									else if (isSky) skyShader.BeforeDrawMesh(*pMesh, pMesh->GetMaterial());
-									else litShader.BeforeDrawMesh(*pMesh, pMesh->GetMaterial());
+									else litShader.BeforeDrawMesh(*pMesh, drawMat);
 									pMesh->DrawInstanced(pMesh->GetInstanceCount());
 								}
 							}
@@ -580,7 +610,7 @@ public:
 			Math::Matrix world = cTransform.m_worldMatrix;
 			for (const auto& node : cModel.m_spModelData->GetNodes())
 			{
-				Math::Matrix nodeWorld = node.animDeltaTransform * world;
+				Math::Matrix nodeWorld = cModel.GetNodeAnimDelta(&node - cModel.m_spModelData->GetNodes().data(), node) * world;
 				normalShader.BeginNode(node, nodeWorld);
 				for (const auto& meshHandle : node.meshes)
 				{
@@ -589,6 +619,7 @@ public:
 					{
 						bool isMeshBlend = (pMesh->GetMaterial().Constants.alphaMode == 2);
 						if (isMeshBlend) continue; // 半透明はAO/SSRの元データに含めない
+						normalShader.BeforeDrawMesh(*pMesh, pMesh->GetMaterial());
 						pMesh->DrawInstanced(pMesh->GetInstanceCount());
 					}
 				}
@@ -749,13 +780,13 @@ public:
 							auto& skyShader = ShaderLibrary::Instance().Get<SkyShader>();
 							skyShader.BeginNode(node, world);
 						} else {
-							Math::Matrix nodeWorld = node.animDeltaTransform * world;
+							Math::Matrix nodeWorld = cModel.GetNodeAnimDelta(&node - cModel.m_spModelData->GetNodes().data(), node) * world;
 							litShader.BeginNode(node, nodeWorld);
 						}
 
 						// 上のstatic(lit)ケースで使ったのと同じnodeWorld変換 -
 						// 上のブランチ内のローカル変数なので、ここで計算し直している。
-						Math::Matrix staticNodeWorld = node.animDeltaTransform * world;
+						Math::Matrix staticNodeWorld = cModel.GetNodeAnimDelta(&node - cModel.m_spModelData->GetNodes().data(), node) * world;
 
 						for (const auto& meshHandle : node.meshes) {
 							Mesh* pMesh = MeshManager::Instance().Get(meshHandle);
@@ -792,12 +823,14 @@ public:
 									if (meshCulled) continue;
 								}
 
-								if (isSkinned) skinningShader.BeforeDrawMesh(*pMesh, pMesh->GetMaterial());
+								Material glowScratch;
+								const Material& drawMat = ResolveGlowMaterial(cModel, pMesh->GetMaterial(), glowScratch);
+								if (isSkinned) skinningShader.BeforeDrawMesh(*pMesh, drawMat);
 								else if (isSky) {
 									auto& skyShader = ShaderLibrary::Instance().Get<SkyShader>();
 									skyShader.BeforeDrawMesh(*pMesh, pMesh->GetMaterial());
 								}
-								else litShader.BeforeDrawMesh(*pMesh, pMesh->GetMaterial());
+								else litShader.BeforeDrawMesh(*pMesh, drawMat);
 
 								pMesh->DrawInstanced(pMesh->GetInstanceCount());
 							}
@@ -859,6 +892,12 @@ public:
 		if (pRT)
 		{
 			pGraphicsDevice->TransitionDepthToWrite(pRT);
+		}
+
+		// パス3: パーティクル(加算合成。PSOがHDRターゲット用なのでpRTがある時だけ)
+		if (pRT)
+		{
+			ParticleManager::Instance().Render(context);
 		}
 	}
 

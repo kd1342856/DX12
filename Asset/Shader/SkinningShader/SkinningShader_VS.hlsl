@@ -18,6 +18,7 @@ VSOutput main(float3 pos : POSITION, float2 uv : TEXCOORD, float3 normal: NORMAL
     tangent = mul(tangent, (float3x3) mBones);
 
     Out.pos = mul(pos4, c_mWorld);
+    Out.wPos = Out.pos.xyz;
     Out.pos = mul(Out.pos, c_mView);
     Out.pos = mul(Out.pos, c_mProj);
     Out.uv = uv;

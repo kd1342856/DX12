@@ -23,10 +23,14 @@
 #include "../../../Graphics/Shader/SSROpaqueShader/SSROpaqueShader.h"
 #include "../../../Framework/DirectX/Utility/Profiler.h"
 #include "../../../Framework/ECS/CompSystem/Systems/LightSystem.h"
+#include "../../../Framework/Manager/Particle/ParticleManager.h"
 #include <algorithm>
 
 void GameScene::Init()
 {
+    // 前のプレイで出ていたパーティクルが残らないようにする
+    ParticleManager::Instance().Clear();
+
     auto pDevice = GraphicsDevice::Instance().GetDevice();
 
     // GameManager::Init()はApplication::Execute()の起動時に1回だけ呼ぶ想定。
@@ -105,9 +109,14 @@ void GameScene::Update(float deltaTime)
         UpdateInput();
     }
 
-    TryBuildNavMesh();
     UpdateCamera();
     GameManager::Instance().Update(deltaTime, Editor::GetScene().get());
+    ParticleManager::Instance().Update(deltaTime);
+    // NavMeshはGameManager::Updateの後で作る。部屋同士のつながり(開口部)を家のモデルへのレイキャストで
+    // 決めるが、CollisionManagerの対象シーン(SetScene)とTransformのワールド行列はGameManager::Updateの
+    // 中で確定するため。前に置いていた頃は、家のモデルが読み込み済みだと最初のフレームでシーン未設定の
+    // まま作ってしまい、レイが何にも当たらず全ての壁が「開いている」扱いになっていた。
+    TryBuildNavMesh();
 
     Render();
 }
@@ -206,7 +215,8 @@ void GameScene::UpdateCamera()
                 Math::Vector3 up = Math::Vector3(0, 1, 0);
 
                 Math::Vector3 moveVec = Math::Vector3(0, 0, 0);
-                float moveSpeed = camData.m_moveSpeed;
+                // m_moveSpeedは秒速(m/s)。フレーム単位で足すとFPSが上がるほど速くなるため、経過時間を掛ける
+                float moveSpeed = camData.m_moveSpeed * GameTimer::Instance().DeltaTime();
 
                 if (Input::Instance().IsKeyHold('W')) moveVec += forward;
                 if (Input::Instance().IsKeyHold('S')) moveVec -= forward;
@@ -348,7 +358,8 @@ void GameScene::UpdateCamera()
                 Math::Vector3 up = Math::Vector3(0, 1, 0);
 
                 Math::Vector3 moveVec = Math::Vector3(0, 0, 0);
-                float moveSpeed = camData.m_moveSpeed;
+                // m_moveSpeedは秒速(m/s)。フレーム単位で足すとFPSが上がるほど速くなるため、経過時間を掛ける
+                float moveSpeed = camData.m_moveSpeed * GameTimer::Instance().DeltaTime();
 
                 if (Input::Instance().IsKeyHold('W')) moveVec += forward;
                 if (Input::Instance().IsKeyHold('S')) moveVec -= forward;
@@ -373,6 +384,14 @@ void GameScene::TryBuildNavMesh()
 
     auto gs = GameSequence::GetInstance();
     if (!gs) return; // GameSequence::Start() has not populated the room list yet, retry next frame
+
+    // 部屋同士のつながり(開口部)は家のモデルへのレイキャストとドアの位置から決めるので、家のモデルが
+    // 読み込み終わるまで待つ。読み込めないままNavMesh無しになるのを避け、一定時間待ったら判定なしで作る。
+    const float kMaxStageWait = 10.0f;
+    if (!NavMeshManager::IsStageCollisionReady() && m_navMeshWaitTime < kMaxStageWait) {
+        m_navMeshWaitTime += GameTimer::Instance().DeltaTime();
+        return;
+    }
 
     for (RoomArea* room : gs->GetRooms()) {
         if (!room) continue;

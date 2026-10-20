@@ -81,6 +81,13 @@ float LinearizeDepth(float depth)
     return viewSpace.z / viewSpace.w;
 }
 
+// Opaqueパスの深度から、そのスクリーンUVにあるシーン表面のビュー空間Zを求める
+float SampleOpaqueViewZ(float2 uv)
+{
+    int2 px = min(int2(uv * float2(g_ScreenWidth, g_ScreenHeight)), int2(g_ScreenWidth - 1, g_ScreenHeight - 1));
+    return LinearizeDepth(g_opaqueDepth.Load(int3(px, 0)).r);
+}
+
 //------------------------------------------
 // SSR (スクリーンスペース反射)
 //------------------------------------------
@@ -115,13 +122,30 @@ bool TraceSSR(float3 viewPos, float3 viewNormal, out float3 hitColor)
         float2 uv = ndc * float2(0.5, -0.5) + 0.5;
         if (any(uv < 0.0) || any(uv > 1.0)) break;
 
-        float sceneDepthNdc = g_opaqueDepth.Load(int3(uv * float2(g_ScreenWidth, g_ScreenHeight), 0)).r;
-        float sceneViewZ = LinearizeDepth(sceneDepthNdc);
+        float sceneViewZ = SampleOpaqueViewZ(uv);
 
         // 左手系: Zが大きいほど奥。マーチ中の点が実際のシーン表面より奥まで進んだら
-        // そこにヒットしたとみなす。
-        if (rayPos.z >= sceneViewZ)
+        // そこにヒットしたとみなす。ただし表面よりずっと奥まで抜けている場合は、手前の
+        // 細い物体(紐のつまみ等)の「裏側」を通過しただけなので当たりにしない(厚みチェック)。
+        // これが無いと周囲のピクセルのレイが全部同じ物体を拾い、ステップ間隔でその物体の
+        // コピーが窓に何個も並んで映っていた(SSROpaque_PS.hlslと同じ対策)。
+        float depthDiff = rayPos.z - sceneViewZ;
+        if (depthDiff >= 0.0 && depthDiff < kStepSize * 2.0)
         {
+            // 1ステップ分の区間を二分探索して交点を詰める(ステップ状の段差を消す)
+            float3 lo = rayPos - reflectDir * kStepSize;
+            float3 hi = rayPos;
+            [unroll]
+            for (int j = 0; j < 5; j++)
+            {
+                float3 mid = (lo + hi) * 0.5;
+                float4 midClip = mul(float4(mid, 1.0), g_mP);
+                float2 midUV = saturate((midClip.xy / midClip.w) * float2(0.5, -0.5) + 0.5);
+                if (mid.z >= SampleOpaqueViewZ(midUV)) hi = mid; else lo = mid;
+            }
+            clip = mul(float4(hi, 1.0), g_mP);
+            uv = (clip.xy / clip.w) * float2(0.5, -0.5) + 0.5;
+
             // 画面端でのブツ切れを避けるため、UVの端でフェードアウトさせる
             float2 edgeFade = saturate((0.5 - abs(uv - 0.5)) * 8.0);
             float fade = edgeFade.x * edgeFade.y;
@@ -493,9 +517,24 @@ PSOutput main(VSOutput In) : SV_Target0
 
     // 鏡面
     float3 vRef = reflect(-vCam, wN);
-    float specWeight = vRef.y * 0.5 + 0.5;
+    // 粗い面ほど反射像がぼやけるので、反射方向のグラデーションを法線方向(拡散と同じ)へ寄せる
+    float specWeight = lerp(vRef.y * 0.5 + 0.5, envWeight, roughness);
     float3 envSpec = lerp(groundColor, skyColor, specWeight) * 2.0;
-    color += envSpec * baseSpecular * moonVisibility;
+
+    // 環境BRDF近似(Karis, UE4 Mobile)。粗さとフレネルで反射量を決める
+    // (粗いほど正面の反射が弱まり、浅い角度ほど強まる)
+    const float4 kEnvC0 = float4(-1.0, -0.0275, -0.572, 0.022);
+    const float4 kEnvC1 = float4(1.0, 0.0425, 1.04, -0.04);
+    float4 envR = roughness * kEnvC0 + kEnvC1;
+    float envA004 = min(envR.x * envR.x, exp2(-9.28 * NdotV)) * envR.x + envR.y;
+    float2 envAB = float2(-1.04, 1.04) * envA004 + envR.zw;
+    float3 envBRDF = baseSpecular * envAB.x + envAB.y;
+
+    // スペキュラオクルージョン(Lagarde)。隅や隙間(AO/SSAO)では反射も遮られる
+    float specAO = occlusion * ssao;
+    float specOcclusion = saturate(pow(NdotV + specAO, exp2(-16.0 * roughness2 - 1.0)) - 1.0 + specAO);
+
+    color += envSpec * envBRDF * specOcclusion * moonVisibility;
 
     //------------------------------------------
     // 距離フォグ

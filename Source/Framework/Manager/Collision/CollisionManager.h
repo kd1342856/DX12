@@ -41,7 +41,10 @@ public:
     RaycastHit Raycast(const Math::Vector3& origin, const Math::Vector3& direction, float maxDistance = 1000.0f, uint32_t collisionMask = 0xFFFFFFFF);
 
     // メッシュポリゴンに対して直接レイキャスト（ColliderComponent不要）
-    RaycastHit RaycastAgainstMesh(const Math::Vector3& origin, const Math::Vector3& direction, float maxDistance, const std::string& targetName = "");
+    // skipNodeNames: nodes with these names (and everything under them) are ignored - e.g. door leaves
+    // in the house model, so a closed door doesn't read as a wall when looking for doorways.
+    RaycastHit RaycastAgainstMesh(const Math::Vector3& origin, const Math::Vector3& direction, float maxDistance, const std::string& targetName = "",
+                                  const std::unordered_set<std::string>* skipNodeNames = nullptr);
 
     // 現在のシーンを設定
     void SetScene(Scene* scene) { m_pCurrentScene = scene; }

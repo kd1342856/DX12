@@ -324,7 +324,8 @@ RaycastHit CollisionManager::Raycast(const Math::Vector3& origin, const Math::Ve
     return hitResult;
 }
 
-RaycastHit CollisionManager::RaycastAgainstMesh(const Math::Vector3& origin, const Math::Vector3& direction, float maxDistance, const std::string& targetName) {
+RaycastHit CollisionManager::RaycastAgainstMesh(const Math::Vector3& origin, const Math::Vector3& direction, float maxDistance, const std::string& targetName,
+                                                const std::unordered_set<std::string>* skipNodeNames) {
     RaycastHit hitResult;
     hitResult.distance = maxDistance;
 
@@ -348,7 +349,16 @@ RaycastHit CollisionManager::RaycastAgainstMesh(const Math::Vector3& origin, con
                 Math::Vector3 localDir = Math::Vector3::TransformNormal(direction, invWorld);
                 localDir.Normalize();
 
-                for (const auto& node : modelData.m_spModelData->GetNodes()) {
+                const auto& allNodes = modelData.m_spModelData->GetNodes();
+                for (const auto& node : allNodes) {
+                    if (skipNodeNames && !skipNodeNames->empty()) {
+                        // skip this node if it, or any of its ancestors, is in the skip set
+                        bool skip = false;
+                        for (const auto* n = &node; n; n = (n->parentIndex >= 0 && n->parentIndex < (int)allNodes.size()) ? &allNodes[n->parentIndex] : nullptr) {
+                            if (skipNodeNames->count(n->name)) { skip = true; break; }
+                        }
+                        if (skip) continue;
+                    }
                     // アニメーション行列があれば逆行列を計算してレイを変換
                     Math::Matrix nodeTrans = node.animDeltaTransform;
                     Math::Matrix invNodeTrans = nodeTrans.Invert();
