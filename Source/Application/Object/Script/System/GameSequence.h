@@ -28,6 +28,8 @@ public:
 
     void NotifyExorcised();
     void NotifyGameOver();
+    // GhostAIから、ハントが時間切れで終わった(=プレイヤーが生き延びた)時に呼ばれる。リザルトで表示する。
+    void NotifyHuntSurvived() { if (m_currentState == State::Playing) ++m_huntsSurvived; }
 
     const std::vector<RoomArea*>& GetRooms() const { return m_rooms; }
 
@@ -47,6 +49,8 @@ private:
 
     // Total time spent in State::Playing, passed to ResultScene as the "time taken" stat.
     float m_playTimer = 0.0f;
+    // ハントを生き延びた回数(リザルトの表示と評価ランクに使う)
+    int m_huntsSurvived = 0;
     // How long to hold on the in-scene "GAME CLEAR"/"GAME OVER" overlay before cutting to
     // ResultScene, and whether that cut has already been requested (guards against calling
     // SceneManager::ChangeScene more than once).

@@ -87,10 +87,14 @@ void Scene::Init() {
         for (auto& child : node->GetChildren()) callStart(child);
     };
 
-    for (auto& obj : m_gameObjects) {
+    // Awake/Start内でCreateGameObjectされるとm_gameObjectsが再確保され、直接回していると
+    // イテレータが無効になって落ちるので、呼び出し前の一覧をコピーしてから回す
+    const std::vector<std::shared_ptr<GameObject>> awakeTargets = m_gameObjects;
+    for (auto& obj : awakeTargets) {
         if (!obj->GetParent()) callAwake(obj);
     }
-    for (auto& obj : m_gameObjects) {
+    const std::vector<std::shared_ptr<GameObject>> startTargets = m_gameObjects;
+    for (auto& obj : startTargets) {
         if (!obj->GetParent()) callStart(obj);
     }
 }

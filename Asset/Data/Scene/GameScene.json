@@ -18,13 +18,13 @@
             "Components": [
                 {
                     "Position": [
-                        3.318575859069824,
-                        1.6549127101898193,
-                        -5.279060363769531
+                        -5.578901290893555,
+                        1.9205342531204224,
+                        6.905377388000488
                     ],
                     "Rotation": [
-                        0.1693401038646698,
-                        -8.889713287353516,
+                        -0.09266040474176407,
+                        7.860337257385254,
                         0.0
                     ],
                     "Scale": [
@@ -197,7 +197,7 @@
                             "AnimationIndex": 9,
                             "IsLoop": true,
                             "IsPlaying": true,
-                            "ProgressTime": 3648.4833984375,
+                            "ProgressTime": 2941.877197265625,
                             "Speed": 1.0,
                             "Type": "AnimationDataComponent"
                         }
@@ -212,11 +212,11 @@
                         {
                             "Position": [
                                 0.0,
-                                2.0999813079833984,
+                                2.0999999046325684,
                                 0.25
                             ],
                             "Rotation": [
-                                0.9873485565185547,
+                                0.05265668407082558,
                                 0.0,
                                 0.0
                             ],
@@ -298,13 +298,13 @@
             "Components": [
                 {
                     "Position": [
-                        2.9916188716888428,
-                        -0.31999966502189636,
-                        -13.007975578308105
+                        2.727734088897705,
+                        -0.31999921798706055,
+                        -15.808183670043945
                     ],
                     "Rotation": [
                         0.0,
-                        -69.34706115722656,
+                        -56.61518478393555,
                         0.0
                     ],
                     "Scale": [
@@ -329,7 +329,6 @@
                     "hasAmulet": true,
                     "hasFlashLight": true,
                     "hasIncense": true,
-                    "hasThermometer": true,
                     "heldItemExtraRotationDeg": [
                         0.0,
                         90.0,
@@ -341,14 +340,6 @@
                         0.5320000052452087
                     ],
                     "heldItemOffsetCalibrated": true,
-                    "heldPose1": [
-                        -0.10999999940395355,
-                        -0.04500000178813934,
-                        -0.054999999701976776,
-                        104.0,
-                        -16.0,
-                        0.0
-                    ],
                     "heldPose2": [
                         -0.06499999761581421,
                         -0.02500000037252903,
@@ -375,9 +366,8 @@
                     ],
                     "itemOrder": [
                         4,
-                        3,
                         2,
-                        1
+                        3
                     ],
                     "moveSpeedKmh": 10.0,
                     "smudgeSoundDuration": 2.200000047683716,
@@ -396,53 +386,14 @@
             "Components": [
                 {
                     "Position": [
-                        3.061753988265991,
-                        1.371372938156128,
-                        -12.415191650390625
+                        3.9582631587982178,
+                        1.651127815246582,
+                        -8.585820198059082
                     ],
                     "Rotation": [
-                        0.10228751599788666,
-                        -0.8328699469566345,
-                        -0.32656407356262207
-                    ],
-                    "Scale": [
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
-                    "Type": "TransformData"
-                },
-                {
-                    "FilePath": "Asset/Model/Item/Thermometer/Thermometer.gltf",
-                    "ModelType": 0,
-                    "Type": "ModelRenderData"
-                },
-                {
-                    "AnimationIndex": 0,
-                    "IsLoop": false,
-                    "IsPlaying": false,
-                    "ProgressTime": 0.0,
-                    "Speed": 1.0,
-                    "Type": "AnimationDataComponent"
-                }
-            ],
-            "IsActive": true,
-            "Name": "HeldThermometer",
-            "UUID": 1000000000000000301
-        },
-        {
-            "Children": [],
-            "Components": [
-                {
-                    "Position": [
-                        3.063190460205078,
-                        0.9888503551483154,
-                        -12.438570022583008
-                    ],
-                    "Rotation": [
-                        -0.21426261961460114,
-                        -1.0622426271438599,
-                        -0.23976464569568634
+                        0.016173485666513443,
+                        1.7372220754623413,
+                        -0.45484083890914917
                     ],
                     "Scale": [
                         0.3499999940395355,
@@ -474,14 +425,14 @@
             "Components": [
                 {
                     "Position": [
-                        3.7318830490112305,
-                        1.0312074422836304,
-                        -14.680497169494629
+                        2.5114989280700684,
+                        1.6982307434082031,
+                        -6.8047709465026855
                     ],
                     "Rotation": [
-                        0.215658038854599,
-                        0.330639511346817,
-                        -0.15099646151065826
+                        0.46296459436416626,
+                        -0.7720916271209717,
+                        0.05522318184375763
                     ],
                     "Scale": [
                         0.8999999761581421,
@@ -537,14 +488,14 @@
             "Components": [
                 {
                     "Position": [
-                        3.774509906768799,
-                        1.064255714416504,
-                        -14.988321304321289
+                        2.9194676876068115,
+                        1.4036628007888794,
+                        -15.211337089538574
                     ],
                     "Rotation": [
-                        -0.9868996143341064,
-                        1.2570525407791138,
-                        -0.2574315369129181
+                        -0.952009916305542,
+                        1.1652820110321045,
+                        0.2995713949203491
                     ],
                     "Scale": [
                         1.0,
@@ -563,7 +514,7 @@
             "Components": [
                 {
                     "Position": [
-                        511.0,
+                        554.0,
                         666.0,
                         0.0
                     ],
@@ -582,9 +533,9 @@
                 {
                     "Color": [
                         1.0,
-                        1.0,
-                        1.0,
-                        0.6000000238418579
+                        0.8500000238418579,
+                        0.550000011920929,
+                        1.0
                     ],
                     "FilePath": "Asset/Texture/UI/item_slot_1.png",
                     "OrderInLayer": 9,
@@ -608,7 +559,7 @@
             "Components": [
                 {
                     "Position": [
-                        597.0,
+                        640.0,
                         666.0,
                         0.0
                     ],
@@ -653,7 +604,7 @@
             "Components": [
                 {
                     "Position": [
-                        683.0,
+                        726.0,
                         666.0,
                         0.0
                     ],
@@ -698,97 +649,7 @@
             "Components": [
                 {
                     "Position": [
-                        769.0,
-                        666.0,
-                        0.0
-                    ],
-                    "Rotation": [
-                        0.0,
-                        0.0,
-                        0.0
-                    ],
-                    "Scale": [
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
-                    "Type": "TransformData"
-                },
-                {
-                    "Color": [
-                        1.0,
-                        0.8500000238418579,
-                        0.550000011920929,
-                        1.0
-                    ],
-                    "FilePath": "Asset/Texture/UI/item_slot_4.png",
-                    "OrderInLayer": 9,
-                    "Pivot": [
-                        0.5,
-                        0.5
-                    ],
-                    "Size": [
-                        76.0,
-                        76.0
-                    ],
-                    "Type": "SpriteData"
-                }
-            ],
-            "IsActive": true,
-            "Name": "ItemSlot4",
-            "UUID": 1000000000000000214
-        },
-        {
-            "Children": [],
-            "Components": [
-                {
-                    "Position": [
-                        769.0,
-                        666.0,
-                        0.0
-                    ],
-                    "Rotation": [
-                        0.0,
-                        0.0,
-                        0.0
-                    ],
-                    "Scale": [
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
-                    "Type": "TransformData"
-                },
-                {
-                    "Color": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
-                    "FilePath": "Asset/Texture/UI/thermometer_icon.png",
-                    "OrderInLayer": 10,
-                    "Pivot": [
-                        0.5,
-                        0.5
-                    ],
-                    "Size": [
-                        58.0,
-                        58.0
-                    ],
-                    "Type": "SpriteData"
-                }
-            ],
-            "IsActive": true,
-            "Name": "ThermometerIcon",
-            "UUID": 1000000000000000201
-        },
-        {
-            "Children": [],
-            "Components": [
-                {
-                    "Position": [
-                        683.0,
+                        597.0,
                         666.0,
                         0.0
                     ],
@@ -833,7 +694,7 @@
             "Components": [
                 {
                     "Position": [
-                        597.0,
+                        683.0,
                         666.0,
                         0.0
                     ],
@@ -1312,7 +1173,7 @@
                             "AnimationIndex": 1,
                             "IsLoop": true,
                             "IsPlaying": true,
-                            "ProgressTime": 2918.9345703125,
+                            "ProgressTime": 391.5068054199219,
                             "Speed": 1.0,
                             "Type": "AnimationDataComponent"
                         }
@@ -1368,13 +1229,13 @@
             "Components": [
                 {
                     "Position": [
-                        -5.115606784820557,
-                        4.172325134277344e-07,
-                        -4.120998382568359
+                        -0.09266245365142822,
+                        9.238719940185547e-07,
+                        6.418898105621338
                     ],
                     "Rotation": [
                         0.0,
-                        -49.786075592041016,
+                        -43.71333694458008,
                         0.0
                     ],
                     "Scale": [
@@ -1851,7 +1712,7 @@
                     "PilotMaterial": "Pilot_Lamp",
                     "ScriptName": "LightSwitch",
                     "SoundVolume": 0.30300000309944153,
-                    "Targets": "CeilingLight",
+                    "Targets": "CeilingLight, CeilingLight_ent",
                     "Type": "NativeScriptData"
                 }
             ],
@@ -1895,8 +1756,8 @@
                             ],
                             "Enabled": false,
                             "GlowMaterial": "FL_Tube_Baked",
-                            "InnerAngle": 40.0,
-                            "Intensity": 3.0,
+                            "InnerAngle": 57.0,
+                            "Intensity": 5.550000190734863,
                             "LocalDirection": [
                                 0.0,
                                 -1.0,
@@ -1909,7 +1770,7 @@
                             ],
                             "ModelGlow": 8.0,
                             "OuterAngle": 80.0,
-                            "Range": 8.0,
+                            "Range": 10.300000190734863,
                             "Type": "SpotLightData"
                         }
                     ],
@@ -2119,6 +1980,769 @@
             "IsActive": true,
             "Name": "RoomCeilingLightF2",
             "UUID": 11588783537782773580
+        },
+        {
+            "Children": [
+                {
+                    "Children": [],
+                    "Components": [
+                        {
+                            "Position": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "Rotation": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "Scale": [
+                                1.0,
+                                1.0,
+                                1.0
+                            ],
+                            "Type": "TransformData"
+                        },
+                        {
+                            "FilePath": "Asset/Model/Map/CeilingLight/Room2/CeilingLight_Round.gltf",
+                            "ModelType": 0,
+                            "Type": "ModelRenderData"
+                        },
+                        {
+                            "Color": [
+                                0.949999988079071,
+                                0.9800000190734863,
+                                1.0
+                            ],
+                            "Enabled": false,
+                            "GlowMaterial": "RL_Shade_Acrylic_Baked",
+                            "InnerAngle": 40.0,
+                            "Intensity": 3.0,
+                            "LocalDirection": [
+                                0.0,
+                                -1.0,
+                                0.0
+                            ],
+                            "LocalOffset": [
+                                0.0,
+                                -0.20000000298023224,
+                                0.0
+                            ],
+                            "ModelGlow": 8.0,
+                            "OuterAngle": 80.0,
+                            "Range": 8.0,
+                            "Type": "SpotLightData"
+                        }
+                    ],
+                    "IsActive": true,
+                    "Name": "Model",
+                    "UUID": 12681597999073551822
+                }
+            ],
+            "Components": [
+                {
+                    "Position": [
+                        -3.375,
+                        4.039999961853027,
+                        -4.21999979019165
+                    ],
+                    "Rotation": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "Scale": [
+                        1.5,
+                        1.5,
+                        1.5
+                    ],
+                    "Type": "TransformData"
+                },
+                {
+                    "Active": false,
+                    "Interactable": false,
+                    "Radius": 12.0,
+                    "RoomLight": true,
+                    "ScriptName": "StimulusSource",
+                    "SoundVolume": 0.30000001192092896,
+                    "StimulusType": 0,
+                    "Type": "NativeScriptData"
+                }
+            ],
+            "IsActive": true,
+            "Name": "Room1CeilingLight",
+            "UUID": 8273845757325692782
+        },
+        {
+            "Children": [
+                {
+                    "Children": [],
+                    "Components": [
+                        {
+                            "Position": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "Rotation": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "Scale": [
+                                1.0,
+                                1.0,
+                                1.0
+                            ],
+                            "Type": "TransformData"
+                        },
+                        {
+                            "FilePath": "Asset/Model/Map/CeilingLight/Switch/Switch.gltf",
+                            "ModelType": 0,
+                            "PerInstanceAnimation": true,
+                            "Type": "ModelRenderData"
+                        },
+                        {
+                            "AnimationIndex": 1,
+                            "IsLoop": false,
+                            "IsPlaying": false,
+                            "ProgressTime": 208.3323211669922,
+                            "Speed": 1.0,
+                            "Type": "AnimationDataComponent"
+                        }
+                    ],
+                    "IsActive": true,
+                    "Name": "Model",
+                    "UUID": 7951731905908265239
+                }
+            ],
+            "Components": [
+                {
+                    "Position": [
+                        -0.11999999731779099,
+                        1.847000002861023,
+                        -3.200000047683716
+                    ],
+                    "Rotation": [
+                        0.0,
+                        1.5707963705062866,
+                        0.0
+                    ],
+                    "Scale": [
+                        5.0,
+                        5.0,
+                        5.0
+                    ],
+                    "Type": "TransformData"
+                },
+                {
+                    "Interactable": true,
+                    "PilotMaterial": "Pilot_Lamp",
+                    "ScriptName": "LightSwitch",
+                    "SoundVolume": 0.30300000309944153,
+                    "Targets": "Room1CeilingLight",
+                    "Type": "NativeScriptData"
+                }
+            ],
+            "IsActive": true,
+            "Name": "Room1LightSwitch",
+            "UUID": 13239506173795382405
+        },
+        {
+            "Children": [
+                {
+                    "Children": [],
+                    "Components": [
+                        {
+                            "Position": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "Rotation": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "Scale": [
+                                1.0,
+                                1.0,
+                                1.0
+                            ],
+                            "Type": "TransformData"
+                        },
+                        {
+                            "FilePath": "Asset/Model/Map/CeilingLight/Room2/CeilingLight_Round.gltf",
+                            "ModelType": 0,
+                            "Type": "ModelRenderData"
+                        },
+                        {
+                            "Color": [
+                                0.949999988079071,
+                                0.9800000190734863,
+                                1.0
+                            ],
+                            "Enabled": false,
+                            "GlowMaterial": "RL_Shade_Acrylic_Baked",
+                            "InnerAngle": 40.0,
+                            "Intensity": 3.0,
+                            "LocalDirection": [
+                                0.0,
+                                -1.0,
+                                0.0
+                            ],
+                            "LocalOffset": [
+                                0.0,
+                                -0.20000000298023224,
+                                0.0
+                            ],
+                            "ModelGlow": 8.0,
+                            "OuterAngle": 80.0,
+                            "Range": 8.0,
+                            "Type": "SpotLightData"
+                        }
+                    ],
+                    "IsActive": true,
+                    "Name": "Model",
+                    "UUID": 12178969779716840733
+                }
+            ],
+            "Components": [
+                {
+                    "Position": [
+                        -3.375,
+                        4.039999961853027,
+                        0.8450000286102295
+                    ],
+                    "Rotation": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "Scale": [
+                        1.5,
+                        1.5,
+                        1.5
+                    ],
+                    "Type": "TransformData"
+                },
+                {
+                    "Active": false,
+                    "Interactable": false,
+                    "Radius": 12.0,
+                    "RoomLight": true,
+                    "ScriptName": "StimulusSource",
+                    "SoundVolume": 0.30000001192092896,
+                    "StimulusType": 0,
+                    "Type": "NativeScriptData"
+                }
+            ],
+            "IsActive": true,
+            "Name": "Room2CeilingLight",
+            "UUID": 15370364597132927120
+        },
+        {
+            "Children": [
+                {
+                    "Children": [],
+                    "Components": [
+                        {
+                            "Position": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "Rotation": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "Scale": [
+                                1.0,
+                                1.0,
+                                1.0
+                            ],
+                            "Type": "TransformData"
+                        },
+                        {
+                            "FilePath": "Asset/Model/Map/CeilingLight/Switch/Switch.gltf",
+                            "ModelType": 0,
+                            "PerInstanceAnimation": true,
+                            "Type": "ModelRenderData"
+                        },
+                        {
+                            "AnimationIndex": 1,
+                            "IsLoop": false,
+                            "IsPlaying": false,
+                            "ProgressTime": 208.3323211669922,
+                            "Speed": 1.0,
+                            "Type": "AnimationDataComponent"
+                        }
+                    ],
+                    "IsActive": true,
+                    "Name": "Model",
+                    "UUID": 10721435414872444091
+                }
+            ],
+            "Components": [
+                {
+                    "Position": [
+                        -0.11999999731779099,
+                        1.847000002861023,
+                        1.8600000143051147
+                    ],
+                    "Rotation": [
+                        0.0,
+                        1.5707963705062866,
+                        0.0
+                    ],
+                    "Scale": [
+                        5.0,
+                        5.0,
+                        5.0
+                    ],
+                    "Type": "TransformData"
+                },
+                {
+                    "Interactable": true,
+                    "PilotMaterial": "Pilot_Lamp",
+                    "ScriptName": "LightSwitch",
+                    "SoundVolume": 0.30300000309944153,
+                    "Targets": "Room2CeilingLight",
+                    "Type": "NativeScriptData"
+                }
+            ],
+            "IsActive": true,
+            "Name": "Room2LightSwitch",
+            "UUID": 12546499045118094765
+        },
+        {
+            "Children": [
+                {
+                    "Children": [],
+                    "Components": [
+                        {
+                            "Position": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "Rotation": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "Scale": [
+                                1.0,
+                                1.0,
+                                1.0
+                            ],
+                            "Type": "TransformData"
+                        },
+                        {
+                            "FilePath": "Asset/Model/Map/CeilingLight/Room2/CeilingLight_Round.gltf",
+                            "ModelType": 0,
+                            "Type": "ModelRenderData"
+                        },
+                        {
+                            "Color": [
+                                0.949999988079071,
+                                0.9800000190734863,
+                                1.0
+                            ],
+                            "Enabled": false,
+                            "GlowMaterial": "RL_Shade_Acrylic_Baked",
+                            "InnerAngle": 40.0,
+                            "Intensity": 3.0,
+                            "LocalDirection": [
+                                0.0,
+                                -1.0,
+                                0.0
+                            ],
+                            "LocalOffset": [
+                                0.0,
+                                -0.20000000298023224,
+                                0.0
+                            ],
+                            "ModelGlow": 8.0,
+                            "OuterAngle": 80.0,
+                            "Range": 8.0,
+                            "Type": "SpotLightData"
+                        }
+                    ],
+                    "IsActive": true,
+                    "Name": "Model",
+                    "UUID": 10279061434883681955
+                }
+            ],
+            "Components": [
+                {
+                    "Position": [
+                        -3.4000000953674316,
+                        8.279999732971191,
+                        -1.690000057220459
+                    ],
+                    "Rotation": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "Scale": [
+                        1.5,
+                        1.5,
+                        1.5
+                    ],
+                    "Type": "TransformData"
+                },
+                {
+                    "Active": false,
+                    "Interactable": false,
+                    "Radius": 12.0,
+                    "RoomLight": true,
+                    "ScriptName": "StimulusSource",
+                    "SoundVolume": 0.30000001192092896,
+                    "StimulusType": 0,
+                    "Type": "NativeScriptData"
+                }
+            ],
+            "IsActive": true,
+            "Name": "RoomF2CeilingLight",
+            "UUID": 15202175635625740
+        },
+        {
+            "Children": [
+                {
+                    "Children": [],
+                    "Components": [
+                        {
+                            "Position": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "Rotation": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "Scale": [
+                                1.0,
+                                1.0,
+                                1.0
+                            ],
+                            "Type": "TransformData"
+                        },
+                        {
+                            "FilePath": "Asset/Model/Map/CeilingLight/Switch/Switch.gltf",
+                            "ModelType": 0,
+                            "PerInstanceAnimation": true,
+                            "Type": "ModelRenderData"
+                        },
+                        {
+                            "AnimationIndex": 1,
+                            "IsLoop": false,
+                            "IsPlaying": false,
+                            "ProgressTime": 208.3323211669922,
+                            "Speed": 1.0,
+                            "Type": "AnimationDataComponent"
+                        }
+                    ],
+                    "IsActive": true,
+                    "Name": "Model",
+                    "UUID": 12743576365013011882
+                }
+            ],
+            "Components": [
+                {
+                    "Position": [
+                        -0.11999999731779099,
+                        6.046999931335449,
+                        -0.6700000166893005
+                    ],
+                    "Rotation": [
+                        0.0,
+                        1.5707963705062866,
+                        0.0
+                    ],
+                    "Scale": [
+                        5.0,
+                        5.0,
+                        5.0
+                    ],
+                    "Type": "TransformData"
+                },
+                {
+                    "Interactable": true,
+                    "PilotMaterial": "Pilot_Lamp",
+                    "ScriptName": "LightSwitch",
+                    "SoundVolume": 0.30300000309944153,
+                    "Targets": "RoomF2CeilingLight",
+                    "Type": "NativeScriptData"
+                }
+            ],
+            "IsActive": true,
+            "Name": "RoomF2LightSwitch",
+            "UUID": 8969881144613944906
+        },
+        {
+            "Children": [
+                {
+                    "Children": [],
+                    "Components": [
+                        {
+                            "Position": [
+                                0.0,
+                                -0.125,
+                                0.0
+                            ],
+                            "Rotation": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "Scale": [
+                                0.25,
+                                0.25,
+                                0.25
+                            ],
+                            "Type": "TransformData"
+                        },
+                        {
+                            "FilePath": "Asset/Model/Map/CeilingLight/scene.gltf",
+                            "ModelType": 0,
+                            "Type": "ModelRenderData"
+                        },
+                        {
+                            "Color": [
+                                1.0,
+                                0.9200000166893005,
+                                0.800000011920929
+                            ],
+                            "Enabled": false,
+                            "GlowMaterial": "",
+                            "InnerAngle": 21.0,
+                            "Intensity": 4.349999904632568,
+                            "LocalDirection": [
+                                0.0,
+                                -1.0,
+                                0.0
+                            ],
+                            "LocalOffset": [
+                                0.0,
+                                -0.5,
+                                0.0
+                            ],
+                            "ModelGlow": 8.0,
+                            "OuterAngle": 77.5,
+                            "Range": 9.899999618530273,
+                            "Type": "SpotLightData"
+                        }
+                    ],
+                    "IsActive": true,
+                    "Name": "Model",
+                    "UUID": 5545845950329707973
+                }
+            ],
+            "Components": [
+                {
+                    "Position": [
+                        2.6700000762939453,
+                        3.9000000953674316,
+                        -8.76099967956543
+                    ],
+                    "Rotation": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "Scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "Type": "TransformData"
+                },
+                {
+                    "Active": false,
+                    "Interactable": false,
+                    "Radius": 12.0,
+                    "RoomLight": true,
+                    "ScriptName": "StimulusSource",
+                    "SoundVolume": 0.800000011920929,
+                    "StimulusType": 0,
+                    "Type": "NativeScriptData"
+                }
+            ],
+            "IsActive": true,
+            "Name": "CeilingLight_ent",
+            "UUID": 6531053863017666774
+        },
+        {
+            "Children": [
+                {
+                    "Children": [],
+                    "Components": [
+                        {
+                            "Position": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "Rotation": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "Scale": [
+                                1.0,
+                                1.0,
+                                1.0
+                            ],
+                            "Type": "TransformData"
+                        },
+                        {
+                            "FilePath": "Asset/Model/Map/WallLamp/scene.gltf",
+                            "ModelType": 0,
+                            "Type": "ModelRenderData"
+                        },
+                        {
+                            "Color": [
+                                1.0,
+                                0.7799999713897705,
+                                0.5
+                            ],
+                            "Enabled": true,
+                            "GlowMaterial": "Lantern_Lens",
+                            "InnerAngle": 25.0,
+                            "Intensity": 2.5,
+                            "LocalDirection": [
+                                -0.707099974155426,
+                                -0.707099974155426,
+                                0.0
+                            ],
+                            "LocalOffset": [
+                                -0.12999999523162842,
+                                0.10000000149011612,
+                                0.0
+                            ],
+                            "ModelGlow": 6.0,
+                            "OuterAngle": 45.0,
+                            "Range": 7.0,
+                            "Type": "SpotLightData"
+                        }
+                    ],
+                    "IsActive": true,
+                    "Name": "Model",
+                    "UUID": 6684580680122967189
+                }
+            ],
+            "Components": [
+                {
+                    "Position": [
+                        3.1500000953674316,
+                        2.4000000953674316,
+                        -10.779000282287598
+                    ],
+                    "Rotation": [
+                        0.0,
+                        -1.5707963705062866,
+                        0.0
+                    ],
+                    "Scale": [
+                        0.6000000238418579,
+                        0.6000000238418579,
+                        0.6000000238418579
+                    ],
+                    "Type": "TransformData"
+                }
+            ],
+            "IsActive": true,
+            "Name": "EntranceWallLamp_R",
+            "UUID": 6646752416635354845
+        },
+        {
+            "Children": [
+                {
+                    "Children": [],
+                    "Components": [
+                        {
+                            "Position": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "Rotation": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "Scale": [
+                                1.0,
+                                1.0,
+                                1.0
+                            ],
+                            "Type": "TransformData"
+                        },
+                        {
+                            "FilePath": "Asset/Model/Map/WallLamp/scene.gltf",
+                            "ModelType": 0,
+                            "Type": "ModelRenderData"
+                        },
+                        {
+                            "Color": [
+                                1.0,
+                                0.7799999713897705,
+                                0.5
+                            ],
+                            "Enabled": true,
+                            "GlowMaterial": "Lantern_Lens",
+                            "InnerAngle": 25.0,
+                            "Intensity": 2.5,
+                            "LocalDirection": [
+                                -0.707099974155426,
+                                -0.707099974155426,
+                                0.0
+                            ],
+                            "LocalOffset": [
+                                -0.12999999523162842,
+                                0.10000000149011612,
+                                0.0
+                            ],
+                            "ModelGlow": 6.0,
+                            "OuterAngle": 45.0,
+                            "Range": 7.0,
+                            "Type": "SpotLightData"
+                        }
+                    ],
+                    "IsActive": true,
+                    "Name": "Model",
+                    "UUID": 4436489913039249825
+                }
+            ],
+            "Components": [
+                {
+                    "Position": [
+                        0.44999998807907104,
+                        2.4000000953674316,
+                        -10.779000282287598
+                    ],
+                    "Rotation": [
+                        0.0,
+                        -1.5707963705062866,
+                        0.0
+                    ],
+                    "Scale": [
+                        0.6000000238418579,
+                        0.6000000238418579,
+                        0.6000000238418579
+                    ],
+                    "Type": "TransformData"
+                }
+            ],
+            "IsActive": true,
+            "Name": "EntranceWallLamp_L",
+            "UUID": 11163502993312952864
         }
     ],
     "Lighting": {

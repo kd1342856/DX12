@@ -72,6 +72,8 @@ void Application::Execute()
 
 	// AudioManager
 	AudioManager::Instance().Init();
+	// 曲ごとの音量をSound Managerに表示するため、起動シーンに関係なく最初に登録しておく
+	AudioManager::Instance().RegisterBGMTrack(TitleScene::kBGMPath, "TitleBGM", TitleScene::kBGMDefaultVolume);
 
 	// GameManager 
 	GameManager::Instance().Init();

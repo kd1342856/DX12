@@ -19,10 +19,10 @@ void PickupItem::Deserialize(const nlohmann::json& in)
 
 void PickupItem::ImGuiUpdate()
 {
-    int current = static_cast<int>(m_itemType) - 1; // enum starts at 1
-    const char* names[] = { "Thermometer", "Incense (SmudgeStick)", "Amulet (Ofuda)", "FlashLight" };
+    int current = static_cast<int>(m_itemType) - 2; // enum starts at 2 (Incense)
+    const char* names[] = { "Incense (SmudgeStick)", "Amulet (Ofuda)", "FlashLight" };
     if (ImGui::Combo("Item Type", &current, names, IM_ARRAYSIZE(names))) {
-        m_itemType = static_cast<ItemType>(current + 1);
+        m_itemType = static_cast<ItemType>(current + 2);
     }
     ImGui::Text("[Debug] Collected: %s", m_collected ? "true" : "false");
 }

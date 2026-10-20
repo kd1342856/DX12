@@ -68,12 +68,10 @@ private:
     float m_velocityY = 0.0f;
     bool m_isGrounded = false;
 
-    Item m_currentEquipped = Item::Thermometer;
-    float m_temperature = 20.0f;
+    Item m_currentEquipped = Item::Incense;
 
     // --- Item possession state ---
     // Whether each item has been picked up yet. Cannot equip an item that isn't owned (guarded in Update()).
-    bool m_hasThermometer = false;
     bool m_hasIncense = false;
     bool m_hasAmulet = false;
     bool m_hasFlashLight = false;
@@ -92,14 +90,14 @@ private:
     Entity FindGameCameraEntity() const;
 
     // HUD item slot bar (bottom center). Icon Sprite entities are expected in GameScene.json named
-    // "ThermometerIcon"/"SmudgeStickIcon"/"OfudaIcon"/"FlashLightIcon", and their slot frames
-    // "ItemSlot1".."ItemSlot4" (same order as the 1-4 equip keys). Looked up by name and cached in
-    // Start(); stays INVALID_ENTITY if not found.
-    Entity m_thermometerIconEntity = INVALID_ENTITY;
+    // "SmudgeStickIcon"/"OfudaIcon"/"FlashLightIcon", and their slot frames "ItemSlot1".."ItemSlot3"
+    // (same order as the 1-3 equip keys). Looked up by name and cached in Start(); stays
+    // INVALID_ENTITY if not found.
+    static constexpr int kItemSlotCount = 3;
     Entity m_incenseIconEntity = INVALID_ENTITY;
     Entity m_amuletIconEntity = INVALID_ENTITY;
     Entity m_flashLightIconEntity = INVALID_ENTITY;
-    Entity m_itemSlotEntities[4] = { INVALID_ENTITY, INVALID_ENTITY, INVALID_ENTITY, INVALID_ENTITY };
+    Entity m_itemSlotEntities[kItemSlotCount] = { INVALID_ENTITY, INVALID_ENTITY, INVALID_ENTITY };
 
     // 所持アイテムを拾った順に並べたもの。スロットN(とキーN)にはN番目に拾ったアイテムが入る。
     // AddItemで末尾に追加し、捨てたら詰める。シーンから読んだ初期所持品はSyncItemOrder()が既定順で補う。
@@ -109,18 +107,14 @@ private:
     void FindItemIconEntities();
     void UpdateItemIcons();
 
-    // The 3 held-item model entities (children of Player named "HeldThermometer"/"HeldSmudgeStick"/
-    // "HeldOfuda" in GameScene.json). Only the currently equipped+owned one is made visible.
-    Entity m_heldThermometerEntity = INVALID_ENTITY;
+    // The held-item model entities (named "HeldSmudgeStick"/"HeldOfuda" in GameScene.json).
+    // Only the currently equipped+owned one is made visible.
     Entity m_heldIncenseEntity = INVALID_ENTITY;
     Entity m_heldAmuletEntity = INVALID_ENTITY;
-    // "HeldFlashLight": unlike the other three, its model sits on a child "Model" object (to apply
+    // "HeldFlashLight": unlike the others, its model sits on a child "Model" object (to apply
     // the model's own scale/orientation fix), so visibility is applied to the whole subtree.
     Entity m_heldFlashLightEntity = INVALID_ENTITY;
     void UpdateHeldItem();
-    // Scrubs the held thermometer's baked "mercury drop" animation to match m_temperature
-    // (no auto-playback - we just set ProgressTime directly each frame).
-    void UpdateThermometerAnimation();
 
     // Held items are top-level entities (not children of Player) so their Position/Rotation can be
     // driven directly here each frame: a fixed local offset from the player's own body
@@ -133,8 +127,8 @@ private:
     Math::Vector3 m_heldItemOffset = { 0.35f, 1.0f, 0.3f };
     bool m_heldItemOffsetCalibrated = false;
     // Extra local rotation (degrees, X/Y/Z) applied on top of the player's yaw, to correct the held
-    // model's own base orientation (e.g. the thermometer's authored "up" not matching how it should
-    // sit in-hand). Tunable live from ImGuiUpdate().
+    // model's own base orientation (e.g. a model's authored "up" not matching how it should sit
+    // in-hand). Tunable live from ImGuiUpdate().
     Math::Vector3 m_heldItemExtraRotationDeg = { 0.0f, 90.0f, 0.0f };
     // Waits for the player to stand still holding the same item for a bit before calibrating, so
     // the UseItem_Idle "presenting" pose has actually taken effect (see UpdateHeldItemAttach).
@@ -144,7 +138,7 @@ private:
 
     // --- 手のボーン追従(Attach_RightHand) ---
     // 持ち物は毎フレーム、手のボーンのワールド位置・回転に追従する。アイテムごとに「手から見た
-    // ローカルのオフセット(m)と回転(度)」を持ち、ImGuiUpdate()で調整できる(添字は(int)ItemType、1〜4)。
+    // ローカルのオフセット(m)と回転(度)」を持ち、ImGuiUpdate()で調整できる(添字は(int)ItemType、2〜4)。
     // ボーンが無いモデルでは従来の体基準の固定オフセット(m_heldItemOffset)にフォールバックする。
     struct HeldPose
     {

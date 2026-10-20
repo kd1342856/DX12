@@ -1462,6 +1462,8 @@ void GhostAI::Update(float deltaTime)
         case GhostAI::State::Hunt:
             m_huntTimer -= deltaTime;
             if (m_huntTimer <= 0.0f) {
+                // ハントが時間切れで終わった = プレイヤーが生き延びた(リザルトの表示用に数える)
+                if (auto gs = GameSequence::GetInstance()) gs->NotifyHuntSurvived();
                 // ハント終了: テレポートせず、ゴーストルームまでNavMesh経由で徒歩で帰る
                 m_hasLastKnownPlayerPos = false;
                 m_isSeeingPlayer = false;

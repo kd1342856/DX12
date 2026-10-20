@@ -74,7 +74,7 @@ void Editor::DrawToolbar() {
         } else if (current_scene == 1) {
             SceneManager::Instance().ChangeScene(std::make_unique<GameScene>(), 0.5f);
         } else if (current_scene == 2) {
-            SceneManager::Instance().ChangeScene(std::make_unique<ResultScene>(true, 125.4f, "Onryo", 5000), 0.5f);
+            SceneManager::Instance().ChangeScene(std::make_unique<ResultScene>(true, 245.4f, 1 /*Kageonna*/, 2), 0.5f);
         } else if (current_scene == 3) {
             SceneManager::Instance().ChangeScene(std::make_unique<ResultScene>(false), 0.5f);
         }

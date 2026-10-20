@@ -11,7 +11,7 @@ public:
     void Deserialize(const nlohmann::json& in) override;
     void ImGuiUpdate() override;
 
-    ItemType m_itemType = ItemType::Thermometer;
+    ItemType m_itemType = ItemType::Incense;
     bool m_collected = false;
 
     // Called by Player when the player presses F while this item is the current interaction target.

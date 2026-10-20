@@ -585,6 +585,16 @@ bool GraphicsDevice::InitImGui()
 	ImGui::StyleColorsDark();
     // Load Japanese font
     io.Fonts->AddFontFromFileTTF("c:/Windows/Fonts/meiryo.ttc", 16.0f, nullptr, io.Fonts->GetGlyphRangesJapanese());
+    // リザルト画面用の筆文字フォント(Yuji Boku, SIL OFL)。標準フォント(1つ目=メイリオ)は変えず、
+    // ResultSceneが名前(ImFontConfig::Name)で探して使う。ImGui 1.92はグリフを必要な時に読み込むので範囲指定は不要。
+    {
+        const char* kResultFontPath = "Asset/Font/YujiBoku/YujiBoku-Regular.ttf";
+        if (std::filesystem::exists(kResultFontPath)) {
+            ImFontConfig cfg;
+            strcpy_s(cfg.Name, "ResultFont");
+            io.Fonts->AddFontFromFileTTF(kResultFontPath, 32.0f, &cfg);
+        }
+    }
 	// Win32バックエンドの初期化はWin32Window側のhWndに依存するので
 	// ここでは ImGui_ImplDX12 の初期化のみ行い、Win32側の初期化はmain/Applicationに任せる。
 	// 補足: ImGui_ImplWin32_Init(hWnd) は Application::Init()内で呼ばれる想定。

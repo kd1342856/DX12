@@ -263,6 +263,7 @@ xcopy /y /d "$(ProjectDir)dxil.dll" "$(OutDir)"</Command>
     <ClInclude Include="Source\Graphics\Shader\SSAOShader\SSAOShader.h" />
     <ClInclude Include="Source\Graphics\Shader\SSROpaqueShader\SSROpaqueShader.h" />
     <ClInclude Include="Source\Graphics\Shader\FogShader\FogShader.h" />
+    <ClInclude Include="Source\Graphics\Shader\MistShader\MistShader.h" />
     <ClInclude Include="Source\Graphics\Shader\ParticleShader\ParticleShader.h" />
     <ClInclude Include="Source\Framework\Manager\Particle\ParticleManager.h" />
     <ClInclude Include="Source\Graphics\Shader\LitShader\LitShader.h" />
@@ -407,6 +408,7 @@ xcopy /y /d "$(ProjectDir)dxil.dll" "$(OutDir)"</Command>
     <ClCompile Include="Source\Graphics\Shader\SSAOShader\SSAOShader.cpp" />
     <ClCompile Include="Source\Graphics\Shader\SSROpaqueShader\SSROpaqueShader.cpp" />
     <ClCompile Include="Source\Graphics\Shader\FogShader\FogShader.cpp" />
+    <ClCompile Include="Source\Graphics\Shader\MistShader\MistShader.cpp" />
     <ClCompile Include="Source\Graphics\Shader\ParticleShader\ParticleShader.cpp" />
     <ClCompile Include="Source\Framework\Manager\Particle\ParticleManager.cpp" />
     <ClCompile Include="Source\Graphics\Shader\LitShader\LitShader.cpp" />
@@ -522,6 +524,12 @@ xcopy /y /d "$(ProjectDir)dxil.dll" "$(OutDir)"</Command>
       <FileType>Document</FileType>
     </None>
     <None Include="Asset\Shader\BloomShader\BloomExtract_PS.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Asset\Shader\MistShader\MistShader_PS.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Asset\Shader\MistShader\MistShader_VS.hlsl">
       <FileType>Document</FileType>
     </None>
     <None Include="Asset\Shader\FogShader\FogShader_PS.hlsl">

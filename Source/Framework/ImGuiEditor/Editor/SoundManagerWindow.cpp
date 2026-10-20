@@ -65,24 +65,46 @@ void Editor::DrawSoundManager()
 
     auto& audio = AudioManager::Instance();
 
+    // 音量の変更は、スライダーを離した時点で自動保存する(Saveボタンの押し忘れで消えないように)
+    auto autoSave = [&]() { if (ImGui::IsItemDeactivatedAfterEdit()) audio.SaveSettings(); };
+
     // --- 音量バス ---
     ImGui::SeparatorText(u8"音量");
     bool muted = audio.IsMuted();
-    if (ImGui::Checkbox("Mute", &muted)) audio.SetMuted(muted);
+    if (ImGui::Checkbox("Mute", &muted)) { audio.SetMuted(muted); audio.SaveSettings(); }
 
     float master = audio.GetMasterVolume();
     if (ImGui::SliderFloat("Master", &master, 0.0f, 1.0f)) audio.SetMasterVolume(master);
+    autoSave();
     float bgm = audio.GetBGMBusVolume();
     if (ImGui::SliderFloat("BGM", &bgm, 0.0f, 1.0f)) audio.SetBGMBusVolume(bgm);
+    autoSave();
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"全BGM共通。下の「曲ごとの音量」に掛け合わされる");
     float se = audio.GetSEVolume();
     if (ImGui::SliderFloat("SE", &se, 0.0f, 1.0f)) audio.SetSEVolume(se);
+    autoSave();
     if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"各スクリプト(Player/LightSwitch等)の音量に掛け合わされる");
+
+    // --- 曲ごとの音量 ---
+    ImGui::SeparatorText(u8"曲ごとの音量");
+    for (const auto& path : audio.GetBGMTrackPaths())
+    {
+        const std::string& label = audio.GetBGMTrackLabel(path);
+        const std::string fileName = path.substr(path.find_last_of("/\\") + 1);
+        const std::string text = label.empty() ? fileName : label + " (" + fileName + ")";
+        ImGui::PushID(path.c_str());
+        float vol = audio.GetBGMTrackVolume(path);
+        if (ImGui::SliderFloat(text.c_str(), &vol, 0.0f, 1.0f)) audio.SetBGMTrackVolume(path, vol);
+        autoSave();
+        if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", path.c_str());
+        ImGui::PopID();
+    }
 
     if (ImGui::Button("Save")) audio.SaveSettings();
     ImGui::SameLine();
     if (ImGui::Button("Reload")) audio.LoadSettings();
     ImGui::SameLine();
-    ImGui::TextDisabled("%s", AudioManager::kSettingsPath);
+    ImGui::TextDisabled(u8"%s (変更は自動保存)", AudioManager::kSettingsPath);
 
     // --- BGM ---
     ImGui::SeparatorText("BGM");

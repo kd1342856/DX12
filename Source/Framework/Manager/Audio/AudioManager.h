@@ -44,6 +44,16 @@ public:
     void SetSEVolume(float vol) { m_seBusVolume = vol; }
     void SetMuted(bool muted);
 
+    // --- 曲ごとの音量(Sound Managerで調整・保存)。BGMの最終音量 = PlayBGMのvol × 曲の音量 × BGMバス ---
+    // 曲を使う側(TitleScene等)が表示名と初期音量を登録する。保存済みの値があればそちらを優先する
+    void RegisterBGMTrack(const std::string& filepath, const std::string& label, float defaultVolume);
+    float GetBGMTrackVolume(const std::string& filepath) const;
+    void SetBGMTrackVolume(const std::string& filepath, float vol);
+    // 表示名(未登録なら空)
+    const std::string& GetBGMTrackLabel(const std::string& filepath) const;
+    // 音量が設定/登録されている曲の一覧
+    std::vector<std::string> GetBGMTrackPaths() const;
+
     // 音量設定の保存/読み込み(Initで自動的に読み込む)
     static constexpr const char* kSettingsPath = "Asset/Data/AudioSettings.json";
     void LoadSettings();
@@ -63,6 +73,8 @@ private:
     std::unique_ptr<DirectX::SoundEffectInstance> m_bgmInstance;
     std::string m_currentBGM;
     float m_bgmBaseVolume = 1.0f; // PlayBGM/SetBGMVolumeで指定された音量(バス適用前)
+    std::map<std::string, float> m_bgmTrackVolumes;      // 曲ごとの音量(保存対象)
+    std::map<std::string, std::string> m_bgmTrackLabels; // 曲の表示名(実行時のみ)
 
     float m_masterVolume = 1.0f;
     float m_bgmBusVolume = 1.0f;

@@ -56,14 +56,13 @@ void Player::FindItemIconEntities()
         if (!ecs.TryGetComponent<SpriteData>(entity)) continue;
         auto obj = scene->GetGameObject(entity);
         if (!obj) continue;
-        if (obj->GetName() == "ThermometerIcon") m_thermometerIconEntity = entity;
-        else if (obj->GetName() == "SmudgeStickIcon") m_incenseIconEntity = entity;
+        if (obj->GetName() == "SmudgeStickIcon") m_incenseIconEntity = entity;
         else if (obj->GetName() == "OfudaIcon") m_amuletIconEntity = entity;
         else if (obj->GetName() == "FlashLightIcon") m_flashLightIconEntity = entity;
         else if (obj->GetName() == "InteractPrompt") m_interactPromptEntity = entity;
         else if (obj->GetName() == "Crosshair") m_crosshairEntity = entity;
         else {
-            for (int i = 0; i < 4; ++i) {
+            for (int i = 0; i < kItemSlotCount; ++i) {
                 if (obj->GetName() == "ItemSlot" + std::to_string(i + 1)) m_itemSlotEntities[i] = entity;
             }
         }
@@ -74,8 +73,7 @@ void Player::FindItemIconEntities()
         if (!ecs.TryGetComponent<ModelRenderData>(entity)) continue;
         auto obj = scene->GetGameObject(entity);
         if (!obj) continue;
-        if (obj->GetName() == "HeldThermometer") m_heldThermometerEntity = entity;
-        else if (obj->GetName() == "HeldSmudgeStick") m_heldIncenseEntity = entity;
+        if (obj->GetName() == "HeldSmudgeStick") m_heldIncenseEntity = entity;
         else if (obj->GetName() == "HeldOfuda") m_heldAmuletEntity = entity;
     }
 
@@ -90,18 +88,18 @@ void Player::FindItemIconEntities()
 void Player::UpdateItemIcons()
 {
     // 画面下中央のアイテムスロット: 拾った順(m_itemOrder)に1番から詰めてアイコンを並べ、
-    // 装備中のスロットだけ枠を明るい暖色で強調する(キー1〜4も同じ並び)。
+    // 装備中のスロットだけ枠を明るい暖色で強調する(キー1〜3も同じ並び)。
     SyncItemOrder();
     auto& ecs = GameManager::Instance().GetECS();
 
     // まず全アイコンを隠し、所持品だけ該当スロットの位置へ動かして表示する
-    for (Item item : { Item::Thermometer, Item::Incense, Item::Amulet, Item::FlashLight }) {
+    for (Item item : { Item::Incense, Item::Amulet, Item::FlashLight }) {
         if (auto* sprite = ecs.TryGetComponent<SpriteData>(GetItemIconEntity(item))) sprite->m_color.w = 0.0f;
     }
 
-    for (int i = 0; i < 4; ++i) {
+    for (int i = 0; i < kItemSlotCount; ++i) {
         const bool filled = i < (int)m_itemOrder.size();
-        const Item item = filled ? m_itemOrder[i] : Item::Thermometer;
+        const Item item = filled ? m_itemOrder[i] : Item::Incense;
         auto* slotTrans = ecs.TryGetComponent<TransformData>(m_itemSlotEntities[i]);
 
         if (filled) {
@@ -129,7 +127,7 @@ void Player::SyncItemOrder()
         if (HasItem(item) && std::find(kept.begin(), kept.end(), item) == kept.end()) kept.push_back(item);
     }
     m_itemOrder = std::move(kept);
-    for (Item item : { Item::Thermometer, Item::Incense, Item::Amulet, Item::FlashLight }) {
+    for (Item item : { Item::Incense, Item::Amulet, Item::FlashLight }) {
         if (HasItem(item) && std::find(m_itemOrder.begin(), m_itemOrder.end(), item) == m_itemOrder.end()) {
             m_itemOrder.push_back(item);
         }
@@ -139,7 +137,6 @@ void Player::SyncItemOrder()
 Entity Player::GetItemIconEntity(Item item) const
 {
     switch (item) {
-    case ItemType::Thermometer: return m_thermometerIconEntity;
     case ItemType::Incense:     return m_incenseIconEntity;
     case ItemType::Amulet:      return m_amuletIconEntity;
     case ItemType::FlashLight:  return m_flashLightIconEntity;
@@ -157,7 +154,6 @@ void Player::UpdateHeldItem()
             model->m_isVisible = visible;
         }
     };
-    setVisible(m_heldThermometerEntity, m_hasThermometer && m_currentEquipped == Item::Thermometer);
     setVisible(m_heldIncenseEntity, m_hasIncense && m_currentEquipped == Item::Incense);
     setVisible(m_heldAmuletEntity, m_hasAmulet && m_currentEquipped == Item::Amulet);
 
@@ -176,31 +172,6 @@ void Player::UpdateHeldItem()
         };
         if (auto obj = GetGameObject()->GetScene()->GetGameObject(m_heldFlashLightEntity)) apply(obj.get());
     }
-}
-
-void Player::UpdateThermometerAnimation()
-{
-    if (m_heldThermometerEntity == INVALID_ENTITY) return;
-    if (!(m_hasThermometer && m_currentEquipped == Item::Thermometer)) return;
-
-    auto& ecs = GameManager::Instance().GetECS();
-    auto* pModel = ecs.TryGetComponent<ModelRenderData>(m_heldThermometerEntity);
-    auto* pAnimData = ecs.TryGetComponent<AnimationDataComponent>(m_heldThermometerEntity);
-    if (!pModel || !pModel->m_spModelData || !pModel->m_spModelData->IsLoaded() || !pAnimData) return;
-
-    const auto& anims = pModel->m_spModelData->GetAnimations();
-    if (anims.empty()) return;
-
-    float duration = anims[0].duration;
-    if (duration <= 0.0f) return;
-
-    // m_temperature ranges 20 (normal) down to 5 (inside the ghost's room); map that to
-    // the baked "TempDrop" animation's 0..1 range (0 = full mercury, 1 = nearly empty).
-    float t = std::clamp((20.0f - m_temperature) / (20.0f - 5.0f), 0.0f, 1.0f);
-
-    pAnimData->currentAnim.AnimationIndex = 0;
-    pAnimData->currentAnim.IsPlaying = false;
-    pAnimData->currentAnim.ProgressTime = t * duration;
 }
 
 void Player::CreateFlashLightBeam()
@@ -305,8 +276,7 @@ void Player::UpdateFlashLightBeam(const Math::Vector3& playerPos, float playerYa
 void Player::UpdateHeldItemAttach(const Math::Vector3& playerPos, float playerYaw, bool isMoving)
 {
     Entity visibleEntity = INVALID_ENTITY;
-    if (m_hasThermometer && m_currentEquipped == Item::Thermometer) visibleEntity = m_heldThermometerEntity;
-    else if (m_hasIncense && m_currentEquipped == Item::Incense) visibleEntity = m_heldIncenseEntity;
+    if (m_hasIncense && m_currentEquipped == Item::Incense) visibleEntity = m_heldIncenseEntity;
     else if (m_hasAmulet && m_currentEquipped == Item::Amulet) visibleEntity = m_heldAmuletEntity;
     else if (m_hasFlashLight && m_currentEquipped == Item::FlashLight) visibleEntity = m_heldFlashLightEntity;
     if (visibleEntity == INVALID_ENTITY) return;
@@ -637,6 +607,8 @@ Entity Player::FindNearestStimulus(const Math::Vector3& playerPos, const Math::V
         // 照明/ラジカセ本体(StimulusSource)と、廊下照明などの壁スイッチ(LightSwitch)が対象
         GameObject* obj = nullptr;
         Math::Vector3 srcPos;
+        // 遮蔽判定のレイを発生源の何m手前で止めるか
+        float rayStopMargin = 0.3f;
         if (auto* src = dynamic_cast<StimulusSource*>(scriptData.Instance.get())) {
             if (!src->m_interactable) continue;
             obj = src->GetGameObject();
@@ -646,6 +618,17 @@ Entity Player::FindNearestStimulus(const Math::Vector3& playerPos, const Math::V
             if (!sw->m_interactable) continue;
             obj = sw->GetGameObject();
             srcPos = sw->GetWorldPosition();
+            // 壁スイッチは壁に貼り付いているので、0.3m手前で止めると裏側の壁(厚さ約0.2m)を素通りしてしまう
+            rayStopMargin = 0.05f;
+            // スイッチの正面(ローカル-Z)側にいる時だけ操作できる(壁の裏側からは不可)
+            if (auto* pSwTrans = ecs.TryGetComponent<TransformData>(obj->GetEntityID())) {
+                const auto& m = pSwTrans->m_worldMatrix;
+                Math::Vector3 front(-m._31, -m._32, -m._33);
+                front.y = 0.0f;
+                Math::Vector3 toPlayer = playerPos - srcPos;
+                toPlayer.y = 0.0f;
+                if (front.LengthSquared() > 1e-6f && toPlayer.Dot(front) <= 0.0f) continue;
+            }
         }
         if (!obj) continue;
 
@@ -666,11 +649,11 @@ Entity Player::FindNearestStimulus(const Math::Vector3& playerPos, const Math::V
         Math::Vector3 eyePos = playerPos + Math::Vector3(0.0f, 1.5f, 0.0f);
         Math::Vector3 toSrc3D = srcPos - eyePos;
         float dist3D = toSrc3D.Length();
-        if (dist3D > 0.35f)
+        if (dist3D > rayStopMargin + 0.05f)
         {
             toSrc3D /= dist3D;
             // 発生源のすぐ手前で止める(天井照明は天井面に接しているので、天井自体に当たらないよう余裕を持たせる)
-            RaycastHit hit = CollisionManager::Instance().RaycastAgainstMesh(eyePos, toSrc3D, dist3D - 0.3f, "Stage");
+            RaycastHit hit = CollisionManager::Instance().RaycastAgainstMesh(eyePos, toSrc3D, dist3D - rayStopMargin, "Stage");
             if (hit.hit) continue;
         }
 
@@ -682,8 +665,7 @@ Entity Player::FindNearestStimulus(const Math::Vector3& playerPos, const Math::V
 
 bool Player::IsHoldingVisibleItem() const
 {
-    return (m_hasThermometer && m_currentEquipped == Item::Thermometer)
-        || (m_hasIncense && m_currentEquipped == Item::Incense)
+    return (m_hasIncense && m_currentEquipped == Item::Incense)
         || (m_hasAmulet && m_currentEquipped == Item::Amulet)
         || (m_hasFlashLight && m_currentEquipped == Item::FlashLight);
 }
@@ -733,7 +715,6 @@ void Player::AddItem(ItemType item)
     // (フラグを立てた後にSyncすると、そこで一度追加された上にpush_backでも追加されて重複していた)
     SyncItemOrder();
     switch (item) {
-    case ItemType::Thermometer: m_hasThermometer = true; break;
     case ItemType::Incense:     m_hasIncense = true; break;
     case ItemType::Amulet:      m_hasAmulet = true; break;
     case ItemType::FlashLight:  m_hasFlashLight = true; break;
@@ -752,7 +733,6 @@ void Player::DropEquippedItem(const Math::Vector3& playerPos, const Math::Vector
 
     const char* prefabPath = nullptr;
     switch (item) {
-    case ItemType::Thermometer: prefabPath = "Asset/Data/Prefab/Thermometer.json"; break;
     case ItemType::Incense:     prefabPath = "Asset/Data/Prefab/SmudgeStick.json"; break;
     case ItemType::Amulet:      prefabPath = "Asset/Data/Prefab/Ofuda.json"; break;
     case ItemType::FlashLight:  prefabPath = "Asset/Data/Prefab/FlashLight.json"; break;
@@ -800,7 +780,6 @@ void Player::DropEquippedItem(const Math::Vector3& playerPos, const Math::Vector
     }
 
     switch (item) {
-    case ItemType::Thermometer: m_hasThermometer = false; break;
     case ItemType::Incense:     m_hasIncense = false; break;
     case ItemType::Amulet:      m_hasAmulet = false; break;
     case ItemType::FlashLight:  m_hasFlashLight = false; m_flashLightOn = false; break;
@@ -815,7 +794,6 @@ void Player::DropEquippedItem(const Math::Vector3& playerPos, const Math::Vector
 bool Player::HasItem(ItemType item) const
 {
     switch (item) {
-    case ItemType::Thermometer: return m_hasThermometer;
     case ItemType::Incense:     return m_hasIncense;
     case ItemType::Amulet:      return m_hasAmulet;
     case ItemType::FlashLight:  return m_hasFlashLight;
@@ -836,7 +814,7 @@ void Player::Update(float deltaTime)
 
     // キー1〜4は画面下のスロット番号(拾った順)に対応
     SyncItemOrder();
-    for (int i = 0; i < (int)m_itemOrder.size() && i < 4; ++i) {
+    for (int i = 0; i < (int)m_itemOrder.size() && i < kItemSlotCount; ++i) {
         if (input.IsKeyTrigger('1' + i)) m_currentEquipped = m_itemOrder[i];
     }
 
@@ -851,15 +829,6 @@ void Player::Update(float deltaTime)
         if (auto* g = dynamic_cast<GhostAI*>(scriptData.Instance.get())) {
             ghost = g;
             break;
-        }
-    }
-
-    m_temperature = 20.0f;
-    if (ghost) {
-        if (auto room = ghost->GetTargetRoom()) {
-            if (room->IsInside(cTrans.m_position)) {
-                m_temperature = 5.0f;
-            }
         }
     }
 
@@ -1038,7 +1007,6 @@ void Player::Update(float deltaTime)
     UpdateItemIcons();
     UpdateHeldItem();
     UpdateHeldItemAttach(cTrans.m_position, cTrans.m_rotation.y, isMoving);
-    UpdateThermometerAnimation();
     UpdateFlashLightBeam(cTrans.m_position, cTrans.m_rotation.y);
 
     // 耳の位置(おおよその目線の高さ)をリスナーにして、ゴーストや照明の音を距離・方向で鳴らし分ける
@@ -1267,7 +1235,6 @@ void Player::Serialize(nlohmann::json& out) const
     out["doorLockedSoundVolume"] = m_doorLockedSoundVolume;
     out["smudgeSoundVolume"] = m_smudgeSoundVolume;
     out["smudgeSoundDuration"] = m_smudgeSoundDuration;
-    out["hasThermometer"] = m_hasThermometer;
     out["hasIncense"] = m_hasIncense;
     out["hasAmulet"] = m_hasAmulet;
     out["hasFlashLight"] = m_hasFlashLight;
@@ -1282,7 +1249,7 @@ void Player::Serialize(nlohmann::json& out) const
     out["heldItemOffset"] = { m_heldItemOffset.x, m_heldItemOffset.y, m_heldItemOffset.z };
     out["heldItemOffsetCalibrated"] = m_heldItemOffsetCalibrated;
     out["heldItemExtraRotationDeg"] = { m_heldItemExtraRotationDeg.x, m_heldItemExtraRotationDeg.y, m_heldItemExtraRotationDeg.z };
-    for (int i = 1; i <= 4; ++i)
+    for (int i = (int)Item::Incense; i <= (int)Item::FlashLight; ++i)
     {
         const HeldPose& p = m_heldPose[i];
         out["heldPose" + std::to_string(i)] = { p.pos.x, p.pos.y, p.pos.z, p.rotDeg.x, p.rotDeg.y, p.rotDeg.z };
@@ -1307,7 +1274,6 @@ void Player::Deserialize(const nlohmann::json& in)
     if (in.contains("doorLockedSoundVolume"))   m_doorLockedSoundVolume = in["doorLockedSoundVolume"];
     if (in.contains("smudgeSoundVolume"))       m_smudgeSoundVolume = in["smudgeSoundVolume"];
     if (in.contains("smudgeSoundDuration"))     m_smudgeSoundDuration = in["smudgeSoundDuration"];
-    if (in.contains("hasThermometer"))      m_hasThermometer = in["hasThermometer"];
     if (in.contains("hasIncense"))          m_hasIncense = in["hasIncense"];
     if (in.contains("hasAmulet"))           m_hasAmulet = in["hasAmulet"];
     if (in.contains("hasFlashLight"))       m_hasFlashLight = in["hasFlashLight"];
@@ -1316,7 +1282,7 @@ void Player::Deserialize(const nlohmann::json& in)
         for (const auto& v : in["itemOrder"]) {
             if (!v.is_number_integer()) continue;
             int n = v.get<int>();
-            if (n >= static_cast<int>(Item::Thermometer) && n <= static_cast<int>(Item::FlashLight)) {
+            if (n >= static_cast<int>(Item::Incense) && n <= static_cast<int>(Item::FlashLight)) {
                 m_itemOrder.push_back(static_cast<Item>(n));
             }
         }
@@ -1334,7 +1300,7 @@ void Player::Deserialize(const nlohmann::json& in)
         m_heldItemExtraRotationDeg.y = in["heldItemExtraRotationDeg"][1];
         m_heldItemExtraRotationDeg.z = in["heldItemExtraRotationDeg"][2];
     }
-    for (int i = 1; i <= 4; ++i)
+    for (int i = (int)Item::Incense; i <= (int)Item::FlashLight; ++i)
     {
         std::string key = "heldPose" + std::to_string(i);
         if (in.contains(key) && in[key].size() >= 6)
@@ -1358,8 +1324,8 @@ void Player::ImGuiUpdate()
     ImGui::Separator();
     ImGui::Text("[Held Item] Attach_RightHand bone-local pose per item (tracks the hand every frame)");
     {
-        static const char* kNames[5] = { "", "Thermometer", "Incense", "Amulet", "FlashLight" };
-        for (int i = 1; i <= 4; ++i)
+        static const char* kNames[5] = { "", "", "Incense", "Amulet", "FlashLight" };
+        for (int i = (int)Item::Incense; i <= (int)Item::FlashLight; ++i)
         {
             ImGui::PushID(i);
             ImGui::Text("%s", kNames[i]);
@@ -1405,14 +1371,11 @@ void Player::ImGuiUpdate()
     ImGui::DragFloat("Smudge Sound Duration (s)", &m_smudgeSoundDuration, 0.1f, 1.0f, 40.0f);
 
     ImGui::Separator();
-    ImGui::Text("[Debug] Temperature: %.1f C", m_temperature);
-    const char* itemName = "Thermometer";
-    if (m_currentEquipped == Item::Incense) itemName = "Incense";
-    else if (m_currentEquipped == Item::Amulet) itemName = "Amulet";
+    const char* itemName = "Incense";
+    if (m_currentEquipped == Item::Amulet) itemName = "Amulet";
     else if (m_currentEquipped == Item::FlashLight) itemName = "FlashLight";
     ImGui::Text("[Debug] Equipped: %s", itemName);
-    ImGui::Text("[Debug] Has: Thermo=%s Incense=%s Amulet=%s FlashLight=%s",
-        m_hasThermometer ? "true" : "false",
+    ImGui::Text("[Debug] Has: Incense=%s Amulet=%s FlashLight=%s",
         m_hasIncense ? "true" : "false",
         m_hasAmulet ? "true" : "false",
         m_hasFlashLight ? "true" : "false");

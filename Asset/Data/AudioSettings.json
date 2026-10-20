@@ -1,0 +1,9 @@
+{
+    "bgm": 1.0,
+    "bgmTracks": {
+        "Asset/Sound/BGM/shoujorei.wav": 0.03500000014901161
+    },
+    "master": 1.0,
+    "muted": false,
+    "se": 1.0
+}

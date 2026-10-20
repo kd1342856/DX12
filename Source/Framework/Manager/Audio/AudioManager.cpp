@@ -114,9 +114,9 @@ void AudioManager::PlayBGM(const std::string& filepath, float vol) {
         m_bgmInstance = effect->CreateInstance();
         if (m_bgmInstance) {
             m_bgmBaseVolume = vol;
-            m_bgmInstance->SetVolume(vol * m_bgmBusVolume);
-            m_bgmInstance->Play(true); // Loop = true
             m_currentBGM = filepath;
+            ApplyVolumes();
+            m_bgmInstance->Play(true); // Loop = true
             Logger::Instance().AddLog(Logger::LogLevel::Info, "AudioManager: Playing BGM: " + filepath);
         }
     }
@@ -165,7 +165,35 @@ void AudioManager::ApplyVolumes() {
     // Master/mute go through the engine's mastering voice so they also cover SE instances owned by
     // scripts (footsteps etc.); the BGM bus only touches the BGM instance.
     if (m_audioEngine) m_audioEngine->SetMasterVolume(m_muted ? 0.0f : m_masterVolume);
-    if (m_bgmInstance) m_bgmInstance->SetVolume(m_bgmBaseVolume * m_bgmBusVolume);
+    if (m_bgmInstance) m_bgmInstance->SetVolume(m_bgmBaseVolume * GetBGMTrackVolume(m_currentBGM) * m_bgmBusVolume);
+}
+
+void AudioManager::RegisterBGMTrack(const std::string& filepath, const std::string& label, float defaultVolume) {
+    m_bgmTrackLabels[filepath] = label;
+    // keep a volume loaded from the settings file; only fall back to the caller's default
+    m_bgmTrackVolumes.emplace(filepath, defaultVolume);
+}
+
+float AudioManager::GetBGMTrackVolume(const std::string& filepath) const {
+    auto it = m_bgmTrackVolumes.find(filepath);
+    return it != m_bgmTrackVolumes.end() ? it->second : 1.0f;
+}
+
+void AudioManager::SetBGMTrackVolume(const std::string& filepath, float vol) {
+    m_bgmTrackVolumes[filepath] = vol;
+    if (filepath == m_currentBGM) ApplyVolumes();
+}
+
+const std::string& AudioManager::GetBGMTrackLabel(const std::string& filepath) const {
+    static const std::string kEmpty;
+    auto it = m_bgmTrackLabels.find(filepath);
+    return it != m_bgmTrackLabels.end() ? it->second : kEmpty;
+}
+
+std::vector<std::string> AudioManager::GetBGMTrackPaths() const {
+    std::vector<std::string> paths;
+    for (auto& [path, vol] : m_bgmTrackVolumes) paths.push_back(path);
+    return paths;
 }
 
 void AudioManager::LoadSettings() {
@@ -178,6 +206,9 @@ void AudioManager::LoadSettings() {
             if (j.contains("bgm"))    m_bgmBusVolume = j["bgm"];
             if (j.contains("se"))     m_seBusVolume = j["se"];
             if (j.contains("muted"))  m_muted = j["muted"];
+            if (j.contains("bgmTracks") && j["bgmTracks"].is_object()) {
+                for (auto& [path, vol] : j["bgmTracks"].items()) m_bgmTrackVolumes[path] = vol.get<float>();
+            }
         }
         catch (...) {
             Logger::Instance().AddLog(Logger::LogLevel::Warning, "AudioManager: Failed to parse %s", kSettingsPath);
@@ -192,6 +223,8 @@ void AudioManager::SaveSettings() const {
     j["bgm"] = m_bgmBusVolume;
     j["se"] = m_seBusVolume;
     j["muted"] = m_muted;
+    j["bgmTracks"] = nlohmann::json::object();
+    for (auto& [path, vol] : m_bgmTrackVolumes) j["bgmTracks"][path] = vol;
     std::ofstream o(kSettingsPath);
     if (o.is_open()) {
         o << std::setw(4) << j << std::endl;

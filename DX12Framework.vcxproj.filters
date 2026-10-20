@@ -22,6 +22,9 @@
     <Filter Include="Source\Framework\Manager\Particle">
       <UniqueIdentifier>{8d3e5074-ab2c-4f90-9c63-4e7fa0913c25}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Asset\Shader\MistShader">
+      <UniqueIdentifier>{8BAB267D-9717-463C-9432-93A70E7D9277}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Asset\Shader\FogShader">
       <UniqueIdentifier>{2D7871BD-84E9-4D8A-B028-27A8A8004861}</UniqueIdentifier>
     </Filter>
@@ -249,6 +252,9 @@
     </Filter>
     <Filter Include="Source\Graphics\Shader\BloomShader">
       <UniqueIdentifier>{90fd0a05-149e-4374-8171-5bf1de70da93}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Graphics\Shader\MistShader">
+      <UniqueIdentifier>{29AB372B-1A56-4ECD-AEAA-B61B99989717}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Graphics\Shader\FogShader">
       <UniqueIdentifier>{5492FD81-7869-43A4-8649-20C0428F8B74}</UniqueIdentifier>
@@ -521,6 +527,9 @@
     </ClCompile>
     <ClCompile Include="Source\Framework\Manager\Particle\ParticleManager.cpp">
       <Filter>Source\Framework\Manager\Particle</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Graphics\Shader\MistShader\MistShader.cpp">
+      <Filter>Source\Graphics\Shader\MistShader</Filter>
     </ClCompile>
     <ClCompile Include="Source\Graphics\Shader\FogShader\FogShader.cpp">
       <Filter>Source\Graphics\Shader\FogShader</Filter>
@@ -953,6 +962,9 @@
     <ClInclude Include="Source\Framework\Manager\Particle\ParticleManager.h">
       <Filter>Source\Framework\Manager\Particle</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Graphics\Shader\MistShader\MistShader.h">
+      <Filter>Source\Graphics\Shader\MistShader</Filter>
+    </ClInclude>
     <ClInclude Include="Source\Graphics\Shader\FogShader\FogShader.h">
       <Filter>Source\Graphics\Shader\FogShader</Filter>
     </ClInclude>
@@ -1228,6 +1240,12 @@
     </None>
     <None Include="Asset\Shader\ParticleShader\ParticleShader_VS.hlsl">
       <Filter>Asset\Shader\ParticleShader</Filter>
+    </None>
+    <None Include="Asset\Shader\MistShader\MistShader_PS.hlsl">
+      <Filter>Asset\Shader\MistShader</Filter>
+    </None>
+    <None Include="Asset\Shader\MistShader\MistShader_VS.hlsl">
+      <Filter>Asset\Shader\MistShader</Filter>
     </None>
     <None Include="Asset\Shader\FogShader\FogShader_PS.hlsl">
       <Filter>Asset\Shader\FogShader</Filter>

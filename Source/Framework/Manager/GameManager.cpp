@@ -12,6 +12,7 @@
 #include "../../Graphics/Shader/SSROpaqueShader/SSROpaqueShader.h"
 #include "../../Graphics/Shader/SkyShader/SkyShader.h"
 #include "../../Graphics/Shader/FogShader/FogShader.h"
+#include "../../Graphics/Shader/MistShader/MistShader.h"
 #include "../../Graphics/Shader/ParticleShader/ParticleShader.h"
 #include "Scene/Scene.h"
 #include "../Object/GameObject.h"
@@ -145,6 +146,7 @@ void GameManager::Init()
     ShaderLibrary::Instance().Register<SSROpaqueShader>(pDevice);
     ShaderLibrary::Instance().Register<SkyShader>(pDevice);
     ShaderLibrary::Instance().Register<FogShader>(pDevice);
+    ShaderLibrary::Instance().Register<MistShader>(pDevice);
     ShaderLibrary::Instance().Register<ParticleShader>(pDevice);
 }
 

@@ -6,6 +6,10 @@
 class TitleScene : public SceneBase
 {
 public:
+    // Title BGM. Its volume is set per track in the Sound Manager (registered in Application at startup)
+    static constexpr const char* kBGMPath = "Asset/Sound/BGM/shoujorei.wav";
+    static constexpr float kBGMDefaultVolume = 0.6f;
+
     void Init() override;
     void Update(float deltaTime) override;
     void Unload() override;

@@ -71,7 +71,8 @@ void TitleScene::Init()
 
     editorScene->Init();
 
-    AudioManager::Instance().PlayBGM("Asset/Sound/BGM/shoujorei.wav", 0.6f);
+    // 音量はSound Managerの「曲ごとの音量」で調整する
+    AudioManager::Instance().PlayBGM(kBGMPath);
 }
 
 void TitleScene::Update(float deltaTime)
@@ -111,7 +112,7 @@ void TitleScene::Update(float deltaTime)
     }
 
     if (Input::Instance().IsKeyTrigger(DirectX::Keyboard::Keys::C)) {
-        SceneManager::Instance().ChangeScene(std::make_unique<ResultScene>(true, 125.4f, "Onryo", 5000), 1.0f);
+        SceneManager::Instance().ChangeScene(std::make_unique<ResultScene>(true, 245.4f, 1 /*Kageonna*/, 2), 1.0f);
     }
     if (Input::Instance().IsKeyTrigger(DirectX::Keyboard::Keys::G)) {
         SceneManager::Instance().ChangeScene(std::make_unique<ResultScene>(false), 1.0f);

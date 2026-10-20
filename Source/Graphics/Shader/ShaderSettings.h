@@ -90,7 +90,7 @@ struct PostProcessSettings
     float VignetteSmoothness = 0.6f;
 
     // Film Grain
-    bool  EnableFilmGrain = true;
+    bool  EnableFilmGrain = false;
     float FilmGrainIntensity = 0.035f;
 
     // Chromatic Aberration

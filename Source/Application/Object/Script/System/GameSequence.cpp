@@ -21,6 +21,7 @@ void GameSequence::Start()
 {
     m_currentState = State::Playing;
     m_playTimer = 0.0f;
+    m_huntsSurvived = 0;
     m_clearTimer = 0.0f;
     m_resultSceneRequested = false;
     m_rooms.clear();
@@ -98,9 +99,17 @@ void GameSequence::UpdateResultSceneTransition(float deltaTime)
 
     m_resultSceneRequested = true;
     bool isClear = (m_currentState == State::GameClear);
-    // TODO: wire up a real ghost name/reward once that data exists on GhostAI; placeholders for now.
+
+    // 退治したゴーストの種類(リザルトで正体として表示する)
+    int ghostType = -1;
+    for (auto& scriptData : GameManager::Instance().GetECS().GetComponentArray<NativeScriptData>()) {
+        if (auto* ghost = dynamic_cast<GhostAI*>(scriptData.Instance.get())) {
+            ghostType = static_cast<int>(ghost->GetGhostType());
+            break;
+        }
+    }
     SceneManager::Instance().ChangeScene(
-        std::make_unique<ResultScene>(isClear, m_playTimer, "Onryo", isClear ? 1000 : 0),
+        std::make_unique<ResultScene>(isClear, m_playTimer, ghostType, m_huntsSurvived),
         1.0f);
 }
 
