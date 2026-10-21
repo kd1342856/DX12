@@ -80,7 +80,8 @@ void Application::Execute()
 
 	// SceneManager
 	SceneManager::Instance().Init();
-	SceneManager::Instance().SetCurrentSceneWithoutFade(std::make_unique<GameScene>());
+	// ゲームはタイトル画面から始める(スタートでGameSceneへ)
+	SceneManager::Instance().SetCurrentSceneWithoutFade(std::make_unique<TitleScene>());
 	if (SceneManager::Instance().GetCurrentScene())
 	{
 		SceneManager::Instance().GetCurrentScene()->Init();
