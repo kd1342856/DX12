@@ -280,6 +280,12 @@ void Editor::DrawInspector() {
                     strncpy_s(glowMatBuf, l.m_glowMaterial.c_str(), _TRUNCATE);
                     if (ImGui::InputText("Glow Material", glowMatBuf, sizeof(glowMatBuf))) l.m_glowMaterial = glowMatBuf;
                     if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"空なら全メッシュ。指定時はこの名前のマテリアルだけ光らせる");
+                    char reflMatBuf[64] = {};
+                    strncpy_s(reflMatBuf, l.m_glowReflectMaterial.c_str(), _TRUNCATE);
+                    if (ImGui::InputText("Glow Reflect Material", reflMatBuf, sizeof(reflMatBuf))) l.m_glowReflectMaterial = reflMatBuf;
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"光源の光を受けて明るく見える面(かさの内側など)。このマテリアルの裏面だけを光らせる");
+                    ImGui::DragFloat("Glow Reflect Scale", &l.m_glowReflectScale, 0.01f, 0.0f, 2.0f);
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"反射で光る面の明るさ(Model Glowに対する倍率)");
                     ImGui::PopID();
                 }
             }

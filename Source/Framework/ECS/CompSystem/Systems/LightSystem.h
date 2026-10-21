@@ -118,6 +118,8 @@ public:
             {
                 pModel->m_glowColor = (light.m_enabled && !light.m_flickerOff) ? light.m_color * light.m_modelGlow : Math::Vector3::Zero;
                 pModel->m_glowMaterial = light.m_glowMaterial;
+                pModel->m_glowReflectMaterial = light.m_glowReflectMaterial;
+                pModel->m_glowReflectScale = light.m_glowReflectScale;
             }
 
             if (!light.m_enabled || light.m_flickerOff) continue;

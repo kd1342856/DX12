@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Asset">
@@ -351,6 +351,9 @@
     <ClCompile Include="Source\Application\Scene\GameScene\GameScene.cpp">
       <Filter>Source\Application\Scene\GameScene</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Application\Scene\GameScene\PropLayout.cpp">
+      <Filter>Source\Application\Scene\GameScene</Filter>
+    </ClCompile>
     <ClCompile Include="Source\Application\Scene\ResultScene\ResultScene.cpp">
       <Filter>Source\Application\Scene\ResultScene</Filter>
     </ClCompile>
@@ -701,6 +704,9 @@
     <ClInclude Include="Source\Application\Object\Script\System\DoorLock.h">
       <Filter>Source\Application\Object\Script\System</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Application\Object\Script\System\HidingSpot.h">
+      <Filter>Source\Application\Object\Script\System</Filter>
+    </ClInclude>
     <ClInclude Include="Source\Application\Object\Script\System\LightSwitch.h">
       <Filter>Source\Application\Object\Script\System</Filter>
     </ClInclude>
@@ -708,6 +714,9 @@
       <Filter>Source\Application</Filter>
     </ClInclude>
     <ClInclude Include="Source\Application\Scene\GameScene\GameScene.h">
+      <Filter>Source\Application\Scene\GameScene</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Application\Scene\GameScene\PropLayout.h">
       <Filter>Source\Application\Scene\GameScene</Filter>
     </ClInclude>
     <ClInclude Include="Source\Application\Scene\ResultScene\ResultScene.h">
@@ -855,6 +864,9 @@
       <Filter>Source\Framework\ImGuiEditor\ShaderEditor</Filter>
     </ClInclude>
     <ClInclude Include="Source\Framework\Manager\Animation\AnimationManager.h">
+      <Filter>Source\Framework\Manager\Animation</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\Manager\Animation\OpenableAnim.h">
       <Filter>Source\Framework\Manager\Animation</Filter>
     </ClInclude>
     <ClInclude Include="Source\Framework\Manager\Audio\AudioManager.h">

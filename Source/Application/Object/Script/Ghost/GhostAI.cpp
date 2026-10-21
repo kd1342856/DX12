@@ -2,6 +2,8 @@
 #include "GhostAI.h"
 #include "../System/StimulusSource.h"
 #include "../System/DoorLock.h"
+#include "../System/HidingSpot.h"
+#include "../../../../Framework/Manager/Animation/OpenableAnim.h"
 #include "../../../../Framework/Manager/Audio/AudioManager.h"
 #include "../../../../Framework/Manager/Animation/AnimationManager.h"
 #include "../../../../Framework/Object/GameObject.h"
@@ -19,6 +21,11 @@
 #include <unordered_set>
 
 REGISTER_COMPONENT(GhostAI);
+
+namespace {
+    const char* kBreathPath = "Asset/Sound/SE/ghost_breath.wav";
+    const char* kHuntLoopPath     = "Asset/Sound/SE/hunt_loop.wav";
+}
 
 // Log Windowはログ本文をSJISとして変換して表示するため、UTF-8の日本語は文字化けする - ローマ字で出す
 static const char* GetGhostTypeName(GhostAI::GhostType type)
@@ -806,12 +813,9 @@ void GhostAI::TryOpenNearbyDoor(const Math::Vector3& ghostPos, float deltaTime)
 
         for (int i = 0; i < (int)anims.size(); ++i)
         {
+            // 部屋の出入口(ドア・襖)だけ。戸棚や押入れは開けない
             const std::string& animName = anims[i].name;
-            if (animName.find("Door") == std::string::npos &&
-                animName.find("door") == std::string::npos)
-            {
-                continue;
-            }
+            if (!OpenableAnim::IsPassage(animName)) continue;
 
             Math::Vector3 doorPos = entityPos;
             if (!anims[i].channels.empty())
@@ -849,8 +853,11 @@ void GhostAI::TryOpenNearbyDoor(const Math::Vector3& ghostPos, float deltaTime)
     if (bestEntity == INVALID_ENTITY || bestAnimIdx < 0) return;
 
     animMgr.PlayMultiAnimation(bestEntity, bestAnimIdx, false, 1.0f);
-    // 誰もいないのにドアが軋む音がする -> 近くにいればプレイヤーにも聞こえる
-    AudioManager::Instance().PlaySEAt("Asset/Sound/SE/door_open.wav", ghostPos, m_doorSoundVolume, 15.0f);
+    // 誰もいないのにドアが軋む(襖が滑る)音がする -> 近くにいればプレイヤーにも聞こえる
+    {
+        const auto& anims = ecs.GetComponent<ModelRenderData>(bestEntity).m_spModelData->GetAnimations();
+        AudioManager::Instance().PlaySEAt(OpenableAnim::OpenSound(anims[bestAnimIdx].name), ghostPos, m_doorSoundVolume, 15.0f);
+    }
 
     // While the door swings open, its collider is briefly non-static and can physically shove the
     // Ghost's own capsule collider back away from the doorway (both are dynamic colliders, so the
@@ -880,6 +887,8 @@ void GhostAI::UpdateHunt(float deltaTime, TransformData& cTrans)
     m_isSeeingPlayer = CanSeePlayer(cTrans, seenPos);
     // 点灯したフラッシュライトを手に持っている間は、壁越し・視野外でも居場所が分かる
     m_isSensingLight = IsPlayerHoldingLitFlashLight();
+    // 押入れに隠れている間は見えない・居場所も分からない(隠れるところを見ていた場合を除く)
+    UpdateHidingPlayer(deltaTime);
     // 視認加速: 全身が見えている間は溜まり、見失うとm_losDecayTime秒かけて戻る
     m_isSeeingFullBody = m_isSeeingPlayer && CanSeePlayerFullBody(cTrans);
     if (m_isSeeingFullBody) {
@@ -937,11 +946,69 @@ void GhostAI::UpdateHunt(float deltaTime, TransformData& cTrans)
         if (m_huntSearchRoom) target = m_huntSearchRoom->GetCenter();
     }
 
+    bool holdStill = false;
+    if (m_foundHideSpot >= 0) {
+        // 隠れるところを見た: 押入れの前まで行って襖を開ける -> 少ししてゲームオーバー
+        const auto& spots = HidingSpot::GetSpots();
+        if (m_foundHideSpot >= (int)spots.size()) {
+            m_foundHideSpot = -1;
+        } else {
+            const auto& spot = spots[m_foundHideSpot];
+            target = spot.frontPos;
+            if (m_revealTimer < 0.0f) {
+                Math::Vector3 toFront = spot.frontPos - cTrans.m_position;
+                float dy = fabsf(toFront.y);
+                toFront.y = 0.0f;
+                if (toFront.Length() <= 0.7f && dy <= m_floorHeightThreshold) {
+                    HidingSpot::OpenFusuma(spot, m_doorSoundVolume);
+                    m_revealTimer = 0.0f;
+                    Logger::Instance().AddLog(Logger::LogLevel::Info, "[GhostAI] Opened the closet - player found.");
+                }
+            }
+            if (m_revealTimer >= 0.0f) {
+                holdStill = true;
+                Math::Vector3 toSpot = (spot.boundsMin + spot.boundsMax) * 0.5f - cTrans.m_position;
+                toSpot.y = 0.0f;
+                if (toSpot.LengthSquared() > 0.0001f) {
+                    toSpot.Normalize();
+                    FacePosition(cTrans, toSpot, deltaTime);
+                }
+                m_revealTimer += deltaTime;
+                if (m_revealTimer >= m_hideRevealDelay) {
+                    if (auto gs = GameSequence::GetInstance()) gs->NotifyGameOver();
+                }
+            }
+        }
+    } else if (m_hidePatrolTimer > 0.0f) {
+        // 見られずに隠れた: 押入れの前を中心にしばらくうろつく。Playerが出てきて見つかったら普通に追う
+        m_hidePatrolTimer -= deltaTime;
+        if (m_isSeeingPlayer) {
+            m_hidePatrolTimer = 0.0f;
+        } else {
+            m_hidePatrolRepickTimer -= deltaTime;
+            Math::Vector3 toTarget = m_hidePatrolTarget - cTrans.m_position;
+            toTarget.y = 0.0f;
+            if (toTarget.Length() <= 0.5f || m_hidePatrolRepickTimer <= 0.0f) {
+                float angle = Random::Instance().Range(0.0f, DirectX::XM_2PI);
+                float radius = Random::Instance().Range(0.5f, m_hidePatrolRadius);
+                m_hidePatrolTarget = ClampToHouseBounds(m_hidePatrolCenter + Math::Vector3(cosf(angle) * radius, 0.0f, sinf(angle) * radius));
+                m_hidePatrolTarget.y = m_hidePatrolCenter.y;
+                m_hidePatrolRepickTimer = m_hidePatrolRepick;
+            }
+            target = m_hidePatrolTarget;
+            if (m_hidePatrolTimer <= 0.0f) {
+                // 見つからなかった: 別の部屋の捜索に戻る
+                m_hasLastKnownPlayerPos = false;
+                PickHuntSearchRoom(cTrans.m_position);
+            }
+        }
+    }
+
     EnsureHouseBounds();
     TryOpenNearbyDoor(cTrans.m_position, deltaTime);
 
     // NavMeshが構築済みならそちらの経路で移動する(壁を突き抜けず確実にドアや通路を経由できる)
-    MoveTowardTarget(deltaTime, cTrans, target, GetHuntSpeed());
+    if (!holdStill) MoveTowardTarget(deltaTime, cTrans, target, GetHuntSpeed());
 
     // Hunt previously had no stuck-detection at all (unlike UpdateHouseWander), so once physically
     // caught on something the ghost would just stand there fighting collision for the rest of the
@@ -962,6 +1029,60 @@ void GhostAI::UpdateHunt(float deltaTime, TransformData& cTrans)
     }
     if (m_huntStuckTimer >= m_quickStuckPassThroughDelay && m_doorPassThroughTimer <= 0.0f) {
         m_doorPassThroughTimer = m_doorPassThroughDuration;
+    }
+}
+
+void GhostAI::ResetHidingState()
+{
+    m_timeSinceSawPlayer = 999.0f;
+    m_lastHideSpot = -1;
+    m_foundHideSpot = -1;
+    m_revealTimer = -1.0f;
+    m_hidePatrolTimer = 0.0f;
+}
+
+void GhostAI::UpdateHidingPlayer(float deltaTime)
+{
+    auto& ecs = GameManager::Instance().GetECS();
+    int hideSpot = -1;
+    if (auto* pPlayerTrans = ecs.TryGetComponent<TransformData>(m_playerEntity)) {
+        hideSpot = HidingSpot::FindHiding(pPlayerTrans->m_position);
+    }
+
+    if (m_isSeeingPlayer) m_timeSinceSawPlayer = 0.0f;
+    else                  m_timeSinceSawPlayer += deltaTime;
+
+    // 今隠れた
+    if (hideSpot >= 0 && m_lastHideSpot < 0 && m_foundHideSpot < 0) {
+        const auto& spot = HidingSpot::GetSpots()[hideSpot];
+        if (m_timeSinceSawPlayer <= m_hideSpottedGrace) {
+            m_foundHideSpot = hideSpot;
+            m_revealTimer = -1.0f;
+            m_hidePatrolTimer = 0.0f;
+            Logger::Instance().AddLog(Logger::LogLevel::Info, "[GhostAI] Saw the player hide in a closet.");
+        } else if (m_isTrackingPlayer || m_isSensingLight || m_hasLastKnownPlayerPos) {
+            // 居場所の見当はついていた -> 押入れの前を中心に巡回(まず押入れの前まで行く)
+            m_hidePatrolCenter = spot.frontPos;
+            m_hidePatrolTarget = spot.frontPos;
+            m_hidePatrolTimer = m_hidePatrolDuration;
+            m_hidePatrolRepickTimer = 8.0f;
+            Logger::Instance().AddLog(Logger::LogLevel::Info, "[GhostAI] Player hid unseen - patrolling around the closet.");
+        }
+    }
+    // 襖を開ける前に自分から出てきた -> そのまま追いかける
+    if (hideSpot < 0 && m_foundHideSpot >= 0 && m_revealTimer < 0.0f) {
+        m_foundHideSpot = -1;
+        m_isTrackingPlayer = true;
+        m_trackGiveUpTimer = 0.0f;
+    }
+    m_lastHideSpot = hideSpot;
+
+    if (hideSpot >= 0) {
+        m_isSeeingPlayer = false;
+        m_isSensingLight = false;
+        m_isTrackingPlayer = false;
+        m_trackGiveUpTimer = 0.0f;
+        m_hasLastKnownPlayerPos = false;
     }
 }
 
@@ -1386,6 +1507,9 @@ void GhostAI::Update(float deltaTime)
     auto& ecs = GameManager::Instance().GetECS();
     auto& cTrans = ecs.GetComponent<TransformData>(GetGameObject()->GetEntityID());
 
+    // 除霊・スタンの早期returnより前に呼ぶ(ハント音をフェードアウトさせるため)
+    UpdateSounds(deltaTime, cTrans.m_position);
+
     if (m_isExorcised) {
         UpdateExorciseEffect(deltaTime, cTrans);
         return;
@@ -1420,6 +1544,7 @@ void GhostAI::Update(float deltaTime)
             m_isTrackingPlayer = false;
             m_trackGiveUpTimer = 0.0f;
             m_losTimer = 0.0f;
+            ResetHidingState();
             if (m_playerEntity == INVALID_ENTITY) m_playerEntity = FindPlayerEntity();
             if (auto* pPlayerTrans = ecs.TryGetComponent<TransformData>(m_playerEntity)) {
                 m_lastKnownPlayerPos = pPlayerTrans->m_position;
@@ -1461,7 +1586,7 @@ void GhostAI::Update(float deltaTime)
 
         case GhostAI::State::Hunt:
             m_huntTimer -= deltaTime;
-            if (m_huntTimer <= 0.0f) {
+            if (m_huntTimer <= 0.0f && m_foundHideSpot < 0) {
                 // ハントが時間切れで終わった = プレイヤーが生き延びた(リザルトの表示用に数える)
                 if (auto gs = GameSequence::GetInstance()) gs->NotifyHuntSurvived();
                 // ハント終了: テレポートせず、ゴーストルームまでNavMesh経由で徒歩で帰る
@@ -1474,6 +1599,7 @@ void GhostAI::Update(float deltaTime)
                 m_losTimer = 0.0f;
                 m_isSeeingFullBody = false;
                 m_isInLight = false;
+                ResetHidingState();
                 ReturnToGhostRoom(cTrans.m_position);
             } else {
                 UpdateHunt(deltaTime, cTrans);
@@ -1555,6 +1681,81 @@ void GhostAI::PostUpdate()
 {
 }
 
+void GhostAI::UpdateSounds(float deltaTime, const Math::Vector3& ghostPos)
+{
+    auto& audio = AudioManager::Instance();
+    const bool hunting = (m_currentState == State::Hunt) && !m_isExorcised;
+    const Math::Vector3 headPos = ghostPos + Math::Vector3(0, m_eyeHeight, 0);
+
+    // --- 吐息(ghost_breath.wav) ---
+    // 位置を毎フレーム追従させるためインスタンスで鳴らす。
+    // 通常時: 時々1回だけ鳴らす(長い音なので、鳴り終わってから次までの間隔を数える)
+    // ハント中: 同じ音をループで鳴らし続ける(ハント開始・終了はループ音と一緒にフェード)
+    const bool canBreathe = !m_isExorcised && m_currentState != State::Stun && m_currentState != State::Dead;
+    // Playerと同じ階か(リスナーはPlayerの目の高さなので、足元の高さに直して比べる)
+    {
+        float listenerFeetY = audio.GetListenerPos().y - 1.6f;
+        bool sameFloor = fabsf(listenerFeetY - ghostPos.y) <= m_floorHeightThreshold;
+        float floorTarget = sameFloor ? 1.0f : m_breathOtherFloorRatio;
+        float step = deltaTime * 3.0f;
+        m_breathFloorFade += std::clamp(floorTarget - m_breathFloorFade, -step, step);
+    }
+    if (!m_breathSound) m_breathSound = audio.CreateSEInstance(kBreathPath);
+    if (!m_huntBreathSound) m_huntBreathSound = audio.CreateSEInstance(kBreathPath);
+    if (m_breathSound) {
+        bool playing = m_breathSound->GetState() == DirectX::SoundState::PLAYING;
+        if (!canBreathe || hunting) {
+            if (playing) m_breathSound->Stop();
+        } else {
+            m_breathTimer -= deltaTime;
+            if (m_breathTimer <= 0.0f && !playing) {
+                m_breathSound->Play(false);
+                playing = true;
+                m_breathTimer = audio.GetSoundDuration(kBreathPath) + Random::Instance().Range(m_breathIntervalMin, m_breathIntervalMax);
+            }
+            if (playing) {
+                float atten, pan;
+                audio.ComputeSpatial(headPos, m_breathRange, atten, pan);
+                m_breathSound->SetVolume(m_breathVolume * atten * m_breathFloorFade * audio.GetSEVolume());
+                m_breathSound->SetPan(pan);
+            }
+        }
+    }
+
+    // --- ハント中のループ(2D。ゴーストが近いほど大きい) ---
+    float fadeStep = (m_huntLoopFadeTime > 0.0f) ? deltaTime / m_huntLoopFadeTime : 1.0f;
+    m_huntLoopFade = hunting ? (std::min)(1.0f, m_huntLoopFade + fadeStep) : (std::max)(0.0f, m_huntLoopFade - fadeStep);
+    if (m_huntLoopFade > 0.0f) {
+        if (!m_huntLoopSound) m_huntLoopSound = audio.CreateSEInstance(kHuntLoopPath);
+        if (m_huntLoopSound) {
+            float atten, pan;
+            audio.ComputeSpatial(headPos, m_huntLoopNearRange, atten, pan);
+            float ratio = m_huntLoopMinRatio + (1.0f - m_huntLoopMinRatio) * atten;
+            m_huntLoopSound->SetVolume(m_huntLoopVolume * ratio * m_huntLoopFade * audio.GetSEVolume());
+            if (m_huntLoopSound->GetState() != DirectX::SoundState::PLAYING) m_huntLoopSound->Play(true);
+        }
+        if (m_huntBreathSound) {
+            float atten, pan;
+            audio.ComputeSpatial(headPos, m_huntBreathRange, atten, pan);
+            m_huntBreathSound->SetVolume(m_huntBreathVolume * atten * m_huntLoopFade * m_breathFloorFade * audio.GetSEVolume());
+            m_huntBreathSound->SetPan(pan);
+            if (m_huntBreathSound->GetState() != DirectX::SoundState::PLAYING) m_huntBreathSound->Play(true);
+        }
+    } else {
+        if (m_huntLoopSound && m_huntLoopSound->GetState() == DirectX::SoundState::PLAYING) m_huntLoopSound->Stop();
+        if (m_huntBreathSound && m_huntBreathSound->GetState() == DirectX::SoundState::PLAYING) m_huntBreathSound->Stop();
+    }
+}
+
+void GhostAI::StopAllSounds()
+{
+    for (auto* snd : { &m_huntLoopSound, &m_breathSound, &m_huntBreathSound }) {
+        if (*snd) (*snd)->Stop();
+        snd->reset();
+    }
+    m_huntLoopFade = 0.0f;
+}
+
 void GhostAI::PreDraw()
 {
 }
@@ -1567,6 +1768,8 @@ void GhostAI::OnDestroy()
         ShaderManager::Instance().SetHuntActive(false);
     }
     DoorLock::UnlockAll();
+    // AudioManager::Shutdownより前にインスタンスを破棄しておく
+    StopAllSounds();
     // シーンを抜けた後に古いゴーストタイプが表示され続けないようにする
     Logger::Instance().RemovePinnedLine("Ghost Type");
 }
@@ -1645,6 +1848,22 @@ void GhostAI::Serialize(nlohmann::json& out) const
     out["doorCheckInterval"]  = m_doorCheckInterval;
     out["doorOpenRange"]      = m_doorOpenRange;
     out["doorSoundVolume"]    = m_doorSoundVolume;
+    out["breathVolume"]          = m_breathVolume;
+    out["breathOtherFloorRatio"] = m_breathOtherFloorRatio;
+    out["hideSpottedGrace"]      = m_hideSpottedGrace;
+    out["hideRevealDelay"]       = m_hideRevealDelay;
+    out["hidePatrolDuration"]    = m_hidePatrolDuration;
+    out["hidePatrolRadius"]      = m_hidePatrolRadius;
+    out["hidePatrolRepick"]      = m_hidePatrolRepick;
+    out["breathRange"]           = m_breathRange;
+    out["breathIntervalMin"]     = m_breathIntervalMin;
+    out["breathIntervalMax"]     = m_breathIntervalMax;
+    out["huntBreathVolume"]      = m_huntBreathVolume;
+    out["huntBreathRange"]       = m_huntBreathRange;
+    out["huntLoopVolume"]        = m_huntLoopVolume;
+    out["huntLoopMinRatio"]      = m_huntLoopMinRatio;
+    out["huntLoopNearRange"]     = m_huntLoopNearRange;
+    out["huntLoopFadeTime"]      = m_huntLoopFadeTime;
     out["pathNodeReachThreshold"] = m_pathNodeReachThreshold;
     out["ghostType"]          = static_cast<int>(m_ghostType);
     out["randomizeType"]      = m_randomizeType;
@@ -1714,6 +1933,22 @@ void GhostAI::Deserialize(const nlohmann::json& in)
     if (in.contains("doorCheckInterval"))   m_doorCheckInterval    = in["doorCheckInterval"];
     if (in.contains("doorOpenRange"))       m_doorOpenRange        = in["doorOpenRange"];
     if (in.contains("doorSoundVolume"))     m_doorSoundVolume      = in["doorSoundVolume"];
+    if (in.contains("breathVolume"))          m_breathVolume          = in["breathVolume"];
+    if (in.contains("breathOtherFloorRatio")) m_breathOtherFloorRatio = in["breathOtherFloorRatio"];
+    if (in.contains("hideSpottedGrace"))      m_hideSpottedGrace      = in["hideSpottedGrace"];
+    if (in.contains("hideRevealDelay"))       m_hideRevealDelay       = in["hideRevealDelay"];
+    if (in.contains("hidePatrolDuration"))    m_hidePatrolDuration    = in["hidePatrolDuration"];
+    if (in.contains("hidePatrolRadius"))      m_hidePatrolRadius      = in["hidePatrolRadius"];
+    if (in.contains("hidePatrolRepick"))      m_hidePatrolRepick      = in["hidePatrolRepick"];
+    if (in.contains("breathRange"))           m_breathRange           = in["breathRange"];
+    if (in.contains("breathIntervalMin"))     m_breathIntervalMin     = in["breathIntervalMin"];
+    if (in.contains("breathIntervalMax"))     m_breathIntervalMax     = in["breathIntervalMax"];
+    if (in.contains("huntBreathVolume"))      m_huntBreathVolume      = in["huntBreathVolume"];
+    if (in.contains("huntBreathRange"))       m_huntBreathRange       = in["huntBreathRange"];
+    if (in.contains("huntLoopVolume"))        m_huntLoopVolume        = in["huntLoopVolume"];
+    if (in.contains("huntLoopMinRatio"))      m_huntLoopMinRatio      = in["huntLoopMinRatio"];
+    if (in.contains("huntLoopNearRange"))     m_huntLoopNearRange     = in["huntLoopNearRange"];
+    if (in.contains("huntLoopFadeTime"))      m_huntLoopFadeTime      = in["huntLoopFadeTime"];
     if (in.contains("pathNodeReachThreshold")) m_pathNodeReachThreshold = in["pathNodeReachThreshold"];
     if (in.contains("ghostType"))           m_ghostType = static_cast<GhostType>((int)in["ghostType"]);
     if (in.contains("randomizeType"))       m_randomizeType = in["randomizeType"];
@@ -1820,10 +2055,34 @@ void GhostAI::ImGuiUpdate()
     ImGui::DragFloat("Path Node Reach Threshold", &m_pathNodeReachThreshold, 0.02f, 0.05f, 1.0f);
     ImGui::Checkbox("Show Path Debug (red=destination, orange=NavMesh target, cyan=path)", &m_showPathDebug);
     ImGui::Separator();
+    ImGui::Text("Closet Hiding (Hunt)");
+    ImGui::DragFloat("Hide Spotted Grace", &m_hideSpottedGrace, 0.05f, 0.0f, 10.0f, "%.2f s");
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"押入れの襖を閉める直前、この秒数以内にPlayerを視認していたら「隠れるところを見た」として襖を開けに来る");
+    ImGui::DragFloat("Hide Reveal Delay", &m_hideRevealDelay, 0.05f, 0.0f, 10.0f, "%.2f s");
+    ImGui::DragFloat("Hide Patrol Duration", &m_hidePatrolDuration, 0.5f, 0.0f, 60.0f, "%.1f s");
+    ImGui::DragFloat("Hide Patrol Radius", &m_hidePatrolRadius, 0.1f, 0.5f, 10.0f, "%.1f m");
+    ImGui::DragFloat("Hide Patrol Repick", &m_hidePatrolRepick, 0.1f, 0.5f, 20.0f, "%.1f s");
+    ImGui::Text("Closets found: %d", (int)HidingSpot::GetSpots().size());
+    ImGui::Separator();
     ImGui::Text("Door");
     ImGui::DragFloat("Door Open Range", &m_doorOpenRange, 0.1f, 0.5f, 10.0f);
     ImGui::SliderFloat("Door Sound Volume", &m_doorSoundVolume, 0.0f, 1.0f);
     ImGui::DragFloat("Door Check Interval", &m_doorCheckInterval, 0.05f, 0.05f, 2.0f);
+    ImGui::Separator();
+    ImGui::Text("Sound (Breath / Hunt)");
+    ImGui::SliderFloat("Breath Volume", &m_breathVolume, 0.0f, 1.0f);
+    ImGui::DragFloat("Breath Range", &m_breathRange, 0.1f, 0.5f, 50.0f, "%.1f m");
+    ImGui::SliderFloat("Breath Other Floor Ratio", &m_breathOtherFloorRatio, 0.0f, 1.0f);
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"Playerが別の階にいる時の吐息の音量の割合(0=聞こえない)。ハント中の吐息にも効く");
+    ImGui::DragFloat("Breath Interval Min", &m_breathIntervalMin, 0.5f, 0.5f, 120.0f, "%.1f s");
+    ImGui::DragFloat("Breath Interval Max", &m_breathIntervalMax, 0.5f, 0.5f, 120.0f, "%.1f s");
+    ImGui::SliderFloat("Hunt Breath Volume", &m_huntBreathVolume, 0.0f, 1.0f);
+    ImGui::DragFloat("Hunt Breath Range", &m_huntBreathRange, 0.1f, 0.5f, 50.0f, "%.1f m");
+    ImGui::SliderFloat("Hunt Loop Volume", &m_huntLoopVolume, 0.0f, 1.0f);
+    ImGui::SliderFloat("Hunt Loop Min Ratio", &m_huntLoopMinRatio, 0.0f, 1.0f);
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"ゴーストが遠い(Near Range以上)時のループ音量の割合。近づくほど1.0に上がる");
+    ImGui::DragFloat("Hunt Loop Near Range", &m_huntLoopNearRange, 0.1f, 0.5f, 50.0f, "%.1f m");
+    ImGui::DragFloat("Hunt Loop Fade Time", &m_huntLoopFadeTime, 0.05f, 0.0f, 10.0f, "%.2f s");
     {
         char buf[128] = {};
         strncpy_s(buf, m_entranceDoorName.c_str(), _TRUNCATE);
@@ -1866,7 +2125,9 @@ void GhostAI::ImGuiUpdate()
         ImGui::Text("Time until next Hunt: %.1f s", m_huntTriggerTimer);
     } else if (m_currentState == State::Hunt) {
         ImGui::Text("Hunt time left: %.1f s", m_huntTimer);
-        ImGui::Text("Hunt mode: %s", m_isSeeingPlayer ? "Chasing (seeing player)" :
+        ImGui::Text("Hunt mode: %s", m_foundHideSpot >= 0 ? "Opening closet (saw player hide)" :
+                                     m_hidePatrolTimer > 0.0f ? "Patrolling around closet" :
+                                     m_isSeeingPlayer ? "Chasing (seeing player)" :
                                      m_isSensingLight ? "Chasing (flashlight)" :
                                      m_isTrackingPlayer ? "Chasing (tracking)" :
                                      m_hasLastKnownPlayerPos ? "Going to last known pos" : "Searching rooms");
@@ -1889,6 +2150,9 @@ void GhostAI::OnCollisionEnter(GameObject* other)
     }
 
     if (isPlayer) {
+        if (auto* pPlayerTrans = ecs.TryGetComponent<TransformData>(other->GetEntityID())) {
+            if (HidingSpot::FindHiding(pPlayerTrans->m_position) >= 0) return;
+        }
         if (auto gs = GameSequence::GetInstance()) {
             gs->NotifyGameOver();
         }

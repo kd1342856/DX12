@@ -1,5 +1,6 @@
 #pragma once
 #include <cmath>
+#include "../../../Manager/Animation/OpenableAnim.h"
 
 class AnimationSystem : public SystemBase
 {
@@ -113,7 +114,8 @@ public:
                 }
                 data.ProgressTime += addTime;
 
-                float targetTime = animInfo.duration * 0.5f;
+                // Full-open time: "..._Open" clips only open (end = open), older door clips open then close (half = open)
+                float targetTime = OpenableAnim::FullOpenTime(animInfo.name, animInfo.duration);
 
                 if (data.Speed >= 0.0f)
                 {

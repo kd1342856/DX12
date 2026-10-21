@@ -495,6 +495,8 @@ PSOutput main(VSOutput In) : SV_Target0
     // エミッシブ
     //------------------
     float3 emissiveColor = g_emissiveMap_white.Sample(g_ss_aniso_wrap, In.UV).rgb * g_emissiveFactor;
+    // 表裏で倍率を変える(両面表示のかさの内側だけを光らせる等)。頂点法線がカメラと反対を向いていれば裏面
+    emissiveColor *= (dot(normalize(In.wN), vCam) >= 0.0) ? g_emissiveFrontScale : g_emissiveBackScale;
     color += emissiveColor * g_emissiveStrength;
 
     // Dissolveの縁の発光(影の中でも見えるように、ライティング計算とは独立に加算)
@@ -703,6 +705,8 @@ PSOutput main(VSOutput In) : SV_Target0
         
         // 透過色と反射色をフレネルでブレンド
         color = lerp(transColor, finalReflection, fresnel);
+        // 上の計算で色を丸ごと置き換えるので、発光(点灯中の懐中電灯のレンズなど)はここで足し直す
+        color += emissiveColor * g_emissiveStrength;
         baseColor.a = 1.0;
     }
 

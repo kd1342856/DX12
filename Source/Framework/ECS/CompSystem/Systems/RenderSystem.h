@@ -45,8 +45,19 @@ public:
 	{
 		bool glow = model.m_glowColor.LengthSquared() > 0.0f &&
 			(model.m_glowMaterial.empty() || model.m_glowMaterial == mat.Name);
-		if (!glow && !model.m_dissolveEnabled) return mat;
+		// 反射で光る面(吊り下げ照明のかさの内側など): 裏面だけを弱めに光らせる
+		const bool reflectGlow = !glow && model.m_glowColor.LengthSquared() > 0.0f && model.m_glowReflectScale > 0.0f &&
+			!model.m_glowReflectMaterial.empty() && model.m_glowReflectMaterial == mat.Name;
+		if (!glow && !reflectGlow && !model.m_dissolveEnabled) return mat;
 		scratch = mat;
+		if (reflectGlow) {
+			scratch.Constants.emissiveFactorX = model.m_glowColor.x * model.m_glowReflectScale;
+			scratch.Constants.emissiveFactorY = model.m_glowColor.y * model.m_glowReflectScale;
+			scratch.Constants.emissiveFactorZ = model.m_glowColor.z * model.m_glowReflectScale;
+			scratch.Constants.emissiveStrength = 1.0f;
+			scratch.Constants.emissiveFrontScale = 0.0f;
+			scratch.Constants.emissiveBackScale = 1.0f;
+		}
 		if (glow) {
 			// 発光マップがあればそれをマスクとして使う(例: シーリングライトはガラス部分だけ白いマップ)。
 			// 無ければ白テクスチャ扱いになり、メッシュ全体がFactorの色で光る。

@@ -51,4 +51,6 @@ cbuffer cbPerMaterial : register(b3)
     float3 g_dissolveEdgeColor; // HDR color of the glowing band just above the cut
     float g_dissolveHeight;     // world Y below which pixels are clipped
     float g_dissolveEdgeWidth;  // width of the glowing band / raggedness of the cut (m)
+    float g_emissiveFrontScale; // emissive multiplier for front faces (matches MaterialConstants)
+    float g_emissiveBackScale;  // emissive multiplier for back faces
 };

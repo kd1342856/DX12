@@ -1,4 +1,4 @@
-#include "../../../Pch.h"
+﻿#include "../../../Pch.h"
 #include "AudioManager.h"
 
 void AudioManager::Init() {
@@ -73,18 +73,19 @@ void AudioManager::PlaySE(const std::string& filepath, float vol, float pitch, f
     }
 }
 
-void AudioManager::PlaySEAt(const std::string& filepath, const Math::Vector3& pos, float vol, float maxDist) {
+void AudioManager::ComputeSpatial(const Math::Vector3& pos, float maxDist, float& outAtten, float& outPan) const {
+    outAtten = 0.0f;
+    outPan = 0.0f;
     Math::Vector3 toSound = pos - m_listenerPos;
     float dist = toSound.Length();
     if (dist >= maxDist) return;
 
     // Quadratic falloff sounds more natural than linear for indoor distances
     float atten = 1.0f - dist / maxDist;
-    atten *= atten;
+    outAtten = atten * atten;
 
     // Pan by how far the sound is to the listener's right (horizontal plane only), kept partial
     // so a sound directly to one side never goes fully silent in the other ear
-    float pan = 0.0f;
     Math::Vector3 flat(toSound.x, 0.0f, toSound.z);
     if (flat.LengthSquared() > 0.0001f) {
         flat.Normalize();
@@ -92,16 +93,27 @@ void AudioManager::PlaySEAt(const std::string& filepath, const Math::Vector3& po
         right.y = 0.0f;
         if (right.LengthSquared() > 0.0001f) {
             right.Normalize();
-            pan = flat.Dot(right) * 0.7f;
+            outPan = flat.Dot(right) * 0.7f;
         }
     }
-    PlaySE(filepath, vol * atten, 0.0f, pan);
+}
+
+void AudioManager::PlaySEAt(const std::string& filepath, const Math::Vector3& pos, float vol, float maxDist, float pitch) {
+    float atten, pan;
+    ComputeSpatial(pos, maxDist, atten, pan);
+    if (atten <= 0.0f) return;
+    PlaySE(filepath, vol * atten, pitch, pan);
 }
 
 std::unique_ptr<DirectX::SoundEffectInstance> AudioManager::CreateSEInstance(const std::string& filepath) {
     DirectX::SoundEffect* effect = GetOrLoadSound(filepath);
     if (!effect) return nullptr;
     return effect->CreateInstance();
+}
+
+float AudioManager::GetSoundDuration(const std::string& filepath) {
+    DirectX::SoundEffect* effect = GetOrLoadSound(filepath);
+    return effect ? effect->GetSampleDurationMS() / 1000.0f : 0.0f;
 }
 
 void AudioManager::PlayBGM(const std::string& filepath, float vol) {

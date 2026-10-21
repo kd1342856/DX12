@@ -13,6 +13,8 @@
 #include "../System/StimulusSource.h"
 #include "../System/LightSwitch.h"
 #include "../System/DoorLock.h"
+#include "../../../../Framework/Manager/Asset/MeshManager.h"
+#include "../../../../Framework/Manager/Animation/OpenableAnim.h"
 #include "../../../../Framework/DirectX/Utility/Profiler.h"
 #include <functional>
 
@@ -39,8 +41,96 @@ void Player::Start()
         findAnimEntity(GetGameObject());
     }
 
+    ApplyStartInventory();
     FindItemIconEntities();
     CreateFlashLightBeam();
+    CacheStandCapsule();
+}
+
+void Player::CacheStandCapsule()
+{
+    // 当たり判定は子の"Collider"に付いている
+    m_colliderEntity = INVALID_ENTITY;
+    m_standCapsuleValid = false;
+    if (!GetGameObject()) return;
+    auto& ecs = GameManager::Instance().GetECS();
+    for (auto& child : GetGameObject()->GetChildren()) {
+        if (child->GetName() != "Collider") continue;
+        auto* pCollider = ecs.TryGetComponent<ColliderData>(child->GetEntityID());
+        if (!pCollider) continue;
+        for (auto& shape : pCollider->m_shapes) {
+            auto* capsule = dynamic_cast<CollisionShapeCapsule*>(shape.get());
+            if (!capsule) continue;
+            m_colliderEntity = child->GetEntityID();
+            m_standCapsuleOffset = capsule->m_offset;
+            m_standCapsuleHeight = capsule->height;
+            m_standCapsuleRadius = capsule->radius;
+            m_standCapsuleValid = true;
+            return;
+        }
+    }
+}
+
+void Player::UpdateCrouchCollider()
+{
+    if (!m_standCapsuleValid) return;
+    auto& ecs = GameManager::Instance().GetECS();
+    auto* pCollider = ecs.TryGetComponent<ColliderData>(m_colliderEntity);
+    if (!pCollider) return;
+    CollisionShapeCapsule* capsule = nullptr;
+    for (auto& shape : pCollider->m_shapes) {
+        if ((capsule = dynamic_cast<CollisionShapeCapsule*>(shape.get()))) break;
+    }
+    if (!capsule) return;
+
+    // 下端はそのままで、上端だけをしゃがみ具合に合わせて下げる(カプセルは 中心±高さ/2 に半径を足した範囲)
+    const float r = m_standCapsuleRadius;
+    const float bottom = m_standCapsuleOffset.y - m_standCapsuleHeight * 0.5f - r;
+    const float standTop = m_standCapsuleOffset.y + m_standCapsuleHeight * 0.5f + r;
+    const float crouchTop = (std::max)(bottom + 2.0f * r, (std::min)(m_crouchColliderTop, standTop));
+    const float top = standTop + (crouchTop - standTop) * m_crouchBlend;
+    capsule->height = (std::max)(0.0f, top - bottom - 2.0f * r);
+    capsule->m_offset = m_standCapsuleOffset;
+    capsule->m_offset.y = (top + bottom) * 0.5f;
+}
+
+bool Player::CanStandUp(const Math::Vector3& playerPos) const
+{
+    if (!m_standCapsuleValid) return true;
+    // 今の頭の少し下から、立った時の頭の高さまで真上へレイを飛ばす(体の中心と前後左右の4点)
+    const float r = m_standCapsuleRadius;
+    const float standTop = m_standCapsuleOffset.y + m_standCapsuleHeight * 0.5f + r;
+    const float fromY = (std::min)(m_crouchColliderTop, standTop) - 0.1f;
+    const float length = standTop - fromY + 0.02f;
+    if (length <= 0.0f) return true;
+    const float s = r * 0.8f;
+    const Math::Vector3 offsets[] = { {0, 0, 0}, {s, 0, 0}, {-s, 0, 0}, {0, 0, s}, {0, 0, -s} };
+    for (const auto& o : offsets) {
+        Math::Vector3 origin = playerPos + o + Math::Vector3(0.0f, fromY, 0.0f);
+        RaycastHit hit = CollisionManager::Instance().RaycastAgainstMesh(origin, Math::Vector3(0, 1, 0), length, "Stage");
+        if (hit.hit) return false;
+    }
+    return true;
+}
+
+bool Player::StartsWith(Item item) const
+{
+    switch (item) {
+    case ItemType::Incense:     return m_startWithIncense;
+    case ItemType::Amulet:      return m_startWithAmulet;
+    case ItemType::FlashLight:  return m_startWithFlashLight;
+    }
+    return false;
+}
+
+void Player::ApplyStartInventory()
+{
+    m_hasIncense = m_startWithIncense;
+    m_hasAmulet = m_startWithAmulet;
+    m_hasFlashLight = m_startWithFlashLight;
+    m_itemOrder = m_startItemOrder;
+    SyncItemOrder(); // 並びに無い・重複している分を補正する
+    if (!HasItem(m_currentEquipped) && !m_itemOrder.empty()) m_currentEquipped = m_itemOrder.front();
 }
 
 void Player::FindItemIconEntities()
@@ -114,7 +204,13 @@ void Player::UpdateItemIcons()
 
         if (auto* sprite = ecs.TryGetComponent<SpriteData>(m_itemSlotEntities[i])) {
             const bool selected = filled && m_currentEquipped == item;
-            sprite->m_color = selected ? Math::Vector4(1.0f, 0.85f, 0.55f, 1.0f) : Math::Vector4(1.0f, 1.0f, 1.0f, 0.6f);
+            // 使えなくなったアイテム(燃え尽きた香)のスロットは赤くする。装備中は少し明るい赤
+            const bool unusable = filled && item == Item::Incense && m_incenseBurnedOut;
+            if (unusable) {
+                sprite->m_color = selected ? Math::Vector4(1.0f, 0.25f, 0.2f, 1.0f) : Math::Vector4(0.85f, 0.15f, 0.12f, 0.85f);
+            } else {
+                sprite->m_color = selected ? Math::Vector4(1.0f, 0.85f, 0.55f, 1.0f) : Math::Vector4(1.0f, 1.0f, 1.0f, 0.6f);
+            }
         }
     }
 }
@@ -174,6 +270,22 @@ void Player::UpdateHeldItem()
     }
 }
 
+void Player::KeepIncenseBurnedPose()
+{
+    if (!m_incenseBurnedOut || m_heldIncenseEntity == INVALID_ENTITY) return;
+    auto& ecs = GameManager::Instance().GetECS();
+    auto* pModel = ecs.TryGetComponent<ModelRenderData>(m_heldIncenseEntity);
+    if (!pModel || !pModel->m_spModelData || !pModel->m_spModelData->IsLoaded()) return;
+    // 燃えている最中(燃焼アニメの再生中)はアニメーションに任せる
+    if (auto* pAnim = ecs.TryGetComponent<AnimationDataComponent>(m_heldIncenseEntity)) {
+        if (pAnim->currentAnim.IsPlaying) return;
+    }
+    const auto& anims = pModel->m_spModelData->GetAnimations();
+    if (anims.empty()) return;
+    // 燃焼アニメ(0番、香を使った時にPlayAnimationしているもの)の最後のポーズ
+    pModel->m_spModelData->UpdateAnimation(0, (std::max)(0.0f, anims[0].duration - 0.001f));
+}
+
 void Player::CreateFlashLightBeam()
 {
     if (m_flashLightBeamEntity != INVALID_ENTITY) return;
@@ -213,6 +325,30 @@ Entity Player::FindGameCameraEntity() const
     return fallback;
 }
 
+bool Player::ComputeFlashLightLensWorld(const Math::Vector3& heldPos, const Math::Vector3& heldRotRad, Math::Vector3& outLens) const
+{
+    // フラッシュライトのモデル(Asset/Model/Item/Flash Light/scene.gltf)のモデル空間でのレンズ("Glass"マテリアル)の中心。
+    // 本体はY方向に-1〜10.33、レンズの面はY=10.13にある
+    static const Math::Vector3 kLensModelPos(0.0f, 10.13f, 0.0f);
+    if (m_heldFlashLightEntity == INVALID_ENTITY || !GetGameObject() || !GetGameObject()->GetScene()) return false;
+    auto& ecs = GameManager::Instance().GetECS();
+    auto* pParent = ecs.TryGetComponent<TransformData>(m_heldFlashLightEntity);
+    auto obj = GetGameObject()->GetScene()->GetGameObject(m_heldFlashLightEntity);
+    if (!pParent || !obj) return false;
+    TransformData* pModel = nullptr;
+    for (auto& child : obj->GetChildren()) {
+        if (ecs.TryGetComponent<ModelRenderData>(child->GetEntityID())) { pModel = ecs.TryGetComponent<TransformData>(child->GetEntityID()); break; }
+    }
+    if (!pModel) return false;
+    // ワールド行列は1フレームに1回しか更新されないので、今フレームの手の位置・向きから自前で組む(GetHandWorldと同じ規約)
+    auto local = [](const Math::Vector3& s, const Math::Vector3& r, const Math::Vector3& t) {
+        return Math::Matrix::CreateScale(s) * Math::Matrix::CreateFromYawPitchRoll(r.y, r.x, r.z) * Math::Matrix::CreateTranslation(t);
+    };
+    Math::Matrix world = local(pModel->m_scale, pModel->m_rotation, pModel->m_position) * local(pParent->m_scale, heldRotRad, heldPos);
+    outLens = Math::Vector3::Transform(kLensModelPos, world);
+    return true;
+}
+
 void Player::UpdateFlashLightBeam(const Math::Vector3& playerPos, float playerYaw)
 {
     if (m_flashLightBeamEntity == INVALID_ENTITY) CreateFlashLightBeam();
@@ -246,13 +382,17 @@ void Player::UpdateFlashLightBeam(const Math::Vector3& playerPos, float playerYa
     camRight.Normalize();
     camUp.Normalize();
 
-    // 光の出どころは手に持ったフライトライト(UpdateHeldItemAttachと同じ体基準のオフセット)。
-    // 少し前に出してレンズ側から出ているようにする。
+    // 光の出どころは手に持ったフラッシュライトのレンズ。
+    // 以前は持ち手の位置からカメラの前方へ0.15m出していたため、持ち方によってはレンズより前から光が出て、
+    // ライト本体が光の円錐の後ろに入って暗く見えなくなっていた。モデルのレンズ位置から求め、
+    // そこからm_flashLightLensOffsetだけ前に置く。
     // 手のボーンに追従した位置を優先し、取れなければ従来の体基準オフセット。
     Math::Vector3 origin, heldRot;
     if (ComputeHeldItemWorld(Item::FlashLight, playerPos, playerYaw, origin, heldRot))
     {
-        origin += camForward * 0.15f;
+        Math::Vector3 lens;
+        if (ComputeFlashLightLensWorld(origin, heldRot, lens)) origin = lens + camForward * m_flashLightLensOffset;
+        else origin += camForward * 0.15f;
     }
     else
     {
@@ -287,7 +427,7 @@ void Player::UpdateHeldItemAttach(const Math::Vector3& playerPos, float playerYa
 
     // Auto-calibrate m_heldItemOffset from the real hand bone once the player has been standing
     // still (holding this item) for a little while. UpdateAnimationState() switches the clip to
-    // UseItem_Idle the same frame an item is first equipped, but that switch only reaches
+    // UseItem_Idle/FlashLight_Idle the same frame an item is first equipped, but that switch only reaches
     // node.globalTransform once AnimationSystem processes it later this frame - calibrating
     // immediately would still read last frame's PRE-switch pose (relaxed arm at the side, not the
     // presenting pose), so wait long enough for the new pose to actually settle in first.
@@ -432,56 +572,168 @@ bool Player::CalibrateHeldItemOffset(const Math::Vector3& playerPos, float playe
     return true;
 }
 
-void Player::UpdateInteractionTarget(const Math::Vector3& playerPos, const Math::Vector3& forward)
+// クロスヘア(画面中央)の視線。カメラのワールド行列は前フレームのものだが、操作対象を決めるには十分
+bool Player::GetCrosshairRay(Math::Vector3& outOrigin, Math::Vector3& outDir)
 {
-    const float kInteractRange = 2.0f;
+    auto& ecs = GameManager::Instance().GetECS();
+    if (m_cameraEntity == INVALID_ENTITY || !ecs.TryGetComponent<CameraData>(m_cameraEntity))
+    {
+        m_cameraEntity = FindGameCameraEntity();
+    }
+    auto* pCamTrans = ecs.TryGetComponent<TransformData>(m_cameraEntity);
+    if (!pCamTrans) return false;
+    const Math::Matrix& camWorld = pCamTrans->m_worldMatrix;
+    outOrigin = camWorld.Translation();
+    outDir = camWorld.Backward(); // SimpleMathのBackward()が+Z(=このエンジンの前方)
+    if (outDir.LengthSquared() < 1e-6f) return false;
+    outDir.Normalize();
+    return true;
+}
 
-    float doorDist = FLT_MAX;
-    bool hasDoor;
+// モデルのメッシュを(向き付きの)箱として視線と交差判定し、当たった中で一番近い距離をioNearestに入れる。
+// メッシュの頂点はモデル空間なので、ノードのワールド行列は animDeltaTransform * エンティティのワールド行列
+// (CollisionSolverと同じ)。開いた扉はアニメーションで動いた位置で当たる。
+// onlyNodesを渡すとそのノードのメッシュだけ(扉の板など)を調べる。
+static bool RayHitModelBoxes(const ModelRenderData& model, const Math::Matrix& entityWorld, const std::vector<int>* onlyNodes,
+                             const Math::Vector3& origin, const Math::Vector3& dir, float maxDist, float& ioNearest)
+{
+    if (!model.m_spModelData || !model.m_spModelData->IsLoaded()) return false;
+    const auto& nodes = model.m_spModelData->GetNodes();
+    const float kPad = 0.03f; // 薄い物(お札・扉の縁)も狙いやすいよう少しだけ大きめにする
+    bool hit = false;
+    auto testNode = [&](int ni) {
+        if (ni < 0 || ni >= (int)nodes.size()) return;
+        const auto& node = nodes[ni];
+        if (node.meshes.empty()) return;
+        Math::Matrix nodeWorld = node.animDeltaTransform * entityWorld;
+        DirectX::XMMATRIX m = DirectX::XMLoadFloat4x4(&nodeWorld);
+        for (const auto& handle : node.meshes)
+        {
+            Mesh* mesh = MeshManager::Instance().Get(handle);
+            if (!mesh) continue;
+            DirectX::BoundingBox aabb = mesh->GetLocalAABB();
+            aabb.Extents.x += kPad; aabb.Extents.y += kPad; aabb.Extents.z += kPad;
+            DirectX::BoundingOrientedBox obb;
+            DirectX::BoundingOrientedBox::CreateFromBoundingBox(obb, aabb);
+            obb.Transform(obb, m);
+            float t = 0.0f;
+            if (obb.Intersects(DirectX::XMLoadFloat3(&origin), DirectX::XMLoadFloat3(&dir), t) && t <= maxDist && t < ioNearest)
+            {
+                ioNearest = t;
+                hit = true;
+            }
+        }
+    };
+    if (onlyNodes) { for (int ni : *onlyNodes) testNode(ni); }
+    else { for (int ni = 0; ni < (int)nodes.size(); ++ni) testNode(ni); }
+    return hit;
+}
+
+// GameObjectとその子孫のモデル全部を視線と交差判定する(ピックアップ・照明・スイッチ用)
+static bool RayHitGameObject(GameObject* obj, const Math::Vector3& origin, const Math::Vector3& dir, float maxDist, float& ioNearest)
+{
+    if (!obj) return false;
+    auto& ecs = GameManager::Instance().GetECS();
+    bool hit = false;
+    auto* pModel = ecs.TryGetComponent<ModelRenderData>(obj->GetEntityID());
+    auto* pTrans = ecs.TryGetComponent<TransformData>(obj->GetEntityID());
+    if (pModel && pTrans && RayHitModelBoxes(*pModel, pTrans->m_worldMatrix, nullptr, origin, dir, maxDist, ioNearest)) hit = true;
+    for (const auto& child : obj->GetChildren())
     {
-        PROFILE_CPU_SCOPE("Player::FindNearestDoor");
-        hasDoor = FindNearestDoor(playerPos, forward, kInteractRange, doorDist);
+        if (RayHitGameObject(child.get(), origin, dir, maxDist, ioNearest)) hit = true;
+    }
+    return hit;
+}
+
+void Player::UpdateInteractionTarget(const Math::Vector3& playerPos)
+{
+    // クロスヘアが実際に重なっている物だけを操作対象にする。以前は「近くて、だいたい正面」なら何でも対象にしていたため、
+    // 天井越しに2階のドアが開いたり、襖を開けるつもりが横の照明を点けたりしていた。
+    // 視線(カメラ中央のレイ)と各対象の形(メッシュの箱)の交差を調べ、一番手前で当たった物を選ぶ。
+    // 家の壁・床・天井に先に当たったら、その奥の物は対象外。
+    const float kInteractRange = 2.2f; // カメラからの距離
+
+    m_interactKind = InteractKind::None;
+    m_interactEntity = INVALID_ENTITY;
+    m_doorTargetEntity = INVALID_ENTITY;
+    m_doorTargetAnimIdx = -1;
+
+    Math::Vector3 origin, dir;
+    if (!GetCrosshairRay(origin, dir)) return;
+
+    if (!m_doorCandidateCacheBuilt) RebuildDoorCandidateCache();
+
+    // 家の壁・床・天井までの距離(扉の板は開け閉めの対象なので除く。閉じた扉の奥の物は、扉の方が手前で当たるので選ばれない)
+    float blockDist = kInteractRange;
+    {
+        RaycastHit wall = CollisionManager::Instance().RaycastAgainstMesh(origin, dir, kInteractRange, "Stage", &m_openableNodeNames);
+        if (wall.hit) blockDist = wall.distance;
+    }
+    const float kSurfaceEpsilon = 0.05f; // 壁に貼り付いたスイッチ・天井に付いた照明が壁や天井に負けないための余裕
+    const float maxDist = (std::min)(kInteractRange, blockDist + kSurfaceEpsilon);
+    float nearest = FLT_MAX;
+    auto& ecs = GameManager::Instance().GetECS();
+
+    // ドア・襖・戸棚など
+    {
+        PROFILE_CPU_SCOPE("Player::FindDoorOnRay");
+        for (const auto& door : m_doorCandidateCache)
+        {
+            auto* pModel = ecs.TryGetComponent<ModelRenderData>(door.entity);
+            auto* pTrans = ecs.TryGetComponent<TransformData>(door.entity);
+            if (!pModel || !pTrans) continue;
+            if (RayHitModelBoxes(*pModel, pTrans->m_worldMatrix, &door.nodeIndices, origin, dir, maxDist, nearest))
+            {
+                m_interactKind = InteractKind::Door;
+                m_interactEntity = INVALID_ENTITY;
+                m_doorTargetEntity = door.entity;
+                m_doorTargetAnimIdx = door.animIndex;
+            }
+        }
     }
 
-    float pickupDist = FLT_MAX;
-    Entity pickupEntity;
+    // ピックアップ・照明・スイッチ
     {
-        PROFILE_CPU_SCOPE("Player::FindNearestPickup");
-        pickupEntity = FindNearestPickup(playerPos, forward, kInteractRange, pickupDist);
-    }
-
-    float stimulusDist = FLT_MAX;
-    Entity stimulusEntity = FindNearestStimulus(playerPos, forward, kInteractRange, stimulusDist);
-    if (stimulusEntity != INVALID_ENTITY && stimulusDist < pickupDist)
-    {
-        // ピックアップとランプ/ラジカセが両方範囲内なら近い方を対象にする
-        pickupEntity = INVALID_ENTITY;
-        pickupDist = stimulusDist;
-    }
-    else
-    {
-        stimulusEntity = INVALID_ENTITY;
-    }
-
-    if (hasDoor && ((pickupEntity == INVALID_ENTITY && stimulusEntity == INVALID_ENTITY) || doorDist <= pickupDist))
-    {
-        m_interactKind = InteractKind::Door;
-        m_interactEntity = INVALID_ENTITY;
-    }
-    else if (pickupEntity != INVALID_ENTITY)
-    {
-        m_interactKind = InteractKind::Pickup;
-        m_interactEntity = pickupEntity;
-    }
-    else if (stimulusEntity != INVALID_ENTITY)
-    {
-        m_interactKind = InteractKind::Stimulus;
-        m_interactEntity = stimulusEntity;
-    }
-    else
-    {
-        m_interactKind = InteractKind::None;
-        m_interactEntity = INVALID_ENTITY;
+        PROFILE_CPU_SCOPE("Player::FindPickupStimulusOnRay");
+        for (auto& scriptData : ecs.GetComponentArray<NativeScriptData>())
+        {
+            GameObject* obj = nullptr;
+            InteractKind kind = InteractKind::None;
+            if (auto* pickup = dynamic_cast<PickupItem*>(scriptData.Instance.get())) {
+                if (pickup->m_collected) continue;
+                obj = pickup->GetGameObject();
+                kind = InteractKind::Pickup;
+            }
+            else if (auto* src = dynamic_cast<StimulusSource*>(scriptData.Instance.get())) {
+                if (!src->m_interactable) continue;
+                obj = src->GetGameObject();
+                kind = InteractKind::Stimulus;
+            }
+            else if (auto* sw = dynamic_cast<LightSwitch*>(scriptData.Instance.get())) {
+                if (!sw->m_interactable) continue;
+                obj = sw->GetGameObject();
+                kind = InteractKind::Stimulus;
+                // スイッチの正面(ローカル-Z)側にいる時だけ操作できる(壁の裏側からは不可)
+                if (obj) {
+                    if (auto* pSwTrans = ecs.TryGetComponent<TransformData>(obj->GetEntityID())) {
+                        const auto& m = pSwTrans->m_worldMatrix;
+                        Math::Vector3 front(-m._31, -m._32, -m._33);
+                        front.y = 0.0f;
+                        Math::Vector3 toPlayer = playerPos - sw->GetWorldPosition();
+                        toPlayer.y = 0.0f;
+                        if (front.LengthSquared() > 1e-6f && toPlayer.Dot(front) <= 0.0f) continue;
+                    }
+                }
+            }
+            if (!obj) continue;
+            if (RayHitGameObject(obj, origin, dir, maxDist, nearest))
+            {
+                m_interactKind = kind;
+                m_interactEntity = obj->GetEntityID();
+                m_doorTargetEntity = INVALID_ENTITY;
+                m_doorTargetAnimIdx = -1;
+            }
+        }
     }
 }
 
@@ -503,6 +755,7 @@ void Player::RebuildDoorCandidateCache() const
 {
     auto& ecs = GameManager::Instance().GetECS();
     m_doorCandidateCache.clear();
+    m_openableNodeNames.clear();
 
     for (Entity entity = 0; entity < MAX_ENTITIES; ++entity)
     {
@@ -513,154 +766,38 @@ void Player::RebuildDoorCandidateCache() const
 
         const auto& anims = pModel->m_spModelData->GetAnimations();
         if (anims.empty()) continue;
+        const auto& nodes = pModel->m_spModelData->GetNodes();
 
         for (int i = 0; i < (int)anims.size(); ++i)
         {
             const std::string& animName = anims[i].name;
-            if (animName.find("Door") == std::string::npos && animName.find("door") == std::string::npos) continue;
+            if (!OpenableAnim::IsOpenable(animName)) continue; // ドア・襖・戸棚・押入れなど
+            if (anims[i].channels.empty()) continue;
 
-            Math::Vector3 doorPos = pTransform->m_position;
-            if (!anims[i].channels.empty())
+            // アニメーションが動かすノード(扉の板)と、その子孫のノード。視線との当たり判定に使う
+            DoorCandidate cand{ entity, i, {} };
+            for (const auto& channel : anims[i].channels)
             {
-                const std::string& doorNodeName = anims[i].channels[0].nodeName;
-                const auto& nodes = pModel->m_spModelData->GetNodes();
-                for (const auto& node : nodes)
+                for (int ni = 0; ni < (int)nodes.size(); ++ni)
                 {
-                    if (node.name == doorNodeName)
+                    if (nodes[ni].name != channel.nodeName) continue;
+                    std::vector<int> stack{ ni };
+                    while (!stack.empty())
                     {
-                        Math::Vector3 nodeScale, nodeTrans;
-                        Math::Quaternion nodeRot;
-                        (node.globalTransform * pTransform->m_worldMatrix).Decompose(nodeScale, nodeRot, nodeTrans);
-                        doorPos = nodeTrans;
-                        break;
+                        int cur = stack.back(); stack.pop_back();
+                        if (std::find(cand.nodeIndices.begin(), cand.nodeIndices.end(), cur) != cand.nodeIndices.end()) continue;
+                        cand.nodeIndices.push_back(cur);
+                        m_openableNodeNames.insert(nodes[cur].name);
+                        for (int c : nodes[cur].children) stack.push_back(c);
                     }
+                    break;
                 }
             }
-
-            m_doorCandidateCache.push_back({ entity, i, doorPos });
+            if (!cand.nodeIndices.empty()) m_doorCandidateCache.push_back(std::move(cand));
         }
     }
 
     m_doorCandidateCacheBuilt = true;
-}
-
-bool Player::FindNearestDoor(const Math::Vector3& playerPos, const Math::Vector3& forward, float maxRange, float& outDist) const
-{
-    if (!m_doorCandidateCacheBuilt) RebuildDoorCandidateCache();
-
-    bool found = false;
-    outDist = FLT_MAX;
-
-    for (const auto& door : m_doorCandidateCache)
-    {
-        Math::Vector3 toDoor = door.worldPos - playerPos;
-        float dist = toDoor.Length();
-        if (dist >= maxRange) continue;
-        if (dist > 0.001f)
-        {
-            Math::Vector3 dir = toDoor;
-            dir.Normalize();
-            if (dir.Dot(forward) < 0.5f) continue; // 正面方向の円錐の外(半角60度)
-        }
-        if (dist < outDist) { outDist = dist; found = true; }
-    }
-    return found;
-}
-
-Entity Player::FindNearestPickup(const Math::Vector3& playerPos, const Math::Vector3& forward, float maxRange, float& outDist) const
-{
-    auto& ecs = GameManager::Instance().GetECS();
-    Entity best = INVALID_ENTITY;
-    outDist = FLT_MAX;
-
-    for (auto& scriptData : ecs.GetComponentArray<NativeScriptData>())
-    {
-        auto* pickup = dynamic_cast<PickupItem*>(scriptData.Instance.get());
-        if (!pickup || pickup->m_collected) continue;
-        GameObject* obj = pickup->GetGameObject();
-        if (!obj) continue;
-        auto* pTransform = ecs.TryGetComponent<TransformData>(obj->GetEntityID());
-        if (!pTransform) continue;
-
-        Math::Vector3 toItem = pTransform->m_position - playerPos;
-        float dist = toItem.Length();
-        if (dist >= maxRange) continue;
-        if (dist > 0.001f)
-        {
-            Math::Vector3 dir = toItem;
-            dir.Normalize();
-            if (dir.Dot(forward) < 0.5f) continue; // 正面方向の円錐の外(半角60度)
-        }
-        if (dist < outDist) { outDist = dist; best = obj->GetEntityID(); }
-    }
-    return best;
-}
-
-Entity Player::FindNearestStimulus(const Math::Vector3& playerPos, const Math::Vector3& forward, float maxRange, float& outDist) const
-{
-    auto& ecs = GameManager::Instance().GetECS();
-    Entity best = INVALID_ENTITY;
-    outDist = FLT_MAX;
-
-    for (auto& scriptData : ecs.GetComponentArray<NativeScriptData>())
-    {
-        // 照明/ラジカセ本体(StimulusSource)と、廊下照明などの壁スイッチ(LightSwitch)が対象
-        GameObject* obj = nullptr;
-        Math::Vector3 srcPos;
-        // 遮蔽判定のレイを発生源の何m手前で止めるか
-        float rayStopMargin = 0.3f;
-        if (auto* src = dynamic_cast<StimulusSource*>(scriptData.Instance.get())) {
-            if (!src->m_interactable) continue;
-            obj = src->GetGameObject();
-            srcPos = src->GetWorldPosition();
-        }
-        else if (auto* sw = dynamic_cast<LightSwitch*>(scriptData.Instance.get())) {
-            if (!sw->m_interactable) continue;
-            obj = sw->GetGameObject();
-            srcPos = sw->GetWorldPosition();
-            // 壁スイッチは壁に貼り付いているので、0.3m手前で止めると裏側の壁(厚さ約0.2m)を素通りしてしまう
-            rayStopMargin = 0.05f;
-            // スイッチの正面(ローカル-Z)側にいる時だけ操作できる(壁の裏側からは不可)
-            if (auto* pSwTrans = ecs.TryGetComponent<TransformData>(obj->GetEntityID())) {
-                const auto& m = pSwTrans->m_worldMatrix;
-                Math::Vector3 front(-m._31, -m._32, -m._33);
-                front.y = 0.0f;
-                Math::Vector3 toPlayer = playerPos - srcPos;
-                toPlayer.y = 0.0f;
-                if (front.LengthSquared() > 1e-6f && toPlayer.Dot(front) <= 0.0f) continue;
-            }
-        }
-        if (!obj) continue;
-
-        // 天井照明のように頭より高い位置にある物も操作できるよう、高さは無視して水平距離・水平方向で判定する
-        Math::Vector3 toSrc = srcPos - playerPos;
-        toSrc.y = 0.0f;
-        float dist = toSrc.Length();
-        if (dist >= maxRange || dist >= outDist) continue;
-        if (dist > 0.001f)
-        {
-            Math::Vector3 dir = toSrc;
-            dir.Normalize();
-            if (dir.Dot(forward) < 0.5f) continue; // 正面方向の円錐の外(半角60度)
-        }
-
-        // 高さを無視しているので、真上/真下の別の階にある照明も同じ距離に見えてしまう。
-        // 目の高さから発生源までの間に床・天井(Stageメッシュ)があれば対象外にする。
-        Math::Vector3 eyePos = playerPos + Math::Vector3(0.0f, 1.5f, 0.0f);
-        Math::Vector3 toSrc3D = srcPos - eyePos;
-        float dist3D = toSrc3D.Length();
-        if (dist3D > rayStopMargin + 0.05f)
-        {
-            toSrc3D /= dist3D;
-            // 発生源のすぐ手前で止める(天井照明は天井面に接しているので、天井自体に当たらないよう余裕を持たせる)
-            RaycastHit hit = CollisionManager::Instance().RaycastAgainstMesh(eyePos, toSrc3D, dist3D - rayStopMargin, "Stage");
-            if (hit.hit) continue;
-        }
-
-        outDist = dist;
-        best = obj->GetEntityID();
-    }
-    return best;
 }
 
 bool Player::IsHoldingVisibleItem() const
@@ -679,7 +816,9 @@ void Player::UpdateAnimationState(bool isMoving)
     else                clip = isMoving ? "Walk" : "Idle";
 
     std::string clipName = clip;
-    if (IsHoldingVisibleItem()) clipName = std::string("UseItem_") + clip;
+    // ライトは他のアイテムと持ち方が違うので専用のFlashLight_*、それ以外のアイテムはUseItem_*
+    if (IsHoldingVisibleItem())
+        clipName = std::string(m_currentEquipped == Item::FlashLight ? "FlashLight_" : "UseItem_") + clip;
 
     // 停止状態のしゃがみ(Crouch)は「立ち→しゃがみ」の遷移アニメなので、ループせず最終ポーズで固定する。
     // 再生終了後(IsPlaying=false)に毎フレーム呼ぶと先頭から再生し直してしまうため、クリップが変わった時だけ再生する。
@@ -741,13 +880,25 @@ void Player::DropEquippedItem(const Math::Vector3& playerPos, const Math::Vector
     if (!prefabPath || !scene) return;
 
     // 手元(腰〜胸の高さ、少し前)から、視線の方向へ軽く放る。手元のすぐ先が壁なら壁の手前から出す。
-    const float kHandHeight = 1.1f;
+    // 手元の高さはしゃがみ具合に合わせて下げる(押し入れの中でしゃがんで投げた時、中段の棚の上や棚の中から出ないように)。
+    const float kStandHandHeight = 1.1f;
+    const float kCrouchHandHeight = (std::max)(0.3f, m_crouchEyeHeight - 0.35f);
     const float kHandForward = 0.35f;
     const float kWallClearance = 0.15f;
     const float kThrowSpeed = 2.5f;   // 視線方向の初速(m/s)
     const float kThrowUpSpeed = 1.2f; // 少し山なりにするための上向きの初速(m/s)
     auto& cm = CollisionManager::Instance();
-    Math::Vector3 handBase = playerPos + Math::Vector3(0, kHandHeight, 0);
+    float handHeight = kStandHandHeight + (kCrouchHandHeight - kStandHandHeight) * m_crouchBlend;
+    // 足元から手元までの間に棚や天井があれば、その下から出す
+    {
+        const float kFromY = 0.2f;
+        if (handHeight > kFromY) {
+            RaycastHit overhead = cm.RaycastAgainstMesh(playerPos + Math::Vector3(0, kFromY, 0), Math::Vector3(0, 1, 0),
+                handHeight - kFromY + kWallClearance, "Stage");
+            if (overhead.hit) handHeight = (std::max)(kFromY, kFromY + overhead.distance - kWallClearance);
+        }
+    }
+    Math::Vector3 handBase = playerPos + Math::Vector3(0, handHeight, 0);
     float handDist = kHandForward;
     RaycastHit wallHit = cm.RaycastAgainstMesh(handBase, forward, kHandForward + kWallClearance, "Stage");
     if (wallHit.hit) handDist = (std::max)(0.0f, wallHit.distance - kWallClearance);
@@ -848,10 +999,15 @@ void Player::Update(float deltaTime)
     // --- Use equipped item: right-click ---
     // (G で全部落とした後は m_currentEquipped が手放したアイテムのまま残るので、所持も確認する)
     if (input.IsMouseRightTrigger() && HasItem(m_currentEquipped)) {
-        if (m_currentEquipped == Item::Incense && ghost) {
+        if (m_currentEquipped == Item::Incense && m_incenseBurnedOut) {
+            Logger::Instance().AddLog(Logger::LogLevel::Info, "Incense: already burned out.");
+        }
+        else if (m_currentEquipped == Item::Incense && ghost) {
             auto& gTrans = ecs.GetComponent<TransformData>(ghost->GetGameObject()->GetEntityID());
             float dist = (cTrans.m_position - gTrans.m_position).Length();
             if (dist < 10.0f) {
+                // 燃やした時点で使い切り(効いたかどうかに関係なく)
+                m_incenseBurnedOut = true;
                 // 効くかどうかはゴーストの種類ごとの条件次第(影女は近くで明かりが点いている時だけ等)
                 if (ghost->TryIncenseStun(5.0f)) {
                     Logger::Instance().AddLog(Logger::LogLevel::Info, "Incense Used: Ghost Stunned!");
@@ -861,7 +1017,7 @@ void Player::Update(float deltaTime)
                 if (m_heldIncenseEntity != INVALID_ENTITY) {
                     AnimationManager::Instance().PlayAnimation(m_heldIncenseEntity, 0, false, 1.0f);
                 }
-                // 燻る音: 使うたびに頭から鳴らし直す
+                // 燻る音
                 if (!m_smudgeSound) m_smudgeSound = AudioManager::Instance().CreateSEInstance("Asset/Sound/SE/smadge.wav");
                 if (m_smudgeSound) {
                     m_smudgeSound->Stop();
@@ -897,13 +1053,18 @@ void Player::Update(float deltaTime)
     if (isMoving) { moveDir.Normalize(); }
     cTrans.m_position += moveDir * (m_moveSpeedKmh / 3.6f) * GameTimer::Instance().DeltaTime();
 
-    // --- Animation state --- (Idle/Walk/Crouch/CrouchWalk x UseItem_* picked in UpdateAnimationState())
+    // --- Animation state --- (Idle/Walk/Crouch/CrouchWalk x FlashLight_*/UseItem_* picked in UpdateAnimationState())
     // Ctrl: toggles crouch on/off.
     bool crouchToggled = false;
     if (input.IsKeyTrigger(VK_CONTROL))
     {
-        m_isCrouching = !m_isCrouching;
-        crouchToggled = true;
+        if (m_isCrouching && !CanStandUp(cTrans.m_position)) {
+            // 頭の上がつかえている(押し入れの中など)。しゃがんだまま
+            Logger::Instance().AddLog(Logger::LogLevel::Info, "[Player] Cannot stand up here.");
+        } else {
+            m_isCrouching = !m_isCrouching;
+            crouchToggled = true;
+        }
     }
 
     UpdateAnimationState(isMoving);
@@ -925,6 +1086,7 @@ void Player::Update(float deltaTime)
         float t = std::min(1.0f, m_crouchBlendSpeed * GameTimer::Instance().DeltaTime());
         m_crouchBlend += (crouchTarget - m_crouchBlend) * t;
     }
+    UpdateCrouchCollider();
 
     // --- Jump ---
     if (input.IsKeyTrigger(VK_SPACE) && m_isGrounded) { m_velocityY = 5.0f; }
@@ -962,7 +1124,7 @@ void Player::Update(float deltaTime)
     // --- F key: open/close nearest door, or pick up the nearest item in view ---
     {
         PROFILE_CPU_SCOPE("Player::UpdateInteractionTarget");
-        UpdateInteractionTarget(cTrans.m_position, forward);
+        UpdateInteractionTarget(cTrans.m_position);
     }
     UpdateInteractPrompt();
 
@@ -994,18 +1156,15 @@ void Player::Update(float deltaTime)
         }
         else
         {
-            // TryInteractDoor() has always had its own, more forgiving proximity-only door search
-            // (no facing-cone requirement). m_interactKind's Door detection is intentionally tighter
-            // (used for the F-prompt icon), so gating the actual open/close action behind it made F
-            // stop working at approach angles the icon didn't happen to catch. Just always attempt a
-            // door interaction here - TryInteractDoor() itself is a no-op if nothing is in range.
-            TryInteractDoor(cTrans.m_position);
+            // クロスヘアで捉えている扉があれば開け閉めする(無ければ何もしない)
+            TryInteractDoor();
         }
         m_interactCooldown = 0.5f; // 0.5s cooldown to avoid repeat-triggering on a held key
     }
 
     UpdateItemIcons();
     UpdateHeldItem();
+    KeepIncenseBurnedPose();
     UpdateHeldItemAttach(cTrans.m_position, cTrans.m_rotation.y, isMoving);
     UpdateFlashLightBeam(cTrans.m_position, cTrans.m_rotation.y);
 
@@ -1090,78 +1249,25 @@ void Player::UpdateSounds(bool isMoving, float deltaTime)
     }
 }
 
-void Player::TryInteractDoor(const Math::Vector3& playerPos)
+void Player::TryInteractDoor()
 {
     auto& ecs = GameManager::Instance().GetECS();
     auto& animMgr = AnimationManager::Instance();
 
-    const float kDoorInteractRange = 3.0f;
-    Entity bestEntity = INVALID_ENTITY;
-    int    bestAnimIdx = -1;
-    float  bestDist = FLT_MAX;
-
-    // Scan all entities for ModelRenderData + TransformData
-    for (Entity entity = 0; entity < MAX_ENTITIES; ++entity)
+    // クロスヘアで捉えている物(UpdateInteractionTargetが選んだもの)だけを開け閉めする
+    Entity bestEntity = m_doorTargetEntity;
+    int    bestAnimIdx = m_doorTargetAnimIdx;
+    if (bestEntity != INVALID_ENTITY)
     {
-        auto* pModel     = ecs.TryGetComponent<ModelRenderData>(entity);
-        auto* pTransform = ecs.TryGetComponent<TransformData>(entity);
-
-        if (!pModel || !pTransform) continue;
-        if (!pModel->m_spModelData || !pModel->m_spModelData->IsLoaded()) continue;
-
-        const auto& anims = pModel->m_spModelData->GetAnimations();
-        if (anims.empty()) continue;
-
-        // 動的に AnimationDataComponent を追加する
-        auto* pAnim = ecs.TryGetComponent<AnimationDataComponent>(entity);
-        if (!pAnim)
+        auto* pModel = ecs.TryGetComponent<ModelRenderData>(bestEntity);
+        if (!pModel || !pModel->m_spModelData || bestAnimIdx < 0 || bestAnimIdx >= (int)pModel->m_spModelData->GetAnimations().size())
         {
-            ecs.AddComponent<AnimationDataComponent>(entity, AnimationDataComponent{});
-            pAnim = ecs.TryGetComponent<AnimationDataComponent>(entity);
-            if (!pAnim) continue; // just in case
+            bestEntity = INVALID_ENTITY;
+            bestAnimIdx = -1;
         }
-
-        // Rough distance check against entity position
-        Math::Vector3 entityPos = pTransform->m_position;
-        float entityDist = (playerPos - entityPos).Length();
-
-        // Find animations whose name contains "Door"
-        for (int i = 0; i < (int)anims.size(); ++i)
+        else if (!ecs.TryGetComponent<AnimationDataComponent>(bestEntity))
         {
-            const std::string& animName = anims[i].name;
-            if (animName.find("Door") == std::string::npos &&
-                animName.find("door") == std::string::npos)
-            {
-                continue;
-            }
-
-            // Use the first channel's node to get the door's world position
-            Math::Vector3 doorPos = entityPos;
-            if (!anims[i].channels.empty())
-            {
-                const std::string& doorNodeName = anims[i].channels[0].nodeName;
-                const auto& nodes = pModel->m_spModelData->GetNodes();
-                for (const auto& node : nodes)
-                {
-                    if (node.name == doorNodeName)
-                    {
-                        Math::Vector3 nodeScale, nodeTrans;
-                        Math::Quaternion nodeRot;
-                        (node.globalTransform * pTransform->m_worldMatrix).Decompose(nodeScale, nodeRot, nodeTrans);
-                        doorPos = nodeTrans;
-                        break;
-                    }
-                }
-            }
-
-            float dist = (playerPos - doorPos).Length();
-
-            if (dist < kDoorInteractRange && dist < bestDist)
-            {
-                bestDist = dist;
-                bestEntity = entity;
-                bestAnimIdx = i;
-            }
+            ecs.AddComponent<AnimationDataComponent>(bestEntity, AnimationDataComponent{});
         }
     }
 
@@ -1195,8 +1301,15 @@ void Player::TryInteractDoor(const Math::Vector3& playerPos)
                 animMgr.PlayMultiAnimation(bestEntity, bestAnimIdx, false, -1.0f);
                 pAnim->multiAnims[bestAnimIdx].ProgressTime = currentTime;
             }
-            // 開け閉めどちらも同じ軋み音(閉める時は少し低めにして聞き分けられるようにする)
-            AudioManager::Instance().PlaySE("Asset/Sound/SE/door_open.wav", m_doorSoundVolume, opening ? 0.0f : -0.15f);
+            // ドアは開け閉めどちらも同じ軋み音(閉める時は少し低めにして聞き分けられるようにする)。襖・押入れは専用の音
+            {
+                const std::string& animName = ecs.GetComponent<ModelRenderData>(bestEntity).m_spModelData->GetAnimations()[bestAnimIdx].name;
+                if (OpenableAnim::IsSliding(animName)) {
+                    AudioManager::Instance().PlaySE(opening ? OpenableAnim::OpenSound(animName) : OpenableAnim::CloseSound(animName), m_doorSoundVolume);
+                } else {
+                    AudioManager::Instance().PlaySE(OpenableAnim::OpenSound(animName), m_doorSoundVolume, opening ? 0.0f : -0.15f);
+                }
+            }
 
             // 追加: アニメーションするエンティティは動的オブジェクトとして扱い、
             // 衝突判定(CollisionManager::Solve)で毎フレームAABBが更新されるようにする
@@ -1225,6 +1338,9 @@ void Player::Serialize(nlohmann::json& out) const
     out["gravityStrength"] = m_gravityStrength;
     out["animWalkSpeed"] = m_animWalkSpeed;
     out["crouchBlendSpeed"] = m_crouchBlendSpeed;
+    out["crouchColliderTop"] = m_crouchColliderTop;
+    out["flashLightLensOffset"] = m_flashLightLensOffset;
+    out["crouchEyeHeight"] = m_crouchEyeHeight;
     out["crouchCameraDelay"] = m_crouchCameraDelay;
     out["footstepVolume"] = m_footstepVolumes[0];
     out["tatamiFootstepVolume"] = m_footstepVolumes[1];
@@ -1235,13 +1351,14 @@ void Player::Serialize(nlohmann::json& out) const
     out["doorLockedSoundVolume"] = m_doorLockedSoundVolume;
     out["smudgeSoundVolume"] = m_smudgeSoundVolume;
     out["smudgeSoundDuration"] = m_smudgeSoundDuration;
-    out["hasIncense"] = m_hasIncense;
-    out["hasAmulet"] = m_hasAmulet;
-    out["hasFlashLight"] = m_hasFlashLight;
-    // アイテムスロットの並び(拾った順)。ItemTypeの値(1〜4)の配列で保存する
+    // 初期所持品だけを保存する(プレイ中の所持状態は保存しない。キー名は以前と同じ)
+    out["hasIncense"] = m_startWithIncense;
+    out["hasAmulet"] = m_startWithAmulet;
+    out["hasFlashLight"] = m_startWithFlashLight;
+    // 開始時のアイテムスロットの並び。ItemTypeの値の配列で保存する
     {
-        std::vector<Item> order = m_itemOrder;
-        order.erase(std::remove_if(order.begin(), order.end(), [&](Item item) { return !HasItem(item); }), order.end());
+        std::vector<Item> order = m_startItemOrder;
+        order.erase(std::remove_if(order.begin(), order.end(), [&](Item item) { return !StartsWith(item); }), order.end());
         nlohmann::json orderJson = nlohmann::json::array();
         for (Item item : order) orderJson.push_back(static_cast<int>(item));
         out["itemOrder"] = orderJson;
@@ -1264,6 +1381,9 @@ void Player::Deserialize(const nlohmann::json& in)
     if (in.contains("gravityStrength")) m_gravityStrength = in["gravityStrength"];
     if (in.contains("animWalkSpeed"))       m_animWalkSpeed = in["animWalkSpeed"];
     if (in.contains("crouchBlendSpeed"))    m_crouchBlendSpeed = in["crouchBlendSpeed"];
+    if (in.contains("crouchColliderTop"))   m_crouchColliderTop = in["crouchColliderTop"];
+    if (in.contains("flashLightLensOffset")) m_flashLightLensOffset = in["flashLightLensOffset"];
+    if (in.contains("crouchEyeHeight"))     m_crouchEyeHeight = in["crouchEyeHeight"];
     if (in.contains("crouchCameraDelay"))   m_crouchCameraDelay = in["crouchCameraDelay"];
     if (in.contains("footstepVolume"))          m_footstepVolumes[0] = in["footstepVolume"];
     if (in.contains("tatamiFootstepVolume"))    m_footstepVolumes[1] = in["tatamiFootstepVolume"];
@@ -1274,21 +1394,21 @@ void Player::Deserialize(const nlohmann::json& in)
     if (in.contains("doorLockedSoundVolume"))   m_doorLockedSoundVolume = in["doorLockedSoundVolume"];
     if (in.contains("smudgeSoundVolume"))       m_smudgeSoundVolume = in["smudgeSoundVolume"];
     if (in.contains("smudgeSoundDuration"))     m_smudgeSoundDuration = in["smudgeSoundDuration"];
-    if (in.contains("hasIncense"))          m_hasIncense = in["hasIncense"];
-    if (in.contains("hasAmulet"))           m_hasAmulet = in["hasAmulet"];
-    if (in.contains("hasFlashLight"))       m_hasFlashLight = in["hasFlashLight"];
+    // シーンの所持フラグ・並びは初期所持品として読む
+    if (in.contains("hasIncense"))          m_startWithIncense = in["hasIncense"];
+    if (in.contains("hasAmulet"))           m_startWithAmulet = in["hasAmulet"];
+    if (in.contains("hasFlashLight"))       m_startWithFlashLight = in["hasFlashLight"];
     if (in.contains("itemOrder") && in["itemOrder"].is_array()) {
-        m_itemOrder.clear();
+        m_startItemOrder.clear();
         for (const auto& v : in["itemOrder"]) {
             if (!v.is_number_integer()) continue;
             int n = v.get<int>();
             if (n >= static_cast<int>(Item::Incense) && n <= static_cast<int>(Item::FlashLight)) {
-                m_itemOrder.push_back(static_cast<Item>(n));
+                m_startItemOrder.push_back(static_cast<Item>(n));
             }
         }
-        // 所持フラグと食い違う分(重複・未所持・抜け)はここで補正する
-        SyncItemOrder();
     }
+    ApplyStartInventory();
     if (in.contains("heldItemOffset")) {
         m_heldItemOffset.x = in["heldItemOffset"][0];
         m_heldItemOffset.y = in["heldItemOffset"][1];
@@ -1348,10 +1468,16 @@ void Player::ImGuiUpdate()
     ImGui::DragFloat3("Held Item Extra Rotation", &m_heldItemExtraRotationDeg.x, 1.0f, -180.0f, 180.0f);
 
     ImGui::Separator();
-    ImGui::Text("[Anim] State: Idle/Walk/Crouch/CrouchWalk, auto UseItem_* prefix while holding an owned item");
+    ImGui::Text("[Anim] State: Idle/Walk/Crouch/CrouchWalk, auto FlashLight_* (light) / UseItem_* (other items) prefix while holding");
     ImGui::DragFloat("Walk Anim Speed", &m_animWalkSpeed, 0.05f, 0.1f, 3.0f);
     ImGui::DragFloat("Crouch Camera Speed", &m_crouchBlendSpeed, 0.1f, 0.5f, 20.0f);
     ImGui::DragFloat("Crouch Camera Delay", &m_crouchCameraDelay, 0.01f, 0.0f, 1.0f);
+    ImGui::DragFloat("FlashLight Lens Offset (m)", &m_flashLightLensOffset, 0.005f, -0.2f, 0.3f);
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"懐中電灯の光が出る位置。レンズからこの距離だけ前(マイナスで後ろ)");
+    ImGui::DragFloat("Crouch Collider Top (m)", &m_crouchColliderTop, 0.01f, 0.3f, 2.0f);
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"しゃがんだ時の当たり判定の上端(足元から)。押し入れの中段の下より低くすると入れる");
+    ImGui::DragFloat("Crouch Eye Height (m)", &m_crouchEyeHeight, 0.01f, 0.2f, 2.0f);
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"しゃがんだ時の目線の高さ(足元から)。当たり判定の上端より少し低くする");
     ImGui::Text("[Debug] Crouching: %s (blend=%.2f)", m_isCrouching ? "true" : "false", m_crouchBlend);
 
     ImGui::Separator();
@@ -1371,15 +1497,32 @@ void Player::ImGuiUpdate()
     ImGui::DragFloat("Smudge Sound Duration (s)", &m_smudgeSoundDuration, 0.1f, 1.0f, 40.0f);
 
     ImGui::Separator();
+    ImGui::Text(u8"[初期所持品] シーンに保存される。プレイ中に拾ったり落としたりしても変わらない");
+    {
+        auto startToggle = [&](const char* label, bool& flag, Item item) {
+            if (ImGui::Checkbox(label, &flag)) {
+                m_startItemOrder.erase(std::remove(m_startItemOrder.begin(), m_startItemOrder.end(), item), m_startItemOrder.end());
+                if (flag) m_startItemOrder.push_back(item); // 付けたものはスロットの末尾へ
+            }
+        };
+        startToggle("Start With Incense", m_startWithIncense, Item::Incense);
+        startToggle("Start With Amulet", m_startWithAmulet, Item::Amulet);
+        startToggle("Start With FlashLight", m_startWithFlashLight, Item::FlashLight);
+        if (ImGui::Button("Apply Start Inventory Now")) ApplyStartInventory();
+        if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"今のプレイ中の所持状態を初期所持品に戻す");
+    }
+
+    ImGui::Separator();
     const char* itemName = "Incense";
     if (m_currentEquipped == Item::Amulet) itemName = "Amulet";
     else if (m_currentEquipped == Item::FlashLight) itemName = "FlashLight";
     ImGui::Text("[Debug] Equipped: %s", itemName);
-    ImGui::Text("[Debug] Has: Incense=%s Amulet=%s FlashLight=%s",
+    ImGui::Text("[Debug] Has (runtime): Incense=%s Amulet=%s FlashLight=%s",
         m_hasIncense ? "true" : "false",
         m_hasAmulet ? "true" : "false",
         m_hasFlashLight ? "true" : "false");
     ImGui::Text("[Debug] FlashLight: %s (T / right-click to toggle)", m_flashLightOn ? "ON" : "OFF");
+    ImGui::Text("[Debug] Incense: %s", m_incenseBurnedOut ? "burned out" : "unused");
     auto& ecs = GameManager::Instance().GetECS();
     auto& cTrans = ecs.GetComponent<TransformData>(GetGameObject()->GetEntityID());
     ImGui::Text("[Debug] Pos: (%.1f, %.1f, %.1f)", cTrans.m_position.x, cTrans.m_position.y, cTrans.m_position.z);

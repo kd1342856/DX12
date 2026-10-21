@@ -24,6 +24,10 @@ struct SpotLightData
     // Bloomの閾値を超えさせて「光っている」見た目にする。0なら発光しない。
     float m_modelGlow = 8.0f;
     std::string m_glowMaterial; // 空なら全メッシュ。指定時はこの名前のマテリアルのメッシュだけ光らせる
+    // 光源の光を受けて明るく見える面(吊り下げ照明のかさの内側など)。このマテリアルの裏面(内側)だけを
+    // m_color * m_modelGlow * m_glowReflectScale で光らせる。空なら無し。
+    std::string m_glowReflectMaterial;
+    float m_glowReflectScale = 0.3f;
 
     // 実行時のみ(保存しない)。点滅演出で「見た目だけ一瞬消えている」状態。描画と発光だけがこれを見る。
     // m_enabled(点灯しているかどうか)自体は変えないので、ゴーストの判定(照明の中で減速・影女の

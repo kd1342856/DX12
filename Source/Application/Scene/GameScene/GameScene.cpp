@@ -1,5 +1,6 @@
 ﻿#include "../../../Pch.h"
 #include "GameScene.h"
+#include "PropLayout.h"
 #include "../../../Framework/Manager/GameManager.h"
 #include "../../../Framework/ECS/CompSystem/SpriteRenderSystem/SpriteRenderSystem.h"
 #include "../../../Framework/ECS/CompSystem/Systems/TransformSystem.h"
@@ -76,8 +77,14 @@ void GameScene::Init()
         }
     }
 
+    // 家の小物(layout.json)をランタイム生成する。シーンJSONには含めない(layout.jsonが配置の正)
+    const auto props = PropLayout::Spawn(*Editor::GetScene());
+
     Editor::GetScene()->Init(); // シーンをロードした後、全スクリプトのAwake/Startを呼ぶ
     JobSystem::Instance().Wait();
+
+    // モデルの読み込み(JobSystem)が終わってからでないとアニメーション一覧が無いので、ここで反映する
+    PropLayout::ApplyInitialOpen(props);
 
     // m_fullscreenGameがtrueでゲームを開始した場合、HandleModeSwitch()のF5トリガを通らないため
     // マウスモードがAbsoluteのままになる。PlayerはFPS視点で操作を開始するため、
@@ -274,15 +281,18 @@ void GameScene::UpdateCamera()
                 Math::Vector3 right = Math::Vector3::TransformNormal(Math::Vector3(1, 0, 0), playerRot);
 
                 bool isChild = (pGameCamObj->GetParent() != nullptr);
-                Math::Vector3 pivotOffset(0, 1.0f, 0); // プレイヤーの身体の中心
+                // プレイヤーの身体の中心。家を実寸にした時にプレイヤーも1.3倍から等倍(身長1.6m)にしたので、1.0m/1.3
+                Math::Vector3 pivotOffset(0, 0.77f, 0);
 
                 // しゃがみ量に応じてカメラを下げる
                 // (PlayerはNativeScriptでありECSに独立したComponent型として登録されていないため、
                 //  TryGetComponent<Player>()は使えない。NativeScriptData経由でdynamic_castする)
                 if (auto* pScriptData = ecs.TryGetComponent<NativeScriptData>(pPlayerObj->GetEntityID())) {
                     if (auto* pPlayerScript = dynamic_cast<Player*>(pScriptData->Instance.get())) {
-                        const float kCrouchCameraLower = 0.5f; // 完全にしゃがんだ時にカメラを下げる量
-                        pivotOffset.y -= pPlayerScript->GetCrouchAmount() * kCrouchCameraLower;
+                        // 完全にしゃがんだ時に目線がPlayerの「しゃがみ目線の高さ」になるだけ下げる
+                        const float standEye = camData.m_fpsOffset.y + pivotOffset.y;
+                        const float crouchLower = (std::max)(0.0f, standEye - pPlayerScript->GetCrouchEyeHeight());
+                        pivotOffset.y -= pPlayerScript->GetCrouchAmount() * crouchLower;
                     }
                 }
 

@@ -7,6 +7,7 @@
 #include "../Collision/CollisionManager.h"
 #include "../Scene/Scene.h"
 #include "../../ImGuiEditor/Editor/Editor.h"
+#include "../Animation/OpenableAnim.h"
 #include <functional>
 #include "Recast/Recast.h"
 #include "Detour/DetourNavMesh.h"
@@ -70,7 +71,7 @@ bool NavMeshManager::BuildNavMesh(std::shared_ptr<ModelData> stageModel, const M
     std::set<std::string> doorNodeNames;
     for (const auto& anim : stageModel->GetAnimations())
     {
-        if (anim.name.find("Door") == std::string::npos && anim.name.find("door") == std::string::npos)
+        if (!OpenableAnim::IsPassage(anim.name))
             continue;
         for (const auto& channel : anim.channels)
         {
@@ -413,7 +414,7 @@ bool NavMeshManager::IsStageCollisionReady()
     return foundAny && allReady;
 }
 
-// 家のモデル内のドア(名前に"Door"を含むアニメーション)が動かすノード名を集める。
+// 家のモデル内の出入口(ドア・襖。OpenableAnim::IsPassage)のアニメーションが動かすノード名を集める。
 // 開口部を探すレイキャストではこれらのノード(ドアの板)を無視して、閉まっているドアでも
 // ドア枠の内側(実際の出入口)を通れる場所として拾えるようにする。
 static std::unordered_set<std::string> CollectDoorNodeNames()
@@ -426,7 +427,7 @@ static std::unordered_set<std::string> CollectDoorNodeNames()
         if (!pModel || !pModel->m_spModelData || !pModel->m_spModelData->IsLoaded()) continue;
         for (const auto& anim : pModel->m_spModelData->GetAnimations())
         {
-            if (anim.name.find("Door") == std::string::npos && anim.name.find("door") == std::string::npos) continue;
+            if (!OpenableAnim::IsPassage(anim.name)) continue;
             for (const auto& channel : anim.channels) names.insert(channel.nodeName);
         }
     }
@@ -440,7 +441,9 @@ bool NavMeshManager::BuildManualNavMesh(const std::vector<RoomArea*>& rooms)
     m_manualPolygons.clear();
 
     // Inset from each room's own bounds so the polygon stays clear of its walls.
-    const float kMargin = 0.5f;
+    // 家を実寸(以前の2/3)にした時に0.5mから縮めた。幅1.0mしかない階段は0.5mずつ寄せると幅が無くなり、
+    // 階段がナビメッシュから丸ごと抜けて1階と2階がつながらなくなっていた。狭い部屋は幅の1/4までにする。
+    const float kMargin = 0.35f;
     // How close two rooms' *raw* (pre-margin) bounds need to be (gap, accounting for wall
     // thickness / doorway) to be considered adjacent, and how much they need to overlap on the
     // shared side to bother connecting them (guards against rooms that only touch at a corner).
@@ -463,10 +466,12 @@ bool NavMeshManager::BuildManualNavMesh(const std::vector<RoomArea*>& rooms)
     for (RoomArea* room : rooms)
     {
         if (!room) continue;
-        float minX = room->m_min.x + kMargin;
-        float maxX = room->m_max.x - kMargin;
-        float minZ = room->m_min.z + kMargin;
-        float maxZ = room->m_max.z - kMargin;
+        const float marginX = (std::min)(kMargin, (room->m_max.x - room->m_min.x) * 0.25f);
+        const float marginZ = (std::min)(kMargin, (room->m_max.z - room->m_min.z) * 0.25f);
+        float minX = room->m_min.x + marginX;
+        float maxX = room->m_max.x - marginX;
+        float minZ = room->m_min.z + marginZ;
+        float maxZ = room->m_max.z - marginZ;
         if (minX >= maxX || minZ >= maxZ) continue; // room too small for this margin, skip it
 
         auto pObj = room->GetGameObject();
@@ -559,7 +564,7 @@ bool NavMeshManager::BuildManualNavMesh(const std::vector<RoomArea*>& rooms)
         const float kStep = 0.1f;
         const float kRayHeight = 1.0f;   // 腰の高さ(テーブル等の家具より上、ドア枠の上端より下)
         const float kMinWidth = 0.5f;    // これより狭い隙間は通れない
-        const float kAgentRadius = 0.45f; // ゴーストの当たり判定の半径(0.44m)。両端からこの分だけ内側へ寄せる
+        const float kAgentRadius = 0.3f;  // ゴーストの体の半径より少し大きめ(実寸の家に合わせて0.45mから縮めた)。両端からこの分だけ内側へ寄せる
         float bestLo = 0.0f, bestHi = -1.0f, runLo = 0.0f, lastOpen = 0.0f;
         bool inRun = false;
         int count = (int)ceilf((hi - lo) / kStep);

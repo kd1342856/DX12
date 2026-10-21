@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "../System/RoomArea.h"
+#include "../../../../Framework/Manager/Audio/AudioManager.h"
 
 class StimulusSource;
 
@@ -61,6 +62,10 @@ private:
     void UpdateWander(float deltaTime, TransformData& cTrans);
     void UpdateHouseWander(float deltaTime, TransformData& cTrans);
     void UpdateHunt(float deltaTime, TransformData& cTrans);
+    // ハント中: Playerが押入れに隠れたかを調べる。隠れるところを見ていれば見つけに行く(m_foundHideSpot)、
+    // 見ていなければその辺りを巡回する(m_hidePatrolTimer)。隠れている間は視認・追跡できない
+    void UpdateHidingPlayer(float deltaTime);
+    void ResetHidingState();
     void PickHuntSearchRoom(const Math::Vector3& currentPos);
     // ハント開始時に玄関ドアを閉めて施錠する(終了時はDoorLock::UnlockAllで解錠)
     void LockEntranceDoor();
@@ -93,6 +98,9 @@ private:
     void UpdateExorciseEffect(float deltaTime, TransformData& cTrans);
     // 除霊の光の粒を1つ出す。burstなら札を貼った瞬間の勢いのある粒にする
     void EmitExorciseParticle(bool burst);
+    // 吐息・ハント中のループ音。毎フレーム呼ぶ(除霊・スタン中も呼んでフェードアウトさせる)
+    void UpdateSounds(float deltaTime, const Math::Vector3& ghostPos);
+    void StopAllSounds();
     void StartHouseWander(const Math::Vector3& currentPos);
     std::vector<RoomArea*> CollectReachableCandidateRooms(const Math::Vector3& currentPos) const;
     void FacePosition(TransformData& cTrans, const Math::Vector3& dir, float deltaTime);
@@ -257,7 +265,7 @@ private:
     bool  m_isTrackingPlayer = false;
     float m_trackGiveUpTime = 5.0f;        // 視認加速が入らないまま、この秒数経ったら追跡停止
     float m_trackGiveUpTimer = 0.0f;
-    std::string m_entranceDoorName = "Door_Living_Entrance"; // ハント中に施錠する玄関ドア(ドアアニメーション名に含まれる文字列)
+    std::string m_entranceDoorName = "Entrance_SlidingDoor"; // 玄関の引き戸(左右2枚とも名前に含む) // ハント中に施錠する玄関ドア(ドアアニメーション名に含まれる文字列)
     float m_lightFlickerRange = 4.0f;          // この水平距離以内の点灯中の照明を点滅させる
     float m_lightFlickerVerticalRange = 4.2f;  // 照明がゴーストの足元より上、この高さ以内(=同じ階の天井まで)なら対象
     float m_wanderFlickerChance = 0.2f;        // ハント以外で近くの照明が点滅し始める確率(1秒あたり)。ハント中は常に点滅
@@ -269,6 +277,23 @@ private:
     Math::Vector3 m_lastKnownPlayerPos = { 0, 0, 0 };
     bool m_hasLastKnownPlayerPos = false;
     bool m_isSeeingPlayer = false;         // 直近のフレームでPlayerを視認していたか(デバッグ表示用)
+
+    // --- 押入れに隠れたPlayer(ハント中) ---
+    // 隠れる直前m_hideSpottedGrace秒以内に見ていたら、押入れの前まで行って襖を開け、ゲームオーバーにする。
+    // 見ていなかったら(居場所の見当がついている時だけ)押入れの前を中心にしばらく巡回し、その後は普通の捜索に戻る。
+    float m_hideSpottedGrace   = 1.0f;     // 隠れる直前この秒数以内に視認していたら「隠れるところを見た」
+    float m_hideRevealDelay    = 0.8f;     // 襖を開けてからゲームオーバーまで(秒)
+    float m_hidePatrolDuration = 10.0f;    // 見られずに隠れた時、押入れの辺りを巡回する時間(秒)
+    float m_hidePatrolRadius   = 2.5f;     // 巡回する範囲(押入れの前からの半径, m)
+    float m_hidePatrolRepick   = 3.0f;     // 巡回の行き先を選び直す間隔(秒)
+    float m_timeSinceSawPlayer = 999.0f;
+    int   m_lastHideSpot = -1;             // 前フレームでPlayerが隠れていた押入れ(-1=隠れていない)
+    int   m_foundHideSpot = -1;            // 隠れるところを見た押入れ(-1=なし)
+    float m_revealTimer = -1.0f;           // 襖を開けてからの経過(<0=まだ開けていない)
+    float m_hidePatrolTimer = 0.0f;
+    float m_hidePatrolRepickTimer = 0.0f;
+    Math::Vector3 m_hidePatrolCenter = { 0, 0, 0 };
+    Math::Vector3 m_hidePatrolTarget = { 0, 0, 0 };
     RoomArea* m_huntSearchRoom = nullptr;  // 見失った後に捜索で向かっている部屋
 
     // --- ドア開閉(HouseWander/Huntの移動中に近づいた閉まっているドアを自動的に開ける) ---
@@ -371,6 +396,28 @@ private:
     float m_doorCheckInterval = 0.25f;     // ドアの近接判定間隔(秒) - 毎フレーム全エンティティを走査しないよう間引く
     float m_doorOpenRange = 2.0f;          // この距離以内の閉まっているドアは自動的に開ける
     float m_doorSoundVolume = 0.9f;        // ゴーストがドアを開けた時の音量(プレイヤーとの距離でさらに減衰する)
+
+    // --- 音(吐息・ハント) ---
+    // 吐息: 姿が見えない間も時々近くで聞こえる(3D: 距離で減衰・左右にパン)。ハント中は同じ音をループで鳴らし続ける
+    float m_breathVolume          = 0.7f;
+    float m_breathRange           = 7.0f;   // この距離(m)以上離れていると聞こえない
+    float m_breathIntervalMin     = 40.0f;  // 通常時の吐息の間隔(秒)。鳴り終わってから数える
+    float m_breathIntervalMax     = 90.0f;
+    float m_huntBreathVolume      = 0.9f;
+    float m_huntBreathRange       = 12.0f;
+    float m_breathTimer           = 5.0f;
+    // 別の階にいるPlayerには吐息を聞こえなくする(距離だけで減衰すると、真上/真下の階から聞こえてしまう)
+    float m_breathOtherFloorRatio = 0.0f;   // 別の階にいる時の吐息の音量の割合
+    float m_breathFloorFade       = 1.0f;   // 階の違いによる音量(階段の昇り降りで急に変わらないよう滑らかにする)
+    // ハント中のループ(2D、ゴーストが近いほど大きくなる)
+    float m_huntLoopVolume        = 0.6f;
+    float m_huntLoopMinRatio      = 0.35f;  // 遠く(Hunt Loop Near Range以上)にいる時のループ音量の割合
+    float m_huntLoopNearRange     = 15.0f;  // この距離から近づくほどループ音量が上がる(m)
+    float m_huntLoopFadeTime      = 1.5f;   // ハント開始・終了時のフェード時間(秒)
+    float m_huntLoopFade          = 0.0f;   // 0~1
+    std::unique_ptr<DirectX::SoundEffectInstance> m_huntLoopSound;
+    std::unique_ptr<DirectX::SoundEffectInstance> m_breathSound;     // 通常時の吐息(1回ずつ)
+    std::unique_ptr<DirectX::SoundEffectInstance> m_huntBreathSound; // ハント中の吐息(ループ)
 
     // Ghost.gltfのアニメーションは 0:Ghost_Death, 1:Ghost_Move の2つしかない。
     // 専用のIdle/Huntモーションがないので、とりあえずMoveを使う

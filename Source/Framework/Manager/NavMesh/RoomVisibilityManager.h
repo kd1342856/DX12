@@ -17,8 +17,8 @@ using Entity = uint32_t;
 //
 // NavMesh用に既に配置されているRoomArea（GameSequence::GetRooms()）をそのまま流用する
 // ので、レベル側の追加作業は不要。部屋同士の隣接関係は、AABBが壁を共有できるくらい
-// 近いかどうかで一度だけ推定する。各隣接エッジは、位置ベースで"Door..."という名前の
-// アニメーションを持つドア（Playerの TryInteractDoor が使っているのと同じ検出方法）と
+// 近いかどうかで一度だけ推定する。各隣接エッジは、位置ベースで部屋の出入口（ドア・襖。
+// OpenableAnim::IsPassage）のアニメーションと
 // 突き合わせる。該当するドアが見つかればその開閉状態（RuntimeAnimationData::ProgressTime）
 // で可視性を制御し、ドアが見つからないエッジ（開いた通路など）は常に通行可能扱いにする。
 class RoomVisibilityManager
@@ -57,7 +57,8 @@ private:
     std::vector<RoomArea*> m_rooms;
     std::vector<DirectX::BoundingBox> m_paddedRoomBoxes; // 外側にパディングした部屋のAABB - 隣接判定/ドア突き合わせ/メッシュ割り当てで共有
     std::vector<std::vector<int>> m_adjacency;         // 部屋インデックス -> 隣接する部屋インデックスのリスト
-    std::unordered_map<uint64_t, DoorLink> m_edgeDoors; // EdgeKey(i,j) -> ドア（該当するドアが見つかったエッジのみ）
+    // EdgeKey(i,j) -> その間の出入口（該当するものが見つかったエッジのみ）。襖は左右2枚あるので複数持ち、どれか1枚でも開いていれば通れる扱い
+    std::unordered_map<uint64_t, std::vector<DoorLink>> m_edgeDoors;
     std::unordered_map<Mesh*, std::vector<int>> m_meshRoomIndices; // 空 = どの部屋にも割り当てられなかった
     std::unordered_set<int> m_visibleRoomIndices;
     bool m_graphBuilt = false;
