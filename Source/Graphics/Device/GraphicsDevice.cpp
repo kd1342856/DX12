@@ -273,6 +273,8 @@ bool GraphicsDevice::CreateSwapChain(HWND hWnd, int width, int height)
 	swapchainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	swapchainDesc.BufferCount = kSwapChainBufferCount;
 	swapchainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+	// 全画面(ボーダーレス)時はバックバッファをウィンドウ全体へ引き伸ばして表示する(Window::SetFullscreen参照)
+	swapchainDesc.Scaling = DXGI_SCALING_STRETCH;
 
 	// Without DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING, DWM keeps syncing the
 	// presentation to the monitor refresh rate even when SyncInterval is 0,
@@ -633,6 +635,19 @@ void GraphicsDevice::RenderImGui()
 	auto cmdList = m_upContextManager->GetGraphicsContext()->GetCmdList();
 	cmdList->SetDescriptorHeaps(1, ppHeaps);
 	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), cmdList);
+}
+void GraphicsDevice::ApplyImGuiFramebufferScale()
+{
+	// スワップチェーンは常に起動時の解像度のまま(ResizeBuffersしない)で、全画面時は
+	// DXGI_SCALING_STRETCHでウィンドウ全体へ拡大表示される。ImGuiのDisplaySizeは
+	// クライアント領域の大きさなので、その比をFramebufferScaleとして渡してバックバッファへ縮めて描く。
+	ImGuiIO& io = ImGui::GetIO();
+	DXGI_SWAP_CHAIN_DESC1 desc = {};
+	if (!m_pSwapChain || FAILED(m_pSwapChain->GetDesc1(&desc))) return;
+	if (io.DisplaySize.x <= 0.0f || io.DisplaySize.y <= 0.0f) return;
+	io.DisplayFramebufferScale = ImVec2(
+		static_cast<float>(desc.Width) / io.DisplaySize.x,
+		static_cast<float>(desc.Height) / io.DisplaySize.y);
 }
 void GraphicsDevice::ShutdownImGui()
 {

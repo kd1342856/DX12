@@ -21,7 +21,7 @@ public:
     enum class GhostType
     {
         Jibakurei, // 地縛霊: 刺激に反応しない。香はハント中ならいつでも効く
-        Kageonna,  // 影女: 徘徊中は点灯中の光源に誘導される。香はハント中、周り(m_kageonnaLightRadius)で部屋の電気(天井照明等。ランプ・フラッシュライトは除く)が点いている時だけ効く。勝手に照明を消す(点けることはしない)
+        Kageonna,  // 影女: 徘徊中は点灯中の光源に誘導される。香はハント中、影女がいる部屋(RoomArea)の部屋の電気(天井照明等。ランプ・フラッシュライトは除く)が点いている時だけ効く。勝手に照明を消す(点けることはしない)
         Yanari,    // 家鳴: 音に誘導される(未実装 - 現状は地縛霊と同じ挙動。抽選対象外)
     };
 
@@ -52,6 +52,11 @@ public:
     bool IsExorcised() const { return m_isExorcised; }
 
     GhostType GetGhostType() const { return m_ghostType; }
+    // ゲーム中に種類を変える(発表用デバッグモード等)。照明のいたずらの間隔も新しい種類に合わせる
+    void SetGhostType(GhostType type);
+
+    // 顔のワールド座標。Playerを捕まえた時、カメラをここに向けて固定する
+    Math::Vector3 GetFacePosition() const;
 
     // 香を当てられた時にPlayerから呼ばれる。退治(スタン)できるのはハント中だけで、さらに種類ごとの
     // 条件を満たしていればスタンしてtrueを返す。
@@ -82,11 +87,16 @@ private:
     void CheckStimulus(float deltaTime, const Math::Vector3& currentPos);
     // 影女/家鳴の兆候: 近くで点いている発生源を勝手に消す(影女なら照明を消す)
     void UpdateTell(float deltaTime, const Math::Vector3& currentPos);
+    // 次の照明のいたずらまでの時間(種類ごとの間隔から抽選)
+    float PickTellInterval() const;
     // Luredを終えてゴーストルームへ歩いて帰る(Hunt終了時と同じ帰り方)
     void ReturnToGhostRoom(const Math::Vector3& currentPos);
-    // 影女用: ghostPosからm_kageonnaLightRadius以内に点いている明かりがあるか
+    // 影女用: ghostPosが点いている部屋の電気に照らされているか(照らす範囲内で、壁・床・天井に遮られていない)
     // (部屋の電気 = m_isRoomLightの光のStimulusSourceだけ。ランプ・フラッシュライトは含まない)
-    bool IsAnyLightLitNear(const Math::Vector3& ghostPos) const;
+    bool IsLitByRoomLight(const Math::Vector3& ghostPos) const;
+    // 影女の退治条件: ghostPosがいる部屋(RoomArea。ゴーストルームの抽選と同じ箱)の中にある部屋の電気が点いているか。
+    // どの部屋の箱にも入っていない場所(廊下の端など)ではIsLitByRoomLightで判定する
+    bool IsRoomLightOnAt(const Math::Vector3& ghostPos) const;
     // posが点いている照明の照らす範囲内(スポットライトの円錐+距離、照明側のポイントライトの距離)にあるか。
     // StimulusSource管理の照明は点滅中でも点灯扱い(IsActive)で判定する。ハント中の減速に使う。
     bool IsPositionLit(const Math::Vector3& pos) const;
@@ -104,6 +114,14 @@ private:
     void StartHouseWander(const Math::Vector3& currentPos);
     std::vector<RoomArea*> CollectReachableCandidateRooms(const Math::Vector3& currentPos) const;
     void FacePosition(TransformData& cTrans, const Math::Vector3& dir, float deltaTime);
+    // Playerに触れていたらゲームオーバーを通知する。衝突イベント(OnCollisionEnter)は壁抜け中(トリガー化)には
+    // 発火せず、接触した瞬間の1回しか来ないため取りこぼす。距離で毎フレーム判定する
+    void CheckPlayerContact(const Math::Vector3& ghostPos);
+    // Playerを捕まえた後(ゲームオーバー中): その場で止まってPlayerの方を向き、姿を見せる。
+    // 押入れの襖を開けて見つけた場合は覗き込み(UpdateClosetPeek)をする
+    void UpdateCaught(float deltaTime, TransformData& cTrans);
+    // 押入れの襖を開けた後: 目線の高さまで沈みながら顔をPlayerの目の前まで近づけ、少ししてゲームオーバー
+    void UpdateClosetPeek(float deltaTime, TransformData& cTrans);
     void SetModelVisible(bool visible);
     Entity FindPlayerEntity();
     bool CanSeePlayer(const TransformData& cTrans, Math::Vector3& outPlayerPos);
@@ -113,7 +131,16 @@ private:
     // 階段の入口(今いる階側の階段の端の少し手前)。exitLandingYは渡った先の床の高さ。
     Math::Vector3 GetStairsEntryPoint(float exitLandingY) const;
     void TryOpenNearbyDoor(const Math::Vector3& ghostPos, float deltaTime);
+    // 引き違いの襖の、開いている側のすき間(gap)を通らせる。経路がこの出入口を通る時だけ
+    void TrySteerThroughGap(const Math::Vector3& ghostPos, const Math::Vector3& gapCenter);
     void SetDoorPassThrough(bool enabled);
+    // 家具(Propsの静的な箱の当たり判定)。NavMeshは部屋の形だけで家具を知らないので、経路が家具を突っ切る。
+    // ぶつかって詰まると壁抜け(当たり判定のトリガー化)が入ってすり抜けてしまうため、移動時に自前で避け、
+    // 壁抜け中でも家具の中には入らないよう押し出す
+    void EnsurePropBoxes(float deltaTime);
+    Math::Vector3 AvoidProps(const Math::Vector3& currentPos, const Math::Vector3& nextPos);
+    Math::Vector3 PushOutOfProps(const Math::Vector3& pos) const;
+    bool PropOverlapsHeight(const DirectX::BoundingBox& box, float feetY) const;
     Math::Vector3 GetEffectiveMoveTarget(const Math::Vector3& currentPos, const Math::Vector3& finalTarget);
     bool IsInStairsArea(const Math::Vector3& pos, float padOverride = -1.0f) const;
     Math::Vector3 GetStairsCrossingMove(float deltaTime);
@@ -173,12 +200,14 @@ private:
 
     // --- 香の失敗ペナルティ ---
     float m_failHuntExtension = 5.0f;    // 条件外で香を使われた時、Hunt中ならこの秒数だけHuntを延長する
-    float m_kageonnaLightRadius = 12.0f;    // 影女: この距離以内で明かりが点いていないと香が効かない
 
     // --- 兆候(影女: 勝手に照明を消す) ---
     float m_tellTimer = 0.0f;
     float m_tellIntervalMin = 20.0f;
     float m_tellIntervalMax = 40.0f;
+    // 影女は明かりを消して回るのが兆候なので、他の種類より頻繁に消す
+    float m_kageonnaTellIntervalMin = 8.0f;
+    float m_kageonnaTellIntervalMax = 15.0f;
     float m_tellRange = 8.0f;            // この距離以内で点いている発生源を勝手に消す
 
     // --- 家の範囲(HouseWander/Huntの移動先をこの範囲内に制限する) ---
@@ -217,11 +246,30 @@ private:
     float m_stuckCheckMinProgress = 0.5f;
     float m_houseWanderStuckCheckTimer = 0.0f;
 
-    // Shared "quick recovery" delay: used by both UpdateHouseWander and UpdateHunt's stuck-checks
-    // to grant a brief pass-through window (reusing m_doorPassThroughTimer/Duration) well before
-    // the full give-up timeout, so minor collision snags don't need a full destination change to
-    // resolve.
-    float m_quickStuckPassThroughDelay = 1.0f;
+    // 詰まった時の脱出(UpdateHouseWander/UpdateHunt/UpdateLuredの立ち往生検知で使う)。
+    // 以前は詰まると壁抜け(当たり判定のトリガー化)を数秒許可していたが、T字の角などで引っかかるたびに
+    // 壁をすり抜けて追ってくるようになっていたので廃止した。代わりに経路を計算し直し、少し後ろ斜めへ
+    // 下がってから進み直す(当たり判定は入ったままなので壁には入らない)。下がる向きは毎回左右を入れ替える。
+    float m_unstickDelay    = 1.0f;   // これだけ進めなければ脱出する(秒)
+    float m_unstickDuration = 0.6f;   // 後ろ斜めへ下がる時間(秒)
+    float m_unstickCooldown = 1.5f;   // 次に脱出するまでの間隔(秒)
+    float m_unstickTimer = 0.0f;
+    // 同じ行き先へ向かう間に下がり直した回数。下がる動き自体が「進んだ」と数えられて立ち往生の時間が溜まらず、
+    // たどり着けない行き先(部屋の中心が食卓の位置にある等)をいつまでも諦めなかったので、回数でも諦める
+    int   m_unstickAttempts = 0;
+    int   m_unstickMaxAttempts = 3;
+
+    // 引き違いの襖のすき間を通る(TrySteerThroughGap)。NavMeshは出入口全体を通れる扱いなので、
+    // そのままだと閉じている側の板を(当たり判定は無視するので)すり抜けて見える
+    Math::Vector3 m_gapPos = { 0, 0, 0 };
+    float m_gapTimer = 0.0f;              // >0の間はすき間の真ん中へ真っ直ぐ向かう
+    Math::Vector3 m_lastGapPos = { 0, 0, 0 };
+    float m_gapCooldownTimer = 0.0f;      // 同じすき間へ何度も向かい直さないよう、通った後しばらくは対象外
+    float m_unstickCooldownTimer = 0.0f;
+    float m_unstickSide = 1.0f;
+    Math::Vector3 m_unstickDir = { 0, 0, 0 };
+    // 詰まっていたら脱出を始める(stuckTimerは各ステートの立ち往生時間)
+    void TryUnstick(float stuckTimer, const Math::Vector3& currentPos);
     Math::Vector3 m_huntStuckLastPos = { 0, 0, 0 };
     float m_huntStuckTimer = 0.0f;
     float m_huntStuckCheckTimer = 0.0f;
@@ -282,7 +330,18 @@ private:
     // 隠れる直前m_hideSpottedGrace秒以内に見ていたら、押入れの前まで行って襖を開け、ゲームオーバーにする。
     // 見ていなかったら(居場所の見当がついている時だけ)押入れの前を中心にしばらく巡回し、その後は普通の捜索に戻る。
     float m_hideSpottedGrace   = 1.0f;     // 隠れる直前この秒数以内に視認していたら「隠れるところを見た」
-    float m_hideRevealDelay    = 0.8f;     // 襖を開けてからゲームオーバーまで(秒)
+    float m_hideRevealDelay    = 0.8f;     // 顔を近づけ終わってからゲームオーバーまで(秒)
+    // 襖を開けた後の覗き込み: しゃがみアニメーションでしゃがみ、顔がPlayerの目線の高さに来るよう高さを合わせて
+    // 押入れの中へ顔を差し込み、目の前まで近づける(顔ドアップ)
+    float m_peekStartDelay     = 0.3f;     // 襖を開けてから覗き込み始めるまで(秒)
+    float m_peekMoveTime       = 0.6f;     // 顔を目の前まで近づけるのにかける時間(秒)
+    float m_peekDistance       = 0.6f;     // 近づけ終わった時の、Playerの目からゴーストの顔までの距離(m)
+    float m_crouchFaceHeight   = 1.1f;     // しゃがみアニメーション中の、足元から顔までの高さ(m)
+    bool  m_peekStarted = false;
+    Math::Vector3 m_peekStartPos;          // 覗き込み開始時のゴーストの位置
+    Math::Vector3 m_peekDir;               // Playerの目から見たゴーストの方向(水平, 覗き込み開始時に固定)
+    float m_catchRadius        = 1.0f;     // Playerとの水平距離がこれ以下で「触れた」としてゲームオーバー(m)
+    float m_faceHeight         = 1.9f;     // 足元から顔までの高さ。捕まった時のカメラの注視点(m)
     float m_hidePatrolDuration = 10.0f;    // 見られずに隠れた時、押入れの辺りを巡回する時間(秒)
     float m_hidePatrolRadius   = 2.5f;     // 巡回する範囲(押入れの前からの半径, m)
     float m_hidePatrolRepick   = 3.0f;     // 巡回の行き先を選び直す間隔(秒)
@@ -298,8 +357,23 @@ private:
 
     // --- ドア開閉(HouseWander/Huntの移動中に近づいた閉まっているドアを自動的に開ける) ---
     float m_doorCheckTimer = 0.0f;
-    float m_doorPassThroughTimer = 0.0f;
-    float m_doorPassThroughDuration = 3.5f;
+
+    // --- 家具の回避 ---
+    // ゴーストの体の半径(家具の箱をこの分だけ太らせて判定する, m)。実際の当たり判定(カプセル)の半径+余裕で上書きする。
+    // カプセルより小さいと、避けたつもりでもカプセルが家具の角にかかり、物理の押し戻しで家具の上へ押し上げられる
+    float m_propAvoidRadius = 0.35f;
+    float m_propLookAhead   = 0.8f;       // 進路上この距離以内に家具があれば回り込み始める(m)
+    // これより低い家具(本・新聞など)は障害物にしない(m)。布団(0.24m)は当たり判定があり、上を通ろうとすると
+    // 押し上げられて進めなくなるので避ける
+    float m_propMinObstacleHeight = 0.2f;
+    std::vector<DirectX::BoundingBox> m_propBoxes;
+    bool  m_propBoxesBuilt = false;
+    float m_propBoxRetryTimer = 0.0f;
+    int   m_avoidPropIndex = -1;          // 今回り込んでいる家具(左右を毎フレーム切り替えてガタつかないよう覚えておく)
+    float m_avoidPropSide = 0.0f;         // 回り込む向き(+1/-1)
+    float m_avoidHoldTimer = 0.0f;        // 家具を避け終わってもしばらく回り込む向きを保つ(ぐるぐる回る時に左右が入れ替わらないように)
+    float m_avoidCircleDir = 1.0f;        // 家具のまわりを回る向き(+1=反時計回り, -1=時計回り)。進む向きに対する左右ではなくこちらで覚える
+    Math::Vector3 m_avoidGoal = { 0, 0, 0 }; // 最終的な行き先(回り込む左右を、行き先に近い回り方で選ぶのに使う)
     // Safety-net interval for NavMeshManager::MoveToward: it now mainly recomputes the path when
     // the target has actually moved (see its own comment), so this only matters as a rare fallback
     // in case something else changed underneath without the target moving. Kept long so it doesn't
@@ -426,6 +500,7 @@ private:
     int m_animWander = 1;
     int m_animHunt = 1;
     int m_animDead = 0;
+    int m_animCrouch = 1;                  // 押入れを覗き込む時のしゃがみ(ループ)
 
     RoomArea* m_targetRoom = nullptr;
     float m_stunTimer = 0.0f;

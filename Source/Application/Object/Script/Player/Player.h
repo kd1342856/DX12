@@ -42,6 +42,8 @@ public:
     bool IsCrouching() const { return m_isCrouching; }
     // 完全にしゃがんだ時の目線の高さ(足元から, m)。GameSceneがカメラを下げる量の計算に使う
     float GetCrouchEyeHeight() const { return m_crouchEyeHeight; }
+    // 目の位置(ゲームカメラのワールド座標)。押入れで見つかった時にゴーストが顔を近づける先に使う
+    Math::Vector3 GetEyePosition();
 
 private:
     // Fキーでドアを開閉する処理
@@ -66,6 +68,11 @@ private:
     // 香(スマッジスティック)は使い捨て: 一度燃やしたら燃え尽きて、以後は右クリックしても使えない。
     // 香は1本だけなので、落として拾い直しても燃え尽きたまま(Playerが持つ)。
     bool m_incenseBurnedOut = false;
+
+    // 発表用デバッグモード(0キーで切り替え): ゴーストを影女にし、香を何度でも使えるようにして、無敵にする
+    bool m_presentationMode = false;
+    int  m_ghostTypeBeforePresentation = -1; // OFFにした時に戻す種類(GhostType)
+    void TogglePresentationMode(class GhostAI* ghost);
     void SetFlashLightOnWithSound(bool on);
     void UpdateSounds(bool isMoving, float deltaTime);
     float m_moveSpeedKmh = 10.8f; // 移動速度(km/h)。移動計算では/3.6してm/sにする
@@ -196,6 +203,8 @@ private:
     // クロスヘア(カメラ中央の視線)が重なっている、一番手前の操作できる物を m_interactKind/m_interactEntity
     // (扉なら m_doorTargetEntity/m_doorTargetAnimIdx)に入れる。家の壁・床・天井の奥にある物は対象外
     void UpdateInteractionTarget(const Math::Vector3& playerPos);
+    // ゴーストがハント中か。ハント中は照明のスイッチ(壁スイッチ・紐スイッチ・ランプ)を操作できない
+    bool IsGhostHunting() const;
     void UpdateInteractPrompt();
     bool GetCrosshairRay(Math::Vector3& outOrigin, Math::Vector3& outDir);
 

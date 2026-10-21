@@ -49,19 +49,19 @@ void Editor::DrawInspector() {
         // Name Edit
         char nameBuffer[256];
         strcpy_s(nameBuffer, s_selectedObject->GetName().c_str());
-        if (ImGui::InputText("Name", nameBuffer, 256)) {
+        if (ImGui::InputText(u8"名前", nameBuffer, 256)) {
             s_selectedObject->SetName(nameBuffer);
         }
 
         ImGui::SameLine();
-        if (ImGui::Button("Delete")) {
+        if (ImGui::Button(u8"削除")) {
             s_selectedObject->Destroy();
             s_selectedObject = nullptr;
         }
 
         if (s_selectedObject) {
             ImGui::SameLine();
-            if (ImGui::Button("Save as Prefab")) {
+            if (ImGui::Button(u8"プレハブとして保存")) {
                 ImGui::OpenPopup("SavePrefabPopup");
             }
 
@@ -70,9 +70,9 @@ void Editor::DrawInspector() {
                 if (prefabName[0] == '\0') {
                     strcpy_s(prefabName, s_selectedObject->GetName().c_str());
                 }
-                ImGui::InputText("Filename", prefabName, 256);
+                ImGui::InputText(u8"ファイル名", prefabName, 256);
                 ImGui::Text(".json will be appended");
-                if (ImGui::Button("Save")) {
+                if (ImGui::Button(u8"保存")) {
                     auto sceneObj = GetCurrentScenePtr();
                     if (sceneObj) {
                         nlohmann::json pj = sceneObj->SerializeGameObject(s_selectedObject);
@@ -97,66 +97,66 @@ void Editor::DrawInspector() {
             auto& ecs = GameManager::Instance().GetECS();
 
             if (auto* pTrans = ecs.TryGetComponent<TransformData>(entity)) {
-                if (ImGui::CollapsingHeader("TransformData", ImGuiTreeNodeFlags_DefaultOpen)) {
+                if (ImGui::CollapsingHeader(u8"トランスフォーム", ImGuiTreeNodeFlags_DefaultOpen)) {
                     auto& t = *pTrans;
-                    ImGui::DragFloat3("Position", &t.m_position.x, 0.1f);
+                    ImGui::DragFloat3(u8"位置", &t.m_position.x, 0.1f);
                     
                     Math::Vector3 rotDeg = t.m_rotation;
                     rotDeg.x = DirectX::XMConvertToDegrees(rotDeg.x);
                     rotDeg.y = DirectX::XMConvertToDegrees(rotDeg.y);
                     rotDeg.z = DirectX::XMConvertToDegrees(rotDeg.z);
-                    if (ImGui::DragFloat3("Rotation", &rotDeg.x, 0.5f)) {
+                    if (ImGui::DragFloat3(u8"回転 (度)", &rotDeg.x, 0.5f)) {
                         t.m_rotation.x = DirectX::XMConvertToRadians(rotDeg.x);
                         t.m_rotation.y = DirectX::XMConvertToRadians(rotDeg.y);
                         t.m_rotation.z = DirectX::XMConvertToRadians(rotDeg.z);
                     }
-                    ImGui::DragFloat3("Scale", &t.m_scale.x, 0.1f);
+                    ImGui::DragFloat3(u8"拡大率", &t.m_scale.x, 0.1f);
                 }
             }
 
             if (auto* pModel = ecs.TryGetComponent<ModelRenderData>(entity)) {
-                if (ImGui::CollapsingHeader("ModelRenderData", ImGuiTreeNodeFlags_DefaultOpen)) {
+                if (ImGui::CollapsingHeader(u8"モデル", ImGuiTreeNodeFlags_DefaultOpen)) {
                     auto& m = *pModel;
-                    ImGui::Text("File Path: %s", m.m_filePath.c_str());
+                    ImGui::Text(u8"ファイル: %s", m.m_filePath.c_str());
                     
                     int modelType = static_cast<int>(m.m_modelType);
-                    ImGui::RadioButton("Static", &modelType, 0); ImGui::SameLine();
-                    ImGui::RadioButton("Dynamic", &modelType, 1);
+                    ImGui::RadioButton(u8"静的", &modelType, 0); ImGui::SameLine();
+                    ImGui::RadioButton(u8"動的", &modelType, 1);
                     m.m_modelType = static_cast<ModelType>(modelType);
-                    ImGui::Checkbox("Per-Instance Animation", &m.m_perInstanceAnimation);
+                    ImGui::Checkbox(u8"個別にアニメーション", &m.m_perInstanceAnimation);
                     if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"同じモデルを複数置いても、このオブジェクトだけ別々にアニメーションさせる(ノードアニメーションのみ)");
                 }
             }
 
             if (auto* pSprite = ecs.TryGetComponent<SpriteData>(entity)) {
-                if (ImGui::CollapsingHeader("SpriteData", ImGuiTreeNodeFlags_DefaultOpen)) {
+                if (ImGui::CollapsingHeader(u8"スプライト", ImGuiTreeNodeFlags_DefaultOpen)) {
                     auto& s = *pSprite;
-                    ImGui::Text("Texture Path: %s", s.m_filePath.c_str());
+                    ImGui::Text(u8"テクスチャ: %s", s.m_filePath.c_str());
 
-                    ImGui::DragFloat2("Size", &s.m_size.x, 1.0f);
-                    ImGui::DragFloat2("Pivot", &s.m_pivot.x, 0.01f, 0.0f, 1.0f);
-                    ImGui::ColorEdit4("Color", &s.m_color.x);
-                    ImGui::InputInt("Order In Layer", &s.m_orderInLayer);
+                    ImGui::DragFloat2(u8"サイズ", &s.m_size.x, 1.0f);
+                    ImGui::DragFloat2(u8"基準点", &s.m_pivot.x, 0.01f, 0.0f, 1.0f);
+                    ImGui::ColorEdit4(u8"色", &s.m_color.x);
+                    ImGui::InputInt(u8"描画順", &s.m_orderInLayer);
                 }
             }
 
             if (auto* pCam = ecs.TryGetComponent<CameraData>(entity)) {
-                if (ImGui::CollapsingHeader("CameraData", ImGuiTreeNodeFlags_DefaultOpen)) {
+                if (ImGui::CollapsingHeader(u8"カメラ", ImGuiTreeNodeFlags_DefaultOpen)) {
                     auto& c = *pCam;
-                    const char* modes[] = { "EditorFree", "TPS", "FPS" };
+                    const char* modes[] = { u8"エディタ自由視点", u8"三人称 (TPS)", u8"一人称 (FPS)" };
                     int modeInt = static_cast<int>(c.m_cameraMode);
-                    if (ImGui::Combo("Camera Mode", &modeInt, modes, IM_ARRAYSIZE(modes))) {
+                    if (ImGui::Combo(u8"カメラモード", &modeInt, modes, IM_ARRAYSIZE(modes))) {
                         c.m_cameraMode = static_cast<CameraMode>(modeInt);
                     }
-                    ImGui::DragFloat3("TPS Offset", &c.m_targetOffset.x, 0.1f);
-                    ImGui::DragFloat3("FPS Offset", &c.m_fpsOffset.x, 0.1f);
-                    ImGui::DragFloat("FOV", &c.m_fov, 0.5f, 1.0f, 179.0f);
-                    ImGui::DragFloat("Near Z", &c.m_nearZ, 0.1f);
-                    ImGui::DragFloat("Far Z", &c.m_farZ, 1.0f);
-                    ImGui::DragFloat("Move Speed (m/s)", &c.m_moveSpeed, 0.1f, 0.1f, 100.0f);
+                    ImGui::DragFloat3(u8"三人称のオフセット", &c.m_targetOffset.x, 0.1f);
+                    ImGui::DragFloat3(u8"一人称のオフセット", &c.m_fpsOffset.x, 0.1f);
+                    ImGui::DragFloat(u8"視野角", &c.m_fov, 0.5f, 1.0f, 179.0f);
+                    ImGui::DragFloat(u8"描画距離 (近)", &c.m_nearZ, 0.1f);
+                    ImGui::DragFloat(u8"描画距離 (遠)", &c.m_farZ, 1.0f);
+                    ImGui::DragFloat(u8"移動速度 (m/s)", &c.m_moveSpeed, 0.1f, 0.1f, 100.0f);
 
                     ImGui::Separator();
-                    ImGui::Checkbox("Debug Preview Camera", &c.m_isDebugPreview);
+                    ImGui::Checkbox(u8"プレビュー用カメラにする", &c.m_isDebugPreview);
                     ImGui::SameLine();
                     ImGui::TextDisabled("(?)");
                     if (ImGui::IsItemHovered()) {
@@ -171,14 +171,14 @@ void Editor::DrawInspector() {
             }
 
             if (auto* pCol = ecs.TryGetComponent<ColliderData>(entity)) {
-                if (ImGui::CollapsingHeader("ColliderData", ImGuiTreeNodeFlags_DefaultOpen)) {
+                if (ImGui::CollapsingHeader(u8"当たり判定", ImGuiTreeNodeFlags_DefaultOpen)) {
                     auto& col = ecs.GetComponent<ColliderData>(entity);
-                    ImGui::Checkbox("Is Static", &col.m_isStatic);
+                    ImGui::Checkbox(u8"動かない (静的)", &col.m_isStatic);
 
-                    ImGui::TextDisabled("Shapes");
-                    if (ImGui::Button("Add Box")) { col.m_shapes.push_back(std::make_shared<CollisionShapeBox>()); } ImGui::SameLine();
-                    if (ImGui::Button("Add Sphere")) { col.m_shapes.push_back(std::make_shared<CollisionShapeSphere>()); } ImGui::SameLine();
-                    if (ImGui::Button("Add Capsule")) { col.m_shapes.push_back(std::make_shared<CollisionShapeCapsule>()); }
+                    ImGui::TextDisabled(u8"形状");
+                    if (ImGui::Button(u8"箱を追加")) { col.m_shapes.push_back(std::make_shared<CollisionShapeBox>()); } ImGui::SameLine();
+                    if (ImGui::Button(u8"球を追加")) { col.m_shapes.push_back(std::make_shared<CollisionShapeSphere>()); } ImGui::SameLine();
+                    if (ImGui::Button(u8"カプセルを追加")) { col.m_shapes.push_back(std::make_shared<CollisionShapeCapsule>()); }
 
                     for (size_t i = 0; i < col.m_shapes.size(); ++i) {
                         ImGui::PushID((int)i);
@@ -188,7 +188,7 @@ void Editor::DrawInspector() {
                             ImGui::TreePop();
                         }
                         ImGui::SameLine();
-                        if (ImGui::Button("Remove")) {
+                        if (ImGui::Button(u8"削除")) {
                             col.m_shapes.erase(col.m_shapes.begin() + i);
                             --i;
                         }
@@ -197,7 +197,7 @@ void Editor::DrawInspector() {
                 }
             }
             if (auto* pAnim = ecs.TryGetComponent<AnimationDataComponent>(entity)) {
-                if (ImGui::CollapsingHeader("AnimationDataComponent", ImGuiTreeNodeFlags_DefaultOpen)) {
+                if (ImGui::CollapsingHeader(u8"アニメーション", ImGuiTreeNodeFlags_DefaultOpen)) {
                     auto& animData = ecs.GetComponent<AnimationDataComponent>(entity);
                     
                     if (auto* pAnimModel = ecs.TryGetComponent<ModelRenderData>(entity)) {
@@ -214,103 +214,103 @@ void Editor::DrawInspector() {
                                 if (currentIdx < 0) currentIdx = 0;
                                 if (currentIdx >= (int)animNames.size()) currentIdx = (int)animNames.size() - 1;
                                 
-                                if (ImGui::Combo("Animation", &currentIdx, animNames.data(), (int)animNames.size())) {
+                                if (ImGui::Combo(u8"再生するアニメーション", &currentIdx, animNames.data(), (int)animNames.size())) {
                                     animData.currentAnim.AnimationIndex = currentIdx;
                                 }
                             } else {
-                                ImGui::Text("No animations in model.");
+                                ImGui::Text(u8"モデルにアニメーションがありません");
                             }
                         }
                     } else {
-                        ImGui::InputInt("Animation Index", &animData.currentAnim.AnimationIndex);
+                        ImGui::InputInt(u8"アニメーション番号", &animData.currentAnim.AnimationIndex);
                     }
 
-                    ImGui::DragFloat("Progress Time", &animData.currentAnim.ProgressTime, 0.01f);
-                    ImGui::DragFloat("Speed", &animData.currentAnim.Speed, 0.01f);
+                    ImGui::DragFloat(u8"再生位置", &animData.currentAnim.ProgressTime, 0.01f);
+                    ImGui::DragFloat(u8"再生速度", &animData.currentAnim.Speed, 0.01f);
                     
-                    if (ImGui::Button("Play")) {
+                    if (ImGui::Button(u8"再生")) {
                         animData.currentAnim.IsPlaying = true;
                     }
                     ImGui::SameLine();
-                    if (ImGui::Button("Pause")) {
+                    if (ImGui::Button(u8"一時停止")) {
                         animData.currentAnim.IsPlaying = false;
                     }
                     ImGui::SameLine();
-                    if (ImGui::Button("Stop")) {
+                    if (ImGui::Button(u8"停止")) {
                         animData.currentAnim.IsPlaying = false;
                         animData.currentAnim.ProgressTime = 0.0f;
                     }
 
-                    ImGui::Checkbox("Is Loop", &animData.currentAnim.IsLoop);
+                    ImGui::Checkbox(u8"ループ再生", &animData.currentAnim.IsLoop);
                 }
             }
             if (auto* pLight = ecs.TryGetComponent<PointLightData>(entity)) {
-                if (ImGui::CollapsingHeader("PointLightData", ImGuiTreeNodeFlags_DefaultOpen)) {
+                if (ImGui::CollapsingHeader(u8"点光源", ImGuiTreeNodeFlags_DefaultOpen)) {
                     auto& l = *pLight;
-                    ImGui::Checkbox("Enabled", &l.m_enabled);
-                    ImGui::ColorEdit3("Color", &l.m_color.x);
-                    ImGui::DragFloat("Intensity", &l.m_intensity, 0.05f, 0.0f, 50.0f);
-                    ImGui::DragFloat("Range", &l.m_range, 0.1f, 0.1f, 100.0f);
+                    ImGui::Checkbox(u8"有効", &l.m_enabled);
+                    ImGui::ColorEdit3(u8"色", &l.m_color.x);
+                    ImGui::DragFloat(u8"明るさ", &l.m_intensity, 0.05f, 0.0f, 50.0f);
+                    ImGui::DragFloat(u8"届く距離", &l.m_range, 0.1f, 0.1f, 100.0f);
                     ImGui::Separator();
-                    ImGui::Text("Flicker");
-                    ImGui::Checkbox("Flicker Enabled", &l.m_flickerEnabled);
-                    ImGui::DragFloat("Flicker Speed", &l.m_flickerSpeed, 0.1f, 0.0f, 60.0f);
-                    ImGui::DragFloat("Flicker Intensity", &l.m_flickerIntensity, 0.01f, 0.0f, 1.0f);
-                    ImGui::DragFloat("Flicker Seed", &l.m_flickerSeed, 0.1f);
+                    ImGui::Text(u8"明滅");
+                    ImGui::Checkbox(u8"明滅させる", &l.m_flickerEnabled);
+                    ImGui::DragFloat(u8"明滅の速さ", &l.m_flickerSpeed, 0.1f, 0.0f, 60.0f);
+                    ImGui::DragFloat(u8"明滅の強さ", &l.m_flickerIntensity, 0.01f, 0.0f, 1.0f);
+                    ImGui::DragFloat(u8"明滅のずらし値", &l.m_flickerSeed, 0.1f);
                     if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"同じ部屋に複数のフリッカーライトを置く時、位相をずらしてバラバラに明滅させたい場合に変える。");
                 }
             }
             if (auto* pSpot = ecs.TryGetComponent<SpotLightData>(entity)) {
-                if (ImGui::CollapsingHeader("SpotLightData", ImGuiTreeNodeFlags_DefaultOpen)) {
+                if (ImGui::CollapsingHeader(u8"スポットライト", ImGuiTreeNodeFlags_DefaultOpen)) {
                     auto& l = *pSpot;
                     ImGui::PushID("SpotLightData");
-                    ImGui::Checkbox("Enabled", &l.m_enabled);
-                    ImGui::ColorEdit3("Color", &l.m_color.x);
-                    ImGui::DragFloat("Intensity", &l.m_intensity, 0.05f, 0.0f, 50.0f);
-                    ImGui::DragFloat("Range", &l.m_range, 0.1f, 0.1f, 100.0f);
-                    ImGui::DragFloat("Inner Angle", &l.m_innerAngle, 0.5f, 0.0f, 89.0f);
-                    ImGui::DragFloat("Outer Angle", &l.m_outerAngle, 0.5f, 0.1f, 89.0f);
-                    ImGui::DragFloat3("Local Offset", &l.m_localOffset.x, 0.01f);
+                    ImGui::Checkbox(u8"有効", &l.m_enabled);
+                    ImGui::ColorEdit3(u8"色", &l.m_color.x);
+                    ImGui::DragFloat(u8"明るさ", &l.m_intensity, 0.05f, 0.0f, 50.0f);
+                    ImGui::DragFloat(u8"届く距離", &l.m_range, 0.1f, 0.1f, 100.0f);
+                    ImGui::DragFloat(u8"内側の角度", &l.m_innerAngle, 0.5f, 0.0f, 89.0f);
+                    ImGui::DragFloat(u8"外側の角度", &l.m_outerAngle, 0.5f, 0.1f, 89.0f);
+                    ImGui::DragFloat3(u8"光源の位置", &l.m_localOffset.x, 0.01f);
                     if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"光源位置(このオブジェクトのローカル空間。Scaleも掛かる)");
-                    ImGui::DragFloat3("Local Direction", &l.m_localDirection.x, 0.01f, -1.0f, 1.0f);
+                    ImGui::DragFloat3(u8"照らす向き", &l.m_localDirection.x, 0.01f, -1.0f, 1.0f);
                     if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"照らす向き(このオブジェクトのローカル空間)");
-                    ImGui::DragFloat("Model Glow", &l.m_modelGlow, 0.1f, 0.0f, 100.0f);
+                    ImGui::DragFloat(u8"モデルの発光", &l.m_modelGlow, 0.1f, 0.0f, 100.0f);
                     if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"点灯中にモデル自体を光らせる強さ(Color×この値のEmissive。Bloomで光って見える)");
                     char glowMatBuf[64] = {};
                     strncpy_s(glowMatBuf, l.m_glowMaterial.c_str(), _TRUNCATE);
-                    if (ImGui::InputText("Glow Material", glowMatBuf, sizeof(glowMatBuf))) l.m_glowMaterial = glowMatBuf;
+                    if (ImGui::InputText(u8"発光させるマテリアル", glowMatBuf, sizeof(glowMatBuf))) l.m_glowMaterial = glowMatBuf;
                     if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"空なら全メッシュ。指定時はこの名前のマテリアルだけ光らせる");
                     char reflMatBuf[64] = {};
                     strncpy_s(reflMatBuf, l.m_glowReflectMaterial.c_str(), _TRUNCATE);
-                    if (ImGui::InputText("Glow Reflect Material", reflMatBuf, sizeof(reflMatBuf))) l.m_glowReflectMaterial = reflMatBuf;
+                    if (ImGui::InputText(u8"反射で光るマテリアル", reflMatBuf, sizeof(reflMatBuf))) l.m_glowReflectMaterial = reflMatBuf;
                     if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"光源の光を受けて明るく見える面(かさの内側など)。このマテリアルの裏面だけを光らせる");
-                    ImGui::DragFloat("Glow Reflect Scale", &l.m_glowReflectScale, 0.01f, 0.0f, 2.0f);
+                    ImGui::DragFloat(u8"反射で光る強さ", &l.m_glowReflectScale, 0.01f, 0.0f, 2.0f);
                     if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"反射で光る面の明るさ(Model Glowに対する倍率)");
                     ImGui::PopID();
                 }
             }
             if (auto* pScript = ecs.TryGetComponent<NativeScriptData>(entity)) {
-                if (ImGui::CollapsingHeader("NativeScript", ImGuiTreeNodeFlags_DefaultOpen)) {
+                if (ImGui::CollapsingHeader(u8"スクリプト", ImGuiTreeNodeFlags_DefaultOpen)) {
                     auto& scriptData = ecs.GetComponent<NativeScriptData>(entity);
-                    ImGui::Text("Script: %s", scriptData.ScriptName.c_str());
+                    ImGui::Text(u8"スクリプト名: %s", scriptData.ScriptName.c_str());
                     if (scriptData.Instance) {
                         scriptData.Instance->ImGuiUpdate();
                     }
                 }
             }
             ImGui::Separator();
-            if (ImGui::Button("Add Component", ImVec2(-1, 0))) {
+            if (ImGui::Button(u8"コンポーネントを追加", ImVec2(-1, 0))) {
                 ImGui::OpenPopup("AddComponentPopup");
             }
 
             if (ImGui::BeginPopup("AddComponentPopup")) {
-                if (ImGui::MenuItem("Create New Script...")) {
+                if (ImGui::MenuItem(u8"新しいスクリプトを作成...")) {
                     s_showCreateScriptPopup = true;
                     s_newScriptName[0] = '\0';
                 }
                 ImGui::Separator();
 
-                ImGui::TextDisabled("--- Native Scripts ---");
+                ImGui::TextDisabled(u8"--- スクリプト ---");
                 for (const auto& name : ClassAssembly::Instance().GetRegisteredClasses()) {
                     if (ImGui::MenuItem(name.c_str())) {
                         auto newComp = ClassAssembly::Instance().Create(name);
@@ -325,42 +325,42 @@ void Editor::DrawInspector() {
                 }
                 ImGui::Separator();
                 
-                ImGui::TextDisabled("--- ECS Components ---");
+                ImGui::TextDisabled(u8"--- コンポーネント ---");
                 bool hasTrans = ecs.TryGetComponent<TransformData>(entity) != nullptr;
-                if (ImGui::MenuItem("TransformData", nullptr, false, !hasTrans)) ecs.AddComponent<TransformData>(entity, TransformData{});
+                if (ImGui::MenuItem(u8"トランスフォーム", nullptr, false, !hasTrans)) ecs.AddComponent<TransformData>(entity, TransformData{});
                 
                 bool hasModel = ecs.TryGetComponent<ModelRenderData>(entity) != nullptr;
-                if (ImGui::MenuItem("ModelRenderData", nullptr, false, !hasModel)) ecs.AddComponent<ModelRenderData>(entity, ModelRenderData{});
+                if (ImGui::MenuItem(u8"モデル", nullptr, false, !hasModel)) ecs.AddComponent<ModelRenderData>(entity, ModelRenderData{});
 
                 bool hasSprite = ecs.TryGetComponent<SpriteData>(entity) != nullptr;
-                if (ImGui::MenuItem("SpriteData", nullptr, false, !hasSprite)) ecs.AddComponent<SpriteData>(entity, SpriteData{});
+                if (ImGui::MenuItem(u8"スプライト", nullptr, false, !hasSprite)) ecs.AddComponent<SpriteData>(entity, SpriteData{});
                 
                 bool hasCam = ecs.TryGetComponent<CameraData>(entity) != nullptr;
-                if (ImGui::MenuItem("CameraData", nullptr, false, !hasCam)) ecs.AddComponent<CameraData>(entity, CameraData{});
+                if (ImGui::MenuItem(u8"カメラ", nullptr, false, !hasCam)) ecs.AddComponent<CameraData>(entity, CameraData{});
                 
                 bool hasCol = ecs.TryGetComponent<ColliderData>(entity) != nullptr;
-                if (ImGui::MenuItem("ColliderData", nullptr, false, !hasCol)) ecs.AddComponent<ColliderData>(entity, ColliderData{});
+                if (ImGui::MenuItem(u8"当たり判定", nullptr, false, !hasCol)) ecs.AddComponent<ColliderData>(entity, ColliderData{});
 
                 bool hasAnim = ecs.TryGetComponent<AnimationDataComponent>(entity) != nullptr;
-                if (ImGui::MenuItem("AnimationDataComponent", nullptr, false, !hasAnim)) ecs.AddComponent<AnimationDataComponent>(entity, AnimationDataComponent{});
+                if (ImGui::MenuItem(u8"アニメーション", nullptr, false, !hasAnim)) ecs.AddComponent<AnimationDataComponent>(entity, AnimationDataComponent{});
 
                 bool hasPointLight = ecs.TryGetComponent<PointLightData>(entity) != nullptr;
-                if (ImGui::MenuItem("PointLightData", nullptr, false, !hasPointLight)) ecs.AddComponent<PointLightData>(entity, PointLightData{});
+                if (ImGui::MenuItem(u8"点光源", nullptr, false, !hasPointLight)) ecs.AddComponent<PointLightData>(entity, PointLightData{});
 
                 bool hasSpotLight = ecs.TryGetComponent<SpotLightData>(entity) != nullptr;
-                if (ImGui::MenuItem("SpotLightData", nullptr, false, !hasSpotLight)) ecs.AddComponent<SpotLightData>(entity, SpotLightData{});
+                if (ImGui::MenuItem(u8"スポットライト", nullptr, false, !hasSpotLight)) ecs.AddComponent<SpotLightData>(entity, SpotLightData{});
 
                 ImGui::EndPopup();
             }
 
             if (s_showCreateScriptPopup) {
-                ImGui::OpenPopup("Create New Script Component");
+                ImGui::OpenPopup(u8"新しいスクリプトを作成");
             }
-            if (ImGui::BeginPopupModal("Create New Script Component", &s_showCreateScriptPopup, ImGuiWindowFlags_AlwaysAutoResize)) {
+            if (ImGui::BeginPopupModal(u8"新しいスクリプトを作成", &s_showCreateScriptPopup, ImGuiWindowFlags_AlwaysAutoResize)) {
                 ImGui::InputText("Script Name", s_newScriptName, IM_ARRAYSIZE(s_newScriptName));
-                ImGui::InputText("Save Path", s_newScriptPath, IM_ARRAYSIZE(s_newScriptPath));
+                ImGui::InputText(u8"保存先", s_newScriptPath, IM_ARRAYSIZE(s_newScriptPath));
                 
-                if (ImGui::Button("Create", ImVec2(120, 0))) {
+                if (ImGui::Button(u8"作成", ImVec2(120, 0))) {
                     std::string name = s_newScriptName;
                     std::string path = s_newScriptPath;
                     if (!name.empty()) {
@@ -371,7 +371,7 @@ void Editor::DrawInspector() {
                 }
                 ImGui::SetItemDefaultFocus();
                 ImGui::SameLine();
-                if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+                if (ImGui::Button(u8"キャンセル", ImVec2(120, 0))) {
                     s_showCreateScriptPopup = false;
                     ImGui::CloseCurrentPopup();
                 }
@@ -379,7 +379,7 @@ void Editor::DrawInspector() {
             }
         } 
     } else {
-        ImGui::Text("Nothing Selected");
+        ImGui::Text(u8"何も選択されていません");
     }
     ImGui::End();
 }

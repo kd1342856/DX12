@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <DirectXCollision.h>
 #include "../../../../Library/nlohmann/json.hpp"
 
@@ -58,7 +58,7 @@ public:
     virtual void Deserialize(const nlohmann::json& jsonObj) = 0;
     virtual void Serialize(nlohmann::json& outJson) const = 0;
 
-    std::string m_name = "No Attach";
+    std::string m_name = u8"未設定";
 
     Entity m_entity = INVALID_ENTITY;
 
@@ -70,13 +70,17 @@ public:
 
     bool m_isTrigger = false;
 
+    // メッシュコライダーと当たる時に無視するノード名(その子孫のノードも無視する)。
+    // ゴーストがドア・襖の板にだけはぶつからないようにするのに使う(壁には今まで通りぶつかる)
+    std::shared_ptr<const std::unordered_set<std::string>> m_ignoreMeshNodes;
+
     virtual void UpdateWorldAABB(const Math::Matrix& world) = 0;
 	virtual void DrawDebug(const Math::Matrix& worldMatrix, uint32_t color) = 0;
 };
 
 class CollisionShapeBox : public CollisionShape {
 public:
-    CollisionShapeBox() { m_name = "Box"; }
+    CollisionShapeBox() { m_name = u8"箱"; }
     ShapeId GetShapeId() const override { return Box; }
 
     void UpdateWorldAABB(const Math::Matrix& world) override;
@@ -95,7 +99,7 @@ public:
 
 class CollisionShapeSphere : public CollisionShape {
 public:
-    CollisionShapeSphere() { m_name = "Sphere"; }
+    CollisionShapeSphere() { m_name = u8"球"; }
     ShapeId GetShapeId() const override { return Sphere; }
 
     void UpdateWorldAABB(const Math::Matrix& world) override;
@@ -112,7 +116,7 @@ public:
 
 class CollisionShapeCapsule : public CollisionShape {
 public:
-    CollisionShapeCapsule() { m_name = "Capsule"; }
+    CollisionShapeCapsule() { m_name = u8"カプセル"; }
     ShapeId GetShapeId() const override { return Capsule; }
 
     void UpdateWorldAABB(const Math::Matrix& world) override;
@@ -131,7 +135,7 @@ public:
 
 class CollisionShapeMesh : public CollisionShape {
 public:
-    CollisionShapeMesh() { m_name = "Mesh"; }
+    CollisionShapeMesh() { m_name = u8"メッシュ"; }
     ShapeId GetShapeId() const override { return Mesh; }
 
     void UpdateWorldAABB(const Math::Matrix& world) override;

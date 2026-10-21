@@ -20,6 +20,7 @@ void GameSequence::Awake()
 void GameSequence::Start()
 {
     m_currentState = State::Playing;
+    m_catcher = nullptr;
     m_playTimer = 0.0f;
     m_huntsSurvived = 0;
     m_clearTimer = 0.0f;
@@ -138,13 +139,13 @@ void GameSequence::Deserialize(const nlohmann::json& in)
 
 void GameSequence::ImGuiUpdate()
 {
-    ImGui::Text("Current State: %s", m_currentState == State::Playing ? "Playing" : 
-                                     (m_currentState == State::GameClear ? "GameClear" : "GameOver"));
-    if (ImGui::Button("Debug Clear")) {
+    ImGui::Text(u8"現在の状態: %s", m_currentState == State::Playing ? u8"プレイ中" : 
+                                     (m_currentState == State::GameClear ? u8"クリア" : u8"ゲームオーバー"));
+    if (ImGui::Button(u8"デバッグ: クリアにする")) {
         NotifyExorcised();
     }
     ImGui::SameLine();
-    if (ImGui::Button("Debug Over")) {
+    if (ImGui::Button(u8"デバッグ: ゲームオーバーにする")) {
         NotifyGameOver();
     }
 }
@@ -165,10 +166,11 @@ void GameSequence::NotifyExorcised()
     }
 }
 
-void GameSequence::NotifyGameOver()
+void GameSequence::NotifyGameOver(GhostAI* catcher)
 {
     if (m_currentState == State::Playing) {
         m_currentState = State::GameOver;
+        if (catcher) m_catcher = catcher;
         m_clearTimer = 0.0f;
     }
 }

@@ -1,4 +1,4 @@
-#include "../../../Pch.h"
+﻿#include "../../../Pch.h"
 #include "../Asset/MeshManager.h"
 #include "../../../Graphics/Geometry/Mesh/Mesh.h"
 #include "CollisionShape.h"
@@ -8,9 +8,9 @@
 
 
 void CollisionShape::Editor_ImGui() {
-    ImGui::DragFloat3("Offset", &m_offset.x, 0.01f);
+    ImGui::DragFloat3(u8"位置のずれ", &m_offset.x, 0.01f);
 
-    if (ImGui::TreeNode("Tags")) {
+    if (ImGui::TreeNode(u8"タグ")) {
         int tags = (int)m_tags;
         if (ImGui::InputInt("##Tag", &tags)) {
             m_tags = (uint32_t)tags;
@@ -42,13 +42,13 @@ void CollisionShapeBox::Serialize(nlohmann::json& outJson) const {
 
 void CollisionShapeBox::Editor_ImGui() {
     CollisionShape::Editor_ImGui();
-    if (ImGui::DragFloat("Width", &m_width, 0.01f)) {
+    if (ImGui::DragFloat(u8"幅", &m_width, 0.01f)) {
         if (m_width < 0.01f) m_width = 0.01f;
     }
-    if (ImGui::DragFloat("Height", &m_height, 0.01f)) {
+    if (ImGui::DragFloat(u8"高さ", &m_height, 0.01f)) {
         if (m_height < 0.01f) m_height = 0.01f;
     }
-    if (ImGui::DragFloat("Depth", &m_depth, 0.01f)) {
+    if (ImGui::DragFloat(u8"奥行き", &m_depth, 0.01f)) {
         if (m_depth < 0.01f) m_depth = 0.01f;
     }
 }
@@ -72,7 +72,7 @@ void CollisionShapeSphere::Serialize(nlohmann::json& outJson) const {
 
 void CollisionShapeSphere::Editor_ImGui() {
     CollisionShape::Editor_ImGui();
-    if (ImGui::DragFloat("Radius", &radius, 0.01f)) {
+    if (ImGui::DragFloat(u8"半径", &radius, 0.01f)) {
         if (radius < 0.01f) radius = 0.01f;
     }
 }
@@ -98,10 +98,10 @@ void CollisionShapeCapsule::Serialize(nlohmann::json& outJson) const {
 
 void CollisionShapeCapsule::Editor_ImGui() {
     CollisionShape::Editor_ImGui();
-    if (ImGui::DragFloat("Radius", &radius, 0.01f)) {
+    if (ImGui::DragFloat(u8"半径", &radius, 0.01f)) {
         if (radius < 0.01f) radius = 0.01f;
     }
-    if (ImGui::DragFloat("Height", &height, 0.01f)) {
+    if (ImGui::DragFloat(u8"高さ", &height, 0.01f)) {
         if (height < 0.01f) height = 0.01f;
     }
 }

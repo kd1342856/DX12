@@ -10,6 +10,7 @@
 #include "../../../Framework/Manager/Collision/CollisionManager.h"
 #include "../../../Framework/Manager/NavMesh/NavMeshManager.h"
 #include "../../Object/Script/System/GameSequence.h"
+#include "../../Object/Script/Ghost/GhostAI.h"
 #include "../../Object/Script/System/RoomArea.h"
 #include "../../../Framework/System/JobSystem/JobSystem.h"
 #include "../../../Framework/ImGuiEditor/Editor/Editor.h"
@@ -85,6 +86,26 @@ void GameScene::Init()
 
     // モデルの読み込み(JobSystem)が終わってからでないとアニメーション一覧が無いので、ここで反映する
     PropLayout::ApplyInitialOpen(props);
+
+    // 小物をヒエラルキー上で置いてある部屋(RoomArea)ごとのフォルダに分ける。どの部屋にも無い物はOutside
+    {
+        auto& ecs = GameManager::Instance().GetECS();
+        std::vector<std::pair<std::string, RoomArea*>> rooms;
+        for (auto& obj : Editor::GetScene()->GetGameObjects()) {
+            if (auto* pScriptData = ecs.TryGetComponent<NativeScriptData>(obj->GetEntityID())) {
+                if (auto* room = dynamic_cast<RoomArea*>(pScriptData->Instance.get())) rooms.emplace_back(obj->GetName(), room);
+            }
+        }
+        for (const auto& prop : props) {
+            if (!prop.obj) continue;
+            const Math::Vector3 pos = prop.obj->GetComponent<TransformData>().m_position;
+            std::string roomName = "Outside";
+            for (const auto& [name, room] : rooms) {
+                if (room->IsInside(pos)) { roomName = name; break; }
+            }
+            Editor::SetObjectFolder(prop.obj.get(), "World/Props/" + roomName);
+        }
+    }
 
     // m_fullscreenGameがtrueでゲームを開始した場合、HandleModeSwitch()のF5トリガを通らないため
     // マウスモードがAbsoluteのままになる。PlayerはFPS視点で操作を開始するため、
@@ -266,7 +287,27 @@ void GameScene::UpdateCamera()
                 auto& cData = *pCData;
                 auto& camData = *pCamData;
 
-                if (m_isCameraDragging || m_fullscreenGame) {
+                GameSequence* gs = GameSequence::GetInstance();
+                GhostAI* catcher = gs ? gs->GetCatcher() : nullptr;
+                if (catcher) {
+                    // 捕まった: マウス操作を無視して、視点を捕まえたゴーストの顔へ向けて固定する
+                    // カメラがPlayerの子の場合m_positionはローカル座標なので、ワールド行列(前フレーム)から目の位置を取る
+                    Math::Vector3 toFace = catcher->GetFacePosition() - cData.m_worldMatrix.Translation();
+                    float horiz = sqrtf(toFace.x * toFace.x + toFace.z * toFace.z);
+                    if (horiz > 0.001f || fabsf(toFace.y) > 0.001f) {
+                        float targetYaw = atan2f(toFace.x, toFace.z);
+                        float targetPitch = -atan2f(toFace.y, horiz); // pitchは正で下を向く
+                        float yawDiff = targetYaw - pData.m_rotation.y;
+                        while (yawDiff < -DirectX::XM_PI) yawDiff += DirectX::XM_2PI;
+                        while (yawDiff >  DirectX::XM_PI) yawDiff -= DirectX::XM_2PI;
+                        // 振り向かされる速さ(大きいほど速い)
+                        const float kCaughtTurnSpeed = 8.0f;
+                        float t = (std::min)(1.0f, kCaughtTurnSpeed * GameTimer::Instance().DeltaTime());
+                        pData.m_rotation.y += yawDiff * t;
+                        cData.m_rotation.x += (targetPitch - cData.m_rotation.x) * t;
+                    }
+                }
+                else if (m_isCameraDragging || m_fullscreenGame) {
                     float rotSpeed = 0.002f;
                     pData.m_rotation.y += Input::Instance().GetMouseDeltaX() * rotSpeed;
                     cData.m_rotation.x += Input::Instance().GetMouseDeltaY() * rotSpeed;

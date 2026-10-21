@@ -29,6 +29,8 @@ void GDF::BeginFrame()
 	// ImGuiフレーム開始
 	ImGui_ImplDX12_NewFrame();
 	ImGui_ImplWin32_NewFrame();
+	// 全画面時はウィンドウ(クライアント)とバックバッファの大きさが異なるので、その比をImGuiへ伝える
+	GraphicsDevice::Instance().ApplyImGuiFramebufferScale();
 	ImGui::NewFrame();
 }
 

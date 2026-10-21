@@ -23,8 +23,8 @@
                         -10.535969734191895
                     ],
                     "Rotation": [
-                        0.763340413570404,
-                        6.190306186676025,
+                        0.7573400735855103,
+                        6.198315143585205,
                         0.0
                     ],
                     "Scale": [
@@ -194,10 +194,10 @@
                             "Type": "ModelRenderData"
                         },
                         {
-                            "AnimationIndex": 9,
+                            "AnimationIndex": 6,
                             "IsLoop": true,
                             "IsPlaying": true,
-                            "ProgressTime": 1373.015380859375,
+                            "ProgressTime": 1621.79736328125,
                             "Speed": 1.0,
                             "Type": "AnimationDataComponent"
                         }
@@ -216,7 +216,7 @@
                                 0.19230769574642181
                             ],
                             "Rotation": [
-                                0.10265681147575378,
+                                0.28465670347213745,
                                 0.0,
                                 0.0
                             ],
@@ -298,13 +298,13 @@
             "Components": [
                 {
                     "Position": [
-                        1.0124012231826782,
+                        1.4077727794647217,
                         -0.2133333683013916,
-                        -11.558728218078613
+                        -9.353687286376953
                     ],
                     "Rotation": [
                         0.0,
-                        -50.23015594482422,
+                        -50.37202072143555,
                         0.0
                     ],
                     "Scale": [
@@ -327,7 +327,7 @@
                     "doorSoundVolume": 0.10300000011920929,
                     "flashLightLensOffset": 0.019999999552965164,
                     "flashLightSoundVolume": 0.3089999854564667,
-                    "footstepVolume": 0.2029999941587448,
+                    "footstepVolume": 0.16500000655651093,
                     "gravityStrength": 9.800000190734863,
                     "hasAmulet": true,
                     "hasFlashLight": true,
@@ -375,8 +375,8 @@
                     "moveSpeedKmh": 10.0,
                     "smudgeSoundDuration": 2.200000047683716,
                     "smudgeSoundVolume": 0.4009999930858612,
-                    "soilFootstepVolume": 0.20399999618530273,
-                    "tatamiFootstepVolume": 0.20800000429153442,
+                    "soilFootstepVolume": 0.13099999725818634,
+                    "tatamiFootstepVolume": 0.16099999845027924,
                     "useGravity": true
                 }
             ],
@@ -389,14 +389,14 @@
             "Components": [
                 {
                     "Position": [
-                        2.142430305480957,
-                        3.9068078994750977,
-                        -1.719400405883789
+                        1.5452584028244019,
+                        1.0567431449890137,
+                        -9.027467727661133
                     ],
                     "Rotation": [
-                        -0.21426299214363098,
-                        -1.4740314483642578,
-                        -0.23976367712020874
+                        0.01609448529779911,
+                        -0.8824062347412109,
+                        -0.4549277126789093
                     ],
                     "Scale": [
                         0.26923075318336487,
@@ -491,14 +491,14 @@
             "Components": [
                 {
                     "Position": [
-                        1.2058017253875732,
-                        1.112560510635376,
-                        -11.116989135742188
+                        1.6349340677261353,
+                        1.0134268999099731,
+                        -8.940764427185059
                     ],
                     "Rotation": [
-                        -0.9520100355148315,
-                        1.2671276330947876,
-                        0.29957112669944763
+                        0.0002267695963382721,
+                        1.3776527643203735,
+                        0.05251885578036308
                     ],
                     "Scale": [
                         0.7692307829856873,
@@ -536,9 +536,9 @@
                 {
                     "Color": [
                         1.0,
-                        1.0,
-                        1.0,
-                        0.6000000238418579
+                        0.8500000238418579,
+                        0.550000011920929,
+                        1.0
                     ],
                     "FilePath": "Asset/Texture/UI/item_slot_1.png",
                     "OrderInLayer": 9,
@@ -626,9 +626,9 @@
                 {
                     "Color": [
                         1.0,
-                        0.8500000238418579,
-                        0.550000011920929,
-                        1.0
+                        1.0,
+                        1.0,
+                        0.6000000238418579
                     ],
                     "FilePath": "Asset/Texture/UI/item_slot_3.png",
                     "OrderInLayer": 9,
@@ -652,7 +652,7 @@
             "Components": [
                 {
                     "Position": [
-                        554.0,
+                        640.0,
                         666.0,
                         0.0
                     ],
@@ -697,7 +697,7 @@
             "Components": [
                 {
                     "Position": [
-                        640.0,
+                        726.0,
                         666.0,
                         0.0
                     ],
@@ -742,7 +742,7 @@
             "Components": [
                 {
                     "Position": [
-                        726.0,
+                        554.0,
                         666.0,
                         0.0
                     ],
@@ -1017,7 +1017,7 @@
                 }
             ],
             "IsActive": true,
-            "Name": "RoomF2",
+            "Name": "Kitchen",
             "UUID": 6789905301624460585
         },
         {
@@ -1176,8 +1176,8 @@
                             "AnimationIndex": 3,
                             "IsLoop": true,
                             "IsPlaying": true,
-                            "ProgressTime": 3000.039306640625,
-                            "Speed": 1.5,
+                            "ProgressTime": 2306.003173828125,
+                            "Speed": 1.0,
                             "Type": "AnimationDataComponent"
                         }
                     ],
@@ -1216,7 +1216,7 @@
                                         1.190000057220459,
                                         0.0
                                     ],
-                                    "Radius": 0.4399999976158142,
+                                    "Radius": 0.3125,
                                     "ShapeId": 2,
                                     "Tags": 4294967295
                                 }
@@ -1232,13 +1232,13 @@
             "Components": [
                 {
                     "Position": [
-                        0.03242559731006622,
-                        -2.384185791015625e-07,
-                        4.453265190124512
+                        -1.5782668590545654,
+                        2.9000000953674316,
+                        1.7350001335144043
                     ],
                     "Rotation": [
                         0.0,
-                        -69.68972778320313,
+                        -56.79821014404297,
                         0.0
                     ],
                     "Scale": [
@@ -1251,15 +1251,18 @@
                 {
                     "ScriptName": "GhostAI",
                     "Type": "NativeScriptData",
+                    "animCrouch": 1,
                     "animDead": -1,
-                    "animHunt": 3,
+                    "animHunt": 0,
                     "animIdle": 2,
-                    "animWander": 1,
+                    "animWander": 3,
                     "breathIntervalMax": 90.0,
                     "breathIntervalMin": 40.0,
                     "breathOtherFloorRatio": 0.0,
                     "breathRange": 7.0,
-                    "breathVolume": 0.699999988079071,
+                    "breathVolume": 0.23999999463558197,
+                    "catchRadius": 1.0,
+                    "crouchFaceHeight": 1.100000023841858,
                     "doorCheckInterval": 0.25,
                     "doorOpenRange": 2.0,
                     "doorSoundVolume": 0.40700000524520874,
@@ -1273,8 +1276,9 @@
                     "exorciseParticleBurst": 50,
                     "exorciseParticleRadius": 0.29999998211860657,
                     "exorciseParticleRate": 90.0,
-                    "exorciseSoundVolume": 0.29899999499320984,
+                    "exorciseSoundVolume": 0.1289999932050705,
                     "eyeHeight": 1.5,
+                    "faceHeight": 1.899999976158142,
                     "failHuntExtension": 5.0,
                     "flashLightFlickerRange": 4.0,
                     "ghostType": 1,
@@ -1291,21 +1295,22 @@
                     "houseWanderIntervalMin": 15.0,
                     "houseWanderStuckTimeout": 5.0,
                     "huntBreathRange": 12.0,
-                    "huntBreathVolume": 0.8999999761581421,
-                    "huntDurationMax": 60.0,
-                    "huntDurationMin": 21.5,
+                    "huntBreathVolume": 0.24500000476837158,
+                    "huntDurationMax": 30.0,
+                    "huntDurationMin": 20.0,
                     "huntLoopFadeTime": 1.5,
                     "huntLoopMinRatio": 0.3499999940395355,
                     "huntLoopNearRange": 15.0,
-                    "huntLoopVolume": 0.6000000238418579,
-                    "huntMaxSpeedKmh": 12.0,
-                    "huntSpeedKmh": 11.0,
+                    "huntLoopVolume": 0.24300000071525574,
+                    "huntMaxSpeedKmh": 11.0,
+                    "huntSpeedKmh": 10.399999618530273,
                     "huntTriggerIntervalMax": 58.5,
                     "huntTriggerIntervalMin": 48.5,
-                    "kageonnaLightRadius": 8.0,
+                    "kageonnaTellIntervalMax": 15.0,
+                    "kageonnaTellIntervalMin": 8.0,
                     "lightFlickerRange": 2.6666667461395264,
                     "lightFlickerVerticalRange": 2.799999952316284,
-                    "litSpeedMultiplier": 0.8999999761581421,
+                    "litSpeedMultiplier": 0.75,
                     "losDecayTime": 2.0,
                     "losTimeToMax": 6.0,
                     "lureArriveThreshold": 1.5,
@@ -1314,6 +1319,9 @@
                     "lureDwellDuration": 20.0,
                     "moveSpeedKmh": 10.399999618530273,
                     "pathNodeReachThreshold": 0.3499999940395355,
+                    "peekDistance": 0.6000000238418579,
+                    "peekMoveTime": 0.6000000238418579,
+                    "peekStartDelay": 0.30000001192092896,
                     "proximitySenseDistance": 1.5,
                     "randomizeType": true,
                     "roomArriveThreshold": 1.5,
@@ -1397,7 +1405,7 @@
                 }
             ],
             "IsActive": true,
-            "Name": "LivingRoom",
+            "Name": "Hallway1F",
             "UUID": 7351902468135791357
         },
         {

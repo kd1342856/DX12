@@ -172,7 +172,17 @@ bool CheckCollisionShape(CollisionResult& result,
     Math::Vector3 totalPush = {0, 0, 0};
     std::vector<Math::Vector3> hitPushes;
 
-    for (const auto &node : meshShape->m_model->GetNodes()) {
+    const auto& allNodes = meshShape->m_model->GetNodes();
+    const auto* ignoreNodes = shapeA->m_ignoreMeshNodes.get();
+    for (const auto &node : allNodes) {
+      if (ignoreNodes && !ignoreNodes->empty()) {
+        // このノードか親のどれかが無視リストにあれば当たらない(ドアの取っ手などは板の子になっている)
+        bool ignored = false;
+        for (const auto* n = &node; n; n = (n->parentIndex >= 0 ? &allNodes[n->parentIndex] : nullptr)) {
+          if (ignoreNodes->count(n->name)) { ignored = true; break; }
+        }
+        if (ignored) continue;
+      }
       // 修正: アニメーション変形を考慮
       Math::Matrix nodeWorld = node.animDeltaTransform * worldB_withOffset; 
       DirectX::XMMATRIX mNodeWorld = DirectX::XMLoadFloat4x4(&nodeWorld);

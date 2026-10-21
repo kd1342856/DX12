@@ -82,13 +82,13 @@ void RoomArea::PreDraw()
 
 void RoomArea::ImGuiUpdate()
 {
-    ImGui::DragFloat3("Min", &m_min.x, 0.1f);
-    ImGui::DragFloat3("Max", &m_max.x, 0.1f);
-    ImGui::Checkbox("Ghost Room Candidate", &m_isGhostRoomCandidate);
-    ImGui::Checkbox("Is Stairs", &m_isStairs);
+    ImGui::DragFloat3(u8"最小", &m_min.x, 0.1f);
+    ImGui::DragFloat3(u8"最大", &m_max.x, 0.1f);
+    ImGui::Checkbox(u8"ゴーストの部屋の候補", &m_isGhostRoomCandidate);
+    ImGui::Checkbox(u8"階段", &m_isStairs);
     int floor = static_cast<int>(m_floorType);
-    const char* floorNames[] = { "Wood", "Tatami", "Soil" };
-    if (ImGui::Combo("Floor Type", &floor, floorNames, IM_ARRAYSIZE(floorNames))) {
+    const char* floorNames[] = { u8"木の床", u8"畳", u8"土" };
+    if (ImGui::Combo(u8"床の種類", &floor, floorNames, IM_ARRAYSIZE(floorNames))) {
         m_floorType = static_cast<FloorType>(floor);
     }
     if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"足音の種類。どの部屋にも入っていない場所(家の外)は土になる");

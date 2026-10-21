@@ -13,6 +13,7 @@
 #include "../System/StimulusSource.h"
 #include "../System/LightSwitch.h"
 #include "../System/DoorLock.h"
+#include "../System/HidingSpot.h"
 #include "../../../../Framework/Manager/Asset/MeshManager.h"
 #include "../../../../Framework/Manager/Animation/OpenableAnim.h"
 #include "../../../../Framework/DirectX/Utility/Profiler.h"
@@ -304,6 +305,21 @@ void Player::CreateFlashLightBeam()
     light.m_outerAngle = 22.0f;
     GameManager::Instance().GetECS().AddComponent(beam->GetEntityID(), light);
     m_flashLightBeamEntity = beam->GetEntityID();
+}
+
+Math::Vector3 Player::GetEyePosition()
+{
+    auto& ecs = GameManager::Instance().GetECS();
+    if (m_cameraEntity == INVALID_ENTITY || !ecs.TryGetComponent<CameraData>(m_cameraEntity))
+    {
+        m_cameraEntity = FindGameCameraEntity();
+    }
+    if (m_cameraEntity != INVALID_ENTITY)
+    {
+        if (auto* pCamTrans = ecs.TryGetComponent<TransformData>(m_cameraEntity)) return pCamTrans->m_worldMatrix.Translation();
+    }
+    auto& trans = ecs.GetComponent<TransformData>(GetGameObject()->GetEntityID());
+    return trans.m_position + Math::Vector3(0, m_crouchEyeHeight, 0);
 }
 
 Entity Player::FindGameCameraEntity() const
@@ -657,6 +673,7 @@ void Player::UpdateInteractionTarget(const Math::Vector3& playerPos)
     m_interactEntity = INVALID_ENTITY;
     m_doorTargetEntity = INVALID_ENTITY;
     m_doorTargetAnimIdx = -1;
+    const bool ghostHunting = IsGhostHunting();
 
     Math::Vector3 origin, dir;
     if (!GetCrosshairRay(origin, dir)) return;
@@ -706,11 +723,15 @@ void Player::UpdateInteractionTarget(const Math::Vector3& playerPos)
             }
             else if (auto* src = dynamic_cast<StimulusSource*>(scriptData.Instance.get())) {
                 if (!src->m_interactable) continue;
+                // ハント中は照明(紐スイッチ・ランプ)を操作できない(Fの表示も出さない)
+                if (ghostHunting && src->m_type == StimulusType::Light) continue;
                 obj = src->GetGameObject();
                 kind = InteractKind::Stimulus;
             }
             else if (auto* sw = dynamic_cast<LightSwitch*>(scriptData.Instance.get())) {
                 if (!sw->m_interactable) continue;
+                // ハント中は壁スイッチを操作できない(レバーも動かず音も鳴らない)
+                if (ghostHunting) continue;
                 obj = sw->GetGameObject();
                 kind = InteractKind::Stimulus;
                 // スイッチの正面(ローカル-Z)側にいる時だけ操作できる(壁の裏側からは不可)
@@ -735,6 +756,16 @@ void Player::UpdateInteractionTarget(const Math::Vector3& playerPos)
             }
         }
     }
+}
+
+bool Player::IsGhostHunting() const
+{
+    for (auto& scriptData : GameManager::Instance().GetECS().GetComponentArray<NativeScriptData>()) {
+        if (auto* ghost = dynamic_cast<GhostAI*>(scriptData.Instance.get())) {
+            if (!ghost->IsExorcised() && ghost->GetState() == GhostAI::State::Hunt) return true;
+        }
+    }
+    return false;
 }
 
 void Player::UpdateInteractPrompt()
@@ -845,6 +876,29 @@ void Player::UpdateAnimationState(bool isMoving)
                 pAnim->currentAnim.ProgressTime = anims[idx].duration - 0.001f;
         }
     }
+}
+
+void Player::TogglePresentationMode(GhostAI* ghost)
+{
+    m_presentationMode = !m_presentationMode;
+    if (m_presentationMode) {
+        if (ghost) {
+            m_ghostTypeBeforePresentation = static_cast<int>(ghost->GetGhostType());
+            ghost->SetGhostType(GhostAI::GhostType::Kageonna);
+        }
+        // 香を持っていなければ渡す。燃え尽きていても使えるように戻す
+        if (!HasItem(Item::Incense)) AddItem(Item::Incense);
+        m_currentEquipped = Item::Incense;
+        m_incenseBurnedOut = false;
+    } else {
+        if (ghost && m_ghostTypeBeforePresentation >= 0) {
+            ghost->SetGhostType(static_cast<GhostAI::GhostType>(m_ghostTypeBeforePresentation));
+        }
+        m_ghostTypeBeforePresentation = -1;
+    }
+    if (auto gs = GameSequence::GetInstance()) gs->SetPlayerInvincible(m_presentationMode);
+    Logger::Instance().SetPinnedLine("Presentation Mode", m_presentationMode ? "ON (Kageonna / unlimited incense / invincible)" : "OFF");
+    Logger::Instance().AddLog(Logger::LogLevel::Info, "[Player] Presentation mode: %s", m_presentationMode ? "ON" : "OFF");
 }
 
 void Player::AddItem(ItemType item)
@@ -963,6 +1017,25 @@ void Player::Update(float deltaTime)
     Math::Vector3 forward = Math::Vector3::TransformNormal(Math::Vector3(0, 0, 1), playerRot);
     Math::Vector3 right   = Math::Vector3::TransformNormal(Math::Vector3(1, 0, 0), playerRot);
 
+    // 捕まった後(ゲームオーバー中)は操作を受け付けない。視点はGameScene側でゴーストに固定される。
+    // 手に持ったアイテムとライトはカメラの向きに合わせて動かし続ける
+    if (auto gs = GameSequence::GetInstance(); gs && gs->IsPlayerCaught()) {
+        UpdateHeldItemAttach(cTrans.m_position, cTrans.m_rotation.y, false);
+        UpdateFlashLightBeam(cTrans.m_position, cTrans.m_rotation.y);
+        AudioManager::Instance().SetListener(cTrans.m_position + Math::Vector3(0, 1.6f, 0), forward);
+        UpdateSounds(false, GameTimer::Instance().DeltaTime());
+        return;
+    }
+
+    // 0: 発表用デバッグモードの切り替え
+    if (input.IsKeyTrigger('0')) {
+        GhostAI* ghostForDebug = nullptr;
+        for (auto& scriptData : ecs.GetComponentArray<NativeScriptData>()) {
+            if (auto* g = dynamic_cast<GhostAI*>(scriptData.Instance.get())) { ghostForDebug = g; break; }
+        }
+        TogglePresentationMode(ghostForDebug);
+    }
+
     // キー1〜4は画面下のスロット番号(拾った順)に対応
     SyncItemOrder();
     for (int i = 0; i < (int)m_itemOrder.size() && i < kItemSlotCount; ++i) {
@@ -999,15 +1072,15 @@ void Player::Update(float deltaTime)
     // --- Use equipped item: right-click ---
     // (G で全部落とした後は m_currentEquipped が手放したアイテムのまま残るので、所持も確認する)
     if (input.IsMouseRightTrigger() && HasItem(m_currentEquipped)) {
-        if (m_currentEquipped == Item::Incense && m_incenseBurnedOut) {
+        if (m_currentEquipped == Item::Incense && m_incenseBurnedOut && !m_presentationMode) {
             Logger::Instance().AddLog(Logger::LogLevel::Info, "Incense: already burned out.");
         }
         else if (m_currentEquipped == Item::Incense && ghost) {
             auto& gTrans = ecs.GetComponent<TransformData>(ghost->GetGameObject()->GetEntityID());
             float dist = (cTrans.m_position - gTrans.m_position).Length();
             if (dist < 10.0f) {
-                // 燃やした時点で使い切り(効いたかどうかに関係なく)
-                m_incenseBurnedOut = true;
+                // 燃やした時点で使い切り(効いたかどうかに関係なく)。発表用デバッグモード中は何度でも使える
+                if (!m_presentationMode) m_incenseBurnedOut = true;
                 // 効くかどうかはゴーストの種類ごとの条件次第(影女は近くで明かりが点いている時だけ等)
                 if (ghost->TryIncenseStun(5.0f)) {
                     Logger::Instance().AddLog(Logger::LogLevel::Info, "Incense Used: Ghost Stunned!");
@@ -1284,7 +1357,27 @@ void Player::TryInteractDoor()
         auto* pAnim = ecs.TryGetComponent<AnimationDataComponent>(bestEntity);
         if (!pAnim) return;
 
-        auto it = pAnim->multiAnims.find(bestAnimIdx);
+        // 押入れの中から襖を操作した時: クロスヘアが閉まっている隣の襖を捉えていても、同じ押入れに開いている襖が
+        // あればそちらを閉める(入ってきた襖を閉めたつもりで隣を開けてしまい、隠れられないのを防ぐ)
+        if (auto* pTrans = ecs.TryGetComponent<TransformData>(GetGameObject()->GetEntityID()))
+        {
+            auto isOpen = [&](int idx) {
+                auto found = pAnim->multiAnims.find(idx);
+                return found != pAnim->multiAnims.end() && (found->second.IsPlaying || found->second.ProgressTime > 0.0f);
+            };
+            for (const auto& spot : HidingSpot::GetSpots())
+            {
+                if (spot.entity != bestEntity || !HidingSpot::IsInside(spot, pTrans->m_position)) continue;
+                if (std::find(spot.fusumaAnims.begin(), spot.fusumaAnims.end(), bestAnimIdx) == spot.fusumaAnims.end()) break;
+                if (isOpen(bestAnimIdx)) break;
+                for (int idx : spot.fusumaAnims)
+                {
+                    if (isOpen(idx)) { bestAnimIdx = idx; break; }
+                }
+                break;
+            }
+        }
+
         if (pAnim)
         {
             auto& data = pAnim->multiAnims[bestAnimIdx];
@@ -1434,67 +1527,67 @@ void Player::Deserialize(const nlohmann::json& in)
 
 void Player::ImGuiUpdate()
 {
-    ImGui::DragFloat("Move Speed (km/h)", &m_moveSpeedKmh, 0.1f, 0.1f, 100.0f, "%.1f km/h");
-    ImGui::Checkbox("Use Gravity", &m_useGravity);
+    ImGui::DragFloat(u8"移動速度 (km/h)", &m_moveSpeedKmh, 0.1f, 0.1f, 100.0f, "%.1f km/h");
+    ImGui::Checkbox(u8"重力を使う", &m_useGravity);
     if (m_useGravity)
     {
-        ImGui::DragFloat("Gravity Strength", &m_gravityStrength, 0.1f, 0.0f, 100.0f);
+        ImGui::DragFloat(u8"重力の強さ", &m_gravityStrength, 0.1f, 0.0f, 100.0f);
     }
 
     ImGui::Separator();
-    ImGui::Text("[Held Item] Attach_RightHand bone-local pose per item (tracks the hand every frame)");
+    ImGui::Text(u8"[手に持つアイテム] アイテムごとの右手 (Attach_RightHand) からの位置と向き (毎フレーム手に追従)");
     {
-        static const char* kNames[5] = { "", "", "Incense", "Amulet", "FlashLight" };
+        static const char* kNames[5] = { "", "", u8"お香", u8"お札", u8"懐中電灯" };
         for (int i = (int)Item::Incense; i <= (int)Item::FlashLight; ++i)
         {
             ImGui::PushID(i);
             ImGui::Text("%s", kNames[i]);
-            ImGui::DragFloat3("Hand Offset (m)", &m_heldPose[i].pos.x, 0.005f, -1.0f, 1.0f);
-            ImGui::DragFloat3("Hand Rotation (deg)", &m_heldPose[i].rotDeg.x, 1.0f, -180.0f, 180.0f);
+            ImGui::DragFloat3(u8"手からの位置 (m)", &m_heldPose[i].pos.x, 0.005f, -1.0f, 1.0f);
+            ImGui::DragFloat3(u8"手からの回転 (度)", &m_heldPose[i].rotDeg.x, 1.0f, -180.0f, 180.0f);
             ImGui::PopID();
         }
     }
     ImGui::Separator();
-    ImGui::Text("[Held Item] Fallback (no hand bone): offset from body (right/up/forward, meters)");
-    ImGui::DragFloat3("Held Item Offset", &m_heldItemOffset.x, 0.01f, -2.0f, 2.0f);
-    ImGui::Text("[Held Item] Calibrated from Attach_RightHand: %s", m_heldItemOffsetCalibrated ? "true" : "false");
-    if (ImGui::Button("Recalibrate from Attach Point")) {
+    ImGui::Text(u8"[手に持つアイテム] 手のボーンが無い時: 体からの位置 (右/上/前, m)");
+    ImGui::DragFloat3(u8"アイテムの位置", &m_heldItemOffset.x, 0.01f, -2.0f, 2.0f);
+    ImGui::Text(u8"[手に持つアイテム] Attach_RightHand から調整済み: %s", m_heldItemOffsetCalibrated ? u8"はい" : u8"いいえ");
+    if (ImGui::Button(u8"取り付け位置から調整し直す")) {
         auto& ecsCalib = GameManager::Instance().GetECS();
         auto& cTransCalib = ecsCalib.GetComponent<TransformData>(GetGameObject()->GetEntityID());
         m_heldItemOffsetCalibrated = false;
         CalibrateHeldItemOffset(cTransCalib.m_position, cTransCalib.m_rotation.y);
     }
-    ImGui::Text("[Held Item] Extra rotation on top of the model (degrees)");
-    ImGui::DragFloat3("Held Item Extra Rotation", &m_heldItemExtraRotationDeg.x, 1.0f, -180.0f, 180.0f);
+    ImGui::Text(u8"[手に持つアイテム] モデルに追加する回転 (度)");
+    ImGui::DragFloat3(u8"アイテムの追加回転", &m_heldItemExtraRotationDeg.x, 1.0f, -180.0f, 180.0f);
 
     ImGui::Separator();
-    ImGui::Text("[Anim] State: Idle/Walk/Crouch/CrouchWalk, auto FlashLight_* (light) / UseItem_* (other items) prefix while holding");
-    ImGui::DragFloat("Walk Anim Speed", &m_animWalkSpeed, 0.05f, 0.1f, 3.0f);
-    ImGui::DragFloat("Crouch Camera Speed", &m_crouchBlendSpeed, 0.1f, 0.5f, 20.0f);
-    ImGui::DragFloat("Crouch Camera Delay", &m_crouchCameraDelay, 0.01f, 0.0f, 1.0f);
-    ImGui::DragFloat("FlashLight Lens Offset (m)", &m_flashLightLensOffset, 0.005f, -0.2f, 0.3f);
+    ImGui::Text(u8"[アニメ] 状態: Idle/Walk/Crouch/CrouchWalk。持っている間は自動で FlashLight_* (懐中電灯) / UseItem_* (他のアイテム) を付ける");
+    ImGui::DragFloat(u8"歩きアニメの速さ", &m_animWalkSpeed, 0.05f, 0.1f, 3.0f);
+    ImGui::DragFloat(u8"しゃがみ時のカメラ移動の速さ", &m_crouchBlendSpeed, 0.1f, 0.5f, 20.0f);
+    ImGui::DragFloat(u8"しゃがみ時のカメラの遅れ", &m_crouchCameraDelay, 0.01f, 0.0f, 1.0f);
+    ImGui::DragFloat(u8"懐中電灯のレンズ位置 (m)", &m_flashLightLensOffset, 0.005f, -0.2f, 0.3f);
     if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"懐中電灯の光が出る位置。レンズからこの距離だけ前(マイナスで後ろ)");
-    ImGui::DragFloat("Crouch Collider Top (m)", &m_crouchColliderTop, 0.01f, 0.3f, 2.0f);
+    ImGui::DragFloat(u8"しゃがみ時の当たり判定の高さ (m)", &m_crouchColliderTop, 0.01f, 0.3f, 2.0f);
     if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"しゃがんだ時の当たり判定の上端(足元から)。押し入れの中段の下より低くすると入れる");
-    ImGui::DragFloat("Crouch Eye Height (m)", &m_crouchEyeHeight, 0.01f, 0.2f, 2.0f);
+    ImGui::DragFloat(u8"しゃがみ時の目の高さ (m)", &m_crouchEyeHeight, 0.01f, 0.2f, 2.0f);
     if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"しゃがんだ時の目線の高さ(足元から)。当たり判定の上端より少し低くする");
-    ImGui::Text("[Debug] Crouching: %s (blend=%.2f)", m_isCrouching ? "true" : "false", m_crouchBlend);
+    ImGui::Text(u8"[デバッグ] しゃがみ中: %s (ブレンド=%.2f)", m_isCrouching ? u8"はい" : u8"いいえ", m_crouchBlend);
 
     ImGui::Separator();
-    ImGui::Text("[Sound] Volume (0-1)");
-    ImGui::SliderFloat("Footstep (Wood)", &m_footstepVolumes[0], 0.0f, 1.0f);
-    ImGui::SliderFloat("Footstep (Tatami)", &m_footstepVolumes[1], 0.0f, 1.0f);
-    ImGui::SliderFloat("Footstep (Soil)", &m_footstepVolumes[2], 0.0f, 1.0f);
-    ImGui::SliderFloat("Crouch Footstep Scale", &m_crouchFootstepScale, 0.0f, 1.0f);
+    ImGui::Text(u8"[音] 音量 (0-1)");
+    ImGui::SliderFloat(u8"足音 (木の床)", &m_footstepVolumes[0], 0.0f, 1.0f);
+    ImGui::SliderFloat(u8"足音 (畳)", &m_footstepVolumes[1], 0.0f, 1.0f);
+    ImGui::SliderFloat(u8"足音 (土)", &m_footstepVolumes[2], 0.0f, 1.0f);
+    ImGui::SliderFloat(u8"しゃがみ時の足音の倍率", &m_crouchFootstepScale, 0.0f, 1.0f);
     {
-        static const char* kFloorNames[3] = { "Wood", "Tatami", "Soil" };
-        ImGui::Text("[Debug] Floor: %s", kFloorNames[static_cast<int>(m_currentFloor)]);
+        static const char* kFloorNames[3] = { u8"木の床", u8"畳", u8"土" };
+        ImGui::Text(u8"[デバッグ] 床: %s", kFloorNames[static_cast<int>(m_currentFloor)]);
     }
-    ImGui::SliderFloat("FlashLight Switch", &m_flashLightSoundVolume, 0.0f, 1.0f);
-    ImGui::SliderFloat("Door Open/Close", &m_doorSoundVolume, 0.0f, 1.0f);
-    ImGui::SliderFloat("Door Locked", &m_doorLockedSoundVolume, 0.0f, 1.0f);
-    ImGui::SliderFloat("Smudge Stick", &m_smudgeSoundVolume, 0.0f, 1.0f);
-    ImGui::DragFloat("Smudge Sound Duration (s)", &m_smudgeSoundDuration, 0.1f, 1.0f, 40.0f);
+    ImGui::SliderFloat(u8"懐中電灯のスイッチ", &m_flashLightSoundVolume, 0.0f, 1.0f);
+    ImGui::SliderFloat(u8"ドアの開け閉め", &m_doorSoundVolume, 0.0f, 1.0f);
+    ImGui::SliderFloat(u8"ドアの施錠", &m_doorLockedSoundVolume, 0.0f, 1.0f);
+    ImGui::SliderFloat(u8"お香", &m_smudgeSoundVolume, 0.0f, 1.0f);
+    ImGui::DragFloat(u8"お香の音の長さ (秒)", &m_smudgeSoundDuration, 0.1f, 1.0f, 40.0f);
 
     ImGui::Separator();
     ImGui::Text(u8"[初期所持品] シーンに保存される。プレイ中に拾ったり落としたりしても変わらない");
@@ -1505,34 +1598,34 @@ void Player::ImGuiUpdate()
                 if (flag) m_startItemOrder.push_back(item); // 付けたものはスロットの末尾へ
             }
         };
-        startToggle("Start With Incense", m_startWithIncense, Item::Incense);
-        startToggle("Start With Amulet", m_startWithAmulet, Item::Amulet);
-        startToggle("Start With FlashLight", m_startWithFlashLight, Item::FlashLight);
-        if (ImGui::Button("Apply Start Inventory Now")) ApplyStartInventory();
+        startToggle(u8"最初からお香を持つ", m_startWithIncense, Item::Incense);
+        startToggle(u8"最初からお札を持つ", m_startWithAmulet, Item::Amulet);
+        startToggle(u8"最初から懐中電灯を持つ", m_startWithFlashLight, Item::FlashLight);
+        if (ImGui::Button(u8"初期の持ち物を今すぐ反映")) ApplyStartInventory();
         if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"今のプレイ中の所持状態を初期所持品に戻す");
     }
 
     ImGui::Separator();
-    const char* itemName = "Incense";
-    if (m_currentEquipped == Item::Amulet) itemName = "Amulet";
-    else if (m_currentEquipped == Item::FlashLight) itemName = "FlashLight";
-    ImGui::Text("[Debug] Equipped: %s", itemName);
-    ImGui::Text("[Debug] Has (runtime): Incense=%s Amulet=%s FlashLight=%s",
-        m_hasIncense ? "true" : "false",
-        m_hasAmulet ? "true" : "false",
-        m_hasFlashLight ? "true" : "false");
-    ImGui::Text("[Debug] FlashLight: %s (T / right-click to toggle)", m_flashLightOn ? "ON" : "OFF");
-    ImGui::Text("[Debug] Incense: %s", m_incenseBurnedOut ? "burned out" : "unused");
+    const char* itemName = u8"お香";
+    if (m_currentEquipped == Item::Amulet) itemName = u8"お札";
+    else if (m_currentEquipped == Item::FlashLight) itemName = u8"懐中電灯";
+    ImGui::Text(u8"[デバッグ] 装備中: %s", itemName);
+    ImGui::Text(u8"[デバッグ] 所持 (実行中): お香=%s お札=%s 懐中電灯=%s",
+        m_hasIncense ? u8"はい" : u8"いいえ",
+        m_hasAmulet ? u8"はい" : u8"いいえ",
+        m_hasFlashLight ? u8"はい" : u8"いいえ");
+    ImGui::Text(u8"[デバッグ] 懐中電灯: %s (T / 右クリックで切り替え)", m_flashLightOn ? u8"ON" : u8"OFF");
+    ImGui::Text(u8"[デバッグ] お香: %s", m_incenseBurnedOut ? u8"燃え尽きた" : u8"未使用");
     auto& ecs = GameManager::Instance().GetECS();
     auto& cTrans = ecs.GetComponent<TransformData>(GetGameObject()->GetEntityID());
-    ImGui::Text("[Debug] Pos: (%.1f, %.1f, %.1f)", cTrans.m_position.x, cTrans.m_position.y, cTrans.m_position.z);
+    ImGui::Text(u8"[デバッグ] 位置: (%.1f, %.1f, %.1f)", cTrans.m_position.x, cTrans.m_position.y, cTrans.m_position.z);
     for (auto& scriptData : ecs.GetComponentArray<NativeScriptData>()) {
         if (auto* g = dynamic_cast<GhostAI*>(scriptData.Instance.get())) {
             if (auto* room = g->GetTargetRoom()) {
-                ImGui::Text("[Debug] Room Min: (%.1f,%.1f,%.1f)", room->m_min.x, room->m_min.y, room->m_min.z);
-                ImGui::Text("[Debug] Room Max: (%.1f,%.1f,%.1f)", room->m_max.x, room->m_max.y, room->m_max.z);
+                ImGui::Text(u8"[デバッグ] 部屋の最小: (%.1f,%.1f,%.1f)", room->m_min.x, room->m_min.y, room->m_min.z);
+                ImGui::Text(u8"[デバッグ] 部屋の最大: (%.1f,%.1f,%.1f)", room->m_max.x, room->m_max.y, room->m_max.z);
             } else {
-                ImGui::TextColored(ImVec4(1,0,0,1), "[Debug] TargetRoom = nullptr!");
+                ImGui::TextColored(ImVec4(1,0,0,1), u8"[デバッグ] 対象の部屋がありません (TargetRoom = nullptr)");
             }
             break;
         }

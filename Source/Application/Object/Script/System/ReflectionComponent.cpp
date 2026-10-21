@@ -71,18 +71,18 @@ GameObject* ReflectionComponent::ResolveFixedCameraSource() const
 
 void ReflectionComponent::ImGuiUpdate()
 {
-    ImGui::Text("Reflection Plane");
-    ImGui::DragFloat3("Normal", &m_planeNormal.x, 0.01f, -1.0f, 1.0f);
-    ImGui::DragFloat3("Point", &m_planePoint.x, 0.1f);
-    ImGui::DragFloat("Debug Size", &m_debugSize, 0.1f, 0.1f, 100.0f);
-    ImGui::DragFloat("Activation Distance", &m_activationDistance, 0.1f, 0.5f, 50.0f);
-    ImGui::TextDisabled("Reflection is active while the player is within this distance of the mirror plane.");
+    ImGui::Text(u8"反射面");
+    ImGui::DragFloat3(u8"面の向き", &m_planeNormal.x, 0.01f, -1.0f, 1.0f);
+    ImGui::DragFloat3(u8"面上の点", &m_planePoint.x, 0.1f);
+    ImGui::DragFloat(u8"表示サイズ", &m_debugSize, 0.1f, 0.1f, 100.0f);
+    ImGui::DragFloat(u8"反射を有効にする距離", &m_activationDistance, 0.1f, 0.5f, 50.0f);
+    ImGui::TextDisabled(u8"プレイヤーが鏡の面からこの距離以内にいる間だけ反射する。");
 
     // Normal must always stay unit length
     m_planeNormal.Normalize();
 
     ImGui::Separator();
-    ImGui::Checkbox("Use Fixed Camera Source", &m_useFixedCameraSource);
+    ImGui::Checkbox(u8"固定カメラから映す", &m_useFixedCameraSource);
     ImGui::SameLine();
     ImGui::TextDisabled("(?)");
     if (ImGui::IsItemHovered()) {
@@ -100,7 +100,7 @@ void ReflectionComponent::ImGuiUpdate()
         GameObject* pResolved = ResolveFixedCameraSource();
         std::string currentLabel = pResolved ? pResolved->GetName() : u8"(未設定)";
 
-        if (ImGui::BeginCombo("Fixed Camera", currentLabel.c_str()))
+        if (ImGui::BeginCombo(u8"固定カメラ", currentLabel.c_str()))
         {
             auto& ecs = GameManager::Instance().GetECS();
             auto scene = Editor::GetScene();
@@ -120,12 +120,12 @@ void ReflectionComponent::ImGuiUpdate()
             }
             ImGui::EndCombo();
         }
-        if (m_fixedCameraSourceUUID != 0 && ImGui::Button("Clear Fixed Camera")) {
+        if (m_fixedCameraSourceUUID != 0 && ImGui::Button(u8"固定カメラを外す")) {
             m_fixedCameraSourceUUID = 0;
         }
     }
 
-    ImGui::Text("Active: %s", m_isActive ? "true" : "false");
+    ImGui::Text(u8"反射中: %s", m_isActive ? u8"はい" : u8"いいえ");
 }
 
 void ReflectionComponent::Update(float deltaTime)

@@ -141,20 +141,20 @@ void StimulusSource::Deserialize(const nlohmann::json& in)
 void StimulusSource::ImGuiUpdate()
 {
     int current = static_cast<int>(m_type);
-    const char* names[] = { "Light (Lamp)", "Sound (Radio)" };
-    if (ImGui::Combo("Stimulus Type", &current, names, IM_ARRAYSIZE(names))) {
+    const char* names[] = { u8"光 (照明)", u8"音 (ラジオ)" };
+    if (ImGui::Combo(u8"刺激の種類", &current, names, IM_ARRAYSIZE(names))) {
         m_type = static_cast<StimulusType>(current);
     }
     bool active = m_isActive;
-    if (ImGui::Checkbox("Active", &active)) {
+    if (ImGui::Checkbox(u8"有効", &active)) {
         SetActive(active);
     }
-    ImGui::DragFloat("Radius", &m_radius, 0.1f, 0.5f, 50.0f);
-    ImGui::Checkbox("Interactable (F key)", &m_interactable);
-    ImGui::SliderFloat("Sound Volume", &m_soundVolume, 0.0f, 1.0f);
+    ImGui::DragFloat(u8"半径", &m_radius, 0.1f, 0.5f, 50.0f);
+    ImGui::Checkbox(u8"Fキーで操作できる", &m_interactable);
+    ImGui::SliderFloat(u8"音量", &m_soundVolume, 0.0f, 1.0f);
     if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"本体(紐スイッチ)をon/offした時の音量。壁スイッチ接続中はスイッチ側の音量を使う");
     if (m_type == StimulusType::Light) {
-        ImGui::Checkbox("Room Light", &m_isRoomLight);
+        ImGui::Checkbox(u8"部屋の照明", &m_isRoomLight);
         if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"部屋の電気(天井照明等)か。ランプ等の小さな明かりはオフにする。\n影女の退治条件はオンの照明だけを数える。");
     }
 }

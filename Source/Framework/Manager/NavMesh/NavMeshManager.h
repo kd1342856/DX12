@@ -105,6 +105,9 @@ public:
     // このカウンタは非同期パスが実際に動いているかを確実に確認する手段。
     int GetAsyncRecomputeCount() const { return m_asyncRecomputeCount.load(); }
 
+    // aからbまで(腰の高さ)の間に家の壁・床・天井が無いか。ドアの板は開閉に関係なく無視する
+    bool IsLineClear(const Math::Vector3& a, const Math::Vector3& b) const;
+
 private:
     NavMeshManager();
     ~NavMeshManager();
@@ -162,7 +165,7 @@ private:
     void CleanupRecast();
 
     // 非同期で届いた経路の、既に通り過ぎた先頭ウェイポイントを捨てる(MoveToward参照)
-    static void DropPassedWaypoints(std::vector<Math::Vector3>& waypoints, const Math::Vector3& current);
+    void DropPassedWaypoints(std::vector<Math::Vector3>& waypoints, const Math::Vector3& current) const;
 
     Math::Vector3 AdvanceAlongPath(
         PathCache& cache,
@@ -170,4 +173,7 @@ private:
         float speed,
         float deltaTime,
         float nodeReachThreshold) const;
+
+    // BuildManualNavMeshで集めたドアの板のノード名(IsLineClearのレイで無視する)
+    std::unordered_set<std::string> m_doorNodeNames;
 };

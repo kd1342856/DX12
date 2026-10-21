@@ -2,6 +2,8 @@
 #include "RoomArea.h"
 #include <vector>
 
+class GhostAI;
+
 class GameSequence : public NativeScript {
 public:
     enum class State {
@@ -27,7 +29,19 @@ public:
     void OnCollisionStay(GameObject* other) override;
 
     void NotifyExorcised();
-    void NotifyGameOver();
+    // catcherはPlayerを捕まえたゴースト。捕まった後はカメラがこのゴーストの顔に固定される
+    void NotifyGameOver(GhostAI* catcher = nullptr);
+    // ゲームオーバーより前に捕まったことだけを通知する(押入れの襖を開けられた瞬間など)。
+    // カメラの固定とPlayerの操作停止はここから始まり、ゲームオーバー自体は後でNotifyGameOverで通知する
+    void NotifyCaught(GhostAI* catcher) { if (m_currentState == State::Playing && !m_catcher) m_catcher = catcher; }
+    bool IsGameOver() const { return m_currentState == State::GameOver; }
+    // Playerが捕まっているか(ゲームオーバー中、または襖を開けられてゲームオーバー待ちの間)
+    bool IsPlayerCaught() const { return IsGameOver() || m_catcher != nullptr; }
+    GhostAI* GetCatcher() const { return m_catcher; }
+
+    // 無敵(発表用デバッグモード): ゴーストに触れても、押入れで見つかってもゲームオーバーにならない
+    void SetPlayerInvincible(bool invincible) { m_playerInvincible = invincible; }
+    bool IsPlayerInvincible() const { return m_playerInvincible; }
     // GhostAIから、ハントが時間切れで終わった(=プレイヤーが生き延びた)時に呼ばれる。リザルトで表示する。
     void NotifyHuntSurvived() { if (m_currentState == State::Playing) ++m_huntsSurvived; }
 
@@ -44,6 +58,8 @@ public:
 private:
     static GameSequence* s_instance;
     State m_currentState = State::Playing;
+    GhostAI* m_catcher = nullptr;
+    bool m_playerInvincible = false;
     float m_clearTimer = 0.0f;
     std::vector<RoomArea*> m_rooms;
 

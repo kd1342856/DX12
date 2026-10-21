@@ -111,8 +111,13 @@ void LightSwitch::Toggle()
 {
     if (!m_resolved) ResolveTargets();
     // 1つでも点いていれば全部消す、全部消えていれば全部点ける
-    bool turnOn = !IsOn();
-    for (auto* src : m_targets) src->SetActive(turnOn);
+    SetOn(!IsOn());
+}
+
+void LightSwitch::SetOn(bool on)
+{
+    if (!m_resolved) ResolveTargets();
+    for (auto* src : m_targets) src->SetActive(on);
     PlaySwitchSound();
     UpdatePilotLamp();
     UpdateRocker();
@@ -167,13 +172,13 @@ void LightSwitch::ImGuiUpdate()
 {
     char buf[256] = {};
     strncpy_s(buf, m_targetNames.c_str(), _TRUNCATE);
-    if (ImGui::InputText("Targets", buf, sizeof(buf))) {
+    if (ImGui::InputText(u8"つなぐ照明", buf, sizeof(buf))) {
         m_targetNames = buf;
         m_resolved = false;
     }
     if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"操作する照明のGameObject名(カンマ区切りで複数可)");
-    ImGui::Text(u8"接続中の照明: %d  状態: %s", (int)m_targets.size(), IsOn() ? "ON" : "OFF");
-    if (ImGui::Button("Toggle")) Toggle();
-    ImGui::Checkbox("Interactable (F key)", &m_interactable);
-    ImGui::SliderFloat("Sound Volume", &m_soundVolume, 0.0f, 1.0f);
+    ImGui::Text(u8"接続中の照明: %d  状態: %s", (int)m_targets.size(), IsOn() ? u8"ON" : u8"OFF");
+    if (ImGui::Button(u8"切り替え")) Toggle();
+    ImGui::Checkbox(u8"Fキーで操作できる", &m_interactable);
+    ImGui::SliderFloat(u8"音量", &m_soundVolume, 0.0f, 1.0f);
 }

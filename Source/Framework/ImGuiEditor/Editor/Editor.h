@@ -48,6 +48,10 @@ public:
     static void LoadEditorData();
     static void SaveEditorData();
 
+    // ルートGameObjectを「World/Props/LivingRoom」のような'/'区切りのフォルダに入れる。無いフォルダは作る。
+    // ランタイム生成物(Dynamic)の整理用。Dynamicなオブジェクトの対応はeditor.jsonに保存されない(UUIDが毎回変わるため)。
+    static void SetObjectFolder(GameObject* obj, const std::string& folderPath);
+
 private:
     // Core
     static void DrawDockSpace();
