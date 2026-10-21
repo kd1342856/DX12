@@ -2238,9 +2238,14 @@ void GhostAI::UpdateSounds(float deltaTime, const Math::Vector3& ghostPos)
         } else {
             m_breathTimer -= deltaTime;
             if (m_breathTimer <= 0.0f && !playing) {
-                m_breathSound->Play(false);
-                playing = true;
-                m_breathTimer = audio.GetSoundDuration(kBreathPath) + Random::Instance().Range(m_breathIntervalMin, m_breathIntervalMax);
+                // 間隔が来るたびに確率で鳴らす。外れたら鳴らさずに、もう一度間隔を待つ
+                if (Random::Instance().Range(0.0f, 1.0f) < m_breathChance) {
+                    m_breathSound->Play(false);
+                    playing = true;
+                    m_breathTimer = audio.GetSoundDuration(kBreathPath) + Random::Instance().Range(m_breathIntervalMin, m_breathIntervalMax);
+                } else {
+                    m_breathTimer = Random::Instance().Range(m_breathIntervalMin, m_breathIntervalMax);
+                }
             }
             if (playing) {
                 float atten, pan;
@@ -2394,6 +2399,7 @@ void GhostAI::Serialize(nlohmann::json& out) const
     out["breathRange"]           = m_breathRange;
     out["breathIntervalMin"]     = m_breathIntervalMin;
     out["breathIntervalMax"]     = m_breathIntervalMax;
+    out["breathChance"]          = m_breathChance;
     out["huntBreathVolume"]      = m_huntBreathVolume;
     out["huntBreathRange"]       = m_huntBreathRange;
     out["huntLoopVolume"]        = m_huntLoopVolume;
@@ -2487,6 +2493,7 @@ void GhostAI::Deserialize(const nlohmann::json& in)
     if (in.contains("breathRange"))           m_breathRange           = in["breathRange"];
     if (in.contains("breathIntervalMin"))     m_breathIntervalMin     = in["breathIntervalMin"];
     if (in.contains("breathIntervalMax"))     m_breathIntervalMax     = in["breathIntervalMax"];
+    if (in.contains("breathChance"))          m_breathChance          = in["breathChance"];
     if (in.contains("huntBreathVolume"))      m_huntBreathVolume      = in["huntBreathVolume"];
     if (in.contains("huntBreathRange"))       m_huntBreathRange       = in["huntBreathRange"];
     if (in.contains("huntLoopVolume"))        m_huntLoopVolume        = in["huntLoopVolume"];
@@ -2626,6 +2633,11 @@ void GhostAI::ImGuiUpdate()
     if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"Playerが別の階にいる時の吐息の音量の割合(0=聞こえない)。ハント中の吐息にも効く");
     ImGui::DragFloat(u8"吐息の間隔 (最小)", &m_breathIntervalMin, 0.5f, 0.5f, 120.0f, "%.1f s");
     ImGui::DragFloat(u8"吐息の間隔 (最大)", &m_breathIntervalMax, 0.5f, 0.5f, 120.0f, "%.1f s");
+    {
+        float chancePercent = m_breathChance * 100.0f;
+        if (ImGui::SliderFloat(u8"吐息が鳴る確率", &chancePercent, 0.0f, 100.0f, "%.0f %%")) m_breathChance = chancePercent / 100.0f;
+        if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"ハント以外の時、間隔が来るたびにこの確率で吐息が鳴る。外れたらもう一度間隔を待つ");
+    }
     ImGui::SliderFloat(u8"ハント中の吐息の音量", &m_huntBreathVolume, 0.0f, 1.0f);
     ImGui::DragFloat(u8"ハント中の吐息の届く距離", &m_huntBreathRange, 0.1f, 0.5f, 50.0f, "%.1f m");
     ImGui::SliderFloat(u8"ハント音の音量", &m_huntLoopVolume, 0.0f, 1.0f);

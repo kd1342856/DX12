@@ -477,6 +477,7 @@ private:
     float m_breathRange           = 7.0f;   // この距離(m)以上離れていると聞こえない
     float m_breathIntervalMin     = 40.0f;  // 通常時の吐息の間隔(秒)。鳴り終わってから数える
     float m_breathIntervalMax     = 90.0f;
+    float m_breathChance          = 0.5f;   // 間隔が来た時に吐息が鳴る確率(0〜1)。外れたら鳴らさずにもう一度間隔を待つ
     float m_huntBreathVolume      = 0.9f;
     float m_huntBreathRange       = 12.0f;
     float m_breathTimer           = 5.0f;
