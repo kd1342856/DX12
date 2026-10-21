@@ -68,7 +68,7 @@ cbuffer cbPostProcess : register(b0)
     uint  g_GodRaysNumSamples; // ラジアルブラーのサンプル数
     uint  g_EnableGodRays;     // 0/1 (光源がカメラの後ろにある等、無効な時も0)
     float g_GodRaysIntensity;  // 最終合成時にシーンへ加算する強さ
-    float g_PadPostProcess;
+    float g_BrightnessGamma;   // オプション画面でプレイヤーが調整する明るさ(表示ガンマ。1で変化なし)
 };
 
 struct PSInput

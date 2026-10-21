@@ -26,6 +26,8 @@
 #include "../../../Framework/DirectX/Utility/Profiler.h"
 #include "../../../Framework/ECS/CompSystem/Systems/LightSystem.h"
 #include "../../../Framework/Manager/Particle/ParticleManager.h"
+#include "../../../Framework/Manager/Audio/AudioManager.h"
+#include "../../UI/OptionMenu.h"
 #include <algorithm>
 
 void GameScene::Init()
@@ -130,6 +132,14 @@ void GameScene::HandleModeSwitch()
 
 void GameScene::Update(float deltaTime)
 {
+    // オプション画面を開いている間はゲームを止め、描画だけ続ける(背景のゲーム画面で明るさを確認できるように)
+    if (UpdateOptionMenu())
+    {
+        TryBuildNavMesh();
+        Render();
+        return;
+    }
+
     HandleModeSwitch();
 
     if (!Editor::GetEditorMode() || m_fullscreenGame)
@@ -147,6 +157,48 @@ void GameScene::Update(float deltaTime)
     TryBuildNavMesh();
 
     Render();
+}
+
+void GameScene::Unload()
+{
+    // オプション画面を開いたままシーンが切り替わった時(フェード中に開いた等)に、音が止まったままにならないようにする
+    if (OptionMenu::IsOpen())
+    {
+        OptionMenu::Close();
+        AudioManager::Instance().SetPaused(false);
+    }
+}
+
+bool GameScene::UpdateOptionMenu()
+{
+    const bool wasOpen = OptionMenu::IsOpen();
+
+    // ESCはプレイヤー視点(ゲーム画面)の時だけ受け付ける。F5のデバッグ用フリーカメラ中はエディタ操作を優先する
+    if (m_fullscreenGame && Input::Instance().IsKeyTrigger(DirectX::Keyboard::Keys::Escape))
+    {
+        if (wasOpen) OptionMenu::Close();
+        else         OptionMenu::Open();
+    }
+
+    OptionMenu::Draw(); // 「閉じる」ボタンでもここで閉じる
+
+    const bool isOpen = OptionMenu::IsOpen();
+    if (isOpen != wasOpen) SetPaused(isOpen);
+    return isOpen;
+}
+
+void GameScene::SetPaused(bool paused)
+{
+    // ループ再生中の足音やゴーストの音も含めて全て止める
+    AudioManager::Instance().SetPaused(paused);
+
+    if (paused) {
+        Input::Instance().SetMouseModeAbsolute(); // カーソルを出してスライダーを操作できるようにする
+        m_isCameraDragging = false;
+    }
+    else if (m_fullscreenGame) {
+        Input::Instance().SetMouseModeRelative();
+    }
 }
 
 void GameScene::UpdateInput()

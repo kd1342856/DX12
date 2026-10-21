@@ -97,6 +97,9 @@
     <Filter Include="Source\Application\Scene\TitleScene">
       <UniqueIdentifier>{9B8933D7-D682-4075-B60B-6483C7342EFD}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Application\UI">
+      <UniqueIdentifier>{ef673517-f918-4dbb-b607-c752c3445f75}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source\Framework">
       <UniqueIdentifier>{47202139-D20F-4C59-894F-1A2D521D00C1}</UniqueIdentifier>
     </Filter>
@@ -359,6 +362,9 @@
     </ClCompile>
     <ClCompile Include="Source\Application\Scene\TitleScene\TitleScene.cpp">
       <Filter>Source\Application\Scene\TitleScene</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Application\UI\OptionMenu.cpp">
+      <Filter>Source\Application\UI</Filter>
     </ClCompile>
     <ClCompile Include="Source\Framework\DirectX\Utility\ClassAssembly.cpp">
       <Filter>Source\Framework\DirectX\Utility</Filter>
@@ -724,6 +730,9 @@
     </ClInclude>
     <ClInclude Include="Source\Application\Scene\TitleScene\TitleScene.h">
       <Filter>Source\Application\Scene\TitleScene</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Application\UI\OptionMenu.h">
+      <Filter>Source\Application\UI</Filter>
     </ClInclude>
     <ClInclude Include="Source\Application\Scene\SceneBase.h">
       <Filter>Source\Application\Scene</Filter>

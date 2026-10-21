@@ -12,6 +12,7 @@
 #include "../Framework/Manager/Scene/Scene.h"
 #include "../Framework/System/JobSystem/JobSystem.h"
 #include "../Framework/DirectX/Utility/Profiler.h"
+#include "UI/OptionMenu.h"
 
 // ImGui の Win32 メッセージハンドラへ転送する
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -69,6 +70,8 @@ void Application::Execute()
 
 	// ShaderManager
 	ShaderManager::Instance().Initialize(&GDF::Instance().GetGraphicsDevice());
+	// オプション画面で保存した明るさ(表示ガンマ)。音量はAudioManager::Init()で読み込まれる
+	OptionMenu::LoadSettings();
 
 	// AudioManager
 	AudioManager::Instance().Init();

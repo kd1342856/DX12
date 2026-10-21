@@ -52,6 +52,9 @@ public:
     void SetSEVolume(float vol) { m_seBusVolume = vol; }
     void SetMuted(bool muted);
 
+    // ポーズ中(ゲーム内のオプション画面)に全ての音(スクリプトが持つループSEも含む)を一時停止する
+    void SetPaused(bool paused);
+
     // --- 曲ごとの音量(Sound Managerで調整・保存)。BGMの最終音量 = PlayBGMのvol × 曲の音量 × BGMバス ---
     // 曲を使う側(TitleScene等)が表示名と初期音量を登録する。保存済みの値があればそちらを優先する
     void RegisterBGMTrack(const std::string& filepath, const std::string& label, float defaultVolume);

@@ -184,6 +184,7 @@ xcopy /y /d "$(ProjectDir)dxil.dll" "$(OutDir)"</Command>
     <ClInclude Include="Source\Application\Scene\GameScene\PropLayout.h" />
     <ClInclude Include="Source\Application\Scene\ResultScene\ResultScene.h" />
     <ClInclude Include="Source\Application\Scene\TitleScene\TitleScene.h" />
+    <ClInclude Include="Source\Application\UI\OptionMenu.h" />
     <ClInclude Include="Source\Application\Scene\SceneBase.h" />
     <ClInclude Include="Source\Framework\DirectX\Utility\ClassAssembly.h" />
     <ClInclude Include="Source\Framework\DirectX\Utility\EngineSettings.h" />
@@ -356,6 +357,7 @@ xcopy /y /d "$(ProjectDir)dxil.dll" "$(OutDir)"</Command>
     <ClCompile Include="Source\Application\Scene\GameScene\PropLayout.cpp" />
     <ClCompile Include="Source\Application\Scene\ResultScene\ResultScene.cpp" />
     <ClCompile Include="Source\Application\Scene\TitleScene\TitleScene.cpp" />
+    <ClCompile Include="Source\Application\UI\OptionMenu.cpp" />
     <ClCompile Include="Source\Framework\DirectX\Utility\ClassAssembly.cpp" />
     <ClCompile Include="Source\Framework\DirectX\Utility\Input.cpp" />
     <ClCompile Include="Source\Framework\DirectX\Utility\Logger.cpp" />

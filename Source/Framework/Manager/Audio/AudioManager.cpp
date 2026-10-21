@@ -173,6 +173,12 @@ void AudioManager::SetMuted(bool muted) {
     ApplyVolumes();
 }
 
+void AudioManager::SetPaused(bool paused) {
+    if (!m_audioEngine) return;
+    if (paused) m_audioEngine->Suspend();
+    else        m_audioEngine->Resume();
+}
+
 void AudioManager::ApplyVolumes() {
     // Master/mute go through the engine's mastering voice so they also cover SE instances owned by
     // scripts (footsteps etc.); the BGM bus only touches the BGM instance.

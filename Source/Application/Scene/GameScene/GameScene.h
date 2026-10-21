@@ -8,9 +8,14 @@ class GameScene : public SceneBase
 public:
     void Init() override;
     void Update(float deltaTime) override;
+    void Unload() override;
 
 private:
     void HandleModeSwitch();
+    // ESCでオプション画面を開閉して描く。開いている間はゲームをポーズする(戻り値: ポーズ中か)
+    bool UpdateOptionMenu();
+    // ポーズの開始/終了(音の一時停止とマウスモードの切り替え)
+    void SetPaused(bool paused);
     void UpdateInput();
     void UpdateCamera();
     void TryBuildNavMesh();

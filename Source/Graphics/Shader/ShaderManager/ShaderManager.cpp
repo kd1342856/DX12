@@ -138,6 +138,7 @@ void ShaderManager::UpdatePostProcessCB()
 		m_PostProcessData.EnableHDR = m_PostProcessSettings.EnableHDR ? 1 : 0;
 		m_PostProcessData.Exposure = m_PostProcessSettings.Exposure;
 		m_PostProcessData.Gamma = m_PostProcessSettings.Gamma;
+		m_PostProcessData.BrightnessGamma = m_PostProcessSettings.BrightnessGamma;
 		m_PostProcessData.BloomThreshold = m_PostProcessSettings.BloomThreshold;
 		m_PostProcessData.BloomIntensity = m_PostProcessSettings.BloomIntensity;
 		m_PostProcessData.BlurRadius = m_PostProcessSettings.BloomRadius;
