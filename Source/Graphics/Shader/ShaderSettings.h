@@ -76,8 +76,6 @@ struct PostProcessSettings
     bool EnableHDR = true;
     float Gamma = 1.00f;
     float Exposure = 0.30f;
-    // プレイヤーがオプション画面で調整する明るさ(表示ガンマ)。Gammaは見た目作り用なので別に持つ。
-    // 保存/読み込みはOptionMenuが行う(Asset/Data/OptionSettings.json)
     float BrightnessGamma = 1.00f;
 
     // Bloom - 半径・反復回数を上げてはじめて「ふわっと広がる」見た目になる。

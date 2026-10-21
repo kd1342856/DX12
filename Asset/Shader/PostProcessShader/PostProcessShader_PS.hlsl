@@ -106,10 +106,6 @@ float4 main(PSInput In) : SV_Target0
         sceneColor += (grain - 0.5) * g_FilmGrainIntensity;
     }
 
-    //------------------------------------------
-    // 明るさ(オプション画面の表示ガンマ)。g_Gammaは見た目作り用、こちらはモニター差の吸収用で、
-    // ビネット/グレインまで含めた最終的な画面全体に掛ける。
-    //------------------------------------------
     sceneColor = pow(saturate(sceneColor), 1.0 / max(g_BrightnessGamma, 0.01));
 
     return float4(saturate(sceneColor), 1.0);
