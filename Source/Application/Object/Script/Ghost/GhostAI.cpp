@@ -86,17 +86,23 @@ Entity GhostAI::FindPlayerEntity()
     if (!scene) return INVALID_ENTITY;
 
     Entity found = INVALID_ENTITY;
-    std::function<void(const std::shared_ptr<GameObject>&)> findPlayer = [&](const std::shared_ptr<GameObject>& obj) {
+    std::function<void(const std::shared_ptr<GameObject>&)> findPlayer = [&](const std::shared_ptr<GameObject>& obj) 
+        {
         if (found != INVALID_ENTITY) return;
-        if (obj->GetName() == "Player") {
+
+        if (obj->GetName() == "Player") 
+        {
             found = obj->GetEntityID();
             return;
         }
         for (const auto& child : obj->GetChildren()) findPlayer(child);
     };
-    for (auto const& obj : scene->GetGameObjects()) {
+
+    for (auto const& obj : scene->GetGameObjects()) 
+    {
         findPlayer(obj);
     }
+
     return found;
 }
 
@@ -2027,6 +2033,7 @@ void GhostAI::Update(float deltaTime)
     // 除霊・スタンの早期returnより前に呼ぶ(ハント音をフェードアウトさせるため)
     UpdateSounds(deltaTime, cTrans.m_position);
 
+    if (Input::Instance().IsKeyTrigger('K')) { SetState(State::Hunt); ApplyStun(5.0f); Exorcise(); } // TEMP_DEBUG_EXORCISE
     if (m_isExorcised) {
         UpdateExorciseEffect(deltaTime, cTrans);
         return;
