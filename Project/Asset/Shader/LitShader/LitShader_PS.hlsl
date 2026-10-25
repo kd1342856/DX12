@@ -201,8 +201,17 @@ PSOutput main(VSOutput In) : SV_Target0
     float metallic = mr.b * g_metallicFactor;
     // 粗さ (G channel)
     float roughness = mr.g * g_roughnessFactor;
-    // ラフネスの2乗したほうが、感覚的にリニアに見えるらしい
-    const float roughness2 = roughness * roughness;
+    // ラフネスの2乗したほうが、感覚的にリニアに見えるらしい(GGXのα)
+    float roughness2 = roughness * roughness;
+    // Geometric Specular AA(Tokuyoshi & Kaplanyan 2019)。画面上で法線が急に変わる所(細かい凹凸や遠くの曲面)は、
+    // 1ピクセルの中にいろいろな向きの法線が含まれる。その広がりの分だけαを大きくし、ハイライトのちらつきを抑える
+    {
+        const float3 normalDdx = ddx(wN);
+        const float3 normalDdy = ddy(wN);
+        const float variance = 0.25 * (dot(normalDdx, normalDdx) + dot(normalDdy, normalDdy));
+        const float kernelRoughness2 = min(2.0 * variance, 0.18);
+        roughness2 = sqrt(saturate(roughness2 * roughness2 + kernelRoughness2));
+    }
 
     // 材質の色
     float4 baseColor = g_baseMap_white.Sample(g_ss_aniso_wrap, In.UV) * g_baseColorFactor;
