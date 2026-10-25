@@ -1,4 +1,4 @@
-ï»¿#pragma once
+#pragma once
 #include "../GraphicsShader/GraphicsShader.h"
 
 class RenderTarget;
@@ -8,10 +8,10 @@ class PostProcessShader : public GraphicsShader
 public:
     virtual void Create(GraphicsDevice* pGraphicsDevice) override;
 
-    // pDofRT: è¢«å†™ç•Œæ·±åº¦ç”¨ã«ã‚ã‚‰ã‹ã˜ã‚ã¼ã‹ã—ã¦ãŠã„ãŸã‚·ãƒ¼ãƒ³ã®ã‚³ãƒ”ãƒ¼(nullptrãªã‚‰DOFç„¡åŠ¹æ™‚ã¨åŒã˜æ‰±ã„)ã€‚
-    // ã‚·ãƒ¼ãƒ³æ·±åº¦ã¯pSceneRTè‡ªèº«ãŒæŒã¤å°‚ç”¨æ·±åº¦ãƒãƒƒãƒ•ã‚¡(RenderTarget::GetDepthSRVIndex)ã‚’ä½¿ã†
-    // (DOFã®CoCè¨ˆç®—ç”¨ã€‚å‘¼ã³å‡ºã—å´ã¯pSceneRTã®æ·±åº¦ã‚’ã‚ã‚‰ã‹ã˜ã‚SRVã¸é·ç§»ã•ã›ã¦ãŠãã“ã¨)ã€‚
-    // pGodRaysRT: God Rays(å…‰æ¡)ã®çµæœ(nullptrãªã‚‰ç„¡åŠ¹æ™‚ã¨åŒã˜æ‰±ã„)ã€‚
+    // pDofRT: ”íÊŠE[“x—p‚É‚ ‚ç‚©‚¶‚ß‚Ú‚©‚µ‚Ä‚¨‚¢‚½ƒV[ƒ“‚ÌƒRƒs[(nullptr‚È‚çDOF–³Œø‚Æ“¯‚¶ˆµ‚¢)B
+    // ƒV[ƒ“[“x‚ÍpSceneRT©g‚ª‚Âê—p[“xƒoƒbƒtƒ@(RenderTarget::GetDepthSRVIndex)‚ğg‚¤
+    // (DOF‚ÌCoCŒvZ—pBŒÄ‚Ño‚µ‘¤‚ÍpSceneRT‚Ì[“x‚ğ‚ ‚ç‚©‚¶‚ßSRV‚Ö‘JˆÚ‚³‚¹‚Ä‚¨‚­‚±‚Æ)B
+    // pGodRaysRT: God Rays(Œõğ)‚ÌŒ‹‰Ê(nullptr‚È‚ç–³Œø‚Æ“¯‚¶ˆµ‚¢)B
     void Draw(RenderTarget* pSceneRT, RenderTarget* pBloomRT, const CBufferData::PostProcess& postProcessData,
               RenderTarget* pDofRT = nullptr, RenderTarget* pGodRaysRT = nullptr);
 };

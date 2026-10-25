@@ -1,9 +1,9 @@
-ï»¿#pragma once
+#pragma once
 #include "../GraphicsShader/GraphicsShader.h"
 
 class RenderTarget;
 
-// SSAO(Screen Space Ambient Occlusion)ã€‚NormalPrepassã®æ³•ç·š+æ·±åº¦ã‚’ä½¿ã†åŠçƒã‚µãƒ³ãƒ—ãƒªãƒ³ã‚°ç‰ˆã€‚
+// SSAO(Screen Space Ambient Occlusion)BNormalPrepass‚Ì–@ü+[“x‚ğg‚¤”¼‹…ƒTƒ“ƒvƒŠƒ“ƒO”ÅB
 class SSAOShader : public GraphicsShader
 {
 public:
@@ -17,8 +17,8 @@ public:
         float Intensity = 1.0f;
     };
 
-    // pNormalRT: NormalPrepassShaderã§æ›¸ãå‡ºã—ãŸæ³•ç·š+æ·±åº¦ã®RTã€‚RenderContextã®
-    // ã‚«ãƒ¡ãƒ©è¡Œåˆ—(Renderer::GetContext())ã‚’ä½¿ã£ã¦ãƒ“ãƒ¥ãƒ¼ç©ºé–“ã¸å¤‰æ›ã™ã‚‹ã®ã§ã€
-    // å‘¼ã³å‡ºã—å‰ã«context.View/ProjectionãŒæ­£ã—ã„ã‚«ãƒ¡ãƒ©ã®ã‚‚ã®ã«ãªã£ã¦ã„ã‚‹ã“ã¨ã€‚
+    // pNormalRT: NormalPrepassShader‚Å‘‚«o‚µ‚½–@ü+[“x‚ÌRTBRenderContext‚Ì
+    // ƒJƒƒ‰s—ñ(Renderer::GetContext())‚ğg‚Á‚Äƒrƒ…[‹óŠÔ‚Ö•ÏŠ·‚·‚é‚Ì‚ÅA
+    // ŒÄ‚Ño‚µ‘O‚Écontext.View/Projection‚ª³‚µ‚¢ƒJƒƒ‰‚Ì‚à‚Ì‚É‚È‚Á‚Ä‚¢‚é‚±‚ÆB
     void Draw(RenderTarget* pNormalRT, RenderTarget* pDestRT, const Params& params);
 };

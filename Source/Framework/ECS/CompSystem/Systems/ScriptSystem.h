@@ -1,4 +1,4 @@
-ï»¿#pragma once
+#pragma once
 #include "../../Components/Data/NativeScript.h"
 #include "../../../DirectX/Utility/Profiler.h"
 #include <typeinfo>
@@ -38,8 +38,8 @@ public:
             auto& scriptData = m_pCoordinator->GetComponent<NativeScriptData>(entity);
             if (scriptData.Instance)
             {
-                // ã‚¹ã‚¯ãƒªãƒ—ãƒˆç¨®åˆ¥ã”ã¨ã®å†…è¨³(RTTIåž‹å)ã€‚ScriptSystem::Updateã®åˆè¨ˆæ™‚é–“ã®ä¸­ã§
-                // å®Ÿéš›ã«ã©ã®ã‚¹ã‚¯ãƒªãƒ—ãƒˆãŒã‚³ã‚¹ãƒˆã‚’ä½¿ã£ã¦ã„ã‚‹ã‹ã‚’è¦‹ã‚‰ã‚Œã‚‹ã‚ˆã†ã«ã™ã‚‹ã€‚
+                // ƒXƒNƒŠƒvƒgŽí•Ê‚²‚Æ‚Ì“à–ó(RTTIŒ^–¼)BScriptSystem::Update‚Ì‡ŒvŽžŠÔ‚Ì’†‚Å
+                // ŽÀÛ‚É‚Ç‚ÌƒXƒNƒŠƒvƒg‚ªƒRƒXƒg‚ðŽg‚Á‚Ä‚¢‚é‚©‚ðŒ©‚ç‚ê‚é‚æ‚¤‚É‚·‚éB
                 PROFILE_CPU_SCOPE(typeid(*scriptData.Instance).name());
                 scriptData.Instance->Update(deltaTime);
             }

@@ -1,4 +1,4 @@
-ï»¿#include "../../../Pch.h"
+#include "../../../Pch.h"
 #include "RenderTarget.h"
 bool RenderTarget::Create(int width, int height, DXGI_FORMAT format)
 {
@@ -29,9 +29,9 @@ bool RenderTarget::Create(int width, int height, DXGI_FORMAT format)
     {
         return false;
     }
-    // RTVä½œæˆ
+    // RTVì¬
     m_rtvIndex = m_device->CreateRTV(m_resource.Get());
-    // SRVä½œæˆ
+    // SRVì¬
     m_srvIndex = m_device->CreateSRV(m_resource.Get());
     m_imGuiSrvIndex = m_device->AllocateImGuiSRV(m_resource.Get());
     // Actually create the SRV in the ImGui SRV Heap
@@ -45,8 +45,8 @@ bool RenderTarget::Create(int width, int height, DXGI_FORMAT format)
     D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle = m_device->GetImGuiSRVHeap()->GetCPUDescriptorHandleForHeapStart();
     cpuHandle.ptr += m_device->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * m_imGuiSrvIndex;
     m_device->GetDevice()->CreateShaderResourceView(m_resource.Get(), &srvDesc, cpuHandle);
-    // DepthStencilã€‚SRVã‹ã‚‰ã‚‚èª­ã‚ã‚‹ã‚ˆã†ã«(DOF/SSAO/SSRç­‰)ã€DSVã¨åŒã˜ç†ç”±ã§Typelessã«ã—ã¦ãŠãã€
-    // DSVå´ã¯D32_FLOATã€SRVå´ã¯R32_FLOATã¨ã—ã¦ãã‚Œãžã‚Œè¦‹ã‚‹(DepthStencilã‚¯ãƒ©ã‚¹ã¨åŒã˜æ‰‹æ³•)ã€‚
+    // DepthStencilBSRV‚©‚ç‚à“Ç‚ß‚é‚æ‚¤‚É(DOF/SSAO/SSR“™)ADSV‚Æ“¯‚¶——R‚ÅTypeless‚É‚µ‚Ä‚¨‚«A
+    // DSV‘¤‚ÍD32_FLOATASRV‘¤‚ÍR32_FLOAT‚Æ‚µ‚Ä‚»‚ê‚¼‚êŒ©‚é(DepthStencilƒNƒ‰ƒX‚Æ“¯‚¶Žè–@)B
     D3D12_RESOURCE_DESC depthResDesc = resDesc;
     depthResDesc.Format = DXGI_FORMAT_R32_TYPELESS;
     depthResDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
@@ -60,9 +60,9 @@ bool RenderTarget::Create(int width, int height, DXGI_FORMAT format)
     {
         return false;
     }
-    // DSVä½œæˆ
+    // DSVì¬
     m_dsvIndex = m_device->CreateDSV(m_pDepthBuffer.Get(), DXGI_FORMAT_D32_FLOAT);
-    // SRV (Typelessãªã®ã§ CreateSRV ãŒè‡ªå‹•ã§R32_FLOATã¨ã—ã¦è§£é‡ˆã™ã‚‹)
+    // SRV (Typeless‚È‚Ì‚Å CreateSRV ‚ªŽ©“®‚ÅR32_FLOAT‚Æ‚µ‚Ä‰ðŽß‚·‚é)
     m_depthSrvIndex = m_device->CreateSRV(m_pDepthBuffer.Get());
     return true;
 }

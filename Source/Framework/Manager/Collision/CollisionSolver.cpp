@@ -1,4 +1,4 @@
-ï»¿#include "../../../Pch.h"
+#include "../../../Pch.h"
 #include "CollisionSolver.h"
 #include "../Asset/MeshManager.h"
 #include <iostream>
@@ -8,7 +8,7 @@ namespace CollisionSolver
 {
 
 
-    // è»½é‡ç‰ˆï¼ˆã‚ã‚‰ã‹ã˜ã‚ãƒœãƒƒã‚¯ã‚¹ãƒ­ãƒ¼ã‚«ãƒ«ç©ºé–“ [åŸç‚¹ãŒãƒœãƒƒã‚¯ã‚¹ä¸­å¿ƒ] ã«å¤‰æ›ã•ã‚ŒãŸé ‚ç‚¹ã‚’ä½¿ç”¨ã™ã‚‹ï¼‰
+    // Œy—Ê”Åi‚ ‚ç‚©‚¶‚ßƒ{ƒbƒNƒXƒ[ƒJƒ‹‹óŠÔ [Œ´“_‚ªƒ{ƒbƒNƒX’†S] ‚É•ÏŠ·‚³‚ê‚½’¸“_‚ğg—p‚·‚éj
     bool CheckTriangleVsBox(const Math::Vector3& p0, const Math::Vector3& p1, const Math::Vector3& p2, const Math::Vector3& extents, Math::Vector3& outPushLocal)
     {
         using namespace DirectX;
@@ -21,10 +21,10 @@ namespace CollisionSolver
             XMVectorSubtract(P[2], P[1]),
             XMVectorSubtract(P[0], P[2])};
 
-        // ä¸‰è§’å½¢ã®æ³•ç·š
+        // OŠpŒ`‚Ì–@ü
         XMVECTOR triNormal = XMVector3Normalize(XMVector3Cross(triEdges[0], triEdges[1]));
 
-        // åˆ†é›¢è»¸ã®å€™è£œï¼ˆæœ€å¤§13æœ¬ï¼‰
+        // •ª—£²‚ÌŒó•âiÅ‘å13–{j
         XMVECTOR axes[13];
         axes[0] = boxAxes[0];
         axes[1] = boxAxes[1];
@@ -32,8 +32,8 @@ namespace CollisionSolver
         axes[3] = triNormal;
         int axisCount = 4;
 
-        // ãƒœãƒƒã‚¯ã‚¹ã®è¾ºã¨ä¸‰è§’å½¢ã®è¾ºã®å¤–ç©è»¸ (ã‚¨ãƒƒã‚¸åŒå£«ã®è¡çª)
-        // ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼æ“ä½œã«ãŠã„ã¦ã€ã‚¨ãƒƒã‚¸åŒå£«ã®ã‚¯ãƒ­ã‚¹ç©è»¸ã¯ä¸è¦ãªæ–œã‚ã®æŠ¼ã—å‡ºã—ï¼ˆå¼•ã£ã‹ã‹ã‚Šï¼‰ã‚’ç”Ÿã‚€ãŸã‚ã‚³ãƒ¡ãƒ³ãƒˆã‚¢ã‚¦ãƒˆ
+        // ƒ{ƒbƒNƒX‚Ì•Ó‚ÆOŠpŒ`‚Ì•Ó‚ÌŠOÏ² (ƒGƒbƒW“¯m‚ÌÕ“Ë)
+        // ƒLƒƒƒ‰ƒNƒ^[‘€ì‚É‚¨‚¢‚ÄAƒGƒbƒW“¯m‚ÌƒNƒƒXÏ²‚Í•s—v‚ÈÎ‚ß‚Ì‰Ÿ‚µo‚µiˆø‚Á‚©‚©‚èj‚ğ¶‚Ş‚½‚ßƒRƒƒ“ƒgƒAƒEƒg
         /*
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
@@ -53,19 +53,19 @@ namespace CollisionSolver
         {
             XMVECTOR axis = axes[i];
 
-            // ãƒœãƒƒã‚¯ã‚¹ã®æŠ•å½±åŠå¾„
+            // ƒ{ƒbƒNƒX‚Ì“Š‰e”¼Œa
             XMVECTOR absAxis = XMVectorAbs(axis);
             XMVECTOR boxProjV = XMVector3Dot(absAxis, E);
             float boxProj = XMVectorGetX(boxProjV);
 
-            // ä¸‰è§’å½¢ã®æŠ•å½±ç¯„å›²
+            // OŠpŒ`‚Ì“Š‰e”ÍˆÍ
             float t0 = XMVectorGetX(XMVector3Dot(axis, P[0]));
             float t1 = XMVectorGetX(XMVector3Dot(axis, P[1]));
             float t2 = XMVectorGetX(XMVector3Dot(axis, P[2]));
             float triMin = std::min({t0, t1, t2});
             float triMax = std::max({t0, t1, t2});
 
-            // é‡ãªã‚Šé‡ã®è¨ˆç®—
+            // d‚È‚è—Ê‚ÌŒvZ
             float overlap1 = triMax - (-boxProj);
             float overlap2 = boxProj - triMin;
 
@@ -87,7 +87,7 @@ namespace CollisionSolver
         return true;
     }
 
-    // çƒ (ä¸­å¿ƒ cSphereWorld, åŠå¾„ radius) ã¨ Box (ãƒ¯ãƒ¼ãƒ«ãƒ‰è¡Œåˆ— world, ã‚ªãƒ•ã‚»ãƒƒãƒˆ bOffset, ç¯„å›² bExtents) ã®äº¤å·®åˆ¤å®š
+    // ‹… (’†S cSphereWorld, ”¼Œa radius) ‚Æ Box (ƒ[ƒ‹ƒhs—ñ world, ƒIƒtƒZƒbƒg bOffset, ”ÍˆÍ bExtents) ‚ÌŒğ·”»’è
     bool CheckSphereVsBox(const Math::Vector3& cSphereWorld, float radius, const Math::Vector3& bOffset, const Math::Vector3& extents, const Math::Matrix& boxWorld, Math::Vector3& outPush)
     {
         Math::Matrix invBoxWorld = boxWorld.Invert();
@@ -138,7 +138,7 @@ namespace CollisionSolver
     }
 
 
-    // çƒã¨Boxã®åˆ¤å®šå‡¦ç† (OBBå¯¾å¿œ) - ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆç”¨
+    // ‹…‚ÆBox‚Ì”»’èˆ— (OBB‘Î‰) - ƒRƒ“ƒ|[ƒlƒ“ƒg—p
     static bool CheckSphereVsBox(CollisionResult& result,
                                  const Math::Vector3& cSphereWorld, float radius,
                                  const Math::Vector3& bOffset, const Math::Vector3& extents,
@@ -157,7 +157,7 @@ namespace CollisionSolver
         return false;
     }
 
-    // ã‚«ãƒ—ã‚»ãƒ«ã®2ã¤ã®ç«¯ç‚¹(ç·šåˆ†)ã‚’æ±‚ã‚ã‚‹é–¢æ•°
+    // ƒJƒvƒZƒ‹‚Ì2‚Â‚Ì’[“_(ü•ª)‚ğ‹‚ß‚éŠÖ”
     static void GetCapsulePoints(const CollisionShapeCapsule* cap,
                                  const Math::Matrix& world, Math::Vector3& p1,
                                  Math::Vector3& p2)
@@ -170,7 +170,7 @@ namespace CollisionSolver
     }
 
     //===================================================
-    // (å›³å½¢A, è¡Œåˆ—A, å›³å½¢B, è¡Œåˆ—B ã‚’æ¸¡ã—ã¦äº¤å·®ã—ã¦ã„ã‚‹ã‹åˆ¤å®šã™ã‚‹)
+    // (}Œ`A, s—ñA, }Œ`B, s—ñB ‚ğ“n‚µ‚ÄŒğ·‚µ‚Ä‚¢‚é‚©”»’è‚·‚é)
     //===================================================
     bool CheckCollisionShape(CollisionResult& result,
                              const CollisionShape* shapeA, const Math::Matrix& worldA,
@@ -201,7 +201,7 @@ namespace CollisionSolver
 
             for (const auto& node : meshShape->m_model->GetNodes())
             {
-                // ä¿®æ­£: ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³å¤‰å½¢ã‚’è€ƒæ…®
+                // C³: ƒAƒjƒ[ƒVƒ‡ƒ“•ÏŒ`‚ğl—¶
                 Math::Matrix nodeWorld = node.animDeltaTransform * worldB_withOffset;
                 DirectX::XMMATRIX mNodeWorld = DirectX::XMLoadFloat4x4(&nodeWorld);
 
@@ -221,11 +221,11 @@ namespace CollisionSolver
                         continue;
                     }
 
-                    // ãƒ–ãƒ­ãƒ¼ãƒ‰ãƒ•ã‚§ãƒ¼ã‚º: å…¨ä¸‰è§’å½¢ã®å…¨é ‚ç‚¹ã‚’å¤‰æ›ã—ã¦çµå±€shapeAã®è¿‘ãã«ã¯
-                    // ã©ã‚Œã‚‚ç„¡ã„ã¨åˆ†ã‹ã‚‹ãã‚‰ã„ãªã‚‰ã€ãƒœãƒƒã‚¯ã‚¹1å›ã®åˆ¤å®šã§ã“ã®ãƒ¡ãƒƒã‚·ãƒ¥å…¨ä½“ã‚’
-                    // æ£„å´ã™ã‚‹ã€‚ã“ã‚ŒãŒç„¡ã„ã¨ã€ãƒ¡ãƒƒã‚·ãƒ¥ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼(ãƒ¬ãƒ™ãƒ«ã‚¸ã‚ªãƒ¡ãƒˆãƒªç­‰)ã¯
-                    // shapeAãŒå®Ÿéš›ã©ã‚Œã ã‘å°ã•ã„/é ã„ã‹ã«é–¢ã‚ã‚‰ãšã€åˆ¤å®šã®ãŸã³ã«ä¸‰è§’å½¢ã®
-                    // ç·æ•°ã«æ¯”ä¾‹ã—ãŸã‚³ã‚¹ãƒˆãŒã‹ã‹ã£ã¦ã„ãŸã€‚
+                    // ƒuƒ[ƒhƒtƒF[ƒY: ‘SOŠpŒ`‚Ì‘S’¸“_‚ğ•ÏŠ·‚µ‚ÄŒ‹‹ÇshapeA‚Ì‹ß‚­‚É‚Í
+                    // ‚Ç‚ê‚à–³‚¢‚Æ•ª‚©‚é‚­‚ç‚¢‚È‚çAƒ{ƒbƒNƒX1‰ñ‚Ì”»’è‚Å‚±‚ÌƒƒbƒVƒ…‘S‘Ì‚ğ
+                    // Šü‹p‚·‚éB‚±‚ê‚ª–³‚¢‚ÆAƒƒbƒVƒ…ƒRƒ‰ƒCƒ_[(ƒŒƒxƒ‹ƒWƒIƒƒgƒŠ“™)‚Í
+                    // shapeA‚ªÀÛ‚Ç‚ê‚¾‚¯¬‚³‚¢/‰“‚¢‚©‚ÉŠÖ‚í‚ç‚¸A”»’è‚Ì‚½‚Ñ‚ÉOŠpŒ`‚Ì
+                    // ‘”‚É”ä—á‚µ‚½ƒRƒXƒg‚ª‚©‚©‚Á‚Ä‚¢‚½B
                     DirectX::BoundingBox worldMeshAABB;
                     mesh->GetLocalAABB().Transform(worldMeshAABB, mNodeWorld);
                     if (!worldMeshAABB.Intersects(shapeA->m_worldAABB))
@@ -286,7 +286,7 @@ namespace CollisionSolver
                                     push = Math::Vector3(0, 1, 0) * sphere->radius;
                                 }
 
-                                // è¤‡æ•°ãƒãƒªã‚´ãƒ³ã‹ã‚‰ã®éå‰°ãªæŠ¼ã—å‡ºã—ï¼ˆã‚¬ã‚¿ã¤ãï¼‰ã‚’é˜²ã
+                                // •¡”ƒ|ƒŠƒSƒ“‚©‚ç‚Ì‰ßè‚È‰Ÿ‚µo‚µiƒKƒ^‚Â‚«j‚ğ–h‚®
                                 if (totalPush.LengthSquared() == 0)
                                 {
                                     totalPush = push;
@@ -412,7 +412,7 @@ namespace CollisionSolver
                                     push = Math::Vector3(0, 1, 0) * cap->radius;
                                 }
 
-                                // è¤‡æ•°ãƒãƒªã‚´ãƒ³ã‹ã‚‰ã®éå‰°ãªæŠ¼ã—å‡ºã—ï¼ˆã‚¬ã‚¿ã¤ãï¼‰ã‚’é˜²ã
+                                // •¡”ƒ|ƒŠƒSƒ“‚©‚ç‚Ì‰ßè‚È‰Ÿ‚µo‚µiƒKƒ^‚Â‚«j‚ğ–h‚®
                                 if (totalPush.LengthSquared() == 0)
                                 {
                                     totalPush = push;

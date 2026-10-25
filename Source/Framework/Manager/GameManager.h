@@ -1,4 +1,4 @@
-ï»¿#pragma once
+#pragma once
 #include "../Manager/Collision/CollisionManager.h"
 #include "../System/JobSystem/JobSystem.h"
 #include "../DirectX/Utility/ClassAssembly.h"
@@ -14,41 +14,41 @@ class Scene;
 
 // =============================================
 // GameManager
-// ECSCoordinator ã¨å„ System ã®ä¸€å…ƒç®¡ç†
-// Application ãƒ«ãƒ¼ãƒ—ã‹ã‚‰ Update() ã‚’å‘¼ã¶ã ã‘ã§å…¨ System ãŒå‹•ã
+// ECSCoordinator ‚ÆŠe System ‚ÌˆêŒ³ŠÇ—
+// Application ƒ‹[ƒv‚©‚ç Update() ‚ğŒÄ‚Ô‚¾‚¯‚Å‘S System ‚ª“®‚­
 // =============================================
 class GameManager
 {
 public:
-    // ã‚·ãƒ³ã‚°ãƒ«ãƒˆãƒ³ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹å–å¾—
+    // ƒVƒ“ƒOƒ‹ƒgƒ“ƒCƒ“ƒXƒ^ƒ“ƒXæ“¾
     static GameManager& Instance();
 
-    // static ç ´æ£„å¾Œã« false ã«ãªã‚‹ç”Ÿå­˜ãƒ•ãƒ©ã‚°
+    // static ”jŠüŒã‚É false ‚É‚È‚é¶‘¶ƒtƒ‰ƒO
     static bool IsInstanceAlive()
     {
         return s_alive;
     }
 
-    // ã‚¢ãƒ—ãƒªèµ·å‹•æ™‚ã«1å›ã ã‘å‘¼ã¶
-    // Component å‹ç™»éŒ² + å…¨ System ç™»éŒ² + Signature è¨­å®š
+    // ƒAƒvƒŠ‹N“®‚É1‰ñ‚¾‚¯ŒÄ‚Ô
+    // Component Œ^“o˜^ + ‘S System “o˜^ + Signature İ’è
     void Init();
 
     void Update(float deltaTime, class Scene* pScene);
 
 
-    // ECS å–å¾—
+    // ECS æ“¾
     ECSCoordinator& GetECS()
     {
         return m_ecs;
     }
 
-    // ClassAssembly å–å¾—ï¼ˆå‹ç™»éŒ²ã®ä¸€æœ¬åŒ–ï¼‰
+    // ClassAssembly æ“¾iŒ^“o˜^‚Ìˆê–{‰»j
     ClassAssembly& GetClassAssembly()
     {
         return ClassAssembly::Instance();
     }
 
-    // System ã‚¢ã‚¯ã‚»ã‚µï¼ˆå¿…è¦ãªå ´åˆã®ã¿ï¼‰
+    // System ƒAƒNƒZƒTi•K—v‚Èê‡‚Ì‚İj
     std::shared_ptr<RenderSystem> GetRenderSystem() const
     {
         return m_spRenderSystem;
@@ -89,7 +89,7 @@ private:
 
     ECSCoordinator m_ecs;
 
-    // å¸¸é§ Systemï¼ˆScene åˆ‡æ›¿å¾Œã‚‚ç”Ÿãç¶šã‘ã‚‹ï¼‰
+    // í’“ SystemiScene Ø‘ÖŒã‚à¶‚«‘±‚¯‚éj
     std::shared_ptr<ScriptSystem> m_spScriptSystem;
     std::shared_ptr<TransformSystem> m_spTransformSystem;
     std::shared_ptr<CameraSystem> m_spCameraSystem;
@@ -99,10 +99,10 @@ private:
     std::shared_ptr<LightSystem> m_spLightSystem;
     std::shared_ptr<SpotLightSystem> m_spSpotLightSystem;
 
-    // ã‚·ãƒ£ãƒƒãƒˆãƒ€ã‚¦ãƒ³ã®äºŒé‡ã‚¢ã‚¯ã‚»ã‚¹é˜²æ­¢ãƒ•ãƒ©ã‚°
+    // ƒVƒƒƒbƒgƒ_ƒEƒ“‚Ì“ñdƒAƒNƒZƒX–h~ƒtƒ‰ƒO
     static bool s_alive;
 
-    // Init()ã®äºŒé‡å‘¼ã³å‡ºã—é˜²æ­¢(GameScene::Init()ãŒèª¤ã£ã¦è¤‡æ•°å›å‘¼ã°ã‚Œã¦ã‚‚
-    // ECSã‚’å£Šã•ãªã„ã‚ˆã†ã«ã™ã‚‹ãŸã‚ã®ã‚¬ãƒ¼ãƒ‰)
+    // Init()‚Ì“ñdŒÄ‚Ño‚µ–h~(GameScene::Init()‚ªŒë‚Á‚Ä•¡”‰ñŒÄ‚Î‚ê‚Ä‚à
+    // ECS‚ğ‰ó‚³‚È‚¢‚æ‚¤‚É‚·‚é‚½‚ß‚ÌƒK[ƒh)
     bool m_isInitialized = false;
 };

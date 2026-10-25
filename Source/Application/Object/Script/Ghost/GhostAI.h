@@ -1,4 +1,4 @@
-ï»¿#pragma once
+#pragma once
 #include "../System/RoomArea.h"
 
 class StimulusSource;
@@ -9,20 +9,20 @@ public:
     enum class State
     {
         Idle,
-        Wander,      // Roomå¾…æ©Ÿ: ã‚´ãƒ¼ã‚¹ãƒˆãƒ«ãƒ¼ãƒ (m_targetRoom)ã®ä¸­ã‚’ã†ã‚ã¤ã
-        HouseWander, // å¾˜å¾Š: ã‚´ãƒ¼ã‚¹ãƒˆãƒ«ãƒ¼ãƒ ã®å¤–(å®¶ã®ä¸­)ã‚’NavMeshã§æ­©ãå›ã‚‹
-        Hunt,        // Playerã‚’è¿½ã†(å®šæœŸçš„ã«ç„¡æ¡ä»¶ã§é–‹å§‹)
+        Wander,      // Room‘Ò‹@: ƒS[ƒXƒgƒ‹[ƒ€(m_targetRoom)‚Ì’†‚ğ‚¤‚ë‚Â‚­
+        HouseWander, // œpœj: ƒS[ƒXƒgƒ‹[ƒ€‚ÌŠO(‰Æ‚Ì’†)‚ğNavMesh‚Å•à‚«‰ñ‚é
+        Hunt,        // Player‚ğ’Ç‚¤(’èŠú“I‚É–³ğŒ‚ÅŠJn)
         Stun,
         Dead,
-        Lured // åˆºæ¿€(StimulusSource)ã«èª˜å°ã•ã‚Œã¦å‘ã‹ã†/ãã®å ´ã«ç•™ã¾ã‚‹
+        Lured // hŒƒ(StimulusSource)‚É—U“±‚³‚ê‚ÄŒü‚©‚¤/‚»‚Ìê‚É—¯‚Ü‚é
     };
 
-    // ã‚´ãƒ¼ã‚¹ãƒˆã®ç¨®é¡ã€‚ã‚²ãƒ¼ãƒ é–‹å§‹æ™‚(Start)ã«ãƒ©ãƒ³ãƒ€ãƒ ã§æŠ½é¸ã™ã‚‹(m_randomizeType)ã€‚
+    // ƒS[ƒXƒg‚Ìí—ŞBƒQ[ƒ€ŠJn(Start)‚Éƒ‰ƒ“ƒ_ƒ€‚Å’Š‘I‚·‚é(m_randomizeType)B
     enum class GhostType
     {
-        Jibakurei, // åœ°ç¸›éœŠ: åˆºæ¿€ã«åå¿œã—ãªã„ã€‚é¦™ã¯ãƒãƒ³ãƒˆä¸­ãªã‚‰ã„ã¤ã§ã‚‚åŠ¹ã
-        Kageonna,  // å½±å¥³: å¾˜å¾Šä¸­ã¯ç‚¹ç¯ä¸­ã®å…‰æºã«èª˜å°ã•ã‚Œã‚‹ã€‚é¦™ã¯ãƒãƒ³ãƒˆä¸­ã€å‘¨ã‚Š(m_kageonnaLightRadius)ã§éƒ¨å±‹ã®é›»æ°—(å¤©äº•ç…§æ˜ç­‰ã€‚ãƒ©ãƒ³ãƒ—ãƒ»ãƒ•ãƒ©ãƒƒã‚·ãƒ¥ãƒ©ã‚¤ãƒˆã¯é™¤ã)ãŒç‚¹ã„ã¦ã„ã‚‹æ™‚ã ã‘åŠ¹ãã€‚å‹æ‰‹ã«ç…§æ˜ã‚’æ¶ˆã™(ç‚¹ã‘ã‚‹ã“ã¨ã¯ã—ãªã„)
-        Yanari,    // å®¶é³´: éŸ³ã«èª˜å°ã•ã‚Œã‚‹(æœªå®Ÿè£… - ç¾çŠ¶ã¯åœ°ç¸›éœŠã¨åŒã˜æŒ™å‹•ã€‚æŠ½é¸å¯¾è±¡å¤–)
+        Jibakurei, // ’n”›—ì: hŒƒ‚É”½‰‚µ‚È‚¢B‚Íƒnƒ“ƒg’†‚È‚ç‚¢‚Â‚Å‚àŒø‚­
+        Kageonna,  // ‰e—: œpœj’†‚Í“_“”’†‚ÌŒõŒ¹‚É—U“±‚³‚ê‚éB‚Íƒnƒ“ƒg’†Aü‚è(m_kageonnaLightRadius)‚Å•”‰®‚Ì“d‹C(“VˆäÆ–¾“™Bƒ‰ƒ“ƒvEƒtƒ‰ƒbƒVƒ…ƒ‰ƒCƒg‚Íœ‚­)‚ª“_‚¢‚Ä‚¢‚é‚¾‚¯Œø‚­BŸè‚ÉÆ–¾‚ğÁ‚·(“_‚¯‚é‚±‚Æ‚Í‚µ‚È‚¢)
+        Yanari,    // ‰Æ–Â: ‰¹‚É—U“±‚³‚ê‚é(–¢À‘• - Œ»ó‚Í’n”›—ì‚Æ“¯‚¶‹““®B’Š‘I‘ÎÛŠO)
     };
 
     void Awake() override;
@@ -72,9 +72,9 @@ public:
         return m_ghostType;
     }
 
-    // é¦™ã‚’å½“ã¦ã‚‰ã‚ŒãŸæ™‚ã«Playerã‹ã‚‰å‘¼ã°ã‚Œã‚‹ã€‚é€€æ²»(ã‚¹ã‚¿ãƒ³)ã§ãã‚‹ã®ã¯ãƒãƒ³ãƒˆä¸­ã ã‘ã§ã€ã•ã‚‰ã«ç¨®é¡ã”ã¨ã®
-    // æ¡ä»¶ã‚’æº€ãŸã—ã¦ã„ã‚Œã°ã‚¹ã‚¿ãƒ³ã—ã¦trueã‚’è¿”ã™ã€‚
-    // æ¡ä»¶ã‚’æº€ãŸã—ã¦ã„ãªã„å ´åˆ(å¤±æ•—)ã€Huntä¸­ãªã‚‰HuntãŒç¶šã„ãŸã¾ã¾æ®‹ã‚Šæ™‚é–“ãŒå»¶é•·ã•ã‚Œã‚‹ã€‚
+    // ‚ğ“–‚Ä‚ç‚ê‚½‚ÉPlayer‚©‚çŒÄ‚Î‚ê‚éB‘Ş¡(ƒXƒ^ƒ“)‚Å‚«‚é‚Ì‚Íƒnƒ“ƒg’†‚¾‚¯‚ÅA‚³‚ç‚Éí—Ş‚²‚Æ‚Ì
+    // ğŒ‚ğ–‚½‚µ‚Ä‚¢‚ê‚ÎƒXƒ^ƒ“‚µ‚Ätrue‚ğ•Ô‚·B
+    // ğŒ‚ğ–‚½‚µ‚Ä‚¢‚È‚¢ê‡(¸”s)AHunt’†‚È‚çHunt‚ª‘±‚¢‚½‚Ü‚Üc‚èŠÔ‚ª‰„’·‚³‚ê‚éB
     bool TryIncenseStun(float stunTime);
 
 private:
@@ -82,36 +82,36 @@ private:
     void UpdateHouseWander(float deltaTime, TransformData& cTrans);
     void UpdateHunt(float deltaTime, TransformData& cTrans);
     void PickHuntSearchRoom(const Math::Vector3& currentPos);
-    // ãƒãƒ³ãƒˆé–‹å§‹æ™‚ã«ç„é–¢ãƒ‰ã‚¢ã‚’é–‰ã‚ã¦æ–½éŒ ã™ã‚‹(çµ‚äº†æ™‚ã¯DoorLock::UnlockAllã§è§£éŒ )
+    // ƒnƒ“ƒgŠJn‚ÉŒºŠÖƒhƒA‚ğ•Â‚ß‚Ä{ù‚·‚é(I—¹‚ÍDoorLock::UnlockAll‚Å‰ğù)
     void LockEntranceDoor();
-    // è¿‘ãã®ç‚¹ç¯ä¸­ã®ç…§æ˜ã‚’ç‚¹æ»…ã•ã›ã‚‹
+    // ‹ß‚­‚Ì“_“”’†‚ÌÆ–¾‚ğ“_–Å‚³‚¹‚é
     void UpdateLightFlicker(float deltaTime, const Math::Vector3& ghostPos);
-    // å…¨ã¦ã®ç…§æ˜(StimulusSourceã®Light)ã‚’æ¶ˆã™ã€‚ãƒãƒ³ãƒˆçµ‚äº†æ™‚ã«å‘¼ã¶
+    // ‘S‚Ä‚ÌÆ–¾(StimulusSource‚ÌLight)‚ğÁ‚·Bƒnƒ“ƒgI—¹‚ÉŒÄ‚Ô
     static void TurnOffAllLights();
     bool IsPlayerHoldingLitFlashLight();
     void UpdateLured(float deltaTime, TransformData& cTrans);
-    // HouseWander/Hunt/Luredã§å…±é€šã®ã€finalTargetã¸NavMesh(éšæ®µåŒºé–“ã¯ç›´æ¥è£œé–“)ã§1ãƒ•ãƒ¬ãƒ¼ãƒ åˆ†é€²ã‚€å‡¦ç†ã€‚
-    // ä½ç½®ãƒ»å‘ã(m_moveDir)ã¾ã§æ›´æ–°ã™ã‚‹ã€‚
+    // HouseWander/Hunt/Lured‚Å‹¤’Ê‚ÌAfinalTarget‚ÖNavMesh(ŠK’i‹æŠÔ‚Í’¼Ú•âŠÔ)‚Å1ƒtƒŒ[ƒ€•ªi‚Şˆ—B
+    // ˆÊ’uEŒü‚«(m_moveDir)‚Ü‚ÅXV‚·‚éB
     void MoveTowardTarget(float deltaTime, TransformData& cTrans, const Math::Vector3& finalTarget, float speed);
-    // å½±å¥³/å®¶é³´: å¯¾å¿œã™ã‚‹åˆºæ¿€ã‚’æ„ŸçŸ¥ã—ãŸã‚‰Luredã¸é·ç§»ã™ã‚‹(Wander/HouseWanderä¸­ã«å‘¼ã¶)
+    // ‰e—/‰Æ–Â: ‘Î‰‚·‚éhŒƒ‚ğŠ´’m‚µ‚½‚çLured‚Ö‘JˆÚ‚·‚é(Wander/HouseWander’†‚ÉŒÄ‚Ô)
     void CheckStimulus(float deltaTime, const Math::Vector3& currentPos);
-    // å½±å¥³/å®¶é³´ã®å…†å€™: è¿‘ãã§ç‚¹ã„ã¦ã„ã‚‹ç™ºç”Ÿæºã‚’å‹æ‰‹ã«æ¶ˆã™(å½±å¥³ãªã‚‰ç…§æ˜ã‚’æ¶ˆã™)
+    // ‰e—/‰Æ–Â‚Ì’›Œó: ‹ß‚­‚Å“_‚¢‚Ä‚¢‚é”­¶Œ¹‚ğŸè‚ÉÁ‚·(‰e—‚È‚çÆ–¾‚ğÁ‚·)
     void UpdateTell(float deltaTime, const Math::Vector3& currentPos);
-    // Luredã‚’çµ‚ãˆã¦ã‚´ãƒ¼ã‚¹ãƒˆãƒ«ãƒ¼ãƒ ã¸æ­©ã„ã¦å¸°ã‚‹(Huntçµ‚äº†æ™‚ã¨åŒã˜å¸°ã‚Šæ–¹)
+    // Lured‚ğI‚¦‚ÄƒS[ƒXƒgƒ‹[ƒ€‚Ö•à‚¢‚Ä‹A‚é(HuntI—¹‚Æ“¯‚¶‹A‚è•û)
     void ReturnToGhostRoom(const Math::Vector3& currentPos);
-    // å½±å¥³ç”¨: ghostPosã‹ã‚‰m_kageonnaLightRadiusä»¥å†…ã«ç‚¹ã„ã¦ã„ã‚‹æ˜ã‹ã‚ŠãŒã‚ã‚‹ã‹
-    // (éƒ¨å±‹ã®é›»æ°— = m_isRoomLightã®å…‰ã®StimulusSourceã ã‘ã€‚ãƒ©ãƒ³ãƒ—ãƒ»ãƒ•ãƒ©ãƒƒã‚·ãƒ¥ãƒ©ã‚¤ãƒˆã¯å«ã¾ãªã„)
+    // ‰e——p: ghostPos‚©‚çm_kageonnaLightRadiusˆÈ“à‚É“_‚¢‚Ä‚¢‚é–¾‚©‚è‚ª‚ ‚é‚©
+    // (•”‰®‚Ì“d‹C = m_isRoomLight‚ÌŒõ‚ÌStimulusSource‚¾‚¯Bƒ‰ƒ“ƒvEƒtƒ‰ƒbƒVƒ…ƒ‰ƒCƒg‚ÍŠÜ‚Ü‚È‚¢)
     bool IsAnyLightLitNear(const Math::Vector3& ghostPos) const;
-    // posãŒç‚¹ã„ã¦ã„ã‚‹ç…§æ˜ã®ç…§ã‚‰ã™ç¯„å›²å†…(ã‚¹ãƒãƒƒãƒˆãƒ©ã‚¤ãƒˆã®å††éŒ+è·é›¢ã€ç…§æ˜å´ã®ãƒã‚¤ãƒ³ãƒˆãƒ©ã‚¤ãƒˆã®è·é›¢)ã«ã‚ã‚‹ã‹ã€‚
-    // StimulusSourceç®¡ç†ã®ç…§æ˜ã¯ç‚¹æ»…ä¸­ã§ã‚‚ç‚¹ç¯æ‰±ã„(IsActive)ã§åˆ¤å®šã™ã‚‹ã€‚ãƒãƒ³ãƒˆä¸­ã®æ¸›é€Ÿã«ä½¿ã†ã€‚
+    // pos‚ª“_‚¢‚Ä‚¢‚éÆ–¾‚ÌÆ‚ç‚·”ÍˆÍ“à(ƒXƒ|ƒbƒgƒ‰ƒCƒg‚Ì‰~+‹——£AÆ–¾‘¤‚Ìƒ|ƒCƒ“ƒgƒ‰ƒCƒg‚Ì‹——£)‚É‚ ‚é‚©B
+    // StimulusSourceŠÇ—‚ÌÆ–¾‚Í“_–Å’†‚Å‚à“_“”ˆµ‚¢(IsActive)‚Å”»’è‚·‚éBƒnƒ“ƒg’†‚ÌŒ¸‘¬‚Ég‚¤B
     bool IsPositionLit(const Math::Vector3& pos) const;
-    // Playerã®å…¨èº«(è¶³å…ƒãƒ»èƒ´ãƒ»é ­)ãŒè¦–ç•Œå†…ãƒ»é®è”½ãªã—ã§è¦‹ãˆã¦ã„ã‚‹ã‹ã€‚ãƒãƒ³ãƒˆä¸­ã®è¦–èªåŠ é€Ÿã«ä½¿ã†ã€‚
+    // Player‚Ì‘Sg(‘«Œ³E“·E“ª)‚ª‹ŠE“àEÕ•Á‚È‚µ‚ÅŒ©‚¦‚Ä‚¢‚é‚©Bƒnƒ“ƒg’†‚Ì‹”F‰Á‘¬‚Ég‚¤B
     bool CanSeePlayerFullBody(const TransformData& cTrans);
-    // ãƒãƒ³ãƒˆä¸­ã®å®Ÿéš›ã®ç§»å‹•é€Ÿåº¦(m/s)ã€‚è¦–èªåŠ é€Ÿã¨ç…§æ˜ã«ã‚ˆã‚‹æ¸›é€Ÿã‚’åæ˜ ã™ã‚‹ã€‚
+    // ƒnƒ“ƒg’†‚ÌÀÛ‚ÌˆÚ“®‘¬“x(m/s)B‹”F‰Á‘¬‚ÆÆ–¾‚É‚æ‚éŒ¸‘¬‚ğ”½‰f‚·‚éB
     float GetHuntSpeed() const;
-    // æœ­ã§é€€æ²»ã•ã‚ŒãŸå¾Œã®é™¤éœŠæ¼”å‡º(ç™ºå…‰ãƒ»é–ƒå…‰ãƒ»æ˜‡å¤©)ã€‚çµ‚ã‚ã£ãŸã‚‰GameSequenceã¸ã‚¯ãƒªã‚¢ã‚’é€šçŸ¥ã™ã‚‹
+    // D‚Å‘Ş¡‚³‚ê‚½Œã‚Ìœ—ì‰‰o(”­ŒõE‘MŒõE¸“V)BI‚í‚Á‚½‚çGameSequence‚ÖƒNƒŠƒA‚ğ’Ê’m‚·‚é
     void UpdateExorciseEffect(float deltaTime, TransformData& cTrans);
-    // é™¤éœŠã®å…‰ã®ç²’ã‚’1ã¤å‡ºã™ã€‚burstãªã‚‰æœ­ã‚’è²¼ã£ãŸç¬é–“ã®å‹¢ã„ã®ã‚ã‚‹ç²’ã«ã™ã‚‹
+    // œ—ì‚ÌŒõ‚Ì—±‚ğ1‚Âo‚·Bburst‚È‚çD‚ğ“\‚Á‚½uŠÔ‚Ì¨‚¢‚Ì‚ ‚é—±‚É‚·‚é
     void EmitExorciseParticle(bool burst);
     void StartHouseWander(const Math::Vector3& currentPos);
     std::vector<RoomArea*> CollectReachableCandidateRooms(const Math::Vector3& currentPos) const;
@@ -122,7 +122,7 @@ private:
     void EnsureHouseBounds();
     void EnsureStairsRoom();
     Math::Vector3 ClampToHouseBounds(const Math::Vector3& pos) const;
-    // éšæ®µã®å…¥å£(ä»Šã„ã‚‹éšå´ã®éšæ®µã®ç«¯ã®å°‘ã—æ‰‹å‰)ã€‚exitLandingYã¯æ¸¡ã£ãŸå…ˆã®åºŠã®é«˜ã•ã€‚
+    // ŠK’i‚Ì“üŒû(¡‚¢‚éŠK‘¤‚ÌŠK’i‚Ì’[‚Ì­‚µè‘O)BexitLandingY‚Í“n‚Á‚½æ‚Ì°‚Ì‚‚³B
     Math::Vector3 GetStairsEntryPoint(float exitLandingY) const;
     void TryOpenNearbyDoor(const Math::Vector3& ghostPos, float deltaTime);
     void SetDoorPassThrough(bool enabled);
@@ -131,94 +131,94 @@ private:
     Math::Vector3 GetStairsCrossingMove(float deltaTime);
     void StartStairsCrossing(const Math::Vector3& currentPos, const Math::Vector3& finalTarget, float speed);
 
-    // é€Ÿåº¦ã¯ã‚¨ãƒ‡ã‚£ã‚¿ã§ã¯km/hã§æ‰±ã†(å†…éƒ¨ã®ç§»å‹•è¨ˆç®—ã§ã¯/3.6ã—ã¦m/sã«ã™ã‚‹)
+    // ‘¬“x‚ÍƒGƒfƒBƒ^‚Å‚Íkm/h‚Åˆµ‚¤(“à•”‚ÌˆÚ“®ŒvZ‚Å‚Í/3.6‚µ‚Äm/s‚É‚·‚é)
     static constexpr float kKmhToMs = 1.0f / 3.6f;
-    float m_moveSpeedKmh = 3.6f; // é€šå¸¸(å¾…æ©Ÿãƒ»å¾˜å¾Šãƒ»èª˜å°)ã®ç§»å‹•é€Ÿåº¦(km/h)
+    float m_moveSpeedKmh = 3.6f; // ’Êí(‘Ò‹@EœpœjE—U“±)‚ÌˆÚ“®‘¬“x(km/h)
     float m_changeDirTimer = 0.0f;
     Math::Vector3 m_moveDir = {0, 0, 0};
     bool m_isExorcised = false;
 
-    // --- é™¤éœŠæ¼”å‡º(æœ­ã§é€€æ²»ã•ã‚ŒãŸæ™‚) ---
-    // æœ­ã‚’è²¼ã£ãŸç¬é–“ã«å¼·ãå…‰ã‚Š(é–ƒå…‰)ã€ãã®å¾Œã¯ãã®å ´ã§è¶³å…ƒã‹ã‚‰å…‰ã®ç²’ã«ãªã£ã¦æ¶ˆãˆã¦ã„ã
-    // (SkinningShaderã®è¶³å…ƒã‹ã‚‰ã®ãƒ‡ã‚£ã‚¾ãƒ«ãƒ– + ParticleManagerã®å…‰ã®ç²’)ã€‚
-    // æ¼”å‡ºãŒçµ‚ã‚ã‚‹ã¾ã§GameSequenceã¸ã®ã‚¯ãƒªã‚¢é€šçŸ¥ã‚’é…ã‚‰ã›ã‚‹(çµæœç”»é¢ã«åˆ‡ã‚Šæ›¿ã‚ã‚‹å‰ã«è¦‹ã›ã‚‹ãŸã‚)ã€‚
-    float m_exorciseDuration = 3.0f;                      // æ¼”å‡ºå…¨ä½“ã®é•·ã•(ç§’)
-    float m_exorciseModelHeight = 2.0f;                   // æ¶ˆãˆã¦ã„ãç¯„å›²(è¶³å…ƒã‹ã‚‰ã“ã®é«˜ã•ã¾ã§)(m)
-    float m_exorciseEdgeWidth = 0.15f;                    // æ¶ˆãˆã‚‹å¢ƒç•Œã®å…‰ã‚‹å¸¯ã®å¹…(m)
-    float m_exorciseEdgeGlow = 12.0f;                     // æ¶ˆãˆã‚‹å¢ƒç•Œã®å…‰ã®å¼·ã•(HDR)
-    float m_exorciseGlowStrength = 6.0f;                  // ç™ºå…‰(Bloomã«ä¹—ã‚‹HDRã®å¼·ã•)
-    float m_exorciseLightIntensity = 8.0f;                // é–ƒå…‰ã®ç‚¹å…‰æºã®æœ€å¤§å¼·åº¦
-    float m_exorciseLightRange = 8.0f;                    // é–ƒå…‰ã®ç‚¹å…‰æºã®å±Šãè·é›¢(m)
-    float m_exorciseSoundVolume = 0.9f;                   // é™¤éœŠSE(æœ­ã®éŸ³+ã‚Šã‚“+æ¶ˆãˆã¦ã„ãéŸ³)ã®éŸ³é‡
-    Math::Vector3 m_exorciseColor = {1.0f, 0.85f, 0.55f}; // æµ„åŒ–ã®å…‰ã®è‰²(æ·¡ã„é‡‘è‰²)
-    // æ¶ˆãˆã‚‹å¢ƒç•Œã‹ã‚‰æ¹§ãä¸ŠãŒã£ã¦æ¶ˆãˆã¦ã„ãå…‰ã®ç²’(ParticleManager)
-    float m_exorciseParticleRate = 90.0f;   // 1ç§’ã‚ãŸã‚Šã«å‡ºã™æ•°
-    float m_exorciseParticleRadius = 0.45f; // æ¶ˆãˆã‚‹å¢ƒç•Œã®ã“ã®åŠå¾„ã®å††å†…ã‹ã‚‰å‡ºã™(m)
-    int m_exorciseParticleBurst = 50;       // æœ­ã‚’è²¼ã£ãŸç¬é–“ã«ã¾ã¨ã‚ã¦å‡ºã™æ•°
+    // --- œ—ì‰‰o(D‚Å‘Ş¡‚³‚ê‚½) ---
+    // D‚ğ“\‚Á‚½uŠÔ‚É‹­‚­Œõ‚è(‘MŒõ)A‚»‚ÌŒã‚Í‚»‚Ìê‚Å‘«Œ³‚©‚çŒõ‚Ì—±‚É‚È‚Á‚ÄÁ‚¦‚Ä‚¢‚­
+    // (SkinningShader‚Ì‘«Œ³‚©‚ç‚ÌƒfƒBƒ]ƒ‹ƒu + ParticleManager‚ÌŒõ‚Ì—±)B
+    // ‰‰o‚ªI‚í‚é‚Ü‚ÅGameSequence‚Ö‚ÌƒNƒŠƒA’Ê’m‚ğ’x‚ç‚¹‚é(Œ‹‰Ê‰æ–Ê‚ÉØ‚è‘Ö‚í‚é‘O‚ÉŒ©‚¹‚é‚½‚ß)B
+    float m_exorciseDuration = 3.0f;                      // ‰‰o‘S‘Ì‚Ì’·‚³(•b)
+    float m_exorciseModelHeight = 2.0f;                   // Á‚¦‚Ä‚¢‚­”ÍˆÍ(‘«Œ³‚©‚ç‚±‚Ì‚‚³‚Ü‚Å)(m)
+    float m_exorciseEdgeWidth = 0.15f;                    // Á‚¦‚é‹«ŠE‚ÌŒõ‚é‘Ñ‚Ì•(m)
+    float m_exorciseEdgeGlow = 12.0f;                     // Á‚¦‚é‹«ŠE‚ÌŒõ‚Ì‹­‚³(HDR)
+    float m_exorciseGlowStrength = 6.0f;                  // ”­Œõ(Bloom‚Éæ‚éHDR‚Ì‹­‚³)
+    float m_exorciseLightIntensity = 8.0f;                // ‘MŒõ‚Ì“_ŒõŒ¹‚ÌÅ‘å‹­“x
+    float m_exorciseLightRange = 8.0f;                    // ‘MŒõ‚Ì“_ŒõŒ¹‚Ì“Í‚­‹——£(m)
+    float m_exorciseSoundVolume = 0.9f;                   // œ—ìSE(D‚Ì‰¹+‚è‚ñ+Á‚¦‚Ä‚¢‚­‰¹)‚Ì‰¹—Ê
+    Math::Vector3 m_exorciseColor = {1.0f, 0.85f, 0.55f}; // ò‰»‚ÌŒõ‚ÌF(’W‚¢‹àF)
+    // Á‚¦‚é‹«ŠE‚©‚ç—N‚«ã‚ª‚Á‚ÄÁ‚¦‚Ä‚¢‚­Œõ‚Ì—±(ParticleManager)
+    float m_exorciseParticleRate = 90.0f;   // 1•b‚ ‚½‚è‚Éo‚·”
+    float m_exorciseParticleRadius = 0.45f; // Á‚¦‚é‹«ŠE‚Ì‚±‚Ì”¼Œa‚Ì‰~“à‚©‚ço‚·(m)
+    int m_exorciseParticleBurst = 50;       // D‚ğ“\‚Á‚½uŠÔ‚É‚Ü‚Æ‚ß‚Äo‚·”
     float m_exorciseParticleAccum = 0.0f;
     float m_exorciseTimer = 0.0f;
     bool m_exorciseNotified = false;
     Math::Vector3 m_exorciseStartPos = {0, 0, 0};
-    float m_exorciseCutY = 0.0f;                    // ä»Šæ¶ˆãˆã¦ã„ã‚‹å¢ƒç•Œã®é«˜ã•(ãƒ¯ãƒ¼ãƒ«ãƒ‰Y)ã€‚å…‰ã®ç²’ã¯ã“ã“ã‹ã‚‰å‡ºã™
-    std::shared_ptr<GameObject> m_exorciseLightObj; // æ¼”å‡ºä¸­ã ã‘ç”Ÿæˆã™ã‚‹ç‚¹å…‰æº
+    float m_exorciseCutY = 0.0f;                    // ¡Á‚¦‚Ä‚¢‚é‹«ŠE‚Ì‚‚³(ƒ[ƒ‹ƒhY)BŒõ‚Ì—±‚Í‚±‚±‚©‚ço‚·
+    std::shared_ptr<GameObject> m_exorciseLightObj; // ‰‰o’†‚¾‚¯¶¬‚·‚é“_ŒõŒ¹
 
     State m_currentState = State::Idle;
 
-    // --- ç¨®é¡ ---
+    // --- í—Ş ---
     GhostType m_ghostType = GhostType::Jibakurei;
-    bool m_randomizeType = true; // trueãªã‚‰Start()ã§ç¨®é¡ã‚’æŠ½é¸ã™ã‚‹(falseãªã‚‰m_ghostTypeã‚’ãã®ã¾ã¾ä½¿ã†)
+    bool m_randomizeType = true; // true‚È‚çStart()‚Åí—Ş‚ğ’Š‘I‚·‚é(false‚È‚çm_ghostType‚ğ‚»‚Ì‚Ü‚Üg‚¤)
 
-    // --- èª˜å°(Lured) ---
-    // Wander/HouseWanderä¸­ã€m_lureCheckIntervalã”ã¨ã«å¯¾å¿œã™ã‚‹åˆºæ¿€ã‚’æ¢ã—ã€è¦‹ã¤ã‹ã‚Œã°ãã“ã¸å‘ã‹ã†ã€‚
-    // åˆ°ç€å¾Œã¯m_lureDwellDurationã ã‘ç•™ã¾ã‚Šã€æ™‚é–“åˆ‡ã‚Œã‹ç™ºç”ŸæºãŒ
-    // ç„¡åŠ¹ã«ãªã£ãŸã‚‰ã‚´ãƒ¼ã‚¹ãƒˆãƒ«ãƒ¼ãƒ ã¸å¸°ã‚‹ã€‚å¸°ã£ãŸç›´å¾Œã«åŒã˜ç™ºç”Ÿæºã¸å³åº§ã«æˆ»ã‚‰ãªã„ã‚ˆã†
-    // m_lureCooldownã®é–“ã¯å†æ„ŸçŸ¥ã—ãªã„ã€‚
+    // --- —U“±(Lured) ---
+    // Wander/HouseWander’†Am_lureCheckInterval‚²‚Æ‚É‘Î‰‚·‚éhŒƒ‚ğ’T‚µAŒ©‚Â‚©‚ê‚Î‚»‚±‚ÖŒü‚©‚¤B
+    // “’…Œã‚Ím_lureDwellDuration‚¾‚¯—¯‚Ü‚èAŠÔØ‚ê‚©”­¶Œ¹‚ª
+    // –³Œø‚É‚È‚Á‚½‚çƒS[ƒXƒgƒ‹[ƒ€‚Ö‹A‚éB‹A‚Á‚½’¼Œã‚É“¯‚¶”­¶Œ¹‚Ö‘¦À‚É–ß‚ç‚È‚¢‚æ‚¤
+    // m_lureCooldown‚ÌŠÔ‚ÍÄŠ´’m‚µ‚È‚¢B
     StimulusSource* m_lureSource = nullptr;
     bool m_lureArrived = false;
     float m_lureCheckTimer = 0.0f;
     float m_lureCheckInterval = 0.5f;
-    float m_lureArriveThreshold = 1.5f; // ç™ºç”Ÿæºã«ã“ã®è·é›¢(XZ)ã¾ã§è¿‘ã¥ã„ãŸã‚‰åˆ°ç€ã¨ã¿ãªã™
+    float m_lureArriveThreshold = 1.5f; // ”­¶Œ¹‚É‚±‚Ì‹——£(XZ)‚Ü‚Å‹ß‚Ã‚¢‚½‚ç“’…‚Æ‚İ‚È‚·
     float m_lureDwellTimer = 0.0f;
-    float m_lureDwellDuration = 20.0f; // åˆ°ç€å¾Œã«ç•™ã¾ã‚‹æ™‚é–“(ç§’)
+    float m_lureDwellDuration = 20.0f; // “’…Œã‚É—¯‚Ü‚éŠÔ(•b)
     float m_lureCooldownTimer = 0.0f;
-    float m_lureCooldown = 10.0f; // èª˜å°ã‚’çµ‚ãˆã¦ã‹ã‚‰å†æ„ŸçŸ¥ã™ã‚‹ã¾ã§ã®æ™‚é–“(ç§’)
+    float m_lureCooldown = 10.0f; // —U“±‚ğI‚¦‚Ä‚©‚çÄŠ´’m‚·‚é‚Ü‚Å‚ÌŠÔ(•b)
 
-    // --- é¦™ã®å¤±æ•—ãƒšãƒŠãƒ«ãƒ†ã‚£ ---
-    float m_failHuntExtension = 5.0f;    // æ¡ä»¶å¤–ã§é¦™ã‚’ä½¿ã‚ã‚ŒãŸæ™‚ã€Huntä¸­ãªã‚‰ã“ã®ç§’æ•°ã ã‘Huntã‚’å»¶é•·ã™ã‚‹
-    float m_kageonnaLightRadius = 12.0f; // å½±å¥³: ã“ã®è·é›¢ä»¥å†…ã§æ˜ã‹ã‚ŠãŒç‚¹ã„ã¦ã„ãªã„ã¨é¦™ãŒåŠ¹ã‹ãªã„
+    // --- ‚Ì¸”sƒyƒiƒ‹ƒeƒB ---
+    float m_failHuntExtension = 5.0f;    // ğŒŠO‚Å‚ğg‚í‚ê‚½AHunt’†‚È‚ç‚±‚Ì•b”‚¾‚¯Hunt‚ğ‰„’·‚·‚é
+    float m_kageonnaLightRadius = 12.0f; // ‰e—: ‚±‚Ì‹——£ˆÈ“à‚Å–¾‚©‚è‚ª“_‚¢‚Ä‚¢‚È‚¢‚Æ‚ªŒø‚©‚È‚¢
 
-    // --- å…†å€™(å½±å¥³: å‹æ‰‹ã«ç…§æ˜ã‚’æ¶ˆã™) ---
+    // --- ’›Œó(‰e—: Ÿè‚ÉÆ–¾‚ğÁ‚·) ---
     float m_tellTimer = 0.0f;
     float m_tellIntervalMin = 20.0f;
     float m_tellIntervalMax = 40.0f;
-    float m_tellRange = 8.0f; // ã“ã®è·é›¢ä»¥å†…ã§ç‚¹ã„ã¦ã„ã‚‹ç™ºç”Ÿæºã‚’å‹æ‰‹ã«æ¶ˆã™
+    float m_tellRange = 8.0f; // ‚±‚Ì‹——£ˆÈ“à‚Å“_‚¢‚Ä‚¢‚é”­¶Œ¹‚ğŸè‚ÉÁ‚·
 
-    // --- å®¶ã®ç¯„å›²(HouseWander/Huntã®ç§»å‹•å…ˆã‚’ã“ã®ç¯„å›²å†…ã«åˆ¶é™ã™ã‚‹) ---
-    // å…¨RoomAreaã®AABBã‚’åˆæˆã—ã€éƒ¨å±‹åŒå£«ã®å¢ƒç•Œ(å»Šä¸‹ãªã©)ã‚‚å«ã¾ã‚Œã‚‹ã‚ˆã†ã«å°‘ã—ä½™è£•ã‚’æŒãŸã›ãŸã‚‚ã®ã€‚
+    // --- ‰Æ‚Ì”ÍˆÍ(HouseWander/Hunt‚ÌˆÚ“®æ‚ğ‚±‚Ì”ÍˆÍ“à‚É§ŒÀ‚·‚é) ---
+    // ‘SRoomArea‚ÌAABB‚ğ‡¬‚µA•”‰®“¯m‚Ì‹«ŠE(˜L‰º‚È‚Ç)‚àŠÜ‚Ü‚ê‚é‚æ‚¤‚É­‚µ—]—T‚ğ‚½‚¹‚½‚à‚ÌB
     bool m_houseBoundsValid = false;
     Math::Vector3 m_houseBoundsMin = {0, 0, 0};
     Math::Vector3 m_houseBoundsMax = {0, 0, 0};
-    float m_houseBoundsMargin = 0.5f; //éƒ¨å±‹AABBã‹ã‚‰å¤–å´ã«åºƒã’ã‚‹ä½™è£•(m)
+    float m_houseBoundsMargin = 0.5f; //•”‰®AABB‚©‚çŠO‘¤‚ÉL‚°‚é—]—T(m)
 
-    // --- å®¶ã®ä¸­ã®å¾˜å¾Š(Roomå¾…æ©Ÿ <-> HouseWander) ---
-    // Wander(Roomå¾…æ©Ÿ)ä¸­ã¯m_houseWanderTimerã‚’æ¸›ç®—ã—ã€0ã«ãªã£ãŸã‚‰ä»–ã®éƒ¨å±‹ã‚’ç›®æŒ‡ã—ã¦HouseWanderã¸é·ç§»ã™ã‚‹ã€‚
-    // HouseWanderä¸­ã¯m_houseWanderDurationTimerãŒåˆ‡ã‚Œã‚‹ã¾ã§éƒ¨å±‹ã‚’æ¸¡ã‚Šæ­©ãã€åˆ‡ã‚ŒãŸã‚‰ã‚´ãƒ¼ã‚¹ãƒˆãƒ«ãƒ¼ãƒ ã¸æˆ»ã‚Šå§‹ã‚
-    // (m_houseWanderReturning=true)ã€åˆ°ç€ã—ãŸã‚‰Wander(Roomå¾…æ©Ÿ)ã¸æˆ»ã‚‹ã€‚
-    // ç§»å‹•å…ˆã®éƒ¨å±‹ã¯NavMesh::IsReachable()ã§å®Ÿéš›ã«åˆ°é”å¯èƒ½ãªã‚‚ã®ã ã‘é¸ã¶
-    // (å®¶ãŒè¤‡é›‘ãªå½¢ãªã©ã§NavMeshãŒç¹‹ãŒã£ã¦ã„ãªã„éƒ¨å±‹ã‚’é¸ã¶ã¨ç«‹ã¡å¾€ç”Ÿã—ã¦ã—ã¾ã†ãŸã‚)ã€‚
-    // ãã‚Œã§ã‚‚é€²ã‚ãªããªã£ãŸå ´åˆã®ä¿é™ºã¨ã—ã¦m_houseWanderStuckTimerã§ç«‹ã¡å¾€ç”Ÿã‚’æ¤œçŸ¥ã™ã‚‹ã€‚
-    float m_houseWanderTimer = 0.0f;         // æ¬¡ã«å¾˜å¾Šã‚’å§‹ã‚ã‚‹ã¾ã§ã®æ®‹ã‚Šæ™‚é–“(Roomå¾…æ©Ÿä¸­)
-    float m_houseWanderIntervalMin = 15.0f;  // å¾˜å¾Šã‚’å§‹ã‚ã‚‹ã¾ã§ã®é–“éš”ã®æœ€å°å€¤(ç§’)
-    float m_houseWanderIntervalMax = 30.0f;  // å¾˜å¾Šã‚’å§‹ã‚ã‚‹ã¾ã§ã®é–“éš”ã®æœ€å¤§å€¤(ç§’)
-    float m_houseWanderDurationTimer = 0.0f; // å¾˜å¾Šçµ‚äº†(å¸°é‚„é–‹å§‹)ã¾ã§ã®æ®‹ã‚Šæ™‚é–“(HouseWanderä¸­)
-    float m_houseWanderDurationMin = 10.0f;  // å¾˜å¾Šã‚’ç¶šã‘ã‚‹æ™‚é–“ã®æœ€å°å€¤(ç§’)
-    float m_houseWanderDurationMax = 20.0f;  // å¾˜å¾Šã‚’ç¶šã‘ã‚‹æ™‚é–“ã®æœ€å¤§å€¤(ç§’)
-    bool m_houseWanderReturning = false;     // trueã®é–“ã¯ã‚´ãƒ¼ã‚¹ãƒˆãƒ«ãƒ¼ãƒ ã¸ã®å¸°é‚„ä¸­
+    // --- ‰Æ‚Ì’†‚Ìœpœj(Room‘Ò‹@ <-> HouseWander) ---
+    // Wander(Room‘Ò‹@)’†‚Ím_houseWanderTimer‚ğŒ¸Z‚µA0‚É‚È‚Á‚½‚ç‘¼‚Ì•”‰®‚ğ–Úw‚µ‚ÄHouseWander‚Ö‘JˆÚ‚·‚éB
+    // HouseWander’†‚Ím_houseWanderDurationTimer‚ªØ‚ê‚é‚Ü‚Å•”‰®‚ğ“n‚è•à‚«AØ‚ê‚½‚çƒS[ƒXƒgƒ‹[ƒ€‚Ö–ß‚èn‚ß
+    // (m_houseWanderReturning=true)A“’…‚µ‚½‚çWander(Room‘Ò‹@)‚Ö–ß‚éB
+    // ˆÚ“®æ‚Ì•”‰®‚ÍNavMesh::IsReachable()‚ÅÀÛ‚É“’B‰Â”\‚È‚à‚Ì‚¾‚¯‘I‚Ô
+    // (‰Æ‚ª•¡G‚ÈŒ`‚È‚Ç‚ÅNavMesh‚ªŒq‚ª‚Á‚Ä‚¢‚È‚¢•”‰®‚ğ‘I‚Ô‚Æ—§‚¿‰¶‚µ‚Ä‚µ‚Ü‚¤‚½‚ß)B
+    // ‚»‚ê‚Å‚ài‚ß‚È‚­‚È‚Á‚½ê‡‚Ì•ÛŒ¯‚Æ‚µ‚Äm_houseWanderStuckTimer‚Å—§‚¿‰¶‚ğŒŸ’m‚·‚éB
+    float m_houseWanderTimer = 0.0f;         // Ÿ‚Éœpœj‚ğn‚ß‚é‚Ü‚Å‚Ìc‚èŠÔ(Room‘Ò‹@’†)
+    float m_houseWanderIntervalMin = 15.0f;  // œpœj‚ğn‚ß‚é‚Ü‚Å‚ÌŠÔŠu‚ÌÅ¬’l(•b)
+    float m_houseWanderIntervalMax = 30.0f;  // œpœj‚ğn‚ß‚é‚Ü‚Å‚ÌŠÔŠu‚ÌÅ‘å’l(•b)
+    float m_houseWanderDurationTimer = 0.0f; // œpœjI—¹(‹AŠÒŠJn)‚Ü‚Å‚Ìc‚èŠÔ(HouseWander’†)
+    float m_houseWanderDurationMin = 10.0f;  // œpœj‚ğ‘±‚¯‚éŠÔ‚ÌÅ¬’l(•b)
+    float m_houseWanderDurationMax = 20.0f;  // œpœj‚ğ‘±‚¯‚éŠÔ‚ÌÅ‘å’l(•b)
+    bool m_houseWanderReturning = false;     // true‚ÌŠÔ‚ÍƒS[ƒXƒgƒ‹[ƒ€‚Ö‚Ì‹AŠÒ’†
     Math::Vector3 m_houseWanderTargetPos = {0, 0, 0};
-    float m_roomArriveThreshold = 1.5f;             // ç›®çš„åœ°ã«ã“ã®è·é›¢ã¾ã§è¿‘ã¥ã„ãŸã‚‰åˆ°ç€ã¨ã¿ãªã™
-    Math::Vector3 m_houseWanderLastPos = {0, 0, 0}; // ç«‹ã¡å¾€ç”Ÿæ¤œçŸ¥ç”¨ã®ç›´è¿‘ä½ç½®
-    float m_houseWanderStuckTimer = 0.0f;           // é€²ã‚“ã§ã„ãªã„ã¾ã¾çµŒéã—ãŸæ™‚é–“
-    float m_houseWanderStuckTimeout = 5.0f;         // ã“ã‚Œã ã‘é€²ã‚“ã§ã„ãªã‘ã‚Œã°ç›®çš„åœ°ã‚’è«¦ã‚ã‚‹(ç§’)
+    float m_roomArriveThreshold = 1.5f;             // –Ú“I’n‚É‚±‚Ì‹——£‚Ü‚Å‹ß‚Ã‚¢‚½‚ç“’…‚Æ‚İ‚È‚·
+    Math::Vector3 m_houseWanderLastPos = {0, 0, 0}; // —§‚¿‰¶ŒŸ’m—p‚Ì’¼‹ßˆÊ’u
+    float m_houseWanderStuckTimer = 0.0f;           // i‚ñ‚Å‚¢‚È‚¢‚Ü‚ÜŒo‰ß‚µ‚½ŠÔ
+    float m_houseWanderStuckTimeout = 5.0f;         // ‚±‚ê‚¾‚¯i‚ñ‚Å‚¢‚È‚¯‚ê‚Î–Ú“I’n‚ğ’ú‚ß‚é(•b)
 
     // Progress is measured over a window instead of frame-to-frame: re-anchoring every single
     // frame only catches a full stop, not rapid back-and-forth oscillation (e.g. flapping between
@@ -238,60 +238,60 @@ private:
     float m_huntStuckTimer = 0.0f;
     float m_huntStuckCheckTimer = 0.0f;
 
-    // --- ãƒãƒ³ãƒˆ(Hunt) ---
-    // é–‹å§‹ã¯ä½ç½®ã«é–¢ã‚ã‚‰ãšå®šæœŸçš„ãªã‚¿ã‚¤ãƒãƒ¼(m_huntTriggerTimer)ã§ç„¡æ¡ä»¶ã«è¡Œã†ã€‚
-    // Huntä¸­ã®è¿½è·¡ã¯è¦–èª(CanSeePlayer)ã§è¡Œã†: è¦‹ãˆã¦ã„ã‚‹é–“ã¯Playerã®ç¾åœ¨ä½ç½®ã‚’è¿½ã„ã€
-    // è¦‹å¤±ã£ãŸã‚‰æœ€çµ‚ç›®æ’ƒåœ°ç‚¹(m_lastKnownPlayerPos)ã¸å‘ã‹ã„ã€ãã“ã§ã‚‚è¦‹ã¤ã‹ã‚‰ãªã‘ã‚Œã°éƒ¨å±‹ã‚’å·¡å›ã—ã¦æ¢ã™ã€‚
-    float m_huntTimer = 0.0f;       // ãƒãƒ³ãƒˆçµ‚äº†ã¾ã§ã®æ®‹ã‚Šæ™‚é–“(Huntä¸­)
-    float m_huntDurationMin = 4.0f; // ãƒãƒ³ãƒˆç¶™ç¶šæ™‚é–“ã®æœ€å°å€¤(ç§’)
-    float m_huntDurationMax = 8.0f; // ãƒãƒ³ãƒˆç¶™ç¶šæ™‚é–“ã®æœ€å¤§å€¤(ç§’)
-    float m_huntSpeedKmh = 6.5f;    // ãƒãƒ³ãƒˆä¸­ã®åŸºæœ¬é€Ÿåº¦(km/h)ã€‚Playerã‚’è¦–èªã—ã¦ã„ãªã„æ™‚ã¯ã“ã®é€Ÿåº¦
-    // --- è¦–èªåŠ é€Ÿ(ãƒãƒ³ãƒˆä¸­) ---
-    // Playerã®å…¨èº«ã‚’è¦‹ç¶šã‘ã¦ã„ã‚‹é–“ã€m_losTimerãŒm_losTimeToMaxç§’ã‹ã‘ã¦æºœã¾ã‚Šã€é€Ÿåº¦ãŒ
-    // m_huntSpeedKmhã‹ã‚‰m_huntMaxSpeedKmhã¾ã§å¾ã€…ã«ä¸ŠãŒã‚‹ã€‚è¦‹å¤±ã†ã¨m_losDecayTimeç§’ã‹ã‘ã¦æˆ»ã‚‹ã€‚
-    float m_huntMaxSpeedKmh = 10.0f; // è¦–èªåŠ é€Ÿã®æœ€é«˜é€Ÿåº¦(km/h)
-    float m_losTimeToMax = 6.0f;     // æœ€é«˜é€Ÿåº¦ã«é”ã™ã‚‹ã¾ã§å…¨èº«ã‚’è¦‹ç¶šã‘ã‚‹æ™‚é–“(ç§’)
-    float m_losDecayTime = 2.0f;     // è¦‹å¤±ã£ã¦ã‹ã‚‰åŸºæœ¬é€Ÿåº¦ã«æˆ»ã‚‹ã¾ã§ã®æ™‚é–“(ç§’)
-    float m_losTimer = 0.0f;         // æºœã¾ã£ãŸè¦–èªæ™‚é–“(0..m_losTimeToMax)
-    bool m_isSeeingFullBody = false; // ãƒ‡ãƒãƒƒã‚°è¡¨ç¤ºç”¨
-    // --- ç…§æ˜ã«ã‚ˆã‚‹æ¸›é€Ÿ(ãƒãƒ³ãƒˆä¸­ã€å…¨ç¨®é¡) ---
-    float m_litSpeedMultiplier = 0.6f;      // ç…§ã‚‰ã•ã‚Œã¦ã„ã‚‹é–“ã®é€Ÿåº¦å€ç‡
-    bool m_isInLight = false;               // ãƒ‡ãƒãƒƒã‚°è¡¨ç¤ºç”¨
-    float m_huntTriggerTimer = 0.0f;        // æ¬¡ã«ãƒãƒ³ãƒˆã‚’é–‹å§‹ã™ã‚‹ã¾ã§ã®æ®‹ã‚Šæ™‚é–“(Roomå¾…æ©Ÿ/å¾˜å¾Šä¸­)
-    float m_huntTriggerIntervalMin = 20.0f; // ãƒãƒ³ãƒˆé–‹å§‹ã¾ã§ã®é–“éš”ã®æœ€å°å€¤(ç§’)
-    float m_huntTriggerIntervalMax = 40.0f; // ãƒãƒ³ãƒˆé–‹å§‹ã¾ã§ã®é–“éš”ã®æœ€å¤§å€¤(ç§’)
+    // --- ƒnƒ“ƒg(Hunt) ---
+    // ŠJn‚ÍˆÊ’u‚ÉŠÖ‚í‚ç‚¸’èŠú“I‚Èƒ^ƒCƒ}[(m_huntTriggerTimer)‚Å–³ğŒ‚És‚¤B
+    // Hunt’†‚Ì’ÇÕ‚Í‹”F(CanSeePlayer)‚Ås‚¤: Œ©‚¦‚Ä‚¢‚éŠÔ‚ÍPlayer‚ÌŒ»İˆÊ’u‚ğ’Ç‚¢A
+    // Œ©¸‚Á‚½‚çÅI–ÚŒ‚’n“_(m_lastKnownPlayerPos)‚ÖŒü‚©‚¢A‚»‚±‚Å‚àŒ©‚Â‚©‚ç‚È‚¯‚ê‚Î•”‰®‚ğ„‰ñ‚µ‚Ä’T‚·B
+    float m_huntTimer = 0.0f;       // ƒnƒ“ƒgI—¹‚Ü‚Å‚Ìc‚èŠÔ(Hunt’†)
+    float m_huntDurationMin = 4.0f; // ƒnƒ“ƒgŒp‘±ŠÔ‚ÌÅ¬’l(•b)
+    float m_huntDurationMax = 8.0f; // ƒnƒ“ƒgŒp‘±ŠÔ‚ÌÅ‘å’l(•b)
+    float m_huntSpeedKmh = 6.5f;    // ƒnƒ“ƒg’†‚ÌŠî–{‘¬“x(km/h)BPlayer‚ğ‹”F‚µ‚Ä‚¢‚È‚¢‚Í‚±‚Ì‘¬“x
+    // --- ‹”F‰Á‘¬(ƒnƒ“ƒg’†) ---
+    // Player‚Ì‘Sg‚ğŒ©‘±‚¯‚Ä‚¢‚éŠÔAm_losTimer‚ªm_losTimeToMax•b‚©‚¯‚Ä—­‚Ü‚èA‘¬“x‚ª
+    // m_huntSpeedKmh‚©‚çm_huntMaxSpeedKmh‚Ü‚Å™X‚Éã‚ª‚éBŒ©¸‚¤‚Æm_losDecayTime•b‚©‚¯‚Ä–ß‚éB
+    float m_huntMaxSpeedKmh = 10.0f; // ‹”F‰Á‘¬‚ÌÅ‚‘¬“x(km/h)
+    float m_losTimeToMax = 6.0f;     // Å‚‘¬“x‚É’B‚·‚é‚Ü‚Å‘Sg‚ğŒ©‘±‚¯‚éŠÔ(•b)
+    float m_losDecayTime = 2.0f;     // Œ©¸‚Á‚Ä‚©‚çŠî–{‘¬“x‚É–ß‚é‚Ü‚Å‚ÌŠÔ(•b)
+    float m_losTimer = 0.0f;         // —­‚Ü‚Á‚½‹”FŠÔ(0..m_losTimeToMax)
+    bool m_isSeeingFullBody = false; // ƒfƒoƒbƒO•\¦—p
+    // --- Æ–¾‚É‚æ‚éŒ¸‘¬(ƒnƒ“ƒg’†A‘Sí—Ş) ---
+    float m_litSpeedMultiplier = 0.6f;      // Æ‚ç‚³‚ê‚Ä‚¢‚éŠÔ‚Ì‘¬“x”{—¦
+    bool m_isInLight = false;               // ƒfƒoƒbƒO•\¦—p
+    float m_huntTriggerTimer = 0.0f;        // Ÿ‚Éƒnƒ“ƒg‚ğŠJn‚·‚é‚Ü‚Å‚Ìc‚èŠÔ(Room‘Ò‹@/œpœj’†)
+    float m_huntTriggerIntervalMin = 20.0f; // ƒnƒ“ƒgŠJn‚Ü‚Å‚ÌŠÔŠu‚ÌÅ¬’l(•b)
+    float m_huntTriggerIntervalMax = 40.0f; // ƒnƒ“ƒgŠJn‚Ü‚Å‚ÌŠÔŠu‚ÌÅ‘å’l(•b)
     Entity m_playerEntity = INVALID_ENTITY;
 
-    // --- ãƒ‡ãƒãƒƒã‚°è¡¨ç¤º: è¡Œãå…ˆ/çµŒè·¯ã®å¯è¦–åŒ– ---
+    // --- ƒfƒoƒbƒO•\¦: s‚«æ/Œo˜H‚Ì‰Â‹‰» ---
     bool m_showPathDebug = true;
-    Math::Vector3 m_debugFinalTarget = {0, 0, 0}; // å®Ÿéš›ã«ç›®æŒ‡ã—ã¦ã„ã‚‹æœ€çµ‚ç›®çš„åœ°(Roomä¸­å¿ƒã‹Playerä½ç½®)
-    Math::Vector3 m_debugMoveTarget = {0, 0, 0};  // GetEffectiveMoveTargetå¾Œã®å®Ÿéš›ã®NavMeshç§»å‹•ç›®æ¨™
+    Math::Vector3 m_debugFinalTarget = {0, 0, 0}; // ÀÛ‚É–Úw‚µ‚Ä‚¢‚éÅI–Ú“I’n(Room’†S‚©PlayerˆÊ’u)
+    Math::Vector3 m_debugMoveTarget = {0, 0, 0};  // GetEffectiveMoveTargetŒã‚ÌÀÛ‚ÌNavMeshˆÚ“®–Ú•W
 
-    // --- è¦–èªãƒ»æœç´¢ (Huntä¸­ã®è¿½è·¡ã«ä½¿ç”¨) ---
-    float m_visionRange = 15.0f;           // è¦–èªã§ãã‚‹æœ€å¤§è·é›¢
-    float m_visionAngle = 100.0f;          // è¦–é‡è§’(åº¦)
-    float m_proximitySenseDistance = 1.5f; // ã“ã®è·é›¢ä»¥å†…ãªã‚‰è¦–é‡è§’å¤–(èƒŒå¾Œ)ã§ã‚‚æ°—ä»˜ã(å£è¶Šã—ã¯ä¸å¯)
-    // --- è¿½è·¡(ãƒãƒ³ãƒˆä¸­) ---
-    // ä¸€åº¦è¦–èªã—ãŸã‚‰ã€å£ã«éš ã‚Œã¦ã‚‚Playerã®ç¾åœ¨ä½ç½®ã‚’ãšã£ã¨è¿½ã„ç¶šã‘ã‚‹ã€‚è¦–èªåŠ é€ŸãŒæºœã¾ã‚‰ãªã„
-    // (å…¨èº«ãŒè¦‹ãˆã¦ã„ãªã„)çŠ¶æ…‹ãŒm_trackGiveUpTimeç§’ç¶šã„ãŸã‚‰è¿½è·¡ã‚’ã‚„ã‚ã€æœ€å¾Œã«åˆ†ã‹ã£ã¦ã„ãŸä½ç½®ã‹ã‚‰ã®æœç´¢ã«ç§»ã‚‹ã€‚
+    // --- ‹”FE‘{õ (Hunt’†‚Ì’ÇÕ‚Ég—p) ---
+    float m_visionRange = 15.0f;           // ‹”F‚Å‚«‚éÅ‘å‹——£
+    float m_visionAngle = 100.0f;          // ‹–ìŠp(“x)
+    float m_proximitySenseDistance = 1.5f; // ‚±‚Ì‹——£ˆÈ“à‚È‚ç‹–ìŠpŠO(”wŒã)‚Å‚à‹C•t‚­(•Ç‰z‚µ‚Í•s‰Â)
+    // --- ’ÇÕ(ƒnƒ“ƒg’†) ---
+    // ˆê“x‹”F‚µ‚½‚çA•Ç‚É‰B‚ê‚Ä‚àPlayer‚ÌŒ»İˆÊ’u‚ğ‚¸‚Á‚Æ’Ç‚¢‘±‚¯‚éB‹”F‰Á‘¬‚ª—­‚Ü‚ç‚È‚¢
+    // (‘Sg‚ªŒ©‚¦‚Ä‚¢‚È‚¢)ó‘Ô‚ªm_trackGiveUpTime•b‘±‚¢‚½‚ç’ÇÕ‚ğ‚â‚ßAÅŒã‚É•ª‚©‚Á‚Ä‚¢‚½ˆÊ’u‚©‚ç‚Ì‘{õ‚ÉˆÚ‚éB
     bool m_isTrackingPlayer = false;
-    float m_trackGiveUpTime = 5.0f; // è¦–èªåŠ é€ŸãŒå…¥ã‚‰ãªã„ã¾ã¾ã€ã“ã®ç§’æ•°çµŒã£ãŸã‚‰è¿½è·¡åœæ­¢
+    float m_trackGiveUpTime = 5.0f; // ‹”F‰Á‘¬‚ª“ü‚ç‚È‚¢‚Ü‚ÜA‚±‚Ì•b”Œo‚Á‚½‚ç’ÇÕ’â~
     float m_trackGiveUpTimer = 0.0f;
-    std::string m_entranceDoorName = "Door_Living_Entrance"; // ãƒãƒ³ãƒˆä¸­ã«æ–½éŒ ã™ã‚‹ç„é–¢ãƒ‰ã‚¢(ãƒ‰ã‚¢ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³åã«å«ã¾ã‚Œã‚‹æ–‡å­—åˆ—)
-    float m_lightFlickerRange = 4.0f;                        // ã“ã®æ°´å¹³è·é›¢ä»¥å†…ã®ç‚¹ç¯ä¸­ã®ç…§æ˜ã‚’ç‚¹æ»…ã•ã›ã‚‹
-    float m_lightFlickerVerticalRange = 4.2f;                // ç…§æ˜ãŒã‚´ãƒ¼ã‚¹ãƒˆã®è¶³å…ƒã‚ˆã‚Šä¸Šã€ã“ã®é«˜ã•ä»¥å†…(=åŒã˜éšã®å¤©äº•ã¾ã§)ãªã‚‰å¯¾è±¡
-    float m_wanderFlickerChance = 0.2f;                      // ãƒãƒ³ãƒˆä»¥å¤–ã§è¿‘ãã®ç…§æ˜ãŒç‚¹æ»…ã—å§‹ã‚ã‚‹ç¢ºç‡(1ç§’ã‚ãŸã‚Š)ã€‚ãƒãƒ³ãƒˆä¸­ã¯å¸¸ã«ç‚¹æ»…
-    float m_flashLightFlickerRange = 6.0f;                   // ã“ã®è·é›¢ä»¥å†…ã®ç‚¹ã„ãŸãƒ•ãƒ©ãƒƒã‚·ãƒ¥ãƒ©ã‚¤ãƒˆ(æ‰‹æŒã¡ãƒ»åºŠ)ã‚‚ç‚¹æ»…ã•ã›ã‚‹ã€‚æ¶ˆã—ã¯ã—ãªã„
+    std::string m_entranceDoorName = "Door_Living_Entrance"; // ƒnƒ“ƒg’†‚É{ù‚·‚éŒºŠÖƒhƒA(ƒhƒAƒAƒjƒ[ƒVƒ‡ƒ“–¼‚ÉŠÜ‚Ü‚ê‚é•¶š—ñ)
+    float m_lightFlickerRange = 4.0f;                        // ‚±‚Ì…•½‹——£ˆÈ“à‚Ì“_“”’†‚ÌÆ–¾‚ğ“_–Å‚³‚¹‚é
+    float m_lightFlickerVerticalRange = 4.2f;                // Æ–¾‚ªƒS[ƒXƒg‚Ì‘«Œ³‚æ‚èãA‚±‚Ì‚‚³ˆÈ“à(=“¯‚¶ŠK‚Ì“Vˆä‚Ü‚Å)‚È‚ç‘ÎÛ
+    float m_wanderFlickerChance = 0.2f;                      // ƒnƒ“ƒgˆÈŠO‚Å‹ß‚­‚ÌÆ–¾‚ª“_–Å‚µn‚ß‚éŠm—¦(1•b‚ ‚½‚è)Bƒnƒ“ƒg’†‚Íí‚É“_–Å
+    float m_flashLightFlickerRange = 6.0f;                   // ‚±‚Ì‹——£ˆÈ“à‚Ì“_‚¢‚½ƒtƒ‰ƒbƒVƒ…ƒ‰ƒCƒg(è‚¿E°)‚à“_–Å‚³‚¹‚éBÁ‚µ‚Í‚µ‚È‚¢
     float m_lightFlickerCheckTimer = 0.0f;
-    bool m_isSensingLight = false;       // ç‚¹ç¯ã—ãŸãƒ•ãƒ©ãƒƒã‚·ãƒ¥ãƒ©ã‚¤ãƒˆã‚’æŒã¤Playerã«å‘ã‹ã£ã¦ã„ã‚‹ã‹(ãƒ‡ãƒãƒƒã‚°è¡¨ç¤ºç”¨)
-    float m_eyeHeight = 1.5f;            // è¦–ç·šãƒ¬ã‚¤ã®ç™ºå°„é«˜ã•(è¶³å…ƒã‹ã‚‰ã®é«˜ã•)
-    float m_searchGiveUpDistance = 1.0f; // æœ€çµ‚ç›®æ’ƒåœ°ç‚¹ã«ã“ã®è·é›¢ã¾ã§è¿‘ã¥ã„ã¦ã‚‚è¦‹ã¤ã‹ã‚‰ãªã‘ã‚Œã°æœç´¢çµ‚äº†
+    bool m_isSensingLight = false;       // “_“”‚µ‚½ƒtƒ‰ƒbƒVƒ…ƒ‰ƒCƒg‚ğ‚ÂPlayer‚ÉŒü‚©‚Á‚Ä‚¢‚é‚©(ƒfƒoƒbƒO•\¦—p)
+    float m_eyeHeight = 1.5f;            // ‹üƒŒƒC‚Ì”­Ë‚‚³(‘«Œ³‚©‚ç‚Ì‚‚³)
+    float m_searchGiveUpDistance = 1.0f; // ÅI–ÚŒ‚’n“_‚É‚±‚Ì‹——£‚Ü‚Å‹ß‚Ã‚¢‚Ä‚àŒ©‚Â‚©‚ç‚È‚¯‚ê‚Î‘{õI—¹
     Math::Vector3 m_lastKnownPlayerPos = {0, 0, 0};
     bool m_hasLastKnownPlayerPos = false;
-    bool m_isSeeingPlayer = false;        // ç›´è¿‘ã®ãƒ•ãƒ¬ãƒ¼ãƒ ã§Playerã‚’è¦–èªã—ã¦ã„ãŸã‹(ãƒ‡ãƒãƒƒã‚°è¡¨ç¤ºç”¨)
-    RoomArea* m_huntSearchRoom = nullptr; // è¦‹å¤±ã£ãŸå¾Œã«æœç´¢ã§å‘ã‹ã£ã¦ã„ã‚‹éƒ¨å±‹
+    bool m_isSeeingPlayer = false;        // ’¼‹ß‚ÌƒtƒŒ[ƒ€‚ÅPlayer‚ğ‹”F‚µ‚Ä‚¢‚½‚©(ƒfƒoƒbƒO•\¦—p)
+    RoomArea* m_huntSearchRoom = nullptr; // Œ©¸‚Á‚½Œã‚É‘{õ‚ÅŒü‚©‚Á‚Ä‚¢‚é•”‰®
 
-    // --- ãƒ‰ã‚¢é–‹é–‰(HouseWander/Huntã®ç§»å‹•ä¸­ã«è¿‘ã¥ã„ãŸé–‰ã¾ã£ã¦ã„ã‚‹ãƒ‰ã‚¢ã‚’è‡ªå‹•çš„ã«é–‹ã‘ã‚‹) ---
+    // --- ƒhƒAŠJ•Â(HouseWander/Hunt‚ÌˆÚ“®’†‚É‹ß‚Ã‚¢‚½•Â‚Ü‚Á‚Ä‚¢‚éƒhƒA‚ğ©“®“I‚ÉŠJ‚¯‚é) ---
     float m_doorCheckTimer = 0.0f;
     float m_doorPassThroughTimer = 0.0f;
     float m_doorPassThroughDuration = 3.5f;
@@ -380,21 +380,21 @@ private:
     // MoveToward interference (both were ruled out and it still happened) - time-based interpolation
     // between two fixed points removes cTrans.m_position from the calculation entirely, so nothing
     // can make it un-progress once started.
-    // éšæ®µã®æ˜‡ã‚Šé™ã‚Šã¯ã€Œå…¥å£ -> éšæ®µã®ç«¯ -> åå¯¾å´ã®ç«¯ -> å‡ºå£ã€ã®æŠ˜ã‚Œç·šã«æ²¿ã£ã¦é€²ã‚€
-    // (ä»¥å‰ã¯ä»Šã„ã‚‹å ´æ‰€ã‹ã‚‰å‡ºå£ã¾ã§æ–œã‚ä¸€ç›´ç·šã ã£ãŸã®ã§ã€éšæ®µã®æ¨ªã‹ã‚‰å…¥ã‚‹ã¨å¤©äº•ã‚„å£ã‚’ã™ã‚ŠæŠœã‘ã¦ã„ãŸ)
+    // ŠK’i‚Ì¸‚è~‚è‚Íu“üŒû -> ŠK’i‚Ì’[ -> ”½‘Î‘¤‚Ì’[ -> oŒûv‚ÌÜ‚êü‚É‰ˆ‚Á‚Äi‚Ş
+    // (ˆÈ‘O‚Í¡‚¢‚éêŠ‚©‚çoŒû‚Ü‚ÅÎ‚ßˆê’¼ü‚¾‚Á‚½‚Ì‚ÅAŠK’i‚Ì‰¡‚©‚ç“ü‚é‚Æ“Vˆä‚â•Ç‚ğ‚·‚è”²‚¯‚Ä‚¢‚½)
     std::vector<Math::Vector3> m_stairsCrossPoints;
     float m_stairsCrossSpeed = 1.0f;
     float m_stairsCrossElapsed = 0.0f;
     float m_stairsCrossDuration = 1.0f;
-    float m_stairsEntryOffset = 0.6f;  // å…¥å£(éšæ®µã®ç«¯ã‹ã‚‰ã“ã‚Œã ã‘æ‰‹å‰)ã®ä½ç½®
-    float m_stairsEntryReach = 1.2f;   // å…¥å£ã«ã“ã®æ°´å¹³è·é›¢ã¾ã§è¿‘ã¥ã„ãŸã‚‰æ˜‡ã‚Šé™ã‚Šã‚’å§‹ã‚ã‚‹
-    float m_doorCheckInterval = 0.25f; // ãƒ‰ã‚¢ã®è¿‘æ¥åˆ¤å®šé–“éš”(ç§’) - æ¯ãƒ•ãƒ¬ãƒ¼ãƒ å…¨ã‚¨ãƒ³ãƒ†ã‚£ãƒ†ã‚£ã‚’èµ°æŸ»ã—ãªã„ã‚ˆã†é–“å¼•ã
-    float m_doorOpenRange = 2.0f;      // ã“ã®è·é›¢ä»¥å†…ã®é–‰ã¾ã£ã¦ã„ã‚‹ãƒ‰ã‚¢ã¯è‡ªå‹•çš„ã«é–‹ã‘ã‚‹
-    float m_doorSoundVolume = 0.9f;    // ã‚´ãƒ¼ã‚¹ãƒˆãŒãƒ‰ã‚¢ã‚’é–‹ã‘ãŸæ™‚ã®éŸ³é‡(ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã¨ã®è·é›¢ã§ã•ã‚‰ã«æ¸›è¡°ã™ã‚‹)
+    float m_stairsEntryOffset = 0.6f;  // “üŒû(ŠK’i‚Ì’[‚©‚ç‚±‚ê‚¾‚¯è‘O)‚ÌˆÊ’u
+    float m_stairsEntryReach = 1.2f;   // “üŒû‚É‚±‚Ì…•½‹——£‚Ü‚Å‹ß‚Ã‚¢‚½‚ç¸‚è~‚è‚ğn‚ß‚é
+    float m_doorCheckInterval = 0.25f; // ƒhƒA‚Ì‹ßÚ”»’èŠÔŠu(•b) - –ˆƒtƒŒ[ƒ€‘SƒGƒ“ƒeƒBƒeƒB‚ğ‘–¸‚µ‚È‚¢‚æ‚¤ŠÔˆø‚­
+    float m_doorOpenRange = 2.0f;      // ‚±‚Ì‹——£ˆÈ“à‚Ì•Â‚Ü‚Á‚Ä‚¢‚éƒhƒA‚Í©“®“I‚ÉŠJ‚¯‚é
+    float m_doorSoundVolume = 0.9f;    // ƒS[ƒXƒg‚ªƒhƒA‚ğŠJ‚¯‚½‚Ì‰¹—Ê(ƒvƒŒƒCƒ„[‚Æ‚Ì‹——£‚Å‚³‚ç‚ÉŒ¸Š‚·‚é)
 
-    // Ghost.gltfã®ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã¯ 0:Ghost_Death, 1:Ghost_Move ã®2ã¤ã—ã‹ãªã„ã€‚
-    // å°‚ç”¨ã®Idle/Huntãƒ¢ãƒ¼ã‚·ãƒ§ãƒ³ãŒãªã„ã®ã§ã€ã¨ã‚Šã‚ãˆãšMoveã‚’ä½¿ã†
-    // (Huntã¯æ—¢å­˜ã‚³ãƒ¼ãƒ‰ã§Speed=1.5å€ã«ã—ã¦èµ°ã£ã¦ã„ã‚‹ã‚ˆã†ã«è¦‹ã›ã¦ã„ã‚‹)ã€‚
+    // Ghost.gltf‚ÌƒAƒjƒ[ƒVƒ‡ƒ“‚Í 0:Ghost_Death, 1:Ghost_Move ‚Ì2‚Â‚µ‚©‚È‚¢B
+    // ê—p‚ÌIdle/Huntƒ‚[ƒVƒ‡ƒ“‚ª‚È‚¢‚Ì‚ÅA‚Æ‚è‚ ‚¦‚¸Move‚ğg‚¤
+    // (Hunt‚ÍŠù‘¶ƒR[ƒh‚ÅSpeed=1.5”{‚É‚µ‚Ä‘–‚Á‚Ä‚¢‚é‚æ‚¤‚ÉŒ©‚¹‚Ä‚¢‚é)B
     int m_animIdle = 1;
     int m_animWander = 1;
     int m_animHunt = 1;
@@ -403,14 +403,14 @@ private:
     RoomArea* m_targetRoom = nullptr;
     float m_stunTimer = 0.0f;
 
-    // AnimationDataComponentã¯è‡ªåˆ†è‡ªèº«ã§ã¯ãªãå­ã®"Model"ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã«ä»˜ã„ã¦ã„ã‚‹ãŸã‚ã€
-    // å­éšå±¤ã‚’æ¢ã—ã¦è¦šãˆã¦ãŠã(æ¯ãƒ•ãƒ¬ãƒ¼ãƒ æ¢ç´¢ã—ãªãã¦ã„ã„ã‚ˆã†Start()ã§ã‚­ãƒ£ãƒƒã‚·ãƒ¥ã™ã‚‹)
+    // AnimationDataComponent‚Í©•ª©g‚Å‚Í‚È‚­q‚Ì"Model"ƒIƒuƒWƒFƒNƒg‚É•t‚¢‚Ä‚¢‚é‚½‚ßA
+    // qŠK‘w‚ğ’T‚µ‚ÄŠo‚¦‚Ä‚¨‚­(–ˆƒtƒŒ[ƒ€’Tõ‚µ‚È‚­‚Ä‚¢‚¢‚æ‚¤Start()‚ÅƒLƒƒƒbƒVƒ…‚·‚é)
     Entity m_animEntity = INVALID_ENTITY;
 
-    // --- é‡åŠ› ---
-    float m_velocityY = 0.0f;       // è½ä¸‹é€Ÿåº¦
-    float m_gravityStrength = 9.8f; // é‡åŠ›å¼·åº¦
-    bool m_isGrounded = false;      // æ¥åœ°ã—ã¦ã„ã‚‹ã‹
+    // --- d—Í ---
+    float m_velocityY = 0.0f;       // —‰º‘¬“x
+    float m_gravityStrength = 9.8f; // d—Í‹­“x
+    bool m_isGrounded = false;      // Ú’n‚µ‚Ä‚¢‚é‚©
     float m_groundOffset = 0.0f;    // ground-height Y offset (tune if the model origin isn't at the feet)
     // Set for one frame by UpdateHouseWander/UpdateHunt right after GetStairsCrossingMove computes
     // height directly from Z-progress along the stairs - tells the gravity/ground-raycast block to

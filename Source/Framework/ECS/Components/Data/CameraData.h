@@ -1,4 +1,4 @@
-ï»¿#pragma once
+#pragma once
 
 enum class CameraMode
 {
@@ -14,13 +14,13 @@ struct CameraData
     float m_fov = 60.0f;
     float m_nearZ = 0.01f;
     float m_farZ = 1000.0f;
-    float m_moveSpeed = 6.0f; // ãƒ•ãƒªãƒ¼ã‚«ãƒ¡ãƒ©ã®ç§»å‹•é€Ÿåº¦(m/s)
+    float m_moveSpeed = 6.0f; // ƒtƒŠ[ƒJƒƒ‰‚ÌˆÚ“®‘¬“x(m/s)
     CameraMode m_cameraMode = CameraMode::EditorFree;
     Math::Vector3 m_targetOffset = {0.0f, 0.0f, -5.0f}; // TPS Base Offset
     Math::Vector3 m_fpsOffset = {0.0f, 1.5f, 0.0f};     // FPS Base Offset
 
-    // trueãªã‚‰ã€ã“ã®ã‚«ãƒ¡ãƒ©ã®Transformã§æ¯ãƒ•ãƒ¬ãƒ¼ãƒ å°‚ç”¨ã®ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼ç”¨RTã«æç”»ã™ã‚‹
-    // (ãƒ¡ã‚¤ãƒ³/ã‚¨ãƒ‡ã‚£ã‚¿ã‚«ãƒ¡ãƒ©ã‚„åå°„ã‚«ãƒ¡ãƒ©ã¨ã¯ç‹¬ç«‹)ã€‚ã€ŒPreview Cameraã€ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã§
-    // è¡¨ç¤ºå…ˆã‚’é¸ã¶ä»£ã‚ã‚Šã«ã€ã‚·ãƒ¼ãƒ³ä¸Šã«ã“ã®ãƒ•ãƒ©ã‚°ã‚’ç«‹ã¦ãŸã‚«ãƒ¡ãƒ©ã‚’1ã¤ç½®ãã ã‘ã§è‰¯ã„ã€‚
+    // true‚È‚çA‚±‚ÌƒJƒƒ‰‚ÌTransform‚Å–ˆƒtƒŒ[ƒ€ê—p‚ÌƒvƒŒƒrƒ…[—pRT‚É•`‰æ‚·‚é
+    // (ƒƒCƒ“/ƒGƒfƒBƒ^ƒJƒƒ‰‚â”½ËƒJƒƒ‰‚Æ‚Í“Æ—§)BuPreview CameravƒEƒBƒ“ƒhƒE‚Å
+    // •\¦æ‚ğ‘I‚Ô‘ã‚í‚è‚ÉAƒV[ƒ“ã‚É‚±‚Ìƒtƒ‰ƒO‚ğ—§‚Ä‚½ƒJƒƒ‰‚ğ1‚Â’u‚­‚¾‚¯‚Å—Ç‚¢B
     bool m_isDebugPreview = false;
 };

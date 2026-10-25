@@ -105,7 +105,7 @@ bool SpriteRenderSystem::IsMouseOver(Entity entity) const
         return false;
     }
 
-    // ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆåº§æ¨™ -> Render()ã®ãƒ“ãƒ¥ãƒ¼ãƒãƒ¼ãƒˆ(1280x720)åº§æ¨™ã¸å¤‰æ›
+    // ƒNƒ‰ƒCƒAƒ“ƒgÀ•W -> Render()‚Ìƒrƒ…[ƒ|[ƒg(1280x720)À•W‚Ö•ÏŠ·
     auto& input = Input::Instance();
     RECT rc = {};
     GetClientRect(input.GetHWnd(), &rc);
@@ -118,7 +118,7 @@ bool SpriteRenderSystem::IsMouseOver(Entity entity) const
     float mx = (float)input.GetMouseX() * (1280.0f / cw);
     float my = (float)input.GetMouseY() * (720.0f / ch);
 
-    // Render()ã¨åŒã˜è¨ˆç®—: æç”»ã‚µã‚¤ã‚º = m_size * scaleã€å·¦ä¸Š = ä½ç½® - æç”»ã‚µã‚¤ã‚º * pivot
+    // Render()‚Æ“¯‚¶ŒvŽZ: •`‰æƒTƒCƒY = m_size * scaleA¶ã = ˆÊ’u - •`‰æƒTƒCƒY * pivot
     float w = pSprite->m_size.x * pTransform->m_scale.x;
     float h = pSprite->m_size.y * pTransform->m_scale.y;
     float left = pTransform->m_position.x - w * pSprite->m_pivot.x;

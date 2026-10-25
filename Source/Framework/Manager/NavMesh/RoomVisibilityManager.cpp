@@ -1,4 +1,4 @@
-﻿#include "../../../Pch.h"
+#include "../../../Pch.h"
 #include "RoomVisibilityManager.h"
 #include "../../../Application/Object/Script/System/GameSequence.h"
 #include "../../../Application/Object/Script/System/RoomArea.h"
@@ -40,8 +40,8 @@ void RoomVisibilityManager::RebuildRoomGraphIfNeeded()
     }
 
     const auto& liveRooms = gs->GetRooms();
-    // 軽い変化チェック - 部屋数が変わる（レベルの(再)ロード、エディタでの追加/削除）
-    // 時だけ実際に再構築が必要になる。
+    // �y���ω��`�F�b�N - ���������ς��i���x����(��)���[�h�A�G�f�B�^�ł̒ǉ�/�폜�j
+    // ���������ۂɍč\�z���K�v�ɂȂ�B
     if (m_graphBuilt && liveRooms.size() == m_rooms.size())
     {
         return;
@@ -50,12 +50,12 @@ void RoomVisibilityManager::RebuildRoomGraphIfNeeded()
     m_rooms = liveRooms;
     m_adjacency.assign(m_rooms.size(), {});
     m_edgeDoors.clear();
-    m_meshRoomIndices.clear(); // 部屋インデックスの意味が変わるので、キャッシュは古くなる
+    m_meshRoomIndices.clear(); // �����C���f�b�N�X�̈Ӗ����ς��̂ŁA�L���b�V���͌Â��Ȃ�
 
-    // 以下の内包/重なり判定は全て、この余白の分だけ部屋を外側にパディングして行う。
-    // 隣接判定では「共有する壁に開口部がある」ことの近似になり、メッシュ割り当てでは
-    // 壁の厚みに埋まったドアや窓を拾える。単に近いだけの部屋同士を繋げてしまわない
-    // 程度に小さい値にしている。
+    // �ȉ��̓���/�d�Ȃ蔻��͑S�āA���̗]���̕������������O���Ƀp�f�B���O���čs���B
+    // �אڔ���ł́u���L����ǂɊJ����������v���Ƃ̋ߎ��ɂȂ�A���b�V�����蓖�Ăł�
+    // �ǂ̌��݂ɖ��܂����h�A�⑋���E����B�P�ɋ߂������̕������m���q���Ă��܂�Ȃ�
+    // ���x�ɏ������l�ɂ��Ă���B
     constexpr float kTouchEpsilon = 0.5f;
 
     m_paddedRoomBoxes.assign(m_rooms.size(), DirectX::BoundingBox());
@@ -97,10 +97,10 @@ void RoomVisibilityManager::RebuildRoomGraphIfNeeded()
 
 void RoomVisibilityManager::DiscoverDoorLinks()
 {
-    // Player::TryInteractDoor が使っているのと同じ検出方法: Modelを持ち、名前に
-    // "Door"/"door" を含むアニメーションを持つエンティティを探す。ドアがどの2部屋の
-    // 間にあるかを判定するにはワールド座標（最初のチャンネルのノードから取得）だけ
-    // あればよい - 実際の開閉判定は後で毎フレーム IsDoorOpen() 側で行う。
+    // Player::TryInteractDoor ���g���Ă���̂Ɠ������o���@: Model�������A���O��
+    // "Door"/"door" ���܂ރA�j���[�V���������G���e�B�e�B��T���B�h�A���ǂ�2������
+    // �Ԃɂ��邩�𔻒肷��ɂ̓��[���h���W�i�ŏ��̃`�����l���̃m�[�h����擾�j����
+    // ����΂悢 - ���ۂ̊J����͌�Ŗ��t���[�� IsDoorOpen() ���ōs���B
     auto& ecs = GameManager::Instance().GetECS();
 
     for (Entity entity = 0; entity < MAX_ENTITIES; ++entity)
@@ -154,8 +154,8 @@ void RoomVisibilityManager::DiscoverDoorLinks()
                 continue;
             }
 
-            // ドアの位置を含む（パディング済み）部屋のAABBはどれか？ 共有する壁にある
-            // ドアなら、両隣のパディング済みボックスの両方に入っているはず。
+            // �h�A�̈ʒu���܂ށi�p�f�B���O�ς݁j������AABB�͂ǂꂩ�H ���L����ǂɂ���
+            // �h�A�Ȃ�A���ׂ̃p�f�B���O�ς݃{�b�N�X�̗����ɓ����Ă���͂��B
             int roomsFound[2] = {-1, -1};
             int roomCount = 0;
             for (size_t r = 0; r < m_paddedRoomBoxes.size() && roomCount < 2; ++r)
@@ -184,13 +184,13 @@ bool RoomVisibilityManager::IsDoorOpen(const DoorLink& link) const
     auto* pAnimComp = ecs.TryGetComponent<AnimationDataComponent>(link.entity);
     if (!pAnimComp)
     {
-        return true; // まだ実行時アニメーション状態が無い - 通行可能とみなす
+        return true; // �܂����s���A�j���[�V������Ԃ����� - �ʍs�\�Ƃ݂Ȃ�
     }
 
     auto it = pAnimComp->multiAnims.find(link.animIndex);
     if (it == pAnimComp->multiAnims.end())
     {
-        return true; // 一度も操作されていない - 部屋を永久に隠すよりは開いている扱いにする
+        return true; // ��x�����삳��Ă��Ȃ� - �������i�v�ɉB�����͊J���Ă��鈵���ɂ���
     }
 
     auto* pModel = ecs.TryGetComponent<ModelRenderData>(link.entity);
@@ -204,8 +204,8 @@ bool RoomVisibilityManager::IsDoorOpen(const DoorLink& link) const
         return true;
     }
 
-    // AnimationSystem自身の「全開」の定義（duration * 0.5、AnimationSystem.h参照）に
-    // 合わせている - 半分以上開いていればドアは通行可能とみなす。
+    // AnimationSystem���g�́u�S�J�v�̒�`�iduration * 0.5�AAnimationSystem.h�Q�Ɓj��
+    // ���킹�Ă��� - �����ȏ�J���Ă���΃h�A�͒ʍs�\�Ƃ݂Ȃ��B
     float targetTime = anims[link.animIndex].duration * 0.5f;
     if (targetTime <= 0.0f)
     {
@@ -233,8 +233,8 @@ void RoomVisibilityManager::UpdateVisibleRooms(const Math::Vector3& viewerPos)
 
     if (currentRoom < 0)
     {
-        // カメラがどの既知の部屋にも入っていない（FreeCamで家の外に出た、部屋データが
-        // まだ無い等）- 安全側に倒して、レベル全体を誤って隠すよりはカリングしない。
+        // �J�������ǂ̊��m�̕����ɂ������Ă��Ȃ��iFreeCam�ŉƂ̊O�ɏo���A�����f�[�^��
+        // �܂��������j- ���S���ɓ|���āA���x���S�̂�����ĉB�����̓J�����O���Ȃ��B
         m_allVisible = true;
         return;
     }
@@ -278,7 +278,7 @@ bool RoomVisibilityManager::IsMeshInVisibleRoom(Mesh* pMesh, const Math::Matrix&
 
     if (it->second.empty())
     {
-        return true; // どの部屋にも属さなかった - 推測せず、カリングもしない
+        return true; // �ǂ̕����ɂ������Ȃ����� - ���������A�J�����O�����Ȃ�
     }
 
     for (int roomIdx : it->second)

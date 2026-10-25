@@ -1,13 +1,13 @@
 struct VSOutput
 {
     float4 Pos : SV_Position;
-    float2 UV : TEXCOORD0; // -1..1 (ä¸­å¿ƒãŒ0)
+    float2 UV : TEXCOORD0; // -1..1 (’†S‚ª0)
     float4 Color : COLOR0;
 };
 
 float4 main(VSOutput In) : SV_Target
 {
-    // ä¸­å¿ƒãŒæ˜ã‚‹ãã€ç¸ã«å‘ã‹ã£ã¦æŸ”ã‚‰ã‹ãæ¶ˆãˆã‚‹å…‰ã®ç²’(åŠ ç®—åˆæˆãªã®ã§é‡ãªã‚‹ã»ã©æ˜ã‚‹ããªã‚‹)
+    // ’†S‚ª–¾‚é‚­A‰‚ÉŒü‚©‚Á‚Ä_‚ç‚©‚­Á‚¦‚éŒõ‚Ì—±(‰ÁZ‡¬‚È‚Ì‚Åd‚È‚é‚Ù‚Ç–¾‚é‚­‚È‚é)
     float d = length(In.UV);
     float falloff = saturate(1.0f - d);
     falloff *= falloff;

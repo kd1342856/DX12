@@ -1,4 +1,4 @@
-﻿#include "../../../Pch.h"
+#include "../../../Pch.h"
 #include "NormalPrepassShader.h"
 #include "../../GDF/GDF.h"
 #include "../../../Framework/Manager/Asset/TextureManager.h"

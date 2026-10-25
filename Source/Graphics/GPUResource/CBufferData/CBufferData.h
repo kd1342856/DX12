@@ -1,4 +1,4 @@
-ï»¿#pragma once
+#pragma once
 
 namespace CBufferData
 {
@@ -33,15 +33,15 @@ namespace CBufferData
         float ScreenWidth;
         float ScreenHeight;
 
-        // SSR (ã‚¹ã‚¯ãƒªãƒ¼ãƒ³ã‚¹ãƒšãƒ¼ã‚¹åå°„) - å¹³é¢åå°„ãŒç„¡ã„ã‚¬ãƒ©ã‚¹ç­‰ã®ãƒ•ã‚©ãƒ¼ãƒ«ãƒãƒƒã‚¯ã«ä½¿ã†
+        // SSR (ƒXƒNƒŠ[ƒ“ƒXƒy[ƒX”½Ë) - •½–Ê”½Ë‚ª–³‚¢ƒKƒ‰ƒX“™‚ÌƒtƒH[ƒ‹ƒoƒbƒN‚Ég‚¤
         int32_t EnableSSR;
         float SSRStepSize;
 
-        // å¹³é¢åå°„(çª“ã‚¬ãƒ©ã‚¹ç­‰)ç”¨: å„åå°„ã‚¹ãƒ­ãƒƒãƒˆ(æœ€å¤§3æš=3çª“ã¾ã§åŒæ™‚)ã®åå°„ã‚«ãƒ¡ãƒ©View*Projè¡Œåˆ—ã€‚
-        // ã‚¬ãƒ©ã‚¹ã®ãƒ”ã‚¯ã‚»ãƒ«ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ãŒãƒ¯ãƒ¼ãƒ«ãƒ‰åº§æ¨™ã‚’ã“ã‚Œã§å†æŠ•å½±ã—ã¦
-        // g_planarReflectionMapN(N=ã‚¹ãƒ­ãƒƒãƒˆç•ªå·)ã®æ­£ã—ã„UVã‚’æ±‚ã‚ã‚‹ãŸã‚ã«ä½¿ã†ã€‚
+        // •½–Ê”½Ë(‘‹ƒKƒ‰ƒX“™)—p: Še”½ËƒXƒƒbƒg(Å‘å3–‡=3‘‹‚Ü‚Å“¯)‚Ì”½ËƒJƒƒ‰View*Projs—ñB
+        // ƒKƒ‰ƒX‚ÌƒsƒNƒZƒ‹ƒVƒF[ƒ_[‚ªƒ[ƒ‹ƒhÀ•W‚ğ‚±‚ê‚ÅÄ“Š‰e‚µ‚Ä
+        // g_planarReflectionMapN(N=ƒXƒƒbƒg”Ô†)‚Ì³‚µ‚¢UV‚ğ‹‚ß‚é‚½‚ß‚Ég‚¤B
         Math::Matrix mReflectionVP[3];
-        DirectX::XMINT4 HasReflectionPacked; // x,y,z = ã‚¹ãƒ­ãƒƒãƒˆ0/1/2ã®æœ‰åŠ¹ãƒ•ãƒ©ã‚°(0/1)ã€wã¯æœªä½¿ç”¨
+        DirectX::XMINT4 HasReflectionPacked; // x,y,z = ƒXƒƒbƒg0/1/2‚Ì—LŒøƒtƒ‰ƒO(0/1)Aw‚Í–¢g—p
     };
 
     struct SpotLight
@@ -71,7 +71,7 @@ namespace CBufferData
         int SL_Count;
         Math::Vector3 dummy1;
         Math::Vector3 AmbientLight;
-        float IndirectShadowFloor; // å½±ãŒè½ã¡ã‚‹å ´æ‰€ã«æ®‹ã™é–“æ¥å…‰(Ambient/IBL)ã®ä¸‹é™ 0..1
+        float IndirectShadowFloor; // ‰e‚ª—‚¿‚éêŠ‚Éc‚·ŠÔÚŒõ(Ambient/IBL)‚Ì‰ºŒÀ 0..1
         Math::Vector3 DL_Dir;
         float DL_ShadowBias;
         Math::Vector3 DL_Color;
@@ -84,16 +84,16 @@ namespace CBufferData
 
         int PL_Count;
         Math::Vector3 dummyPL;
-        PointLight PL[8]; // ãƒ­ã‚¦ã‚½ã‚¯/è£¸é›»çƒç­‰ã€ãƒ•ãƒªãƒƒã‚«ãƒ¼ä»˜ãã®ç‚¹å…‰æº(LightSystemãŒæ¯ãƒ•ãƒ¬ãƒ¼ãƒ æ›´æ–°)
+        PointLight PL[8]; // ƒƒEƒ\ƒN/—‡“d‹…“™AƒtƒŠƒbƒJ[•t‚«‚Ì“_ŒõŒ¹(LightSystem‚ª–ˆƒtƒŒ[ƒ€XV)
 
-        // ãƒã‚¤ãƒ³ãƒˆå…‰ã®å½±(æœ€ã‚‚è¿‘ã„1ç¯ã®ã¿ã€6é¢ã‚­ãƒ¥ãƒ¼ãƒ–ã‚·ãƒ£ãƒ‰ã‚¦ã€‚Texture2DÃ—6ã®ç°¡æ˜“å®Ÿè£…)
+        // ƒ|ƒCƒ“ƒgŒõ‚Ì‰e(Å‚à‹ß‚¢1“”‚Ì‚İA6–ÊƒLƒ…[ƒuƒVƒƒƒhƒEBTexture2D~6‚ÌŠÈˆÕÀ‘•)
         Math::Matrix PL0_ShadowVP[6];
         float PL0_ShadowBias;
         int32_t PL0_ShadowEnabled;
         float PadPL0Shadow[2];
 
-        // å®¤å†…åˆ¤å®š(RoomAreaã®AABBã€xyzã®ã¿ä½¿ç”¨)ã€‚ç¯„å›²å†…ã®ãƒ”ã‚¯ã‚»ãƒ«ã¯å¤–ã®å…‰(æœˆæ˜ã‹ã‚Šãƒ»ç’°å¢ƒå…‰ãƒ»
-        // ç©ºã®åå°„å…‰)ã‚’å—ã‘ãšã€æœˆã®å½±ã®ä¸­ã¨åŒã˜æ‰±ã„ã«ãªã‚‹(GameScene::UpdateLightsãŒæ¯ãƒ•ãƒ¬ãƒ¼ãƒ æ›´æ–°)ã€‚
+        // º“à”»’è(RoomArea‚ÌAABBAxyz‚Ì‚İg—p)B”ÍˆÍ“à‚ÌƒsƒNƒZƒ‹‚ÍŠO‚ÌŒõ(Œ–¾‚©‚èEŠÂ‹«ŒõE
+        // ‹ó‚Ì”½ËŒõ)‚ğó‚¯‚¸AŒ‚Ì‰e‚Ì’†‚Æ“¯‚¶ˆµ‚¢‚É‚È‚é(GameScene::UpdateLights‚ª–ˆƒtƒŒ[ƒ€XV)B
         int32_t IndoorCount;
         float PadIndoor[3];
         Math::Vector4 IndoorMin[16];
@@ -126,7 +126,7 @@ namespace CBufferData
         // Bloom
         float BloomThreshold;
         float BloomIntensity;
-        float BlurDirectionX; // Blurãƒ‘ã‚¹å°‚ç”¨
+        float BlurDirectionX; // BlurƒpƒXê—p
         float BlurDirectionY;
 
         float BlurRadius;
@@ -143,10 +143,10 @@ namespace CBufferData
         float DOFFocusDistance;
         float DOFFocusRange;
 
-        // Camera Near/Far (æ·±åº¦ãƒªãƒ‹ã‚¢åŒ–ç”¨)
+        // Camera Near/Far ([“xƒŠƒjƒA‰»—p)
         float CameraNear;
         float CameraFar;
-        // God Rays: å…‰æºã®ã‚¹ã‚¯ãƒªãƒ¼ãƒ³ç©ºé–“UV
+        // God Rays: ŒõŒ¹‚ÌƒXƒNƒŠ[ƒ“‹óŠÔUV
         float GodRaysLightU;
         float GodRaysLightV;
 

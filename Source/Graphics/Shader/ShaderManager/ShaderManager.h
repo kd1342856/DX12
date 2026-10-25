@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <mutex>
 #include <string>
 #include <unordered_map>
@@ -77,7 +77,7 @@ public:
     {
         return m_LightData;
     }
-    // LightSystemがポイントライト配列(PL/PL_Count)を毎フレーム書き込むための可変アクセス。
+    // LightSystem���|�C���g���C�g�z��(PL/PL_Count)�𖈃t���[���������ނ��߂̉σA�N�Z�X�B
     CBufferData::Light& GetMutableLightData()
     {
         return m_LightData;
@@ -88,8 +88,8 @@ public:
         m_LightData.DL_mLightVP[0] = m;
     }
 
-    // 最も近いポイントライト(g_PL[0])の6面キューブシャドウ用データ。
-    // enabled=falseの時はシェーダー側で影計算そのものをスキップする。
+    // �ł��߂��|�C���g���C�g(g_PL[0])��6�ʃL���[�u�V���h�E�p�f�[�^�B
+    // enabled=false�̎��̓V�F�[�_�[���ŉe�v�Z���̂��̂��X�L�b�v����B
     void SetPointLightShadowData(const Math::Matrix (&vp)[6], float bias, bool enabled)
     {
         for (int i = 0; i < 6; ++i)
@@ -116,10 +116,10 @@ public:
         return m_huntActiveCount > 0;
     }
 
-    // 平面反射(窓ガラス等)用: 指定スロット(0〜2、最大3枚=3窓まで同時)の反射カメラ
-    // View*Proj行列と有効フラグを設定する。ガラスのピクセルシェーダーは自分の
-    // reflectionSlotに対応するこの行列でワールド座標を再投影し、
-    // g_planarReflectionMapN(N=スロット番号)の正しいUVを求める。
+    // ���ʔ���(���K���X��)�p: �w��X���b�g(0�`2�A�ő�3��=3���܂œ���)�̔��˃J����
+    // View*Proj�s��ƗL���t���O��ݒ肷��B�K���X�̃s�N�Z���V�F�[�_�[�͎�����
+    // reflectionSlot�ɑΉ����邱�̍s��Ń��[���h���W���ē��e���A
+    // g_planarReflectionMapN(N=�X���b�g�ԍ�)�̐�����UV�����߂�B
     void SetReflectionData(int slot, const Math::Matrix& viewProj, bool hasReflection)
     {
         if (slot < 0 || slot >= 3)
@@ -131,9 +131,9 @@ public:
         pFlags[slot] = hasReflection ? 1 : 0;
     }
 
-    // 毎フレームの反射割り当て開始時に呼ぶ。前フレームまでアクティブだったスロットが
-    // 今フレームどのReflectionComponentからも選ばれなかった場合に「有効」のまま
-    // 残ってしまうのを防ぐ(古いView*Projで古い絵をサンプルし続けるバグの元になる)。
+    // ���t���[���̔��ˊ��蓖�ĊJ�n���ɌĂԁB�O�t���[���܂ŃA�N�e�B�u�������X���b�g��
+    // ���t���[���ǂ�ReflectionComponent������I�΂�Ȃ������ꍇ�Ɂu�L���v�̂܂�
+    // �c���Ă��܂��̂�h��(�Â�View*Proj�ŌÂ��G���T���v����������o�O�̌��ɂȂ�)�B
     void ClearAllReflectionData()
     {
         for (int i = 0; i < 3; ++i)
@@ -143,18 +143,18 @@ public:
         m_SystemData.HasReflectionPacked = DirectX::XMINT4(0, 0, 0, 0);
     }
 
-    // DOFの深度リニア化に使うアクティブカメラのNear/Far。RenderScene呼び出し側(GameScene)が
-    // 毎フレーム、実際に描画に使ったカメラの値で更新する。
+    // DOF�̐[�x���j�A���Ɏg���A�N�e�B�u�J������Near/Far�BRenderScene�Ăяo����(GameScene)��
+    // ���t���[���A���ۂɕ`��Ɏg�����J�����̒l�ōX�V����B
     void SetCameraNearFar(float nearZ, float farZ)
     {
         m_PostProcessData.CameraNear = nearZ;
         m_PostProcessData.CameraFar = farZ;
     }
 
-    // God Raysの光源スクリーン座標。GameScene側で平行光の方向とカメラ行列から毎フレーム計算する。
-    // isValid=false(光源がカメラの後ろ等)の時はGodRays設定が有効でも今フレームは描画しない。
-    // EnableGodRaysもここで確定させる(UpdateConstantBuffers()はDoPostProcessより前に走るため、
-    // IsDirty待ちにすると1フレーム遅れてしまう)。
+    // God Rays�̌����X�N���[�����W�BGameScene���ŕ��s���̕����ƃJ�����s�񂩂疈�t���[���v�Z����B
+    // isValid=false(�������J�����̌�듙)�̎���GodRays�ݒ肪�L���ł����t���[���͕`�悵�Ȃ��B
+    // EnableGodRays�������Ŋm�肳����(UpdateConstantBuffers()��DoPostProcess���O�ɑ��邽�߁A
+    // IsDirty�҂��ɂ����1�t���[���x��Ă��܂�)�B
     void SetGodRaysLightScreenPos(float u, float v, bool isValid)
     {
         m_PostProcessData.GodRaysLightU = u;

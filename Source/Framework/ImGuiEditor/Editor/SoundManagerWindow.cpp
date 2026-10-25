@@ -1,4 +1,4 @@
-ï»¿#include "../../../Pch.h"
+#include "../../../Pch.h"
 #include "../../Manager/Audio/AudioManager.h"
 
 namespace
@@ -7,8 +7,8 @@ namespace
 
     struct SoundFileEntry
     {
-        std::string path;   // "Asset/Sound/SE/door_open.wav" (UTF-8, '/'åŒºåˆ‡ã‚Š)
-        std::string folder; // "SE" / "BGM" ç­‰(kSoundRootç›´ä¸‹ã®ãƒ•ã‚©ãƒ«ãƒ€å)
+        std::string path;   // "Asset/Sound/SE/door_open.wav" (UTF-8, '/'‹æØ‚è)
+        std::string folder; // "SE" / "BGM" “™(kSoundRoot’¼‰º‚ÌƒtƒHƒ‹ƒ_–¼)
         std::string fileName;
     };
 
@@ -24,7 +24,7 @@ namespace
         return s;
     }
 
-    // Asset/Soundä»¥ä¸‹ã®.wavã‚’åˆ—æŒ™ã™ã‚‹(æ¯ãƒ•ãƒ¬ãƒ¼ãƒ ã¯é‡ã„ã®ã§ã€é–‹ã„ãŸæ™‚ã¨Refreshæ™‚ã ã‘)
+    // Asset/SoundˆÈ‰º‚Ì.wav‚ğ—ñ‹“‚·‚é(–ˆƒtƒŒ[ƒ€‚Íd‚¢‚Ì‚ÅAŠJ‚¢‚½‚ÆRefresh‚¾‚¯)
     std::vector<SoundFileEntry> ScanSoundFiles()
     {
         std::vector<SoundFileEntry> files;
@@ -82,13 +82,13 @@ void Editor::DrawSoundManager()
 
     auto& audio = AudioManager::Instance();
 
-    // éŸ³é‡ã®å¤‰æ›´ã¯ã€ã‚¹ãƒ©ã‚¤ãƒ€ãƒ¼ã‚’é›¢ã—ãŸæ™‚ç‚¹ã§è‡ªå‹•ä¿å­˜ã™ã‚‹(Saveãƒœã‚¿ãƒ³ã®æŠ¼ã—å¿˜ã‚Œã§æ¶ˆãˆãªã„ã‚ˆã†ã«)
+    // ‰¹—Ê‚Ì•ÏX‚ÍAƒXƒ‰ƒCƒ_[‚ğ—£‚µ‚½“_‚Å©“®•Û‘¶‚·‚é(Saveƒ{ƒ^ƒ“‚Ì‰Ÿ‚µ–Y‚ê‚ÅÁ‚¦‚È‚¢‚æ‚¤‚É)
     auto autoSave = [&]()
     { if (ImGui::IsItemDeactivatedAfterEdit()){ audio.SaveSettings();
 } };
 
-    // --- éŸ³é‡ãƒã‚¹ ---
-    ImGui::SeparatorText(u8"éŸ³é‡");
+    // --- ‰¹—ÊƒoƒX ---
+    ImGui::SeparatorText(u8"‰¹—Ê");
     bool muted = audio.IsMuted();
     if (ImGui::Checkbox("Mute", &muted))
     {
@@ -110,7 +110,7 @@ void Editor::DrawSoundManager()
     autoSave();
     if (ImGui::IsItemHovered())
     {
-        ImGui::SetTooltip(u8"å…¨BGMå…±é€šã€‚ä¸‹ã®ã€Œæ›²ã”ã¨ã®éŸ³é‡ã€ã«æ›ã‘åˆã‚ã•ã‚Œã‚‹");
+        ImGui::SetTooltip(u8"‘SBGM‹¤’ÊB‰º‚Ìu‹È‚²‚Æ‚Ì‰¹—Êv‚ÉŠ|‚¯‡‚í‚³‚ê‚é");
     }
     float se = audio.GetSEVolume();
     if (ImGui::SliderFloat("SE", &se, 0.0f, 1.0f))
@@ -120,11 +120,11 @@ void Editor::DrawSoundManager()
     autoSave();
     if (ImGui::IsItemHovered())
     {
-        ImGui::SetTooltip(u8"å„ã‚¹ã‚¯ãƒªãƒ—ãƒˆ(Player/LightSwitchç­‰)ã®éŸ³é‡ã«æ›ã‘åˆã‚ã•ã‚Œã‚‹");
+        ImGui::SetTooltip(u8"ŠeƒXƒNƒŠƒvƒg(Player/LightSwitch“™)‚Ì‰¹—Ê‚ÉŠ|‚¯‡‚í‚³‚ê‚é");
     }
 
-    // --- æ›²ã”ã¨ã®éŸ³é‡ ---
-    ImGui::SeparatorText(u8"æ›²ã”ã¨ã®éŸ³é‡");
+    // --- ‹È‚²‚Æ‚Ì‰¹—Ê ---
+    ImGui::SeparatorText(u8"‹È‚²‚Æ‚Ì‰¹—Ê");
     for (const auto& path : audio.GetBGMTrackPaths())
     {
         const std::string& label = audio.GetBGMTrackLabel(path);
@@ -154,7 +154,7 @@ void Editor::DrawSoundManager()
         audio.LoadSettings();
     }
     ImGui::SameLine();
-    ImGui::TextDisabled(u8"%s (å¤‰æ›´ã¯è‡ªå‹•ä¿å­˜)", AudioManager::kSettingsPath);
+    ImGui::TextDisabled(u8"%s (•ÏX‚Í©“®•Û‘¶)", AudioManager::kSettingsPath);
 
     // --- BGM ---
     ImGui::SeparatorText("BGM");
@@ -184,8 +184,8 @@ void Editor::DrawSoundManager()
     }
     ImGui::EndDisabled();
 
-    // --- ã‚µã‚¦ãƒ³ãƒ‰ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§(è©¦è´) ---
-    ImGui::SeparatorText(u8"ã‚µã‚¦ãƒ³ãƒ‰ä¸€è¦§");
+    // --- ƒTƒEƒ“ƒhƒtƒ@ƒCƒ‹ˆê——(’®) ---
+    ImGui::SeparatorText(u8"ƒTƒEƒ“ƒhˆê——");
     static std::vector<SoundFileEntry> s_files;
     static bool s_scanned = false;
     static float s_previewVolume = 1.0f;
@@ -244,14 +244,14 @@ void Editor::DrawSoundManager()
             ImGui::SameLine();
             if (ImGui::SmallButton("As BGM"))
             {
-                audio.StopBGM(); // åŒã˜æ›²ã§ã‚‚é ­ã‹ã‚‰é³´ã‚‰ã—ç›´ã™
+                audio.StopBGM(); // “¯‚¶‹È‚Å‚à“ª‚©‚ç–Â‚ç‚µ’¼‚·
                 audio.PlayBGM(f.path, s_previewVolume);
             }
             ImGui::PopID();
         }
         ImGui::EndTable();
     }
-    ImGui::TextDisabled(u8"LoadedãŒä»˜ã‹ãªã„ãƒ•ã‚¡ã‚¤ãƒ«ã¯èª­ã¿è¾¼ã¿ã«å¤±æ•—ã—ã¦ã„ã‚‹å¯èƒ½æ€§ã‚ã‚Š(Consoleã‚’ç¢ºèªã€‚ä¸­èº«ãŒMP3ç­‰ã®WAVä»¥å¤–ã ã¨èª­ã‚ãªã„)");
+    ImGui::TextDisabled(u8"Loaded‚ª•t‚©‚È‚¢ƒtƒ@ƒCƒ‹‚Í“Ç‚İ‚İ‚É¸”s‚µ‚Ä‚¢‚é‰Â”\«‚ ‚è(Console‚ğŠm”FB’†g‚ªMP3“™‚ÌWAVˆÈŠO‚¾‚Æ“Ç‚ß‚È‚¢)");
 
     ImGui::End();
 }

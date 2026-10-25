@@ -1,4 +1,4 @@
-ï»¿#include "../../../Pch.h"
+#include "../../../Pch.h"
 #include "../../../Framework/DirectX/Utility/Profiler.h"
 #include "Mesh.h"
 #include "../../Device/ResourceUploader.h"
@@ -22,8 +22,8 @@ void Mesh::CreateGPU(GraphicsDevice* pDevice,
     m_faces = faces;
     m_instanceCount = static_cast<UINT>(faces.size() * 3);
 
-    // ãƒ­ãƒ¼ã‚«ãƒ«ç©ºé–“ã®AABBã€‚ãƒ¡ãƒƒã‚·ãƒ¥ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼ã®åˆ¤å®šã§ã€å…¨é ‚ç‚¹ã‚’å¤‰æ›ã—ã¦çµå±€ä½•ã‚‚è¿‘ãã«
-    // ç„¡ã„ã¨åˆ†ã‹ã‚‹ãã‚‰ã„ãªã‚‰ã€ãƒœãƒƒã‚¯ã‚¹1å›ã®åˆ¤å®šã§ã“ã®ãƒ¡ãƒƒã‚·ãƒ¥å…¨ä½“ã‚’æ—©æœŸæ£„å´ã™ã‚‹ã®ã«ä½¿ã†ã€‚
+    // ƒ[ƒJƒ‹‹óŠÔ‚ÌAABBBƒƒbƒVƒ…ƒRƒ‰ƒCƒ_[‚Ì”»’è‚ÅA‘S’¸“_‚ğ•ÏŠ·‚µ‚ÄŒ‹‹Ç‰½‚à‹ß‚­‚É
+    // –³‚¢‚Æ•ª‚©‚é‚­‚ç‚¢‚È‚çAƒ{ƒbƒNƒX1‰ñ‚Ì”»’è‚Å‚±‚ÌƒƒbƒVƒ…‘S‘Ì‚ğ‘ŠúŠü‹p‚·‚é‚Ì‚Ég‚¤B
     if (!m_vertices.empty())
     {
         DirectX::XMFLOAT3 minP = m_vertices[0].Position;
@@ -69,9 +69,9 @@ void Mesh::CreateGPU(GraphicsDevice* pDevice,
 
 void Mesh::DrawInstanced(UINT vertexCount) const
 {
-    // éåŒæœŸãƒ­ãƒ¼ãƒ‰ä¸­ã®ãƒ¢ãƒ‡ãƒ«ã¯ã€ModelData::IsLoaded()ãŒtrueã«ãªã£ãŸå¾Œã‚‚GPUUploadQueue::Process()ãŒ
-    // CreateGPU()ã™ã‚‹ã¾ã§ã®é–“ã¯GPUãƒãƒƒãƒ•ã‚¡ãŒç„¡ã„(m_pDevice==nullptr)ã€‚å‘¼ã³å‡ºã—å´ã¯IsReady()ã‚’
-    // ç¢ºèªã™ã‚‹æƒ³å®šã ãŒã€ç¢ºèªæ¼ã‚ŒãŒã‚ã£ã¦ã‚‚ã‚¯ãƒ©ãƒƒã‚·ãƒ¥ã—ãªã„ã‚ˆã†ã«ã“ã“ã§ã‚‚å¼¾ãã€‚
+    // ”ñ“¯Šúƒ[ƒh’†‚Ìƒ‚ƒfƒ‹‚ÍAModelData::IsLoaded()‚ªtrue‚É‚È‚Á‚½Œã‚àGPUUploadQueue::Process()‚ª
+    // CreateGPU()‚·‚é‚Ü‚Å‚ÌŠÔ‚ÍGPUƒoƒbƒtƒ@‚ª–³‚¢(m_pDevice==nullptr)BŒÄ‚Ño‚µ‘¤‚ÍIsReady()‚ğ
+    // Šm”F‚·‚é‘z’è‚¾‚ªAŠm”F˜R‚ê‚ª‚ ‚Á‚Ä‚àƒNƒ‰ƒbƒVƒ…‚µ‚È‚¢‚æ‚¤‚É‚±‚±‚Å‚à’e‚­B
     if (!m_pDevice || !IsReady())
     {
         return;

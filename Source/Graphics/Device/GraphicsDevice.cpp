@@ -1,4 +1,4 @@
-ï»¿#include "../../Pch.h"
+#include "../../Pch.h"
 #include "../GPUResource/ResourceLifetimeManager.h"
 #include "ResourceStateTracker.h"
 #include "ResourceUploader.h"
@@ -22,7 +22,7 @@ GraphicsDevice& GraphicsDevice::Instance()
 }
 bool GraphicsDevice::IsDebugLayerRequested()
 {
-    // èª°ã‹ãŒå®Ÿéš›ã«ãƒã‚§ãƒƒã‚¯ã‚’å¤–ã™ã¾ã§ã¯æŒ™å‹•ã‚’å¤‰ãˆãªã„ã‚ˆã†ã€ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã¯trueã€‚
+    // ’N‚©‚ªÀÛ‚Éƒ`ƒFƒbƒN‚ğŠO‚·‚Ü‚Å‚Í‹““®‚ğ•Ï‚¦‚È‚¢‚æ‚¤AƒfƒtƒHƒ‹ƒg‚ÍtrueB
     return EngineSettings::GetBool("EnableD3D12DebugLayer", true);
 }
 void GraphicsDevice::SetDebugLayerRequested(bool enabled)
@@ -36,9 +36,9 @@ bool GraphicsDevice::Init(HWND hWnd, int w, int h)
         return false;
     }
 #ifdef _DEBUG
-    // D3D12ãƒ‡ãƒãƒƒã‚°ãƒ¬ã‚¤ãƒ¤ãƒ¼ã¯ãƒ‡ãƒã‚¤ã‚¹ä½œæˆå‰ã«ã—ã‹æœ‰åŠ¹åŒ–ã§ããšã€ãƒ©ã‚¤ãƒ–åˆ‡ã‚Šæ›¿ãˆã¯
-    // ã§ããªã„ã€‚IsDebugLayerRequested()ã¯ImGuiã®ãƒã‚§ãƒƒã‚¯ãƒœãƒƒã‚¯ã‚¹(RendererPanelå‚ç…§)ãŒ
-    // æ°¸ç¶šåŒ–ã—ãŸå€¤ã‚’èª­ã‚€ã®ã§ã€ãã®ãƒã‚§ãƒƒã‚¯ãƒœãƒƒã‚¯ã‚¹ã®åˆ‡ã‚Šæ›¿ãˆã¯æ¬¡å›èµ·å‹•æ™‚ã«åæ˜ ã•ã‚Œã‚‹ã€‚
+    // D3D12ƒfƒoƒbƒOƒŒƒCƒ„[‚ÍƒfƒoƒCƒXì¬‘O‚É‚µ‚©—LŒø‰»‚Å‚«‚¸Aƒ‰ƒCƒuØ‚è‘Ö‚¦‚Í
+    // ‚Å‚«‚È‚¢BIsDebugLayerRequested()‚ÍImGui‚Ìƒ`ƒFƒbƒNƒ{ƒbƒNƒX(RendererPanelQÆ)‚ª
+    // ‰i‘±‰»‚µ‚½’l‚ğ“Ç‚Ş‚Ì‚ÅA‚»‚Ìƒ`ƒFƒbƒNƒ{ƒbƒNƒX‚ÌØ‚è‘Ö‚¦‚ÍŸ‰ñ‹N“®‚É”½‰f‚³‚ê‚éB
     if (GraphicsDevice::IsDebugLayerRequested())
     {
         EnableDebugLayer();
@@ -172,7 +172,7 @@ void GraphicsDevice::EndFrame()
 }
 void GraphicsDevice::BeginFrame()
 {
-    // ãƒ•ãƒ¬ãƒ¼ãƒ æ™‚é–“ã®è¨˜éŒ²ã¨ã‚«ã‚¦ãƒ³ã‚¿ã®ãƒªã‚»ãƒƒãƒˆã¯GDF::BeginFrame()ã®å…ˆé ­(Profiler::BeginCPUFrame)ã§è¡Œã†
+    // ƒtƒŒ[ƒ€ŠÔ‚Ì‹L˜^‚ÆƒJƒEƒ“ƒ^‚ÌƒŠƒZƒbƒg‚ÍGDF::BeginFrame()‚Ìæ“ª(Profiler::BeginCPUFrame)‚Ås‚¤
 
     // Process deferred deletion queue before acquiring the new frame
     {
@@ -183,7 +183,7 @@ void GraphicsDevice::BeginFrame()
 
     FrameResource* pFr = nullptr;
     {
-        // ã“ã“ãŒé•·ã„ = GPUãŒå‰ã®ãƒ•ãƒ¬ãƒ¼ãƒ ã‚’å‡¦ç†ã—çµ‚ã‚ã‚‹ã®ã‚’å¾…ã£ã¦ã„ã‚‹(GPUå´ãŒé‡ã„)
+        // ‚±‚±‚ª’·‚¢ = GPU‚ª‘O‚ÌƒtƒŒ[ƒ€‚ğˆ—‚µI‚í‚é‚Ì‚ğ‘Ò‚Á‚Ä‚¢‚é(GPU‘¤‚ªd‚¢)
         PROFILE_CPU_SCOPE("WaitForGPU(AcquireFrame)");
         pFr = &m_upFrameManager->AcquireFrame();
     }
@@ -223,7 +223,7 @@ bool GraphicsDevice::CreateDevice()
     ComPtr<IDXGIAdapter> pSelectAdapter = nullptr;
     std::vector<ComPtr<IDXGIAdapter>> pAdapters;
     std::vector<DXGI_ADAPTER_DESC> descs;
-    // è¤‡æ•°GPUæ­è¼‰PCã«å‚™ãˆã¦ã‚¢ãƒ€ãƒ—ã‚¿ã‚’åˆ—æŒ™ã—ã€æœ€ã‚‚æ€§èƒ½ã®é«˜ã„ã‚‚ã®ã‚’é¸æŠã™ã‚‹
+    // •¡”GPU“‹ÚPC‚É”õ‚¦‚ÄƒAƒ_ƒvƒ^‚ğ—ñ‹“‚µAÅ‚à«”\‚Ì‚‚¢‚à‚Ì‚ğ‘I‘ğ‚·‚é
     for (UINT index = 0; 1; ++index)
     {
         pAdapters.push_back(nullptr);
@@ -283,14 +283,14 @@ bool GraphicsDevice::CreateDevice()
             D3D_FEATURE_LEVEL_11_1,
             D3D_FEATURE_LEVEL_11_0,
         };
-    // Direct3D ãƒ‡ãƒã‚¤ã‚¹ã®åˆæœŸåŒ–
+    // Direct3D ƒfƒoƒCƒX‚Ì‰Šú‰»
     D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_11_0;
     for (auto lv : levels)
     {
         if (D3D12CreateDevice(pSelectAdapter.Get(), lv, IID_PPV_ARGS(&m_pDevice)) == S_OK)
         {
             featureLevel = lv;
-            break; // å¯¾å¿œãƒ¬ãƒ™ãƒ«ãŒè¦‹ã¤ã‹ã£ãŸã‚‰ãƒ«ãƒ¼ãƒ—ã‚’çµ‚äº†
+            break; // ‘Î‰ƒŒƒxƒ‹‚ªŒ©‚Â‚©‚Á‚½‚çƒ‹[ƒv‚ğI—¹
         }
     }
     pSelectAdapter.As(&m_pAdapter3);
@@ -320,7 +320,7 @@ bool GraphicsDevice::CreateSwapChain(HWND hWnd, int width, int height)
     }
     m_allowTearing = (allowTearing == TRUE);
     swapchainDesc.Flags = m_allowTearing ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0;
-    // ã¾ãšã¯ SwapChain1 ã¨ã—ã¦ä½œæˆã™ã‚‹
+    // ‚Ü‚¸‚Í SwapChain1 ‚Æ‚µ‚Äì¬‚·‚é
     ComPtr<IDXGISwapChain1> swapChain1;
     HRESULT hr = m_pDxgiFactory->CreateSwapChainForHwnd(m_upQueueManager->GetGraphicsQueue()->GetQueue(), hWnd, &swapchainDesc,
                                                         nullptr, nullptr, swapChain1.GetAddressOf());
@@ -328,7 +328,7 @@ bool GraphicsDevice::CreateSwapChain(HWND hWnd, int width, int height)
     {
         return false;
     }
-    // SwapChain4 ã«ã‚­ãƒ£ã‚¹ãƒˆã™ã‚‹
+    // SwapChain4 ‚ÉƒLƒƒƒXƒg‚·‚é
     // Tearing only works in windowed mode, so DXGI must not take over Alt+Enter.
     if (m_allowTearing)
     {
@@ -379,8 +379,8 @@ void GraphicsDevice::EnableDebugLayer()
 }
 void GraphicsDevice::Shutdown()
 {
-    // çµ‚äº†å‡¦ç†ã®é–‹å§‹ã‚’æœ€åˆã«ãƒãƒ¼ã‚¯ã™ã‚‹ã€‚GPUResourceç­‰ã®ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿ãŒ
-    // ãã®å¾Œã©ã®ã‚¿ã‚¤ãƒŸãƒ³ã‚°ã§(é™çš„ç ´æ£„ã®é †åºæ¬¡ç¬¬ã§)å‘¼ã°ã‚Œã¦ã‚‚å®‰å…¨ã«åˆ¤å®šã§ãã‚‹ã‚ˆã†ã«ã€‚
+    // I—¹ˆ—‚ÌŠJn‚ğÅ‰‚Éƒ}[ƒN‚·‚éBGPUResource“™‚ÌƒfƒXƒgƒ‰ƒNƒ^‚ª
+    // ‚»‚ÌŒã‚Ç‚Ìƒ^ƒCƒ~ƒ“ƒO‚Å(Ã“I”jŠü‚Ì‡˜Ÿ‘æ‚Å)ŒÄ‚Î‚ê‚Ä‚àˆÀ‘S‚É”»’è‚Å‚«‚é‚æ‚¤‚ÉB
     s_isShuttingDown = true;
 
     if (!m_pDevice)
@@ -393,7 +393,7 @@ void GraphicsDevice::Shutdown()
         m_upQueueManager->GetGraphicsQueue()->Flush();
     }
 
-    // ãƒ‡ãƒã‚¤ã‚¹ãŒç„¡ããªã‚‹å‰ã«ã‚¯ã‚¨ãƒªãƒ’ãƒ¼ãƒ—/èª­ã¿æˆ»ã—ãƒãƒƒãƒ•ã‚¡ã‚’è§£æ”¾ã™ã‚‹ã€‚
+    // ƒfƒoƒCƒX‚ª–³‚­‚È‚é‘O‚ÉƒNƒGƒŠƒq[ƒv/“Ç‚İ–ß‚µƒoƒbƒtƒ@‚ğ‰ğ•ú‚·‚éB
     Profiler::Instance().ShutdownGPU();
 
     if (m_upResourceLifetimeManager)
@@ -614,11 +614,11 @@ bool GraphicsDevice::CreateDefaultTextures()
     return true;
 }
 // =============================================
-// GraphicsDevice.cpp (ImGui é–¢é€£ã‚’è¿½åŠ )
+// GraphicsDevice.cpp (ImGui ŠÖ˜A‚ğ’Ç‰Á)
 // =============================================
 bool GraphicsDevice::InitImGui()
 {
-    // ImGui ç”¨ã® SRV ãƒ‡ã‚£ã‚¹ã‚¯ãƒªãƒ—ã‚¿ãƒ’ãƒ¼ãƒ—ã‚’ä½œæˆ
+    // ImGui —p‚Ì SRV ƒfƒBƒXƒNƒŠƒvƒ^ƒq[ƒv‚ğì¬
     D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
     heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
     heapDesc.NumDescriptors = 100;
@@ -628,18 +628,18 @@ bool GraphicsDevice::InitImGui()
     {
         return false;
     }
-    // ImGui ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆã‚’ä½œæˆ
+    // ImGui ƒRƒ“ƒeƒLƒXƒg‚ğì¬
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable; // ãƒ‰ãƒƒã‚­ãƒ³ã‚°æ©Ÿèƒ½ã‚’æœ‰åŠ¹åŒ–
-    // ã‚¹ã‚¿ã‚¤ãƒ«è¨­å®š
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable; // ƒhƒbƒLƒ“ƒO‹@”\‚ğ—LŒø‰»
+    // ƒXƒ^ƒCƒ‹İ’è
     ImGui::StyleColorsDark();
     // Load Japanese font
     io.Fonts->AddFontFromFileTTF("c:/Windows/Fonts/meiryo.ttc", 16.0f, nullptr, io.Fonts->GetGlyphRangesJapanese());
-    // ãƒªã‚¶ãƒ«ãƒˆç”»é¢ç”¨ã®ç­†æ–‡å­—ãƒ•ã‚©ãƒ³ãƒˆ(Yuji Boku, SIL OFL)ã€‚æ¨™æº–ãƒ•ã‚©ãƒ³ãƒˆ(1ã¤ç›®=ãƒ¡ã‚¤ãƒªã‚ª)ã¯å¤‰ãˆãšã€
-    // ResultSceneãŒåå‰(ImFontConfig::Name)ã§æ¢ã—ã¦ä½¿ã†ã€‚ImGui 1.92ã¯ã‚°ãƒªãƒ•ã‚’å¿…è¦ãªæ™‚ã«èª­ã¿è¾¼ã‚€ã®ã§ç¯„å›²æŒ‡å®šã¯ä¸è¦ã€‚
+    // ƒŠƒUƒ‹ƒg‰æ–Ê—p‚Ì•M•¶šƒtƒHƒ“ƒg(Yuji Boku, SIL OFL)B•W€ƒtƒHƒ“ƒg(1‚Â–Ú=ƒƒCƒŠƒI)‚Í•Ï‚¦‚¸A
+    // ResultScene‚ª–¼‘O(ImFontConfig::Name)‚Å’T‚µ‚Äg‚¤BImGui 1.92‚ÍƒOƒŠƒt‚ğ•K—v‚È‚É“Ç‚İ‚Ş‚Ì‚Å”ÍˆÍw’è‚Í•s—vB
     {
         const char* kResultFontPath = "Asset/Font/YujiBoku/YujiBoku-Regular.ttf";
         if (std::filesystem::exists(kResultFontPath))
@@ -649,9 +649,9 @@ bool GraphicsDevice::InitImGui()
             io.Fonts->AddFontFromFileTTF(kResultFontPath, 32.0f, &cfg);
         }
     }
-    // Win32ãƒãƒƒã‚¯ã‚¨ãƒ³ãƒ‰ã®åˆæœŸåŒ–ã¯Win32Windowå´ã®hWndã«ä¾å­˜ã™ã‚‹ã®ã§
-    // ã“ã“ã§ã¯ ImGui_ImplDX12 ã®åˆæœŸåŒ–ã®ã¿è¡Œã„ã€Win32å´ã®åˆæœŸåŒ–ã¯main/Applicationã«ä»»ã›ã‚‹ã€‚
-    // è£œè¶³: ImGui_ImplWin32_Init(hWnd) ã¯ Application::Init()å†…ã§å‘¼ã°ã‚Œã‚‹æƒ³å®šã€‚
+    // Win32ƒoƒbƒNƒGƒ“ƒh‚Ì‰Šú‰»‚ÍWin32Window‘¤‚ÌhWnd‚ÉˆË‘¶‚·‚é‚Ì‚Å
+    // ‚±‚±‚Å‚Í ImGui_ImplDX12 ‚Ì‰Šú‰»‚Ì‚İs‚¢AWin32‘¤‚Ì‰Šú‰»‚Ímain/Application‚É”C‚¹‚éB
+    // •â‘«: ImGui_ImplWin32_Init(hWnd) ‚Í Application::Init()“à‚ÅŒÄ‚Î‚ê‚é‘z’èB
     ImGui_ImplDX12_InitInfo initInfo = {};
     initInfo.Device = m_pDevice.Get();
     initInfo.CommandQueue = m_upQueueManager->GetGraphicsQueue()->GetQueue();
@@ -660,7 +660,7 @@ bool GraphicsDevice::InitImGui()
     initInfo.SrvDescriptorHeap = m_upImGuiSRVHeap.Get();
     initInfo.SrvDescriptorAllocFn = [](ImGui_ImplDX12_InitInfo*, D3D12_CPU_DESCRIPTOR_HANDLE* out_cpu, D3D12_GPU_DESCRIPTOR_HANDLE* out_gpu)
     {
-        // å‡ºåŠ›ç”¨ãƒ•ã‚©ãƒ³ãƒˆã¯1ã‚¹ãƒ­ãƒƒãƒˆç›®ã‚’å›ºå®šã§å‰²ã‚Šå½“ã¦ã‚‹
+        // o—Í—pƒtƒHƒ“ƒg‚Í1ƒXƒƒbƒg–Ú‚ğŒÅ’è‚ÅŠ„‚è“–‚Ä‚é
         auto& dev = GraphicsDevice::Instance();
         int idx = dev.AllocateImGuiSRVIndex();
 
@@ -691,7 +691,7 @@ void GraphicsDevice::RenderImGui()
 void GraphicsDevice::ShutdownImGui()
 {
     ImGui_ImplDX12_Shutdown();
-    // Win32ãƒãƒƒã‚¯ã‚¨ãƒ³ãƒ‰å´ã®è§£æ”¾ã¯DestroyContextã‚ˆã‚Šå‰ã«å‘¼ã¶å¿…è¦ãŒã‚ã‚‹
+    // Win32ƒoƒbƒNƒGƒ“ƒh‘¤‚Ì‰ğ•ú‚ÍDestroyContext‚æ‚è‘O‚ÉŒÄ‚Ô•K—v‚ª‚ ‚é
     ImGui_ImplWin32_Shutdown();
     ImGui::DestroyContext();
     m_upImGuiSRVHeap.Reset();

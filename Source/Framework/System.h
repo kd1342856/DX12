@@ -1,4 +1,4 @@
 #pragma once
 
-//	便利機能
+//	便利機能。
 #include "DirectX/Utility/Utility.h"

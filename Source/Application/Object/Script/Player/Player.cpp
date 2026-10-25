@@ -1,4 +1,4 @@
-ï»¿#include "../../../../Pch.h"
+#include "../../../../Pch.h"
 #include "Player.h"
 #include "../../../../Framework/Object/GameObject.h"
 #include "../../../../Framework/Manager/Collision/CollisionManager.h"
@@ -24,8 +24,8 @@ void Player::Awake()
 
 void Player::Start()
 {
-    // AnimationDataComponentã¯è‡ªåˆ†è‡ªèº«ã§ã¯ãªãå­ã®"Model"ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã«ä»˜ã„ã¦ã„ã‚‹ãŸã‚ã€
-    // å­éšå±¤ã‚’æ¢ã—ã¦ã‚­ãƒ£ãƒƒã‚·ãƒ¥ã—ã¦ãŠã(æ¯ãƒ•ãƒ¬ãƒ¼ãƒ æ¢ç´¢ã—ãªã„ã‚ˆã†ã«)
+    // AnimationDataComponent‚Í©•ª©g‚Å‚Í‚È‚­q‚Ì"Model"ƒIƒuƒWƒFƒNƒg‚É•t‚¢‚Ä‚¢‚é‚½‚ßA
+    // qŠK‘w‚ğ’T‚µ‚ÄƒLƒƒƒbƒVƒ…‚µ‚Ä‚¨‚­(–ˆƒtƒŒ[ƒ€’Tõ‚µ‚È‚¢‚æ‚¤‚É)
     auto& ecs = GameManager::Instance().GetECS();
     std::function<void(GameObject*)> findAnimEntity = [&](GameObject* obj)
     {
@@ -141,12 +141,12 @@ void Player::FindItemIconEntities()
 
 void Player::UpdateItemIcons()
 {
-    // ç”»é¢ä¸‹ä¸­å¤®ã®ã‚¢ã‚¤ãƒ†ãƒ ã‚¹ãƒ­ãƒƒãƒˆ: æ‹¾ã£ãŸé †(m_itemOrder)ã«1ç•ªã‹ã‚‰è©°ã‚ã¦ã‚¢ã‚¤ã‚³ãƒ³ã‚’ä¸¦ã¹ã€
-    // è£…å‚™ä¸­ã®ã‚¹ãƒ­ãƒƒãƒˆã ã‘æ ã‚’æ˜ã‚‹ã„æš–è‰²ã§å¼·èª¿ã™ã‚‹(ã‚­ãƒ¼1ã€œ3ã‚‚åŒã˜ä¸¦ã³)ã€‚
+    // ‰æ–Ê‰º’†‰›‚ÌƒAƒCƒeƒ€ƒXƒƒbƒg: E‚Á‚½‡(m_itemOrder)‚É1”Ô‚©‚ç‹l‚ß‚ÄƒAƒCƒRƒ“‚ğ•À‚×A
+    // ‘•”õ’†‚ÌƒXƒƒbƒg‚¾‚¯˜g‚ğ–¾‚é‚¢’gF‚Å‹­’²‚·‚é(ƒL[1`3‚à“¯‚¶•À‚Ñ)B
     SyncItemOrder();
     auto& ecs = GameManager::Instance().GetECS();
 
-    // ã¾ãšå…¨ã‚¢ã‚¤ã‚³ãƒ³ã‚’éš ã—ã€æ‰€æŒå“ã ã‘è©²å½“ã‚¹ãƒ­ãƒƒãƒˆã®ä½ç½®ã¸å‹•ã‹ã—ã¦è¡¨ç¤ºã™ã‚‹
+    // ‚Ü‚¸‘SƒAƒCƒRƒ“‚ğ‰B‚µAŠ•i‚¾‚¯ŠY“–ƒXƒƒbƒg‚ÌˆÊ’u‚Ö“®‚©‚µ‚Ä•\¦‚·‚é
     for (Item item : {Item::Incense, Item::Amulet, Item::FlashLight})
     {
         if (auto* sprite = ecs.TryGetComponent<SpriteData>(GetItemIconEntity(item)))
@@ -186,7 +186,7 @@ void Player::UpdateItemIcons()
 
 void Player::SyncItemOrder()
 {
-    // æ¨ã¦ãŸç­‰ã§æ‰€æŒã—ã¦ã„ãªã„ã‚‚ã®ãƒ»é‡è¤‡ã‚’è©°ã‚ã€ã‚·ãƒ¼ãƒ³ã‹ã‚‰èª­ã‚“ã åˆæœŸæ‰€æŒå“ãªã©æœªç™»éŒ²ã®ã‚‚ã®ã‚’æ—¢å®šé †ã§æœ«å°¾ã«è¶³ã™
+    // Ì‚Ä‚½“™‚ÅŠ‚µ‚Ä‚¢‚È‚¢‚à‚ÌEd•¡‚ğ‹l‚ßAƒV[ƒ“‚©‚ç“Ç‚ñ‚¾‰ŠúŠ•i‚È‚Ç–¢“o˜^‚Ì‚à‚Ì‚ğŠù’è‡‚Å––”ö‚É‘«‚·
     std::vector<Item> kept;
     for (Item item : m_itemOrder)
     {
@@ -240,7 +240,7 @@ void Player::UpdateHeldItem()
     if (m_heldFlashLightEntity != INVALID_ENTITY && GetGameObject() && GetGameObject()->GetScene())
     {
         bool visible = m_hasFlashLight && m_currentEquipped == Item::FlashLight;
-        // ç‚¹ç¯ä¸­ã¯ãƒ¬ãƒ³ã‚º("Glass"ãƒãƒ†ãƒªã‚¢ãƒ«)ã‚’ç™ºå…‰ã•ã›ã€Bloomã§å…‰ã£ã¦è¦‹ãˆã‚‹ã‚ˆã†ã«ã™ã‚‹
+        // “_“”’†‚ÍƒŒƒ“ƒY("Glass"ƒ}ƒeƒŠƒAƒ‹)‚ğ”­Œõ‚³‚¹ABloom‚ÅŒõ‚Á‚ÄŒ©‚¦‚é‚æ‚¤‚É‚·‚é
         const Math::Vector3 glow = IsHoldingLitFlashLight() ? Math::Vector3(1.0f, 0.97f, 0.9f) * 8.0f : Math::Vector3::Zero;
         std::function<void(GameObject*)> apply = [&](GameObject* obj)
         {
@@ -273,8 +273,8 @@ void Player::CreateFlashLightBeam()
         return;
     }
 
-    // å®Ÿè¡Œæ™‚ã ã‘ã®å…‰æº(Dynamicæ‰±ã„ãªã®ã§ã‚·ãƒ¼ãƒ³ä¿å­˜ã«ã¯å«ã¾ã‚Œãªã„)ã€‚ä½ç½®ãƒ»å‘ãã¯
-    // UpdateFlashLightBeam()ãŒæ¯ãƒ•ãƒ¬ãƒ¼ãƒ ã€ã‚«ãƒ¡ãƒ©ã«åˆã‚ã›ã¦ãƒ¯ãƒ¼ãƒ«ãƒ‰åº§æ¨™ã§ç›´æ¥æ›¸ãè¾¼ã‚€ã€‚
+    // Às‚¾‚¯‚ÌŒõŒ¹(Dynamicˆµ‚¢‚È‚Ì‚ÅƒV[ƒ“•Û‘¶‚É‚ÍŠÜ‚Ü‚ê‚È‚¢)BˆÊ’uEŒü‚«‚Í
+    // UpdateFlashLightBeam()‚ª–ˆƒtƒŒ[ƒ€AƒJƒƒ‰‚É‡‚í‚¹‚Äƒ[ƒ‹ƒhÀ•W‚Å’¼Ú‘‚«‚ŞB
     auto beam = GetGameObject()->GetScene()->CreateGameObject("FlashLightBeam");
     beam->SetDynamic(true);
     SpotLightData light;
@@ -290,8 +290,8 @@ void Player::CreateFlashLightBeam()
 
 Entity Player::FindGameCameraEntity() const
 {
-    // GameScene::UpdateCamera()ã¨åŒã˜é¸ã³æ–¹: ãƒ‡ãƒãƒƒã‚°ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼ç”¨ä»¥å¤–ã§ã€"MainCamera"(ã‚¨ãƒ‡ã‚£ã‚¿
-    // ã‚«ãƒ¡ãƒ©)ã§ã¯ãªã„ã‚‚ã®ãŒã‚²ãƒ¼ãƒ ã‚«ãƒ¡ãƒ©ã€‚ç„¡ã‘ã‚Œã°MainCameraã‚’ä½¿ã†ã€‚
+    // GameScene::UpdateCamera()‚Æ“¯‚¶‘I‚Ñ•û: ƒfƒoƒbƒOƒvƒŒƒrƒ…[—pˆÈŠO‚ÅA"MainCamera"(ƒGƒfƒBƒ^
+    // ƒJƒƒ‰)‚Å‚Í‚È‚¢‚à‚Ì‚ªƒQ[ƒ€ƒJƒƒ‰B–³‚¯‚ê‚ÎMainCamera‚ğg‚¤B
     if (!GetGameObject() || !GetGameObject()->GetScene())
     {
         return INVALID_ENTITY;
@@ -332,7 +332,7 @@ void Player::UpdateFlashLightBeam(const Math::Vector3& playerPos, float playerYa
 
     bool on = m_hasFlashLight && m_flashLightOn;
     pLight->m_enabled = on;
-    // ã‚´ãƒ¼ã‚¹ãƒˆã®å¹²æ¸‰ã«ã‚ˆã‚‹ç‚¹æ»…ã¯è¦‹ãŸç›®ã ã‘(m_flickerOff)ã€‚ç‚¹ç¯çŠ¶æ…‹(m_enabled)ã¯å¤‰ãˆãªã„
+    // ƒS[ƒXƒg‚ÌŠ±Â‚É‚æ‚é“_–Å‚ÍŒ©‚½–Ú‚¾‚¯(m_flickerOff)B“_“”ó‘Ô(m_enabled)‚Í•Ï‚¦‚È‚¢
     bool flickerOff = m_flashLightFlicker.Update(GameTimer::Instance().DeltaTime());
     pLight->m_flickerOff = on && flickerOff;
     if (!on)
@@ -352,20 +352,20 @@ void Player::UpdateFlashLightBeam(const Math::Vector3& playerPos, float playerYa
         return;
     }
 
-    // ã‚«ãƒ¡ãƒ©ã®è¦–ç·šæ–¹å‘(ãƒ”ãƒƒãƒã‚‚å«ã‚€)ã«å‘ã‘ã¦ã€ç›®ã®å°‘ã—å³ä¸‹(æ‰‹å…ƒ)ã‹ã‚‰ç…§ã‚‰ã™ã€‚
-    // ãƒ“ãƒ¼ãƒ è‡ªä½“ã®Transformã¯å›è»¢ãªã—ã®ã¾ã¾ã«ã—ã€å‘ãã¯LocalDirectionã«ãƒ¯ãƒ¼ãƒ«ãƒ‰ã®å‘ãã‚’ãã®ã¾ã¾å…¥ã‚Œã‚‹ã€‚
+    // ƒJƒƒ‰‚Ì‹ü•ûŒü(ƒsƒbƒ`‚àŠÜ‚Ş)‚ÉŒü‚¯‚ÄA–Ú‚Ì­‚µ‰E‰º(èŒ³)‚©‚çÆ‚ç‚·B
+    // ƒr[ƒ€©‘Ì‚ÌTransform‚Í‰ñ“]‚È‚µ‚Ì‚Ü‚Ü‚É‚µAŒü‚«‚ÍLocalDirection‚Éƒ[ƒ‹ƒh‚ÌŒü‚«‚ğ‚»‚Ì‚Ü‚Ü“ü‚ê‚éB
     const Math::Matrix& camWorld = pCamTrans->m_worldMatrix;
     Math::Vector3 camPos = camWorld.Translation();
-    Math::Vector3 camForward = camWorld.Backward(); // SimpleMathã®Backward()ãŒ+Z(=ã“ã®ã‚¨ãƒ³ã‚¸ãƒ³ã®å‰æ–¹)
+    Math::Vector3 camForward = camWorld.Backward(); // SimpleMath‚ÌBackward()‚ª+Z(=‚±‚ÌƒGƒ“ƒWƒ“‚Ì‘O•û)
     Math::Vector3 camRight = camWorld.Right();
     Math::Vector3 camUp = camWorld.Up();
     camForward.Normalize();
     camRight.Normalize();
     camUp.Normalize();
 
-    // å…‰ã®å‡ºã©ã“ã‚ã¯æ‰‹ã«æŒã£ãŸãƒ•ãƒ©ã‚¤ãƒˆãƒ©ã‚¤ãƒˆ(UpdateHeldItemAttachã¨åŒã˜ä½“åŸºæº–ã®ã‚ªãƒ•ã‚»ãƒƒãƒˆ)ã€‚
-    // å°‘ã—å‰ã«å‡ºã—ã¦ãƒ¬ãƒ³ã‚ºå´ã‹ã‚‰å‡ºã¦ã„ã‚‹ã‚ˆã†ã«ã™ã‚‹ã€‚
-    // æ‰‹ã®ãƒœãƒ¼ãƒ³ã«è¿½å¾“ã—ãŸä½ç½®ã‚’å„ªå…ˆã—ã€å–ã‚Œãªã‘ã‚Œã°å¾“æ¥ã®ä½“åŸºæº–ã‚ªãƒ•ã‚»ãƒƒãƒˆã€‚
+    // Œõ‚Ìo‚Ç‚±‚ë‚Íè‚É‚Á‚½ƒtƒ‰ƒCƒgƒ‰ƒCƒg(UpdateHeldItemAttach‚Æ“¯‚¶‘ÌŠî€‚ÌƒIƒtƒZƒbƒg)B
+    // ­‚µ‘O‚Éo‚µ‚ÄƒŒƒ“ƒY‘¤‚©‚ço‚Ä‚¢‚é‚æ‚¤‚É‚·‚éB
+    // è‚Ìƒ{[ƒ“‚É’Ç]‚µ‚½ˆÊ’u‚ğ—Dæ‚µAæ‚ê‚È‚¯‚ê‚Î]—ˆ‚Ì‘ÌŠî€ƒIƒtƒZƒbƒgB
     Math::Vector3 origin, heldRot;
     if (ComputeHeldItemWorld(Item::FlashLight, playerPos, playerYaw, origin, heldRot))
     {
@@ -377,7 +377,7 @@ void Player::UpdateFlashLightBeam(const Math::Vector3& playerPos, float playerYa
         origin = playerPos + Math::Vector3::TransformNormal(m_heldItemOffset, yawMat) + camForward * 0.15f;
     }
 
-    // å‘ãã¯ã€Œã‚«ãƒ¡ãƒ©ãŒè¦‹ã¦ã„ã‚‹å…ˆã€ã¸åæŸã•ã›ã‚‹(æ‰‹å…ƒã‹ã‚‰å‡ºã¦ã‚‚ç…§æº–ä½ç½®ãŒç…§ã‚‰ã•ã‚Œã‚‹ã‚ˆã†ã«)ã€‚
+    // Œü‚«‚ÍuƒJƒƒ‰‚ªŒ©‚Ä‚¢‚éæv‚Öû‘©‚³‚¹‚é(èŒ³‚©‚ço‚Ä‚àÆ€ˆÊ’u‚ªÆ‚ç‚³‚ê‚é‚æ‚¤‚É)B
     const float kAimDistance = 10.0f;
     Math::Vector3 aimPoint = camPos + camForward * kAimDistance;
     Math::Vector3 dir = aimPoint - origin;
@@ -440,7 +440,7 @@ void Player::UpdateHeldItemAttach(const Math::Vector3& playerPos, float playerYa
         }
     }
 
-    // æ‰‹ã®ãƒœãƒ¼ãƒ³ãŒã‚ã‚Œã°æ¯ãƒ•ãƒ¬ãƒ¼ãƒ è¿½å¾“ã™ã‚‹(ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã«åˆã‚ã›ã¦æŒã¡ç‰©ã‚‚å‹•ã)ã€‚
+    // è‚Ìƒ{[ƒ“‚ª‚ ‚ê‚Î–ˆƒtƒŒ[ƒ€’Ç]‚·‚é(ƒAƒjƒ[ƒVƒ‡ƒ“‚É‡‚í‚¹‚Ä‚¿•¨‚à“®‚­)B
     {
         Math::Vector3 pos, rotRad;
         if (ComputeHeldItemWorld(m_currentEquipped, playerPos, playerYaw, pos, rotRad))
@@ -451,7 +451,7 @@ void Player::UpdateHeldItemAttach(const Math::Vector3& playerPos, float playerYa
         }
     }
 
-    // ãƒœãƒ¼ãƒ³ãŒç„¡ã„å ´åˆã®ãƒ•ã‚©ãƒ¼ãƒ«ãƒãƒƒã‚¯: ä½“åŸºæº–ã®å›ºå®šã‚ªãƒ•ã‚»ãƒƒãƒˆ(yawã§å›ã—ã¦ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ä½ç½®ã«åŠ ãˆã‚‹)ã€‚
+    // ƒ{[ƒ“‚ª–³‚¢ê‡‚ÌƒtƒH[ƒ‹ƒoƒbƒN: ‘ÌŠî€‚ÌŒÅ’èƒIƒtƒZƒbƒg(yaw‚Å‰ñ‚µ‚ÄƒvƒŒƒCƒ„[ˆÊ’u‚É‰Á‚¦‚é)B
     Math::Matrix yawMat = Math::Matrix::CreateRotationY(playerYaw);
     pHeldTrans->m_position = playerPos + Math::Vector3::TransformNormal(m_heldItemOffset, yawMat);
     const float kDegToRad = 3.14159265f / 180.0f;
@@ -491,8 +491,8 @@ bool Player::GetHandWorld(const Math::Vector3& playerPos, float playerYaw, Math:
         return false;
     }
 
-    // m_worldMatrixã¯TransformSystemãŒ1ãƒ•ãƒ¬ãƒ¼ãƒ ã«1å›ã—ã‹æ›´æ–°ã—ãªã„ã®ã§ã€CalibrateHeldItemOffsetåŒæ§˜
-    // ãƒ­ãƒ¼ã‚«ãƒ«ã®Position/Rotation/Scaleã¨ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ä½ç½®ãƒ»yawã‹ã‚‰è‡ªå‰ã§ãƒ¯ãƒ¼ãƒ«ãƒ‰è¡Œåˆ—ã‚’çµ„ã‚€ã€‚
+    // m_worldMatrix‚ÍTransformSystem‚ª1ƒtƒŒ[ƒ€‚É1‰ñ‚µ‚©XV‚µ‚È‚¢‚Ì‚ÅACalibrateHeldItemOffset“¯—l
+    // ƒ[ƒJƒ‹‚ÌPosition/Rotation/Scale‚ÆƒvƒŒƒCƒ„[‚ÌˆÊ’uEyaw‚©‚ç©‘O‚Åƒ[ƒ‹ƒhs—ñ‚ğ‘g‚ŞB
     Math::Matrix modelLocalMat = Math::Matrix::CreateScale(pModelTrans->m_scale) * Math::Matrix::CreateFromYawPitchRoll(pModelTrans->m_rotation.y, pModelTrans->m_rotation.x, pModelTrans->m_rotation.z) * Math::Matrix::CreateTranslation(pModelTrans->m_position);
     Math::Matrix playerWorldMat = Math::Matrix::CreateRotationY(playerYaw) * Math::Matrix::CreateTranslation(playerPos);
     Math::Matrix handWorld = nodes[nodeIndex].globalTransform * modelLocalMat * playerWorldMat;
@@ -523,7 +523,7 @@ bool Player::ComputeHeldItemWorld(Item item, const Math::Vector3& playerPos, flo
 
     const HeldPose& pose = m_heldPose[idx];
     const float kDegToRad = 3.14159265f / 180.0f;
-    // è¡Œãƒ™ã‚¯ãƒˆãƒ«è¦ç´„: ãƒ­ãƒ¼ã‚«ãƒ«å›è»¢ã‚’å…ˆã«ã€è¦ª(æ‰‹)ã®å›è»¢ã‚’å¾Œã«æ›ã‘ã‚‹ã€‚
+    // sƒxƒNƒgƒ‹‹K–ñ: ƒ[ƒJƒ‹‰ñ“]‚ğæ‚ÉAe(è)‚Ì‰ñ“]‚ğŒã‚ÉŠ|‚¯‚éB
     Math::Quaternion localRot = Math::Quaternion::CreateFromYawPitchRoll(
         pose.rotDeg.y * kDegToRad, pose.rotDeg.x * kDegToRad, pose.rotDeg.z * kDegToRad);
     Math::Quaternion worldRot = localRot * handRot;
@@ -617,7 +617,7 @@ void Player::UpdateInteractionTarget(const Math::Vector3& playerPos, const Math:
     Entity stimulusEntity = FindNearestStimulus(playerPos, forward, kInteractRange, stimulusDist);
     if (stimulusEntity != INVALID_ENTITY && stimulusDist < pickupDist)
     {
-        // ãƒ”ãƒƒã‚¯ã‚¢ãƒƒãƒ—ã¨ãƒ©ãƒ³ãƒ—/ãƒ©ã‚¸ã‚«ã‚»ãŒä¸¡æ–¹ç¯„å›²å†…ãªã‚‰è¿‘ã„æ–¹ã‚’å¯¾è±¡ã«ã™ã‚‹
+        // ƒsƒbƒNƒAƒbƒv‚Æƒ‰ƒ“ƒv/ƒ‰ƒWƒJƒZ‚ª—¼•û”ÍˆÍ“à‚È‚ç‹ß‚¢•û‚ğ‘ÎÛ‚É‚·‚é
         pickupEntity = INVALID_ENTITY;
         pickupDist = stimulusDist;
     }
@@ -743,7 +743,7 @@ bool Player::FindNearestDoor(const Math::Vector3& playerPos, const Math::Vector3
             dir.Normalize();
             if (dir.Dot(forward) < 0.5f)
             {
-                continue; // æ­£é¢æ–¹å‘ã®å††éŒã®å¤–(åŠè§’60åº¦)
+                continue; // ³–Ê•ûŒü‚Ì‰~‚ÌŠO(”¼Šp60“x)
             }
         }
         if (dist < outDist)
@@ -791,7 +791,7 @@ Entity Player::FindNearestPickup(const Math::Vector3& playerPos, const Math::Vec
             dir.Normalize();
             if (dir.Dot(forward) < 0.5f)
             {
-                continue; // æ­£é¢æ–¹å‘ã®å††éŒã®å¤–(åŠè§’60åº¦)
+                continue; // ³–Ê•ûŒü‚Ì‰~‚ÌŠO(”¼Šp60“x)
             }
         }
         if (dist < outDist)
@@ -811,10 +811,10 @@ Entity Player::FindNearestStimulus(const Math::Vector3& playerPos, const Math::V
 
     for (auto& scriptData : ecs.GetComponentArray<NativeScriptData>())
     {
-        // ç…§æ˜/ãƒ©ã‚¸ã‚«ã‚»æœ¬ä½“(StimulusSource)ã¨ã€å»Šä¸‹ç…§æ˜ãªã©ã®å£ã‚¹ã‚¤ãƒƒãƒ(LightSwitch)ãŒå¯¾è±¡
+        // Æ–¾/ƒ‰ƒWƒJƒZ–{‘Ì(StimulusSource)‚ÆA˜L‰ºÆ–¾‚È‚Ç‚Ì•ÇƒXƒCƒbƒ`(LightSwitch)‚ª‘ÎÛ
         GameObject* obj = nullptr;
         Math::Vector3 srcPos;
-        // é®è”½åˆ¤å®šã®ãƒ¬ã‚¤ã‚’ç™ºç”Ÿæºã®ä½•mæ‰‹å‰ã§æ­¢ã‚ã‚‹ã‹
+        // Õ•Á”»’è‚ÌƒŒƒC‚ğ”­¶Œ¹‚Ì‰½mè‘O‚Å~‚ß‚é‚©
         float rayStopMargin = 0.3f;
         if (auto* src = dynamic_cast<StimulusSource*>(scriptData.Instance.get()))
         {
@@ -833,9 +833,9 @@ Entity Player::FindNearestStimulus(const Math::Vector3& playerPos, const Math::V
             }
             obj = sw->GetGameObject();
             srcPos = sw->GetWorldPosition();
-            // å£ã‚¹ã‚¤ãƒƒãƒã¯å£ã«è²¼ã‚Šä»˜ã„ã¦ã„ã‚‹ã®ã§ã€0.3mæ‰‹å‰ã§æ­¢ã‚ã‚‹ã¨è£å´ã®å£(åšã•ç´„0.2m)ã‚’ç´ é€šã‚Šã—ã¦ã—ã¾ã†
+            // •ÇƒXƒCƒbƒ`‚Í•Ç‚É“\‚è•t‚¢‚Ä‚¢‚é‚Ì‚ÅA0.3mè‘O‚Å~‚ß‚é‚Æ— ‘¤‚Ì•Ç(Œú‚³–ñ0.2m)‚ğ‘f’Ê‚è‚µ‚Ä‚µ‚Ü‚¤
             rayStopMargin = 0.05f;
-            // ã‚¹ã‚¤ãƒƒãƒã®æ­£é¢(ãƒ­ãƒ¼ã‚«ãƒ«-Z)å´ã«ã„ã‚‹æ™‚ã ã‘æ“ä½œã§ãã‚‹(å£ã®è£å´ã‹ã‚‰ã¯ä¸å¯)
+            // ƒXƒCƒbƒ`‚Ì³–Ê(ƒ[ƒJƒ‹-Z)‘¤‚É‚¢‚é‚¾‚¯‘€ì‚Å‚«‚é(•Ç‚Ì— ‘¤‚©‚ç‚Í•s‰Â)
             if (auto* pSwTrans = ecs.TryGetComponent<TransformData>(obj->GetEntityID()))
             {
                 const auto& m = pSwTrans->m_worldMatrix;
@@ -854,7 +854,7 @@ Entity Player::FindNearestStimulus(const Math::Vector3& playerPos, const Math::V
             continue;
         }
 
-        // å¤©äº•ç…§æ˜ã®ã‚ˆã†ã«é ­ã‚ˆã‚Šé«˜ã„ä½ç½®ã«ã‚ã‚‹ç‰©ã‚‚æ“ä½œã§ãã‚‹ã‚ˆã†ã€é«˜ã•ã¯ç„¡è¦–ã—ã¦æ°´å¹³è·é›¢ãƒ»æ°´å¹³æ–¹å‘ã§åˆ¤å®šã™ã‚‹
+        // “VˆäÆ–¾‚Ì‚æ‚¤‚É“ª‚æ‚è‚‚¢ˆÊ’u‚É‚ ‚é•¨‚à‘€ì‚Å‚«‚é‚æ‚¤A‚‚³‚Í–³‹‚µ‚Ä…•½‹——£E…•½•ûŒü‚Å”»’è‚·‚é
         Math::Vector3 toSrc = srcPos - playerPos;
         toSrc.y = 0.0f;
         float dist = toSrc.Length();
@@ -868,19 +868,19 @@ Entity Player::FindNearestStimulus(const Math::Vector3& playerPos, const Math::V
             dir.Normalize();
             if (dir.Dot(forward) < 0.5f)
             {
-                continue; // æ­£é¢æ–¹å‘ã®å††éŒã®å¤–(åŠè§’60åº¦)
+                continue; // ³–Ê•ûŒü‚Ì‰~‚ÌŠO(”¼Šp60“x)
             }
         }
 
-        // é«˜ã•ã‚’ç„¡è¦–ã—ã¦ã„ã‚‹ã®ã§ã€çœŸä¸Š/çœŸä¸‹ã®åˆ¥ã®éšã«ã‚ã‚‹ç…§æ˜ã‚‚åŒã˜è·é›¢ã«è¦‹ãˆã¦ã—ã¾ã†ã€‚
-        // ç›®ã®é«˜ã•ã‹ã‚‰ç™ºç”Ÿæºã¾ã§ã®é–“ã«åºŠãƒ»å¤©äº•(Stageãƒ¡ãƒƒã‚·ãƒ¥)ãŒã‚ã‚Œã°å¯¾è±¡å¤–ã«ã™ã‚‹ã€‚
+        // ‚‚³‚ğ–³‹‚µ‚Ä‚¢‚é‚Ì‚ÅA^ã/^‰º‚Ì•Ê‚ÌŠK‚É‚ ‚éÆ–¾‚à“¯‚¶‹——£‚ÉŒ©‚¦‚Ä‚µ‚Ü‚¤B
+        // –Ú‚Ì‚‚³‚©‚ç”­¶Œ¹‚Ü‚Å‚ÌŠÔ‚É°E“Vˆä(StageƒƒbƒVƒ…)‚ª‚ ‚ê‚Î‘ÎÛŠO‚É‚·‚éB
         Math::Vector3 eyePos = playerPos + Math::Vector3(0.0f, 1.5f, 0.0f);
         Math::Vector3 toSrc3D = srcPos - eyePos;
         float dist3D = toSrc3D.Length();
         if (dist3D > rayStopMargin + 0.05f)
         {
             toSrc3D /= dist3D;
-            // ç™ºç”Ÿæºã®ã™ãæ‰‹å‰ã§æ­¢ã‚ã‚‹(å¤©äº•ç…§æ˜ã¯å¤©äº•é¢ã«æ¥ã—ã¦ã„ã‚‹ã®ã§ã€å¤©äº•è‡ªä½“ã«å½“ãŸã‚‰ãªã„ã‚ˆã†ä½™è£•ã‚’æŒãŸã›ã‚‹)
+            // ”­¶Œ¹‚Ì‚·‚®è‘O‚Å~‚ß‚é(“VˆäÆ–¾‚Í“Vˆä–Ê‚ÉÚ‚µ‚Ä‚¢‚é‚Ì‚ÅA“Vˆä©‘Ì‚É“–‚½‚ç‚È‚¢‚æ‚¤—]—T‚ğ‚½‚¹‚é)
             RaycastHit hit = CollisionManager::Instance().RaycastAgainstMesh(eyePos, toSrc3D, dist3D - rayStopMargin, "Stage");
             if (hit.hit)
             {
@@ -922,14 +922,14 @@ void Player::UpdateAnimationState(bool isMoving)
         clipName = std::string("UseItem_") + clip;
     }
 
-    // åœæ­¢çŠ¶æ…‹ã®ã—ã‚ƒãŒã¿(Crouch)ã¯ã€Œç«‹ã¡â†’ã—ã‚ƒãŒã¿ã€ã®é·ç§»ã‚¢ãƒ‹ãƒ¡ãªã®ã§ã€ãƒ«ãƒ¼ãƒ—ã›ãšæœ€çµ‚ãƒãƒ¼ã‚ºã§å›ºå®šã™ã‚‹ã€‚
-    // å†ç”Ÿçµ‚äº†å¾Œ(IsPlaying=false)ã«æ¯ãƒ•ãƒ¬ãƒ¼ãƒ å‘¼ã¶ã¨å…ˆé ­ã‹ã‚‰å†ç”Ÿã—ç›´ã—ã¦ã—ã¾ã†ãŸã‚ã€ã‚¯ãƒªãƒƒãƒ—ãŒå¤‰ã‚ã£ãŸæ™‚ã ã‘å†ç”Ÿã™ã‚‹ã€‚
+    // ’â~ó‘Ô‚Ì‚µ‚á‚ª‚İ(Crouch)‚Íu—§‚¿¨‚µ‚á‚ª‚İv‚Ì‘JˆÚƒAƒjƒ‚È‚Ì‚ÅAƒ‹[ƒv‚¹‚¸ÅIƒ|[ƒY‚ÅŒÅ’è‚·‚éB
+    // Ä¶I—¹Œã(IsPlaying=false)‚É–ˆƒtƒŒ[ƒ€ŒÄ‚Ô‚Ææ“ª‚©‚çÄ¶‚µ’¼‚µ‚Ä‚µ‚Ü‚¤‚½‚ßAƒNƒŠƒbƒv‚ª•Ï‚í‚Á‚½‚¾‚¯Ä¶‚·‚éB
     const bool holdLastPose = (std::string(clip) == "Crouch");
     if (holdLastPose && clipName == m_lastAnimClip)
     {
         return;
     }
-    // ã—ã‚ƒãŒã¿æ­©ãâ†’åœæ­¢ã®å ´åˆã¯æ—¢ã«ã—ã‚ƒãŒã‚“ã§ã„ã‚‹ã®ã§ã€é·ç§»ã‚¢ãƒ‹ãƒ¡ã‚’é£›ã°ã—ã¦æœ€çµ‚ãƒãƒ¼ã‚ºã‹ã‚‰å§‹ã‚ã‚‹ã€‚
+    // ‚µ‚á‚ª‚İ•à‚«¨’â~‚Ìê‡‚ÍŠù‚É‚µ‚á‚ª‚ñ‚Å‚¢‚é‚Ì‚ÅA‘JˆÚƒAƒjƒ‚ğ”ò‚Î‚µ‚ÄÅIƒ|[ƒY‚©‚çn‚ß‚éB
     const bool fromCrouchWalk = holdLastPose && m_lastAnimClip.find("CrouchWalk") != std::string::npos;
     m_lastAnimClip = clipName;
 
@@ -945,7 +945,7 @@ void Player::UpdateAnimationState(bool isMoving)
         {
             const auto& anims = pModel->m_spModelData->GetAnimations();
             int idx = pAnim->currentAnim.AnimationIndex;
-            // çµ‚ç«¯ã®ç›´å‰ã¸ã€‚æ¬¡ã®æ›´æ–°ã§çµ‚ç«¯ã«é”ã—ã¦æœ€çµ‚ãƒãƒ¼ã‚ºã®ã¾ã¾åœæ­¢ã™ã‚‹ã€‚
+            // I’[‚Ì’¼‘O‚ÖBŸ‚ÌXV‚ÅI’[‚É’B‚µ‚ÄÅIƒ|[ƒY‚Ì‚Ü‚Ü’â~‚·‚éB
             if (idx >= 0 && idx < (int)anims.size())
             {
                 pAnim->currentAnim.ProgressTime = anims[idx].duration - 0.001f;
@@ -957,8 +957,8 @@ void Player::UpdateAnimationState(bool isMoving)
 void Player::AddItem(ItemType item)
 {
     bool alreadyHad = HasItem(item);
-    // æ‰€æŒãƒ•ãƒ©ã‚°ã‚’ç«‹ã¦ã‚‹å‰ã«æ—¢å­˜ã®æ‰€æŒå“ã‚’ç™»éŒ²ã—ã¦ãŠãã€æ‹¾ã£ãŸã‚‚ã®ã¯ãã®å¾Œã‚(æœ«å°¾)ã«å…¥ã‚Œã‚‹ã€‚
-    // (ãƒ•ãƒ©ã‚°ã‚’ç«‹ã¦ãŸå¾Œã«Syncã™ã‚‹ã¨ã€ãã“ã§ä¸€åº¦è¿½åŠ ã•ã‚ŒãŸä¸Šã«push_backã§ã‚‚è¿½åŠ ã•ã‚Œã¦é‡è¤‡ã—ã¦ã„ãŸ)
+    // Šƒtƒ‰ƒO‚ğ—§‚Ä‚é‘O‚ÉŠù‘¶‚ÌŠ•i‚ğ“o˜^‚µ‚Ä‚¨‚«AE‚Á‚½‚à‚Ì‚Í‚»‚ÌŒã‚ë(––”ö)‚É“ü‚ê‚éB
+    // (ƒtƒ‰ƒO‚ğ—§‚Ä‚½Œã‚ÉSync‚·‚é‚ÆA‚»‚±‚Åˆê“x’Ç‰Á‚³‚ê‚½ã‚Épush_back‚Å‚à’Ç‰Á‚³‚ê‚Äd•¡‚µ‚Ä‚¢‚½)
     SyncItemOrder();
     switch (item)
     {
@@ -974,7 +974,7 @@ void Player::AddItem(ItemType item)
     }
     if (!alreadyHad)
     {
-        m_itemOrder.push_back(item); // æ‹¾ã£ãŸã‚‚ã®ã‚’ã‚¹ãƒ­ãƒƒãƒˆã®æœ«å°¾ã¸
+        m_itemOrder.push_back(item); // E‚Á‚½‚à‚Ì‚ğƒXƒƒbƒg‚Ì––”ö‚Ö
         m_currentEquipped = item;    // auto-equip on first pickup
         Logger::Instance().AddLog(Logger::LogLevel::Info, "[Player] Item acquired.");
     }
@@ -1007,12 +1007,12 @@ void Player::DropEquippedItem(const Math::Vector3& playerPos, const Math::Vector
         return;
     }
 
-    // æ‰‹å…ƒ(è…°ã€œèƒ¸ã®é«˜ã•ã€å°‘ã—å‰)ã‹ã‚‰ã€è¦–ç·šã®æ–¹å‘ã¸è»½ãæ”¾ã‚‹ã€‚æ‰‹å…ƒã®ã™ãå…ˆãŒå£ãªã‚‰å£ã®æ‰‹å‰ã‹ã‚‰å‡ºã™ã€‚
+    // èŒ³(˜`‹¹‚Ì‚‚³A­‚µ‘O)‚©‚çA‹ü‚Ì•ûŒü‚ÖŒy‚­•ú‚éBèŒ³‚Ì‚·‚®æ‚ª•Ç‚È‚ç•Ç‚Ìè‘O‚©‚ço‚·B
     const float kHandHeight = 1.1f;
     const float kHandForward = 0.35f;
     const float kWallClearance = 0.15f;
-    const float kThrowSpeed = 2.5f;   // è¦–ç·šæ–¹å‘ã®åˆé€Ÿ(m/s)
-    const float kThrowUpSpeed = 1.2f; // å°‘ã—å±±ãªã‚Šã«ã™ã‚‹ãŸã‚ã®ä¸Šå‘ãã®åˆé€Ÿ(m/s)
+    const float kThrowSpeed = 2.5f;   // ‹ü•ûŒü‚Ì‰‘¬(m/s)
+    const float kThrowUpSpeed = 1.2f; // ­‚µR‚È‚è‚É‚·‚é‚½‚ß‚ÌãŒü‚«‚Ì‰‘¬(m/s)
     auto& cm = CollisionManager::Instance();
     Math::Vector3 handBase = playerPos + Math::Vector3(0, kHandHeight, 0);
     float handDist = kHandForward;
@@ -1023,7 +1023,7 @@ void Player::DropEquippedItem(const Math::Vector3& playerPos, const Math::Vector
     }
     Math::Vector3 spawnPos = handBase + forward * handDist;
 
-    // æŠ•ã’ã‚‹å‘ãã¯ã‚«ãƒ¡ãƒ©ã®è¦–ç·š(ä¸Šä¸‹ã‚‚å«ã‚€)ã€‚ã‚«ãƒ¡ãƒ©ãŒè¦‹ã¤ã‹ã‚‰ãªã‘ã‚Œã°ä½“ã®å‘ãã€‚
+    // “Š‚°‚éŒü‚«‚ÍƒJƒƒ‰‚Ì‹ü(ã‰º‚àŠÜ‚Ş)BƒJƒƒ‰‚ªŒ©‚Â‚©‚ç‚È‚¯‚ê‚Î‘Ì‚ÌŒü‚«B
     Math::Vector3 throwDir = forward;
     if (m_cameraEntity == INVALID_ENTITY)
     {
@@ -1039,7 +1039,7 @@ void Player::DropEquippedItem(const Math::Vector3& playerPos, const Math::Vector
         }
     }
 
-    // Instantiate()ã§å‡ºã—ãŸã‚‚ã®ã¯Dynamicæ‰±ã„ã«ãªã‚Šã€ã‚·ãƒ¼ãƒ³ä¿å­˜ã«ã¯å«ã¾ã‚Œãªã„(å®Ÿè¡Œä¸­ã ã‘ã®è½ã¨ã—ç‰©)
+    // Instantiate()‚Åo‚µ‚½‚à‚Ì‚ÍDynamicˆµ‚¢‚É‚È‚èAƒV[ƒ“•Û‘¶‚É‚ÍŠÜ‚Ü‚ê‚È‚¢(Às’†‚¾‚¯‚Ì—‚Æ‚µ•¨)
     auto obj = scene->Instantiate(prefabPath, spawnPos);
     if (!obj)
     {
@@ -1049,14 +1049,14 @@ void Player::DropEquippedItem(const Math::Vector3& playerPos, const Math::Vector
     auto& ecs = GameManager::Instance().GetECS();
     if (auto* pTrans = ecs.TryGetComponent<TransformData>(obj->GetEntityID()))
     {
-        pTrans->m_rotation.y = playerYaw; // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®å‘ãã«åˆã‚ã›ã¦æ”¾ã‚‹
+        pTrans->m_rotation.y = playerYaw; // ƒvƒŒƒCƒ„[‚ÌŒü‚«‚É‡‚í‚¹‚Ä•ú‚é
     }
     if (auto* pScript = ecs.TryGetComponent<NativeScriptData>(obj->GetEntityID()))
     {
         if (auto* pickup = dynamic_cast<PickupItem*>(pScript->Instance.get()))
         {
             pickup->Launch(throwDir * kThrowSpeed + Math::Vector3(0, kThrowUpSpeed, 0));
-            // ç‚¹ç¯ã—ãŸã¾ã¾è½ã¨ã—ãŸã‚‰ã€è½ã¡ãŸãƒ©ã‚¤ãƒˆã‚‚ç‚¹ç¯ã—ãŸã¾ã¾ã«ã™ã‚‹
+            // “_“”‚µ‚½‚Ü‚Ü—‚Æ‚µ‚½‚çA—‚¿‚½ƒ‰ƒCƒg‚à“_“”‚µ‚½‚Ü‚Ü‚É‚·‚é
             if (item == ItemType::FlashLight)
             {
                 pickup->SetLightOn(m_flashLightOn);
@@ -1078,7 +1078,7 @@ void Player::DropEquippedItem(const Math::Vector3& playerPos, const Math::Vector
         break;
     }
 
-    // æ®‹ã£ã¦ã„ã‚‹ã‚¢ã‚¤ãƒ†ãƒ ãŒã‚ã‚Œã°ã‚¹ãƒ­ãƒƒãƒˆã®å…ˆé ­ã®ã‚‚ã®ã«æŒã¡æ›¿ãˆã‚‹(ä½•ã‚‚ç„¡ã‘ã‚Œã°æ‰‹ã¶ã‚‰)
+    // c‚Á‚Ä‚¢‚éƒAƒCƒeƒ€‚ª‚ ‚ê‚ÎƒXƒƒbƒg‚Ìæ“ª‚Ì‚à‚Ì‚É‚¿‘Ö‚¦‚é(‰½‚à–³‚¯‚ê‚Îè‚Ô‚ç)
     SyncItemOrder();
     if (!m_itemOrder.empty())
     {
@@ -1112,7 +1112,7 @@ void Player::Update(float deltaTime)
     Math::Vector3 forward = Math::Vector3::TransformNormal(Math::Vector3(0, 0, 1), playerRot);
     Math::Vector3 right = Math::Vector3::TransformNormal(Math::Vector3(1, 0, 0), playerRot);
 
-    // ã‚­ãƒ¼1ã€œ4ã¯ç”»é¢ä¸‹ã®ã‚¹ãƒ­ãƒƒãƒˆç•ªå·(æ‹¾ã£ãŸé †)ã«å¯¾å¿œ
+    // ƒL[1`4‚Í‰æ–Ê‰º‚ÌƒXƒƒbƒg”Ô†(E‚Á‚½‡)‚É‘Î‰
     SyncItemOrder();
     for (int i = 0; i < (int)m_itemOrder.size() && i < kItemSlotCount; ++i)
     {
@@ -1144,7 +1144,7 @@ void Player::Update(float deltaTime)
         }
     }
 
-    // --- è½ã¡ã¦ã„ã‚‹ãƒ•ãƒ©ãƒƒã‚·ãƒ¥ãƒ©ã‚¤ãƒˆã‚’å·¦ã‚¯ãƒªãƒƒã‚¯ã§ã‚ªãƒ³ã‚ªãƒ•(Fã§æ‹¾ãˆã‚‹ç¯„å›²ãƒ»æ­£é¢ã«ã‚ã‚‹ã‚‚ã®) ---
+    // --- —‚¿‚Ä‚¢‚éƒtƒ‰ƒbƒVƒ…ƒ‰ƒCƒg‚ğ¶ƒNƒŠƒbƒN‚ÅƒIƒ“ƒIƒt(F‚ÅE‚¦‚é”ÍˆÍE³–Ê‚É‚ ‚é‚à‚Ì) ---
     if (input.IsMouseLeftTrigger() && m_interactKind == InteractKind::Pickup && m_interactEntity != INVALID_ENTITY)
     {
         if (auto* pScript = ecs.TryGetComponent<NativeScriptData>(m_interactEntity))
@@ -1159,7 +1159,7 @@ void Player::Update(float deltaTime)
     }
 
     // --- Use equipped item: right-click ---
-    // (G ã§å…¨éƒ¨è½ã¨ã—ãŸå¾Œã¯ m_currentEquipped ãŒæ‰‹æ”¾ã—ãŸã‚¢ã‚¤ãƒ†ãƒ ã®ã¾ã¾æ®‹ã‚‹ã®ã§ã€æ‰€æŒã‚‚ç¢ºèªã™ã‚‹)
+    // (G ‚Å‘S•”—‚Æ‚µ‚½Œã‚Í m_currentEquipped ‚ªè•ú‚µ‚½ƒAƒCƒeƒ€‚Ì‚Ü‚Üc‚é‚Ì‚ÅAŠ‚àŠm”F‚·‚é)
     if (input.IsMouseRightTrigger() && HasItem(m_currentEquipped))
     {
         if (m_currentEquipped == Item::Incense && ghost)
@@ -1168,7 +1168,7 @@ void Player::Update(float deltaTime)
             float dist = (cTrans.m_position - gTrans.m_position).Length();
             if (dist < 10.0f)
             {
-                // åŠ¹ãã‹ã©ã†ã‹ã¯ã‚´ãƒ¼ã‚¹ãƒˆã®ç¨®é¡ã”ã¨ã®æ¡ä»¶æ¬¡ç¬¬(å½±å¥³ã¯è¿‘ãã§æ˜ã‹ã‚ŠãŒç‚¹ã„ã¦ã„ã‚‹æ™‚ã ã‘ç­‰)
+                // Œø‚­‚©‚Ç‚¤‚©‚ÍƒS[ƒXƒg‚Ìí—Ş‚²‚Æ‚ÌğŒŸ‘æ(‰e—‚Í‹ß‚­‚Å–¾‚©‚è‚ª“_‚¢‚Ä‚¢‚é‚¾‚¯“™)
                 if (ghost->TryIncenseStun(5.0f))
                 {
                     Logger::Instance().AddLog(Logger::LogLevel::Info, "Incense Used: Ghost Stunned!");
@@ -1181,7 +1181,7 @@ void Player::Update(float deltaTime)
                 {
                     AnimationManager::Instance().PlayAnimation(m_heldIncenseEntity, 0, false, 1.0f);
                 }
-                // ç‡»ã‚‹éŸ³: ä½¿ã†ãŸã³ã«é ­ã‹ã‚‰é³´ã‚‰ã—ç›´ã™
+                // à‚é‰¹: g‚¤‚½‚Ñ‚É“ª‚©‚ç–Â‚ç‚µ’¼‚·
                 if (!m_smudgeSound)
                 {
                     m_smudgeSound = AudioManager::Instance().CreateSEInstance("Asset/Sound/SE/smadge.wav");
@@ -1251,9 +1251,9 @@ void Player::Update(float deltaTime)
 
     UpdateAnimationState(isMoving);
 
-    // ã—ã‚ƒãŒã¿å…·åˆã‚’æ»‘ã‚‰ã‹ã«è£œé–“ã™ã‚‹(ã‚«ãƒ¡ãƒ©ã®é«˜ã•ã‚‚ã“ã‚Œã«è¿½å¾“ã•ã›ã‚‹)ã€‚
-    // Ctrlã‚’æŠ¼ã—ãŸç¬é–“ã¯ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³å´ã«å°‘ã—æºœã‚ãŒã‚ã£ã¦å‹•ãå‡ºã—ãŒé…ã‚Œã‚‹ãŸã‚ã€
-    // ã‚«ãƒ¡ãƒ©ã‚‚å°‘ã—ã ã‘é…ã‚‰ã›ã¦ã‹ã‚‰å‹•ãå§‹ã‚ã‚‹ã“ã¨ã§ã‚ºãƒ¬ã‚’åˆã‚ã›ã‚‹ã€‚
+    // ‚µ‚á‚ª‚İ‹ï‡‚ğŠŠ‚ç‚©‚É•âŠÔ‚·‚é(ƒJƒƒ‰‚Ì‚‚³‚à‚±‚ê‚É’Ç]‚³‚¹‚é)B
+    // Ctrl‚ğ‰Ÿ‚µ‚½uŠÔ‚ÍƒAƒjƒ[ƒVƒ‡ƒ“‘¤‚É­‚µ—­‚ß‚ª‚ ‚Á‚Ä“®‚«o‚µ‚ª’x‚ê‚é‚½‚ßA
+    // ƒJƒƒ‰‚à­‚µ‚¾‚¯’x‚ç‚¹‚Ä‚©‚ç“®‚«n‚ß‚é‚±‚Æ‚ÅƒYƒŒ‚ğ‡‚í‚¹‚éB
     if (crouchToggled)
     {
         m_crouchCameraDelayTimer = m_crouchCameraDelay;
@@ -1336,7 +1336,7 @@ void Player::Update(float deltaTime)
                 if (auto* src = dynamic_cast<StimulusSource*>(scriptData->Instance.get()))
                 {
                     src->Toggle();
-                    src->PlayToggleSound(); // ç´ã‚¹ã‚¤ãƒƒãƒã®ç‚¹ç¯/æ¶ˆç¯éŸ³
+                    src->PlayToggleSound(); // •RƒXƒCƒbƒ`‚Ì“_“”/Á“”‰¹
                 }
                 else if (auto* sw = dynamic_cast<LightSwitch*>(scriptData->Instance.get()))
                 {
@@ -1361,7 +1361,7 @@ void Player::Update(float deltaTime)
     UpdateHeldItemAttach(cTrans.m_position, cTrans.m_rotation.y, isMoving);
     UpdateFlashLightBeam(cTrans.m_position, cTrans.m_rotation.y);
 
-    // è€³ã®ä½ç½®(ãŠãŠã‚ˆãã®ç›®ç·šã®é«˜ã•)ã‚’ãƒªã‚¹ãƒŠãƒ¼ã«ã—ã¦ã€ã‚´ãƒ¼ã‚¹ãƒˆã‚„ç…§æ˜ã®éŸ³ã‚’è·é›¢ãƒ»æ–¹å‘ã§é³´ã‚‰ã—åˆ†ã‘ã‚‹
+    // ¨‚ÌˆÊ’u(‚¨‚¨‚æ‚»‚Ì–Úü‚Ì‚‚³)‚ğƒŠƒXƒi[‚É‚µ‚ÄAƒS[ƒXƒg‚âÆ–¾‚Ì‰¹‚ğ‹——£E•ûŒü‚Å–Â‚ç‚µ•ª‚¯‚é
     AudioManager::Instance().SetListener(cTrans.m_position + Math::Vector3(0, 1.6f, 0), forward);
     UpdateSounds(isMoving, GameTimer::Instance().DeltaTime());
 }
@@ -1378,7 +1378,7 @@ void Player::SetFlashLightOnWithSound(bool on)
 
 FloorType Player::DetectFloorType(const Math::Vector3& pos) const
 {
-    // è¶³å…ƒã´ã£ãŸã‚Šã ã¨éƒ¨å±‹ã®åºŠ(minY)ã‚ˆã‚Šåƒ…ã‹ã«ä¸‹ã«ãªã‚‹ã“ã¨ãŒã‚ã‚‹ã®ã§å°‘ã—æŒã¡ä¸Šã’ã¦åˆ¤å®šã™ã‚‹
+    // ‘«Œ³‚Ò‚Á‚½‚è‚¾‚Æ•”‰®‚Ì°(minY)‚æ‚è‹Í‚©‚É‰º‚É‚È‚é‚±‚Æ‚ª‚ ‚é‚Ì‚Å­‚µ‚¿ã‚°‚Ä”»’è‚·‚é
     const Math::Vector3 p = pos + Math::Vector3(0.0f, 0.3f, 0.0f);
     Math::Vector3 houseMin(FLT_MAX, FLT_MAX, FLT_MAX), houseMax(-FLT_MAX, -FLT_MAX, -FLT_MAX);
     bool anyRoom = false;
@@ -1400,8 +1400,8 @@ FloorType Player::DetectFloorType(const Math::Vector3& pos) const
         anyRoom = true;
     }
 
-    // ã©ã®éƒ¨å±‹ã«ã‚‚å…¥ã£ã¦ã„ãªãã¦ã‚‚ã€å®¶ã®ç¯„å›²å†…ãªã‚‰éƒ¨å±‹åŒå£«ã®éš™é–“(å£ã®åšã¿ãƒ»ãƒ‰ã‚¢æ )ãªã®ã§ç›´å‰ã®åºŠã®ã¾ã¾ã€‚
-    // å®¶ã®ç¯„å›²ã®å¤–ã«å‡ºãŸã‚‰åº­(åœŸ)
+    // ‚Ç‚Ì•”‰®‚É‚à“ü‚Á‚Ä‚¢‚È‚­‚Ä‚àA‰Æ‚Ì”ÍˆÍ“à‚È‚ç•”‰®“¯m‚ÌŒ„ŠÔ(•Ç‚ÌŒú‚İEƒhƒA˜g)‚È‚Ì‚Å’¼‘O‚Ì°‚Ì‚Ü‚ÜB
+    // ‰Æ‚Ì”ÍˆÍ‚ÌŠO‚Éo‚½‚ç’ë(“y)
     const float margin = 0.3f;
     const bool insideHouse = anyRoom &&
                              p.x >= houseMin.x - margin && p.x <= houseMax.x + margin &&
@@ -1411,7 +1411,7 @@ FloorType Player::DetectFloorType(const Math::Vector3& pos) const
 
 void Player::UpdateSounds(bool isMoving, float deltaTime)
 {
-    // --- è¶³éŸ³: æ¥åœ°ã—ã¦æ­©ã„ã¦ã„ã‚‹é–“ã ã‘ã€ä»Šã„ã‚‹åºŠã®ç¨®é¡ã®éŸ³ã‚’ãƒ«ãƒ¼ãƒ—å†ç”Ÿã€‚ã—ã‚ƒãŒã¿æ­©ãã¯å°ã•ãã€ã‚†ã£ãã‚Šã‚ã« ---
+    // --- ‘«‰¹: Ú’n‚µ‚Ä•à‚¢‚Ä‚¢‚éŠÔ‚¾‚¯A¡‚¢‚é°‚Ìí—Ş‚Ì‰¹‚ğƒ‹[ƒvÄ¶B‚µ‚á‚ª‚İ•à‚«‚Í¬‚³‚­A‚ä‚Á‚­‚è‚ß‚É ---
     static const char* kFootstepPaths[3] = {
         "Asset/Sound/SE/wood-walk.wav",   // FloorType::Wood
         "Asset/Sound/SE/tatami-walk.wav", // FloorType::Tatami
@@ -1447,12 +1447,12 @@ void Player::UpdateSounds(bool isMoving, float deltaTime)
         }
         else if (sound && sound->GetState() == DirectX::SoundState::PLAYING)
         {
-            // æ­¢ã‚ã‚‹ã¨æ¬¡ã«æ­©ãå‡ºã—ãŸæ™‚(åºŠãŒå¤‰ã‚ã£ãŸæ™‚)ã«é ­ã‹ã‚‰(1æ­©ç›®ã‹ã‚‰)é³´ã‚‹
+            // ~‚ß‚é‚ÆŸ‚É•à‚«o‚µ‚½(°‚ª•Ï‚í‚Á‚½)‚É“ª‚©‚ç(1•à–Ú‚©‚ç)–Â‚é
             sound->Stop();
         }
     }
 
-    // --- ãŠé¦™: ä¸€å®šæ™‚é–“é³´ã‚‰ã—ãŸã‚‰æœ€å¾Œã®1ç§’ã§ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¢ã‚¦ãƒˆã—ã¦æ­¢ã‚ã‚‹ ---
+    // --- ‚¨: ˆê’èŠÔ–Â‚ç‚µ‚½‚çÅŒã‚Ì1•b‚ÅƒtƒF[ƒhƒAƒEƒg‚µ‚Ä~‚ß‚é ---
     if (m_smudgeSound && m_smudgeSoundTimer > 0.0f)
     {
         m_smudgeSoundTimer -= deltaTime;
@@ -1498,7 +1498,7 @@ void Player::TryInteractDoor(const Math::Vector3& playerPos)
             continue;
         }
 
-        // å‹•çš„ã« AnimationDataComponent ã‚’è¿½åŠ ã™ã‚‹
+        // “®“I‚É AnimationDataComponent ‚ğ’Ç‰Á‚·‚é
         auto* pAnim = ecs.TryGetComponent<AnimationDataComponent>(entity);
         if (!pAnim)
         {
@@ -1556,9 +1556,9 @@ void Player::TryInteractDoor(const Math::Vector3& playerPos)
 
     if (bestEntity != INVALID_ENTITY && bestAnimIdx >= 0 && DoorLock::IsLocked(bestEntity, bestAnimIdx))
     {
-        // ãƒãƒ³ãƒˆä¸­ã¯ç„é–¢ãƒ‰ã‚¢ãŒæ–½éŒ ã•ã‚Œã¦ã„ã‚‹(GhostAIãŒæ–½éŒ /è§£éŒ ã™ã‚‹)
+        // ƒnƒ“ƒg’†‚ÍŒºŠÖƒhƒA‚ª{ù‚³‚ê‚Ä‚¢‚é(GhostAI‚ª{ù/‰ğù‚·‚é)
         Logger::Instance().AddLog(Logger::LogLevel::Info, "[Player] The door is locked.");
-        AudioManager::Instance().PlaySE("Asset/Sound/SE/door_nobu.wav", m_doorLockedSoundVolume); // ãƒ‰ã‚¢ãƒãƒ–ã‚’ã‚¬ãƒãƒ£ã‚¬ãƒãƒ£
+        AudioManager::Instance().PlaySE("Asset/Sound/SE/door_nobu.wav", m_doorLockedSoundVolume); // ƒhƒAƒmƒu‚ğƒKƒ`ƒƒƒKƒ`ƒƒ
         return;
     }
 
@@ -1587,11 +1587,11 @@ void Player::TryInteractDoor(const Math::Vector3& playerPos)
                 animMgr.PlayMultiAnimation(bestEntity, bestAnimIdx, false, -1.0f);
                 pAnim->multiAnims[bestAnimIdx].ProgressTime = currentTime;
             }
-            // é–‹ã‘é–‰ã‚ã©ã¡ã‚‰ã‚‚åŒã˜è»‹ã¿éŸ³(é–‰ã‚ã‚‹æ™‚ã¯å°‘ã—ä½ã‚ã«ã—ã¦èãåˆ†ã‘ã‚‰ã‚Œã‚‹ã‚ˆã†ã«ã™ã‚‹)
+            // ŠJ‚¯•Â‚ß‚Ç‚¿‚ç‚à“¯‚¶ça‚İ‰¹(•Â‚ß‚é‚Í­‚µ’á‚ß‚É‚µ‚Ä•·‚«•ª‚¯‚ç‚ê‚é‚æ‚¤‚É‚·‚é)
             AudioManager::Instance().PlaySE("Asset/Sound/SE/door_open.wav", m_doorSoundVolume, opening ? 0.0f : -0.15f);
 
-            // è¿½åŠ : ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã™ã‚‹ã‚¨ãƒ³ãƒ†ã‚£ãƒ†ã‚£ã¯å‹•çš„ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã¨ã—ã¦æ‰±ã„ã€
-            // è¡çªåˆ¤å®š(CollisionManager::Solve)ã§æ¯ãƒ•ãƒ¬ãƒ¼ãƒ AABBãŒæ›´æ–°ã•ã‚Œã‚‹ã‚ˆã†ã«ã™ã‚‹
+            // ’Ç‰Á: ƒAƒjƒ[ƒVƒ‡ƒ“‚·‚éƒGƒ“ƒeƒBƒeƒB‚Í“®“IƒIƒuƒWƒFƒNƒg‚Æ‚µ‚Äˆµ‚¢A
+            // Õ“Ë”»’è(CollisionManager::Solve)‚Å–ˆƒtƒŒ[ƒ€AABB‚ªXV‚³‚ê‚é‚æ‚¤‚É‚·‚é
             auto* pCollider = ecs.TryGetComponent<ColliderData>(bestEntity);
             if (pCollider && pCollider->m_isStatic)
             {
@@ -1636,7 +1636,7 @@ void Player::Serialize(nlohmann::json& out) const
     out["hasIncense"] = m_hasIncense;
     out["hasAmulet"] = m_hasAmulet;
     out["hasFlashLight"] = m_hasFlashLight;
-    // ã‚¢ã‚¤ãƒ†ãƒ ã‚¹ãƒ­ãƒƒãƒˆã®ä¸¦ã³(æ‹¾ã£ãŸé †)ã€‚ItemTypeã®å€¤(1ã€œ4)ã®é…åˆ—ã§ä¿å­˜ã™ã‚‹
+    // ƒAƒCƒeƒ€ƒXƒƒbƒg‚Ì•À‚Ñ(E‚Á‚½‡)BItemType‚Ì’l(1`4)‚Ì”z—ñ‚Å•Û‘¶‚·‚é
     {
         std::vector<Item> order = m_itemOrder;
         order.erase(std::remove_if(order.begin(), order.end(), [&](Item item)
@@ -1663,7 +1663,7 @@ void Player::Deserialize(const nlohmann::json& in)
 {
     if (in.contains("moveSpeed"))
     {
-        m_moveSpeedKmh = in["moveSpeed"].get<float>() * 3.6f; // æ—§å½¢å¼(m/s)
+        m_moveSpeedKmh = in["moveSpeed"].get<float>() * 3.6f; // ‹ŒŒ`®(m/s)
     }
     if (in.contains("moveSpeedKmh"))
     {
@@ -1752,7 +1752,7 @@ void Player::Deserialize(const nlohmann::json& in)
                 m_itemOrder.push_back(static_cast<Item>(n));
             }
         }
-        // æ‰€æŒãƒ•ãƒ©ã‚°ã¨é£Ÿã„é•ã†åˆ†(é‡è¤‡ãƒ»æœªæ‰€æŒãƒ»æŠœã‘)ã¯ã“ã“ã§è£œæ­£ã™ã‚‹
+        // Šƒtƒ‰ƒO‚ÆH‚¢ˆá‚¤•ª(d•¡E–¢ŠE”²‚¯)‚Í‚±‚±‚Å•â³‚·‚é
         SyncItemOrder();
     }
     if (in.contains("heldItemOffset"))

@@ -1,17 +1,17 @@
-ï»¿#include "../../../Pch.h"
+#include "../../../Pch.h"
 #include "../../../Graphics/Renderer/Renderer.h"
 #include "../../../Graphics/GPUResource/RenderTarget/RenderTarget.h"
 #include "../../../Graphics/Device/GraphicsDevice.h"
 #include "../../ECS/Components/Data/CameraData.h"
 #include "../../Manager/GameManager.h"
 
-// ã€ŒPreview Cameraã€ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦: CameraDataã® m_isDebugPreview ã‚’ç«‹ã¦ãŸã‚«ãƒ¡ãƒ©ã®Transformã‹ã‚‰
-// è¦‹ãŸçµµã‚’è¡¨ç¤ºã™ã‚‹ã ã‘ã®å°‚ç”¨ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã€‚ä»¥å‰ã¯ShaderEditor(Debug Panel)ã®ä¸­ã«åå°„RTã®ç”Ÿç”»åƒã‚’
-// ç›´æ¥åŸ‹ã‚è¾¼ã‚“ã§ã„ãŸãŒã€ã‚¨ãƒ‡ã‚£ã‚¿ã®ãƒ•ãƒªãƒ¼ã‚«ãƒ¡ãƒ©ã‚’å‹•ã‹ã™ã¨ãã®åå°„ã‚«ãƒ¡ãƒ©è‡ªèº«ã‚‚ä¸€ç·’ã«å‹•ã„ã¦ã—ã¾ã„
-// ä¸­èº«ãŒç¢ºèªã—ã¥ã‚‰ã‹ã£ãŸã€‚ä»£ã‚ã‚Šã«ã€æ™®é€šã®GameObject(TransformData+CameraData)ã‚’ã‚·ãƒ¼ãƒ³ã«
-// 1ã¤ç½®ã„ã¦Transformã§è‡ªç”±ã«å‹•ã‹ã›ã‚‹ã‚ˆã†ã«ã—ã€ãã®è¦‹ãŸç›®ã‚’æ¯ãƒ•ãƒ¬ãƒ¼ãƒ å°‚ç”¨RTã«æç”»ã™ã‚‹
-// (å®Ÿéš›ã®æç”»ã¯GameScene::RenderDebugPreviewCamera()ãŒè¡Œã† - RenderSystem::RenderScene()ã‚’
-// ãã®ã¾ã¾æµç”¨ã—ã¦ã„ã‚‹ã ã‘ã§ã€åå°„ã‚«ãƒ¡ãƒ©ã‚„å¹³é¢åå°„ã®ã‚·ã‚¹ãƒ†ãƒ ã¨ã¯å®Œå…¨ã«ç‹¬ç«‹ã—ã¦ã„ã‚‹)ã€‚
+// uPreview CameravƒEƒBƒ“ƒhƒE: CameraData‚Ì m_isDebugPreview ‚ğ—§‚Ä‚½ƒJƒƒ‰‚ÌTransform‚©‚ç
+// Œ©‚½ŠG‚ğ•\¦‚·‚é‚¾‚¯‚Ìê—pƒEƒBƒ“ƒhƒEBˆÈ‘O‚ÍShaderEditor(Debug Panel)‚Ì’†‚É”½ËRT‚Ì¶‰æ‘œ‚ğ
+// ’¼Ú–„‚ß‚ñ‚Å‚¢‚½‚ªAƒGƒfƒBƒ^‚ÌƒtƒŠ[ƒJƒƒ‰‚ğ“®‚©‚·‚Æ‚»‚Ì”½ËƒJƒƒ‰©g‚àˆê‚É“®‚¢‚Ä‚µ‚Ü‚¢
+// ’†g‚ªŠm”F‚µ‚Ã‚ç‚©‚Á‚½B‘ã‚í‚è‚ÉA•’Ê‚ÌGameObject(TransformData+CameraData)‚ğƒV[ƒ“‚É
+// 1‚Â’u‚¢‚ÄTransform‚Å©—R‚É“®‚©‚¹‚é‚æ‚¤‚É‚µA‚»‚ÌŒ©‚½–Ú‚ğ–ˆƒtƒŒ[ƒ€ê—pRT‚É•`‰æ‚·‚é
+// (ÀÛ‚Ì•`‰æ‚ÍGameScene::RenderDebugPreviewCamera()‚ªs‚¤ - RenderSystem::RenderScene()‚ğ
+// ‚»‚Ì‚Ü‚Ü—¬—p‚µ‚Ä‚¢‚é‚¾‚¯‚ÅA”½ËƒJƒƒ‰‚â•½–Ê”½Ë‚ÌƒVƒXƒeƒ€‚Æ‚ÍŠ®‘S‚É“Æ—§‚µ‚Ä‚¢‚é)B
 void Editor::DrawPreviewCamera()
 {
     if (ImGui::Begin("Preview Camera"))
@@ -29,15 +29,15 @@ void Editor::DrawPreviewCamera()
 
         if (!found)
         {
-            // u8ãƒ—ãƒ¬ãƒ•ã‚£ãƒƒã‚¯ã‚¹å¿…é ˆ: ã“ã‚ŒãŒç„¡ã„ã¨ã€ã‚½ãƒ¼ã‚¹ãŒUTF-8(BOMä»˜ã)ã§ã‚‚ã‚³ãƒ³ãƒ‘ã‚¤ãƒ©ã®
-            // å®Ÿè¡Œæ–‡å­—ã‚»ãƒƒãƒˆå¤‰æ›ã§ã‚·ã‚¹ãƒ†ãƒ ã®ã‚³ãƒ¼ãƒ‰ãƒšãƒ¼ã‚¸(Shift-JISç­‰)ã«å¤‰æ›ã•ã‚Œã¦ã—ã¾ã„ã€
-            // UTF-8ã‚’å‰æã«ã—ã¦ã„ã‚‹ImGuiã®è¡¨ç¤ºã¨é£Ÿã„é•ã£ã¦æ–‡å­—åŒ–ã‘ã™ã‚‹ã€‚u8""ã¯C++ã®ä»•æ§˜ä¸Šã€
-            // å®Ÿè¡Œæ–‡å­—ã‚»ãƒƒãƒˆã®è¨­å®šã«é–¢ã‚ã‚‰ãšå¿…ãšUTF-8ãƒã‚¤ãƒˆåˆ—ã«ãªã‚‹ã“ã¨ãŒä¿è¨¼ã•ã‚Œã¦ã„ã‚‹ã€‚
+            // u8ƒvƒŒƒtƒBƒbƒNƒX•K{: ‚±‚ê‚ª–³‚¢‚ÆAƒ\[ƒX‚ªUTF-8(BOM•t‚«)‚Å‚àƒRƒ“ƒpƒCƒ‰‚Ì
+            // Às•¶šƒZƒbƒg•ÏŠ·‚ÅƒVƒXƒeƒ€‚ÌƒR[ƒhƒy[ƒW(Shift-JIS“™)‚É•ÏŠ·‚³‚ê‚Ä‚µ‚Ü‚¢A
+            // UTF-8‚ğ‘O’ñ‚É‚µ‚Ä‚¢‚éImGui‚Ì•\¦‚ÆH‚¢ˆá‚Á‚Ä•¶š‰»‚¯‚·‚éBu8""‚ÍC++‚Ìd—lãA
+            // Às•¶šƒZƒbƒg‚Ìİ’è‚ÉŠÖ‚í‚ç‚¸•K‚¸UTF-8ƒoƒCƒg—ñ‚É‚È‚é‚±‚Æ‚ª•ÛØ‚³‚ê‚Ä‚¢‚éB
             ImGui::TextWrapped(
-                u8"æœ‰åŠ¹ãªãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼ã‚«ãƒ¡ãƒ©ãŒã‚ã‚Šã¾ã›ã‚“ã€‚CameraDataã‚’æŒã¤GameObjectã‚’é…ç½®ã—ã€"
-                u8"Inspectorã®CameraDataã§ã€ŒDebug Preview Cameraã€ã‚’ONã«ã—ã¦ãã ã•ã„ã€‚"
-                u8"ãã®ã‚«ãƒ¡ãƒ©ã¯å³ã‚¯ãƒªãƒƒã‚¯ã‚’æŠ¼ã—ãªãŒã‚‰ã®ç§»å‹•(é€šå¸¸ã®ã‚¨ãƒ‡ã‚£ã‚¿è‡ªç”±ã‚«ãƒ¡ãƒ©ã¨åŒã˜æ“ä½œ)ã§"
-                u8"ã“ã®ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã«ãƒã‚¦ã‚¹ã‚’ä¹—ã›ã¦ã„ã‚‹é–“ã ã‘å‹•ã‹ã›ã¾ã™ã€‚");
+                u8"—LŒø‚ÈƒvƒŒƒrƒ…[ƒJƒƒ‰‚ª‚ ‚è‚Ü‚¹‚ñBCameraData‚ğ‚ÂGameObject‚ğ”z’u‚µA"
+                u8"Inspector‚ÌCameraData‚ÅuDebug Preview Camerav‚ğON‚É‚µ‚Ä‚­‚¾‚³‚¢B"
+                u8"‚»‚ÌƒJƒƒ‰‚Í‰EƒNƒŠƒbƒN‚ğ‰Ÿ‚µ‚È‚ª‚ç‚ÌˆÚ“®(’Êí‚ÌƒGƒfƒBƒ^©—RƒJƒƒ‰‚Æ“¯‚¶‘€ì)‚Å"
+                u8"‚±‚ÌƒEƒBƒ“ƒhƒE‚Éƒ}ƒEƒX‚ğæ‚¹‚Ä‚¢‚éŠÔ‚¾‚¯“®‚©‚¹‚Ü‚·B");
         }
 
         auto* pRT = Renderer::GetDebugPreviewRenderTarget();
@@ -52,8 +52,8 @@ void Editor::DrawPreviewCamera()
             }
             float aspect = (float)pRT->GetHeight() / (float)pRT->GetWidth();
             ImGui::Image((ImTextureID)handle.ptr, ImVec2(availWidth, availWidth * aspect));
-            // ã“ã®ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®æ˜ åƒã«ä¹—ã£ã¦ã„ã‚‹é–“ã ã‘ã€å³ã‚¯ãƒªãƒƒã‚¯ãƒ‰ãƒ©ãƒƒã‚°ã§ã®æ“ä½œã‚’æœ‰åŠ¹ã«ã™ã‚‹
-            // (GameScene::UpdateCameraãŒã“ã®ãƒ•ãƒ©ã‚°ã‚’è¦‹ã¦ã€é€šå¸¸ã®ã‚¨ãƒ‡ã‚£ã‚¿è‡ªç”±ã‚«ãƒ¡ãƒ©ã¨è¡çªã—ãªã„ã‚ˆã†ã«ã™ã‚‹)ã€‚
+            // ‚±‚ÌƒEƒBƒ“ƒhƒE‚Ì‰f‘œ‚Éæ‚Á‚Ä‚¢‚éŠÔ‚¾‚¯A‰EƒNƒŠƒbƒNƒhƒ‰ƒbƒO‚Å‚Ì‘€ì‚ğ—LŒø‚É‚·‚é
+            // (GameScene::UpdateCamera‚ª‚±‚Ìƒtƒ‰ƒO‚ğŒ©‚ÄA’Êí‚ÌƒGƒfƒBƒ^©—RƒJƒƒ‰‚ÆÕ“Ë‚µ‚È‚¢‚æ‚¤‚É‚·‚é)B
             s_previewCameraHovered = ImGui::IsItemHovered();
         }
         else

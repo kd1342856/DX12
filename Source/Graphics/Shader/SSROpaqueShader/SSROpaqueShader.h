@@ -1,12 +1,12 @@
-﻿#pragma once
+#pragma once
 #include "../GraphicsShader/GraphicsShader.h"
 
 class RenderTarget;
 
-// SSR(Opaque材質向け)。専用のG-Bufferパスを増やさず、NormalPrepass(SSAO用)の法線+深度と、
-// Opaqueパスのカラーコピー(既存の屈折用バッファ)を再利用する。結果はpDestRT(通常はシーンHDR
-// そのもの)へ加算合成する(BlendMode::Add)ので、呼び出し側はpDestRTがRENDER_TARGET状態に
-// なっていることを保証すること。
+// SSR(Opaque�ގ�����)�B��p��G-Buffer�p�X�𑝂₳���ANormalPrepass(SSAO�p)�̖@��+�[�x�ƁA
+// Opaque�p�X�̃J���[�R�s�[(�����̋��ܗp�o�b�t�@)���ė��p����B���ʂ�pDestRT(�ʏ�̓V�[��HDR
+// ���̂���)�։��Z��������(BlendMode::Add)�̂ŁA�Ăяo������pDestRT��RENDER_TARGET��Ԃ�
+// �Ȃ��Ă��邱�Ƃ�ۏ؂��邱�ƁB
 class SSROpaqueShader : public GraphicsShader
 {
 public:

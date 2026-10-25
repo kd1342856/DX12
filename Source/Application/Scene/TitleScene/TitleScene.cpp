@@ -18,13 +18,13 @@ void TitleScene::Init()
     m_time = 0.0f;
     m_cursorIndex = 0;
 
-    // GameSceneã®FPSè¦–ç‚¹(Relative)ãƒ¢ãƒ¼ãƒ‰ã®ã¾ã¾ã ã¨ã‚«ãƒ¼ã‚½ãƒ«ãŒæ¯ãƒ•ãƒ¬ãƒ¼ãƒ ä¸­å¤®ã«æˆ»ã•ã‚Œã€ãƒœã‚¿ãƒ³ã‚’ã‚¯ãƒªãƒƒã‚¯ã§ããªã„
+    // GameScene‚ÌFPS‹“_(Relative)ƒ‚[ƒh‚Ì‚Ü‚Ü‚¾‚ÆƒJ[ƒ\ƒ‹‚ª–ˆƒtƒŒ[ƒ€’†‰›‚É–ß‚³‚êAƒ{ƒ^ƒ“‚ğƒNƒŠƒbƒN‚Å‚«‚È‚¢
     Input::Instance().SetMouseModeAbsolute();
 
     auto& ecs = GameManager::Instance().GetECS();
 
-    // Editor::s_sceneã¯ã‚·ãƒ¼ãƒ³é·ç§»ã§è‡ªå‹•çš„ã«ã¯ç ´æ£„ã•ã‚Œãªã„ãŸã‚ã€GameSceneã®GameObjectãŒãƒ’ã‚¨ãƒ©ãƒ«ã‚­ãƒ¼ã«
-    // æ®‹ã£ã¦ã—ã¾ã†ã€‚GameScene::Init()ã¨åŒæ§˜ã«Editor::Init()ã§ç©ºã®Sceneã«å·®ã—æ›¿ãˆã€ç ´æ£„ã‚³ãƒãƒ³ãƒ‰ã‚’åæ˜ ã™ã‚‹ã€‚
+    // Editor::s_scene‚ÍƒV[ƒ“‘JˆÚ‚Å©“®“I‚É‚Í”jŠü‚³‚ê‚È‚¢‚½‚ßAGameScene‚ÌGameObject‚ªƒqƒGƒ‰ƒ‹ƒL[‚É
+    // c‚Á‚Ä‚µ‚Ü‚¤BGameScene::Init()‚Æ“¯—l‚ÉEditor::Init()‚Å‹ó‚ÌScene‚É·‚µ‘Ö‚¦A”jŠüƒRƒ}ƒ“ƒh‚ğ”½‰f‚·‚éB
     Editor::Init();
     ecs.FlushCommands();
 
@@ -40,7 +40,7 @@ void TitleScene::Init()
     }
     else
     {
-        // åˆå›(JSONæœªä½œæˆ)ã¯æ—¢å®šã®ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’ä½œã‚‹ã€‚ä»¥é™ã¯ãƒ’ã‚¨ãƒ©ãƒ«ã‚­ãƒ¼ã§ç·¨é›†ã—ã¦Save Sceneã§ä¿å­˜ã™ã‚‹ã€‚
+        // ‰‰ñ(JSON–¢ì¬)‚ÍŠù’è‚ÌƒIƒuƒWƒFƒNƒg‚ğì‚éBˆÈ~‚ÍƒqƒGƒ‰ƒ‹ƒL[‚Å•ÒW‚µ‚ÄSave Scene‚Å•Û‘¶‚·‚éB
         auto create = [&](const char* name, Math::Vector3 pos, const char* tex, Math::Vector2 size, int order)
         {
             auto obj = editorScene->CreateGameObject(name);
@@ -57,7 +57,7 @@ void TitleScene::Init()
         create("ExitButton", {640.0f, 620.0f, 0.0f}, "Asset/Texture/UI/Exit.png", {300.0f, 200.0f}, 50);
     }
 
-    // åå‰ã§æ¼”å‡ºå¯¾è±¡ã®ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’æ¢ã™(è¦‹ã¤ã‹ã‚‰ãªã‘ã‚Œã°INVALID_ENTITYã®ã¾ã¾æ¼”å‡ºã‚’ã‚¹ã‚­ãƒƒãƒ—)
+    // –¼‘O‚Å‰‰o‘ÎÛ‚ÌƒIƒuƒWƒFƒNƒg‚ğ’T‚·(Œ©‚Â‚©‚ç‚È‚¯‚ê‚ÎINVALID_ENTITY‚Ì‚Ü‚Ü‰‰o‚ğƒXƒLƒbƒv)
     auto find = [&](const char* name) -> Entity
     {
         for (auto& obj : editorScene->GetGameObjects())
@@ -76,7 +76,7 @@ void TitleScene::Init()
 
     editorScene->Init();
 
-    // éŸ³é‡ã¯Sound Managerã®ã€Œæ›²ã”ã¨ã®éŸ³é‡ã€ã§èª¿æ•´ã™ã‚‹
+    // ‰¹—Ê‚ÍSound Manager‚Ìu‹È‚²‚Æ‚Ì‰¹—Êv‚Å’²®‚·‚é
     AudioManager::Instance().PlayBGM(kBGMPath);
 }
 
@@ -86,18 +86,18 @@ void TitleScene::Update(float deltaTime)
 
     auto& ecs = GameManager::Instance().GetECS();
 
-    // ã‚­ãƒ¼å…¥åŠ›ï¼ˆã‚«ãƒ¼ã‚½ãƒ«ç§»å‹•ï¼‰
+    // ƒL[“ü—ÍiƒJ[ƒ\ƒ‹ˆÚ“®j
     if (Input::Instance().IsKeyTrigger(DirectX::Keyboard::Keys::Up) ||
         Input::Instance().IsKeyTrigger(DirectX::Keyboard::Keys::Down))
     {
         m_cursorIndex = (m_cursorIndex == 0) ? 1 : 0;
     }
 
-    // æ±ºå®šã‚­ãƒ¼
+    // Œˆ’èƒL[
     bool decided = Input::Instance().IsKeyTrigger(DirectX::Keyboard::Keys::Enter) ||
                    Input::Instance().IsKeyTrigger(DirectX::Keyboard::Keys::Space);
 
-    // ãƒã‚¦ã‚¹: ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆã«ãƒ›ãƒãƒ¼ã§é¸æŠã€ã‚¯ãƒªãƒƒã‚¯ã§æ±ºå®š
+    // ƒ}ƒEƒX: ƒXƒvƒ‰ƒCƒg‚Éƒzƒo[‚Å‘I‘ğAƒNƒŠƒbƒN‚ÅŒˆ’è
     if (auto spriteSys = GameManager::Instance().GetSpriteRenderSystem())
     {
         const Entity buttons[2] = {m_startEntity, m_exitEntity};
@@ -122,7 +122,7 @@ void TitleScene::Update(float deltaTime)
         }
         else
         {
-            PostQuitMessage(0); // ã‚¢ãƒ—ãƒªã‚±ãƒ¼ã‚·ãƒ§ãƒ³çµ‚äº†
+            PostQuitMessage(0); // ƒAƒvƒŠƒP[ƒVƒ‡ƒ“I—¹
         }
     }
 
@@ -135,14 +135,14 @@ void TitleScene::Update(float deltaTime)
         SceneManager::Instance().ChangeScene(std::make_unique<ResultScene>(false), 1.0f);
     }
 
-    // ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆã®ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã¨é¸æŠçŠ¶æ…‹ã®åæ˜ (SpriteData/TransformãŒç„¡ã„ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã¯ã‚¹ã‚­ãƒƒãƒ—)
+    // ƒXƒvƒ‰ƒCƒg‚ÌƒAƒjƒ[ƒVƒ‡ƒ“‚Æ‘I‘ğó‘Ô‚Ì”½‰f(SpriteData/Transform‚ª–³‚¢ƒIƒuƒWƒFƒNƒg‚ÍƒXƒLƒbƒv)
     if (auto* t = ecs.TryGetComponent<TransformData>(m_titleEntity))
     {
-        t->m_position.y = 200.0f + sinf(m_time * 2.0f) * 10.0f; // ãƒ•ãƒ¯ãƒ•ãƒ¯æºã‚Œã‚‹
+        t->m_position.y = 200.0f + sinf(m_time * 2.0f) * 10.0f; // ƒtƒƒtƒ—h‚ê‚é
     }
     if (auto* s = ecs.TryGetComponent<SpriteData>(m_titleEntity))
     {
-        s->m_color = {1.0f, 1.0f, 1.0f, 0.7f + 0.3f * sinf(m_time * 3.0f)}; // æ˜æ»…
+        s->m_color = {1.0f, 1.0f, 1.0f, 0.7f + 0.3f * sinf(m_time * 3.0f)}; // –¾–Å
     }
 
     const Entity buttons[2] = {m_startEntity, m_exitEntity};
@@ -155,13 +155,13 @@ void TitleScene::Update(float deltaTime)
         }
     }
 
-    // èƒŒæ™¯è‰²ï¼ˆä¸æ°—å‘³ãªè„ˆæ‰“ã¡ï¼‰
+    // ”wŒiFi•s‹C–¡‚È–¬‘Å‚¿j
     float red = 0.1f + 0.05f * sinf(m_time * 2.0f);
     float blue = 0.1f + 0.05f * cosf(m_time * 1.5f);
 
     Renderer::BeginFrame();
     GraphicsDevice::Instance().SetBackBuffer();
-    Renderer::BindDefaultViewport(); // æœªè¨­å®šã ã¨ã‚·ã‚¶ãƒ¼ãŒç©ºã§ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆãŒå…¨ã¦ã‚¯ãƒªãƒƒãƒ—ã•ã‚Œã‚‹
+    Renderer::BindDefaultViewport(); // –¢İ’è‚¾‚ÆƒVƒU[‚ª‹ó‚ÅƒXƒvƒ‰ƒCƒg‚ª‘S‚ÄƒNƒŠƒbƒv‚³‚ê‚é
     GraphicsDevice::Instance().ClearBackBuffer(red, 0.0f, blue, 1.0f);
 
     auto spriteRenderSystem = GameManager::Instance().GetSpriteRenderSystem();
@@ -177,8 +177,8 @@ void TitleScene::Update(float deltaTime)
 
 void TitleScene::Unload()
 {
-    // ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã¯Editor::s_scene(ãƒ’ã‚¨ãƒ©ãƒ«ã‚­ãƒ¼)ãŒæ‰€æœ‰ã™ã‚‹ã€‚æ¬¡ã®ã‚·ãƒ¼ãƒ³ã®Init()ã§Editor::Init()
-    // ã«ã‚ˆã‚Šç©ºã®Sceneã¸å·®ã—æ›¿ã‚ã‚‹æ™‚ã«ä¸€ç·’ã«ç ´æ£„ã•ã‚Œã‚‹ã®ã§ã€ã“ã“ã§Entityã‚’ç›´æ¥æ¶ˆã•ãªã„ã€‚
+    // ƒIƒuƒWƒFƒNƒg‚ÍEditor::s_scene(ƒqƒGƒ‰ƒ‹ƒL[)‚ªŠ—L‚·‚éBŸ‚ÌƒV[ƒ“‚ÌInit()‚ÅEditor::Init()
+    // ‚É‚æ‚è‹ó‚ÌScene‚Ö·‚µ‘Ö‚í‚é‚Éˆê‚É”jŠü‚³‚ê‚é‚Ì‚ÅA‚±‚±‚ÅEntity‚ğ’¼ÚÁ‚³‚È‚¢B
     Editor::ClearSelection();
 
     AudioManager::Instance().StopBGM();

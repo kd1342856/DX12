@@ -1,4 +1,4 @@
-ï»¿#include "../../../../Pch.h"
+#include "../../../../Pch.h"
 #include "RoomArea.h"
 #include "../../../../Framework/Object/GameObject.h"
 #include "../../../../Framework/Manager/Collision/CollisionManager.h"
@@ -61,7 +61,7 @@ void RoomArea::Deserialize(const nlohmann::json& in)
 
 void RoomArea::PreDraw()
 {
-    // AABBã®8é ‚ç‚¹ã‚’ç®—å‡º
+    // AABB‚Ì8’¸“_‚ğZo
     Math::Vector3 c[8] = {
         {m_min.x, m_min.y, m_min.z},
         {m_max.x, m_min.y, m_min.z},
@@ -73,7 +73,7 @@ void RoomArea::PreDraw()
         {m_max.x, m_max.y, m_max.z},
     };
 
-    // ã‚´ãƒ¼ã‚¹ãƒˆã®éƒ¨å±‹ãªã‚‰æ°´è‰²ã€é€šå¸¸ã¯åŠé€æ˜ã®ã‚°ãƒ¬ãƒ¼
+    // ƒS[ƒXƒg‚Ì•”‰®‚È‚ç…FA’Êí‚Í”¼“§–¾‚ÌƒOƒŒ[
     ImU32 color = IM_COL32(150, 150, 150, 100);
 
     auto& ecs = GameManager::Instance().GetECS();
@@ -83,7 +83,7 @@ void RoomArea::PreDraw()
         {
             if (g->GetTargetRoom() == this)
             {
-                color = IM_COL32(100, 200, 255, 255); // ã‚´ãƒ¼ã‚¹ãƒˆã®éƒ¨å±‹ã¯é’ã§å¼·èª¿
+                color = IM_COL32(100, 200, 255, 255); // ƒS[ƒXƒg‚Ì•”‰®‚ÍÂ‚Å‹­’²
             }
             break;
         }
@@ -91,19 +91,19 @@ void RoomArea::PreDraw()
 
     auto& cm = CollisionManager::Instance();
 
-    // åº•é¢ (Y=min) ã®4è¾º
+    // ’ê–Ê (Y=min) ‚Ì4•Ó
     cm.AddDebugLine(c[0], c[1], color);
     cm.AddDebugLine(c[1], c[3], color);
     cm.AddDebugLine(c[3], c[2], color);
     cm.AddDebugLine(c[2], c[0], color);
 
-    // å¤©äº• (Y=max) ã®4è¾º
+    // “Vˆä (Y=max) ‚Ì4•Ó
     cm.AddDebugLine(c[4], c[5], color);
     cm.AddDebugLine(c[5], c[7], color);
     cm.AddDebugLine(c[7], c[6], color);
     cm.AddDebugLine(c[6], c[4], color);
 
-    // ç¸¦4è¾º
+    // c4•Ó
     cm.AddDebugLine(c[0], c[4], color);
     cm.AddDebugLine(c[1], c[5], color);
     cm.AddDebugLine(c[2], c[6], color);
@@ -124,7 +124,7 @@ void RoomArea::ImGuiUpdate()
     }
     if (ImGui::IsItemHovered())
     {
-        ImGui::SetTooltip(u8"è¶³éŸ³ã®ç¨®é¡ã€‚ã©ã®éƒ¨å±‹ã«ã‚‚å…¥ã£ã¦ã„ãªã„å ´æ‰€(å®¶ã®å¤–)ã¯åœŸã«ãªã‚‹");
+        ImGui::SetTooltip(u8"‘«‰¹‚Ìí—ŞB‚Ç‚Ì•”‰®‚É‚à“ü‚Á‚Ä‚¢‚È‚¢êŠ(‰Æ‚ÌŠO)‚Í“y‚É‚È‚é");
     }
 }
 

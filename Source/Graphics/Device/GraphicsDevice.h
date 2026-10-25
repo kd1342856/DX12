@@ -1,4 +1,4 @@
-ï»¿#pragma once
+#pragma once
 #include <mutex>
 #include <array>
 
@@ -20,36 +20,36 @@ class ResourceLifetimeManager;
 class GraphicsDevice
 {
 public:
-    // çµ‚äº†å‡¦ç†ãŒå§‹ã¾ã£ãŸã‹ã©ã†ã‹ã€‚å˜ç´”ãªstatic boolãªã®ã§ã€GraphicsDeviceã®
-    // ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹è‡ªä½“ãŒ(é™çš„ç ´æ£„é †åºã®éƒ½åˆãªã©ã§)æ—¢ã«å£Šã‚Œã¦ã„ã¦ã‚‚ã€ã“ã‚Œã ã‘ã¯å®‰å…¨ã«èª­ã‚ã‚‹ã€‚
-    // GPUResourceã®ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿ãŒã€çµ‚äº†å‡¦ç†ã®å¾Œã«ã©ã®ã‚¿ã‚¤ãƒŸãƒ³ã‚°ã§å‘¼ã°ã‚Œã‚‹ã‹
-    // ç¢ºå®šã§ããªã„ç®‡æ‰€ã‹ã‚‰ã¯ã€m_deviceã«è§¦ã‚‹å‰ã«å¿…ãšã“ã‚Œã‚’ç¢ºèªã™ã‚‹ã“ã¨ã€‚
+    // I—¹ˆ—‚ªn‚Ü‚Á‚½‚©‚Ç‚¤‚©B’Pƒ‚Èstatic bool‚È‚Ì‚ÅAGraphicsDevice‚Ì
+    // ƒCƒ“ƒXƒ^ƒ“ƒX©‘Ì‚ª(Ã“I”jŠü‡˜‚Ì“s‡‚È‚Ç‚Å)Šù‚É‰ó‚ê‚Ä‚¢‚Ä‚àA‚±‚ê‚¾‚¯‚ÍˆÀ‘S‚É“Ç‚ß‚éB
+    // GPUResource‚ÌƒfƒXƒgƒ‰ƒNƒ^‚ªAI—¹ˆ—‚ÌŒã‚É‚Ç‚Ìƒ^ƒCƒ~ƒ“ƒO‚ÅŒÄ‚Î‚ê‚é‚©
+    // Šm’è‚Å‚«‚È‚¢‰ÓŠ‚©‚ç‚ÍAm_device‚ÉG‚é‘O‚É•K‚¸‚±‚ê‚ğŠm”F‚·‚é‚±‚ÆB
     static bool IsShuttingDown()
     {
         return s_isShuttingDown;
     }
 
-    // åˆæœŸåŒ–
+    // ‰Šú‰»
     bool Init(HWND hWnd, int w, int h);
 
-    // æç”»çµ‚äº†
+    // •`‰æI—¹
     void EndFrame();
 
-    // æç”»é–‹å§‹
+    // •`‰æŠJn
     void BeginFrame();
 
 
-    // ãƒ¬ãƒ³ãƒ€ãƒ¼ã‚¿ãƒ¼ã‚²ãƒƒãƒˆè¨­å®š
+    // ƒŒƒ“ƒ_[ƒ^[ƒQƒbƒgİ’è
     void SetRenderTarget(RenderTarget* pRT);
     void TransitionToSRV(RenderTarget* pRT);
-    // RenderTargetå°‚ç”¨ã®æ·±åº¦ãƒãƒƒãƒ•ã‚¡(pRT->GetDepthSRVIndex())ã®çŠ¶æ…‹é·ç§»ã€‚
-    // DEPTH_WRITE(æç”»æ™‚) <-> PIXEL_SHADER_RESOURCE(DOF/SSAO/SSRç­‰ã§èª­ã‚€æ™‚) ã‚’åˆ‡ã‚Šæ›¿ãˆã‚‹ã€‚
+    // RenderTargetê—p‚Ì[“xƒoƒbƒtƒ@(pRT->GetDepthSRVIndex())‚Ìó‘Ô‘JˆÚB
+    // DEPTH_WRITE(•`‰æ) <-> PIXEL_SHADER_RESOURCE(DOF/SSAO/SSR“™‚Å“Ç‚Ş) ‚ğØ‚è‘Ö‚¦‚éB
     void TransitionDepthToSRV(RenderTarget* pRT);
     void TransitionDepthToWrite(RenderTarget* pRT);
     void SetBackBuffer();
     void ClearBackBuffer(float r, float g, float b, float a);
 
-    // ImGuiæç”»(EndFrameå‰ã«å‘¼ã¶)
+    // ImGui•`‰æ(EndFrame‘O‚ÉŒÄ‚Ô)
     void RenderImGui();
 
     // Getter
@@ -107,10 +107,10 @@ public:
     {
         return m_upShadowMap.get();
     }
-    // æœ€ã‚‚è¿‘ã„ãƒã‚¤ãƒ³ãƒˆãƒ©ã‚¤ãƒˆ1ç¯ã®å…¨æ–¹ä½(ã‚­ãƒ¥ãƒ¼ãƒ–)ã‚·ãƒ£ãƒ‰ã‚¦ã€‚6é¢ãã‚Œãã‚Œç‹¬ç«‹ã—ãŸDepthStencil
-    // (TextureCubeãƒªã‚½ãƒ¼ã‚¹ã§ã¯ãªãã€Texture2Dã‚’6æšä½¿ã†ç°¡æ˜“å®Ÿè£… - é€£ç¶šã—ãŸãƒ‡ã‚£ã‚¹ã‚¯ãƒªãƒ—ã‚¿ç¢ºä¿ãŒ
-    // ä¸è¦ã§ã€æ—¢å­˜ã®ShadowShader/DepthStencilã®ä»•çµ„ã¿ã‚’ãã®ã¾ã¾6å›ä½¿ã„å›ã›ã‚‹)ã€‚
-    // face: 0=+X, 1=-X, 2=+Y, 3=-Y, 4=+Z, 5=-Z (LitShader_PS.hlslã®é¢é¸æŠã¨å¯¾å¿œã•ã›ã‚‹ã“ã¨)
+    // Å‚à‹ß‚¢ƒ|ƒCƒ“ƒgƒ‰ƒCƒg1“”‚Ì‘S•ûˆÊ(ƒLƒ…[ƒu)ƒVƒƒƒhƒEB6–Ê‚»‚ê‚¼‚ê“Æ—§‚µ‚½DepthStencil
+    // (TextureCubeƒŠƒ\[ƒX‚Å‚Í‚È‚­ATexture2D‚ğ6–‡g‚¤ŠÈˆÕÀ‘• - ˜A‘±‚µ‚½ƒfƒBƒXƒNƒŠƒvƒ^Šm•Û‚ª
+    // •s—v‚ÅAŠù‘¶‚ÌShadowShader/DepthStencil‚Ìd‘g‚İ‚ğ‚»‚Ì‚Ü‚Ü6‰ñg‚¢‰ñ‚¹‚é)B
+    // face: 0=+X, 1=-X, 2=+Y, 3=-Y, 4=+Z, 5=-Z (LitShader_PS.hlsl‚Ì–Ê‘I‘ğ‚Æ‘Î‰‚³‚¹‚é‚±‚Æ)
     DepthStencil* GetPointLightShadowMapFace(int face) const
     {
         return m_upPointLightShadowMapFaces[face % 6].get();
@@ -142,18 +142,18 @@ public:
         return m_spSpriteBatch.get();
     }
 
-    // çµ‚äº†å‡¦ç†
+    // I—¹ˆ—
     void Shutdown();
     void EnableDebugLayer();
 
-    // D3D12ãƒ‡ãƒãƒƒã‚°ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®æ°¸ç¶šåŒ–ãƒˆã‚°ãƒ«(Debugãƒ“ãƒ«ãƒ‰ã®ã¿)ã€‚ãƒ‡ãƒã‚¤ã‚¹ä½œæˆå‰ã«ã—ã‹
-    // æœ‰åŠ¹/ç„¡åŠ¹ã‚’åˆ‡ã‚Šæ›¿ãˆã‚‰ã‚Œãªã„ãŸã‚ã€æ¬¡å›èµ·å‹•ã¾ã§åæ˜ ã•ã‚Œãªã„
-    // - RendererPanelã®ãƒã‚§ãƒƒã‚¯ãƒœãƒƒã‚¯ã‚¹ã¨Init()å†…ã®ã‚³ãƒ¡ãƒ³ãƒˆã‚’å‚ç…§ã€‚
+    // D3D12ƒfƒoƒbƒOƒŒƒCƒ„[‚Ì‰i‘±‰»ƒgƒOƒ‹(Debugƒrƒ‹ƒh‚Ì‚İ)BƒfƒoƒCƒXì¬‘O‚É‚µ‚©
+    // —LŒø/–³Œø‚ğØ‚è‘Ö‚¦‚ç‚ê‚È‚¢‚½‚ßAŸ‰ñ‹N“®‚Ü‚Å”½‰f‚³‚ê‚È‚¢
+    // - RendererPanel‚Ìƒ`ƒFƒbƒNƒ{ƒbƒNƒX‚ÆInit()“à‚ÌƒRƒƒ“ƒg‚ğQÆB
     static bool IsDebugLayerRequested();
     static void SetDebugLayerRequested(bool enabled);
-    // ã“ã®ã‚»ãƒƒã‚·ãƒ§ãƒ³ã§å®Ÿéš›ã«ãƒ‡ãƒãƒƒã‚°ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒæœ‰åŠ¹ã‹ã©ã†ã‹(Init()ã§ä¸€åº¦ã ã‘æ±ºã¾ã‚‹) -
-    // IsDebugLayerRequested()ã¯ãƒã‚§ãƒƒã‚¯ãƒœãƒƒã‚¯ã‚¹ã®çŠ¶æ…‹ã‚’åæ˜ ã™ã‚‹ã‚‚ã®ã§ã€ãƒ¦ãƒ¼ã‚¶ãƒ¼ãŒ
-    // ä»Šã—ãŒãŸåˆ‡ã‚Šæ›¿ãˆã¦æœªå†èµ·å‹•ã®å ´åˆã¯ã“ã®å€¤ã¨é£Ÿã„é•ã†ã“ã¨ãŒã‚ã‚‹ã€‚
+    // ‚±‚ÌƒZƒbƒVƒ‡ƒ“‚ÅÀÛ‚ÉƒfƒoƒbƒOƒŒƒCƒ„[‚ª—LŒø‚©‚Ç‚¤‚©(Init()‚Åˆê“x‚¾‚¯Œˆ‚Ü‚é) -
+    // IsDebugLayerRequested()‚Íƒ`ƒFƒbƒNƒ{ƒbƒNƒX‚Ìó‘Ô‚ğ”½‰f‚·‚é‚à‚Ì‚ÅAƒ†[ƒU[‚ª
+    // ¡‚µ‚ª‚½Ø‚è‘Ö‚¦‚Ä–¢Ä‹N“®‚Ìê‡‚Í‚±‚Ì’l‚ÆH‚¢ˆá‚¤‚±‚Æ‚ª‚ ‚éB
     static bool IsDebugLayerActive()
     {
         return s_debugLayerActive;
@@ -164,7 +164,7 @@ public:
         return m_upImGuiSRVHeap.Get();
     }
 
-    // SpotShadowMapã¯æœªä½¿ç”¨ã®ãŸã‚å‰Šé™¤æ¸ˆã¿
+    // SpotShadowMap‚Í–¢g—p‚Ì‚½‚ßíœÏ‚İ
     int m_imGuiSrvCount = 1;
 
     std::unique_ptr<DirectX::SpriteBatch> m_spSpriteBatch;
@@ -190,14 +190,14 @@ public:
         Kind,
     };
 
-    // ãƒ‡ãƒã‚¤ã‚¹
+    // ƒfƒoƒCƒX
     Microsoft::WRL::ComPtr<ID3D12Device8> m_pDevice = nullptr;
     Microsoft::WRL::ComPtr<IDXGIFactory6> m_pDxgiFactory = nullptr;
     Microsoft::WRL::ComPtr<IDXGIAdapter3> m_pAdapter3 = nullptr;
 
-    // ã‚³ãƒãƒ³ãƒ‰
+    // ƒRƒ}ƒ“ƒh
 
-    // ã‚¹ãƒ¯ãƒƒãƒ—ãƒã‚§ãƒ¼ãƒ³
+    // ƒXƒƒbƒvƒ`ƒF[ƒ“
     Microsoft::WRL::ComPtr<IDXGISwapChain4> m_pSwapChain = nullptr;
 
     // Number of swap chain back buffers. 3 lets the CPU run ahead of the GPU.
@@ -225,7 +225,7 @@ public:
     std::unique_ptr<Texture> m_spBlackTex = nullptr;
     std::unique_ptr<Texture> m_spNormalTex = nullptr;
 
-    // ImGuiç”¨SRVãƒ’ãƒ¼ãƒ—
+    // ImGui—pSRVƒq[ƒv
     Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_upImGuiSRVHeap = nullptr;
     std::unique_ptr<DirectX::GraphicsMemory> m_graphicsMemory = nullptr;
     float GetVRAMUsageMB();
@@ -237,9 +237,9 @@ private:
     bool CreateSwapChainRTV();
     bool CreateDefaultTextures();
 
-    // SpotShadowMap: æœªä½¿ç”¨ã®ãŸã‚å‰Šé™¤æ¸ˆã¿
+    // SpotShadowMap: –¢g—p‚Ì‚½‚ßíœÏ‚İ
 
-    // ImGuiåˆæœŸåŒ–
+    // ImGui‰Šú‰»
     bool InitImGui();
     void ShutdownImGui();
 

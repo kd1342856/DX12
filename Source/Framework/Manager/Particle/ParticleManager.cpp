@@ -1,4 +1,4 @@
-ï»¿#include "../../../Pch.h"
+#include "../../../Pch.h"
 #include "ParticleManager.h"
 #include "../../../Graphics/Shader/ShaderLibrary.h"
 
@@ -39,7 +39,7 @@ void ParticleManager::Render(RenderContext& context)
     for (const auto& p : m_particles)
     {
         float t = (p.m_life > 0.0f) ? (p.m_age / p.m_life) : 1.0f;
-        // å‡ºãŸç¬é–“ã«ãƒ‘ãƒƒã¨å‡ºãªã„ã‚ˆã†å°‘ã—ã ã‘ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¤ãƒ³ã—ã€å¾ŒåŠã§ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¢ã‚¦ãƒˆã™ã‚‹
+        // o‚½uŠÔ‚Éƒpƒb‚Æo‚È‚¢‚æ‚¤­‚µ‚¾‚¯ƒtƒF[ƒhƒCƒ“‚µAŒã”¼‚ÅƒtƒF[ƒhƒAƒEƒg‚·‚é
         float fadeIn = (std::min)(1.0f, t / 0.1f);
         float fadeOut = 1.0f - (std::max)(0.0f, (t - 0.5f) / 0.5f);
         float alpha = fadeIn * fadeOut;

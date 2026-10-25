@@ -1,21 +1,21 @@
 #include "../Common/ShaderCore.hlsli"
 
-// ãƒ†ã‚¯ã‚¹ãƒãƒ£
-Texture2D g_tex : register(t0); // ãƒ™ãƒ¼ã‚¹ã‚«ãƒ©ãƒ¼ãƒ†ã‚¯ã‚¹ãƒãƒ£
-// ã‚µãƒ³ãƒ—ãƒ©
+// ƒeƒNƒXƒ`ƒƒ
+Texture2D g_tex : register(t0); // ƒx[ƒXƒJƒ‰[ƒeƒNƒXƒ`ƒƒ
+// ƒTƒ“ƒvƒ‰
 //SamplerState g_ss_clamp : register(s1);
 #define g_ss g_ss_linear_clamp
 
 struct PSInput
 {
-    float4 Pos : SV_Position; // å°„å½±åº§æ¨™
-    float2 UV : TEXCOORD0;    // UVåº§æ¨™
+    float4 Pos : SV_Position; // Ë‰eÀ•W
+    float2 UV : TEXCOORD0;    // UVÀ•W
 };
 
 // ACES Filmic ToneMapping
-// HDRã®è‰²ã‚’LDRã«å¤‰æ›ã™ã‚‹
-// x       â€¦ HDRã‚«ãƒ©ãƒ¼(RGB)
-// æˆ»ã‚Šå€¤  â€¦ ToneMapå¾Œã®è‰²
+// HDR‚ÌF‚ğLDR‚É•ÏŠ·‚·‚é
+// x       c HDRƒJƒ‰[(RGB)
+// –ß‚è’l  c ToneMapŒã‚ÌF
 float3 ACESFilmicToneMapping(float3 x)
 {
     const float a = 2.51;
@@ -27,7 +27,7 @@ float3 ACESFilmicToneMapping(float3 x)
     return saturate((x * (a * x + b)) / (x * (c * x + d) + e));
 }
 
-// ACES Filmic ãƒˆãƒ¼ãƒ³ãƒãƒƒãƒ”ãƒ³ã‚°
+// ACES Filmic ƒg[ƒ“ƒ}ƒbƒsƒ“ƒO
 float4 ACESFilmicPS(PSInput In) : SV_Target0
 {
     const float linearExposure = 0.7;

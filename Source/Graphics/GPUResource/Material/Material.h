@@ -1,4 +1,4 @@
-ï»¿#pragma once
+#pragma once
 #include <string>
 #include <memory>
 #include <unordered_map>
@@ -27,19 +27,19 @@ struct MaterialConstants
 
     int alphaMode = 0;           // 0:Opaque, 1:Mask, 2:Blend
     int proceduralType = 0;      // 0:None, 1:Blood, 2:Cobweb, 3:Glass, 4:Dissolve
-    float dissolveAmount = 0.0f; // Dissolveç”¨: 0=é€šå¸¸è¡¨ç¤º, 1=å®Œå…¨ã«æ¶ˆæ»…
+    float dissolveAmount = 0.0f; // Dissolve—p: 0=’Êí•\¦, 1=Š®‘S‚ÉÁ–Å
 
-    // å¹³é¢åå°„(çª“ã‚¬ãƒ©ã‚¹ç­‰ã€proceduralType==3)ãŒã©ã®åå°„ã‚¹ãƒ­ãƒƒãƒˆ(0ã€œ2ã€æœ€å¤§3æšã¾ã§åŒæ™‚)ã‚’
-    // ä½¿ã†ã‹ã€‚RenderSystem::RenderReflection()ãŒæ¯ãƒ•ãƒ¬ãƒ¼ãƒ ã€ã‚¢ã‚¯ãƒ†ã‚£ãƒ–ãªReflectionComponent
-    // ã®åˆ†ã ã‘å‹•çš„ã«å‰²ã‚Šå½“ã¦ã‚‹(-1=ã“ã®ãƒ•ãƒ¬ãƒ¼ãƒ ã¯å°‚ç”¨ã‚«ãƒ¡ãƒ©ã®åå°„ãŒç„¡ã„â†’SSRãƒ•ã‚©ãƒ¼ãƒ«ãƒãƒƒã‚¯)ã€‚
+    // •½–Ê”½Ë(‘‹ƒKƒ‰ƒX“™AproceduralType==3)‚ª‚Ç‚Ì”½ËƒXƒƒbƒg(0`2AÅ‘å3–‡‚Ü‚Å“¯)‚ğ
+    // g‚¤‚©BRenderSystem::RenderReflection()‚ª–ˆƒtƒŒ[ƒ€AƒAƒNƒeƒBƒu‚ÈReflectionComponent
+    // ‚Ì•ª‚¾‚¯“®“I‚ÉŠ„‚è“–‚Ä‚é(-1=‚±‚ÌƒtƒŒ[ƒ€‚Íê—pƒJƒƒ‰‚Ì”½Ë‚ª–³‚¢¨SSRƒtƒH[ƒ‹ƒoƒbƒN)B
     int32_t reflectionSlot = -1;
 
-    // è¶³å…ƒã‹ã‚‰ã®ãƒ‡ã‚£ã‚¾ãƒ«ãƒ–(proceduralType==5ã€‚ä»Šã¯SkinningShaderã ã‘ãŒå¯¾å¿œ - é™¤éœŠã•ã‚ŒãŸã‚´ãƒ¼ã‚¹ãƒˆç­‰)ã€‚
-    // ãƒ¯ãƒ¼ãƒ«ãƒ‰åº§æ¨™ã®YãŒdissolveHeightã‚ˆã‚Šä¸‹ã‚’æ¶ˆã—ã€ãã®å¢ƒç•Œã®ã™ãä¸Šã‚’dissolveEdgeColor(HDR)ã§å…‰ã‚‰ã›ã‚‹ã€‚
-    // HLSLã®ãƒ‘ãƒƒã‚­ãƒ³ã‚°ã«åˆã‚ã›ã¦float3ã‚’å…ˆã«ç½®ã(16byteå¢ƒç•Œã‚’ã¾ãŸãŒãªã„ã‚ˆã†ã«)ã€‚
+    // ‘«Œ³‚©‚ç‚ÌƒfƒBƒ]ƒ‹ƒu(proceduralType==5B¡‚ÍSkinningShader‚¾‚¯‚ª‘Î‰ - œ—ì‚³‚ê‚½ƒS[ƒXƒg“™)B
+    // ƒ[ƒ‹ƒhÀ•W‚ÌY‚ªdissolveHeight‚æ‚è‰º‚ğÁ‚µA‚»‚Ì‹«ŠE‚Ì‚·‚®ã‚ğdissolveEdgeColor(HDR)‚ÅŒõ‚ç‚¹‚éB
+    // HLSL‚ÌƒpƒbƒLƒ“ƒO‚É‡‚í‚¹‚Äfloat3‚ğæ‚É’u‚­(16byte‹«ŠE‚ğ‚Ü‚½‚ª‚È‚¢‚æ‚¤‚É)B
     Math::Vector3 dissolveEdgeColor = {0.0f, 0.0f, 0.0f};
     float dissolveHeight = 0.0f;
-    float dissolveEdgeWidth = 0.15f; // å…‰ã‚‹å¸¯ã®å¹…ã¨ã€å¢ƒç•Œã®ã‚®ã‚¶ã‚®ã‚¶ã®å¤§ãã•(m)
+    float dissolveEdgeWidth = 0.15f; // Œõ‚é‘Ñ‚Ì•‚ÆA‹«ŠE‚ÌƒMƒUƒMƒU‚Ì‘å‚«‚³(m)
 };
 
 class Material

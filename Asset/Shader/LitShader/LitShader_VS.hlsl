@@ -1,26 +1,26 @@
 #include "LitShader.hlsli"
 
 //-------------------------------
-// é ‚ç‚¹ã‚·ã‚§ãƒ¼ãƒ€
+// ’¸“_ƒVƒF[ƒ_
 //================================
 
-// é ‚ç‚¹ã‚·ã‚§ãƒ¼ãƒ€
-VSOutput main(float3 pos : POSITION,                                                           // é ‚ç‚¹åº§æ¨™
-                           float2 uv : TEXCOORD0,                                              // ãƒ†ã‚¯ã‚¹ãƒãƒ£UVåº§æ¨™
-                                       float3 normal : NORMAL,                                 // æ³•ç·šãƒ™ã‚¯ãƒˆãƒ«
-                                                       float4 color : COLOR,                   // é ‚ç‚¹ã‚«ãƒ©ãƒ¼
-                                                                      float3 tangent : TANGENT // æ¥ç·šãƒ™ã‚¯ãƒˆãƒ«
+// ’¸“_ƒVƒF[ƒ_
+VSOutput main(float3 pos : POSITION,                                                           // ’¸“_À•W
+                           float2 uv : TEXCOORD0,                                              // ƒeƒNƒXƒ`ƒƒUVÀ•W
+                                       float3 normal : NORMAL,                                 // –@üƒxƒNƒgƒ‹
+                                                       float4 color : COLOR,                   // ’¸“_ƒJƒ‰[
+                                                                      float3 tangent : TANGENT // ÚüƒxƒNƒgƒ‹
 )
 {
     VSOutput Out;
 
-    // å¤‰æ›
+    // •ÏŠ·
     float4x4 mVP = mul(g_mV, g_mP);
     float4x4 mWVP = mul(g_mW, mVP);
-    Out.Pos = mul(float4(pos, 1.0f), mWVP); // ãƒ­ãƒ¼ã‚«ãƒ«åº§æ¨™ -> æŠ•å½±åº§æ¨™ã¸ä¸€æ‹¬å¤‰æ›
+    Out.Pos = mul(float4(pos, 1.0f), mWVP); // ƒ[ƒJƒ‹À•W -> “Š‰eÀ•W‚ÖˆêŠ‡•ÏŠ·
     Out.wPos = mul(float4(pos, 1.0f), g_mW).xyz;
 
-    // æ³•ç·š
+    // –@ü
     float3 t = mul(tangent, (float3x3)g_mW);
     float3 n = mul(normal, (float3x3)g_mW);
     if (dot(t, t) < 0.0001)
@@ -41,32 +41,32 @@ VSOutput main(float3 pos : POSITION,                                            
     }
     Out.wB = normalize(b);
 
-    // UVåº§æ¨™
+    // UVÀ•W
     Out.UV = uv;
 
-    // å‡ºåŠ›
+    // o—Í
     return Out;
 }
 
 //-------------------------------
-// ã‚·ãƒ£ãƒ‰ã‚¦ãƒãƒƒãƒ—ç”Ÿæˆç”¨ é ‚ç‚¹ã‚·ã‚§ãƒ¼ãƒ€
+// ƒVƒƒƒhƒEƒ}ƒbƒv¶¬—p ’¸“_ƒVƒF[ƒ_
 //-------------------------------
-ShadowCasterVSOutput ShadowCasterVS(float4 pos : POSITION,             // é ‚ç‚¹åº§æ¨™
-                                                 float2 uv : TEXCOORD0 // ãƒ†ã‚¯ã‚¹ãƒãƒ£UVåº§æ¨™
+ShadowCasterVSOutput ShadowCasterVS(float4 pos : POSITION,             // ’¸“_À•W
+                                                 float2 uv : TEXCOORD0 // ƒeƒNƒXƒ`ƒƒUVÀ•W
 )
 {
     ShadowCasterVSOutput Out;
 
-    // å¤‰æ›
+    // •ÏŠ·
     float4x4 mVP = mul(g_mV, g_mP);
     float4x4 mWVP = mul(g_mW, mVP);
-    Out.Pos = mul(pos, mWVP); // ãƒ­ãƒ¼ã‚«ãƒ«åº§æ¨™ -> æŠ•å½±åº§æ¨™ã¸ä¸€æ‹¬å¤‰æ›
+    Out.Pos = mul(pos, mWVP); // ƒ[ƒJƒ‹À•W -> “Š‰eÀ•W‚ÖˆêŠ‡•ÏŠ·
 
     Out.wvpPos = Out.Pos;
 
-    // UVåº§æ¨™
+    // UVÀ•W
     Out.UV = uv;
 
-    // å‡ºåŠ›
+    // o—Í
     return Out;
 }

@@ -1,10 +1,10 @@
 #include "LitShader.hlsli"
 
 //-------------------------------
-// ãƒ”ã‚¯ã‚»ãƒ«ã‚·ã‚§ãƒ¼ãƒ€
+// ƒsƒNƒZƒ‹ƒVƒF[ƒ_
 //-------------------------------
 
-// ç°¡æ˜“ç‰ˆ Value Noise (HLSL)
+// ŠÈˆÕ”Å Value Noise (HLSL)
 float Hash21(float2 p)
 {
     return frac(sin(dot(p, float2(12.9898, 78.233))) * 43758.5453);
@@ -22,7 +22,7 @@ float Noise2D(float2 p)
 
 float Noise1D(float x)
 {
-    // å‘¨æ³¢æ•°ã‚’ä¸‹ã’ã¦ç ‚åµã«ãªã‚‰ãªã„ã‚ˆã†ã«ã™ã‚‹
+    // ü”g”‚ğ‰º‚°‚Ä»—’‚É‚È‚ç‚È‚¢‚æ‚¤‚É‚·‚é
     return frac(sin(x * 12.71) * 437.585453);
 }
 
@@ -31,40 +31,40 @@ float ComputeCrackMask(float2 localUV, float randBase)
     float dist = length(localUV);
     float angle = atan2(localUV.y, localUV.x);
 
-    // è§’åº¦ã‚’ä¸è¦å‰‡ã«æ­ªã¾ã›ã‚‹ï¼ˆæ»‘ã‚‰ã‹ãªNoise2Dã‚’ä½¿ç”¨ã—ã€ãƒ”ã‚¯ã‚»ãƒ«é–“ã§å€¤ãŒé£›ã°ãªã„ã‚ˆã†ã«ã™ã‚‹ï¼‰
+    // Šp“x‚ğ•s‹K‘¥‚É˜c‚Ü‚¹‚éiŠŠ‚ç‚©‚ÈNoise2D‚ğg—p‚µAƒsƒNƒZƒ‹ŠÔ‚Å’l‚ª”ò‚Î‚È‚¢‚æ‚¤‚É‚·‚éj
     float angleWarp = (Noise2D(float2(angle * 2.0, randBase)) - 0.5) * 2.0;
     float warpedAngle = angle + angleWarp;
 
-    // è·é›¢ã‚’ä¸è¦å‰‡ã«æ­ªã¾ã›ã‚‹ï¼ˆæ»‘ã‚‰ã‹ãªNoise2Dã‚’ä½¿ç”¨ï¼‰
+    // ‹——£‚ğ•s‹K‘¥‚É˜c‚Ü‚¹‚éiŠŠ‚ç‚©‚ÈNoise2D‚ğg—pj
     float distWarp = (Noise2D(float2(angle * 1.5, randBase + 10.0)) - 0.5) * 0.3;
     float warpedDist = dist + distWarp;
 
-    // â‘  æ”¾å°„çŠ¶ã®ã²ã³(è¡æ’ƒç‚¹ã‹ã‚‰å¤–ã¸)
+    // ‡@ •úËó‚Ì‚Ğ‚Ñ(ÕŒ‚“_‚©‚çŠO‚Ö)
     float spokes = lerp(40.0, 70.0, randBase);
     float spokeNoise = (Noise2D(float2(warpedDist * 2.0, randBase * 10.0)) - 0.5) * 0.15;
     float spokeFrac = frac(warpedAngle / (2.0 * 3.14159265) * spokes + spokeNoise);
     float spokeDist = min(spokeFrac, 1.0 - spokeFrac);
-    // ç¶ºéº—ãªå††å½¢ã§ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¢ã‚¦ãƒˆã—ãªã„ã‚ˆã†ã« warpedDist ã‚’ä½¿ã†
+    // ãY—í‚È‰~Œ`‚ÅƒtƒF[ƒhƒAƒEƒg‚µ‚È‚¢‚æ‚¤‚É warpedDist ‚ğg‚¤
     float outerFade = smoothstep(0.45, 0.05, warpedDist);
 
-    // ç©´ã®å½¢ã‚’æ¿€ã—ãæ­ªã¾ã›ã‚‹ï¼ˆè§’åº¦ã«ã‚ˆã‚‹å¤§ããªæ­ªã¿ï¼‹UVã«ã‚ˆã‚‹ç´°ã‹ã„ã‚®ã‚¶ã‚®ã‚¶ï¼‰
+    // ŒŠ‚ÌŒ`‚ğŒƒ‚µ‚­˜c‚Ü‚¹‚éiŠp“x‚É‚æ‚é‘å‚«‚È˜c‚İ{UV‚É‚æ‚é×‚©‚¢ƒMƒUƒMƒUj
     float holeDist = dist + (Noise2D(float2(angle * 3.0, randBase * 5.0)) - 0.5) * 0.06 + (Noise2D(localUV * 30.0) - 0.5) * 0.03;
 
-    // ç©´ã®ç¸(holeRadius=0.05ä»˜è¿‘)ã‹ã‚‰è‡ªç„¶ã«ãƒ’ãƒ“ãŒç™ºç”Ÿã™ã‚‹ã‚ˆã†ã«ã™ã‚‹
+    // ŒŠ‚Ì‰(holeRadius=0.05•t‹ß)‚©‚ç©‘R‚Éƒqƒr‚ª”­¶‚·‚é‚æ‚¤‚É‚·‚é
     float innerFade = smoothstep(0.04, 0.07, holeDist);
     float radialFade = outerFade * innerFade;
-    // ç·šã¯å°‘ã—å¤ªã‚ã«ï¼ˆ0.015ï¼‰ã—ã¦ã‚¨ã‚¤ãƒªã‚¢ã‚·ãƒ³ã‚°ã‚’é˜²ã
+    // ü‚Í­‚µ‘¾‚ß‚Éi0.015j‚µ‚ÄƒGƒCƒŠƒAƒVƒ“ƒO‚ğ–h‚®
     float radialCrack = smoothstep(0.015, 0.002, spokeDist) * radialFade;
 
-    // â‘¡ åŒå¿ƒå††çŠ¶ã®ã²ã³(ä¸­å¿ƒä»˜è¿‘ã ã‘ç´°ã‹ã)
+    // ‡A “¯S‰~ó‚Ì‚Ğ‚Ñ(’†S•t‹ß‚¾‚¯×‚©‚­)
     float rings = lerp(20.0, 40.0, frac(randBase * 13.0));
     float ringNoise = (Noise2D(float2(warpedAngle * 3.0, randBase * 7.0)) - 0.5) * 0.8;
     float ringFrac = frac(warpedDist * rings - ringNoise);
     float ringDist = min(ringFrac, 1.0 - ringFrac);
-    // ã“ã¡ã‚‰ã‚‚ç·šã‚’å°‘ã—å¤ªã‚ã« (0.02)
+    // ‚±‚¿‚ç‚àü‚ğ­‚µ‘¾‚ß‚É (0.02)
     float ringCrack = smoothstep(0.02, 0.002, ringDist) * smoothstep(0.4, 0.0, warpedDist) * innerFade;
 
-    // â‘¢ å…¨ä½“ã®ã‚¸ãƒ£ã‚®ãƒ¼ãƒã‚¤ã‚º(ç·šã‚’æ±šã™)
+    // ‡B ‘S‘Ì‚ÌƒWƒƒƒM[ƒmƒCƒY(ü‚ğ‰˜‚·)
     float jitter = Noise2D(localUV * 5.0);
     float crack = saturate(radialCrack + ringCrack);
     crack *= lerp(0.8, 1.0, jitter);
@@ -79,7 +79,7 @@ float LinearizeDepth(float depth)
     return viewSpace.z / viewSpace.w;
 }
 
-// Opaqueãƒ‘ã‚¹ã®æ·±åº¦ã‹ã‚‰ã€ãã®ã‚¹ã‚¯ãƒªãƒ¼ãƒ³UVã«ã‚ã‚‹ã‚·ãƒ¼ãƒ³è¡¨é¢ã®ãƒ“ãƒ¥ãƒ¼ç©ºé–“Zã‚’æ±‚ã‚ã‚‹
+// OpaqueƒpƒX‚Ì[“x‚©‚çA‚»‚ÌƒXƒNƒŠ[ƒ“UV‚É‚ ‚éƒV[ƒ“•\–Ê‚Ìƒrƒ…[‹óŠÔZ‚ğ‹‚ß‚é
 float SampleOpaqueViewZ(float2 uv)
 {
     int2 px = min(int2(uv * float2(g_ScreenWidth, g_ScreenHeight)), int2(g_ScreenWidth - 1, g_ScreenHeight - 1));
@@ -87,22 +87,22 @@ float SampleOpaqueViewZ(float2 uv)
 }
 
 //------------------------------------------
-// SSR (ã‚¹ã‚¯ãƒªãƒ¼ãƒ³ã‚¹ãƒšãƒ¼ã‚¹åå°„)
+// SSR (ƒXƒNƒŠ[ƒ“ƒXƒy[ƒX”½Ë)
 //------------------------------------------
-// å¹³é¢åå°„(g_planarReflectionMap)ãŒç„¡ã„å ´åˆã®ãƒ•ã‚©ãƒ¼ãƒ«ãƒãƒƒã‚¯ã€‚å°‚ç”¨ã®G-Bufferãƒ‘ã‚¹ã‚’
-// å¢—ã‚„ã•ãšã€Opaqueãƒ‘ã‚¹ã®æ·±åº¦(g_opaqueDepth)ã¨ã‚«ãƒ©ãƒ¼(g_refractionMap)ã ã‘ã‚’ãƒ“ãƒ¥ãƒ¼ç©ºé–“ã§
-// ãƒ¬ã‚¤ãƒãƒ¼ãƒã—ã¦åå°„å…ˆã‚’æ¢ã™ã€‚ã‚¬ãƒ©ã‚¹ç­‰ã€Blendãƒ‘ã‚¹ã®æè³ªã«ã®ã¿ä½¿ã†æƒ³å®š(Opaqueæè³ªã¯
-// è‡ªåˆ†è‡ªèº«ãŒã¾ã æç”»ã•ã‚Œã¦ã„ãªã„ãŸã‚ã€ãƒ•ã‚©ãƒ¯ãƒ¼ãƒ‰ãƒ¬ãƒ³ãƒ€ãƒ©ãƒ¼ã§ã¯ã“ã®æ‰‹æ³•ã¯ä½¿ãˆãªã„)ã€‚
+// •½–Ê”½Ë(g_planarReflectionMap)‚ª–³‚¢ê‡‚ÌƒtƒH[ƒ‹ƒoƒbƒNBê—p‚ÌG-BufferƒpƒX‚ğ
+// ‘‚â‚³‚¸AOpaqueƒpƒX‚Ì[“x(g_opaqueDepth)‚ÆƒJƒ‰[(g_refractionMap)‚¾‚¯‚ğƒrƒ…[‹óŠÔ‚Å
+// ƒŒƒCƒ}[ƒ`‚µ‚Ä”½Ëæ‚ğ’T‚·BƒKƒ‰ƒX“™ABlendƒpƒX‚ÌŞ¿‚É‚Ì‚İg‚¤‘z’è(OpaqueŞ¿‚Í
+// ©•ª©g‚ª‚Ü‚¾•`‰æ‚³‚ê‚Ä‚¢‚È‚¢‚½‚ßAƒtƒHƒ[ƒhƒŒƒ“ƒ_ƒ‰[‚Å‚Í‚±‚Ìè–@‚Íg‚¦‚È‚¢)B
 bool TraceSSR(float3 viewPos, float3 viewNormal, out float3 hitColor)
 {
     hitColor = 0;
 
-    float3 viewDir = normalize(viewPos); // ã‚«ãƒ¡ãƒ©(è¦–ç‚¹ç©ºé–“åŸç‚¹)ã‹ã‚‰è¡¨é¢ã¸å‘ã‹ã†æ–¹å‘
+    float3 viewDir = normalize(viewPos); // ƒJƒƒ‰(‹“_‹óŠÔŒ´“_)‚©‚ç•\–Ê‚ÖŒü‚©‚¤•ûŒü
     float3 reflectDir = reflect(viewDir, viewNormal);
-    // æ­£é¢ã‹ã‚‰è¦‹ãŸçª“ã»ã©ã€åå°„ã¯ã‚«ãƒ¡ãƒ©å´(ZãŒå°ã•ããªã‚‹æ–¹å‘)ã¸è·³ã­è¿”ã‚‹ã®ãŒæ­£ã—ã„ - ã“ã‚Œã‚’
-    // ã€Œã‚«ãƒ¡ãƒ©ã®è£å´ã¸æŠœã‘ã‚‹ãƒ¬ã‚¤ã€ã¨èª¤åˆ¤å®šã—ã¦å¼¾ã„ã¦ã„ãŸã®ãŒå…ƒã®ãƒã‚°(åå°„ãŒå…¨ãæ›²ãŒã‚‰ãš
-    // ç´ é€šã‚Šã—ã¦è¦‹ãˆã¦ã„ãŸåŸå› )ã€‚å®Ÿéš›ã«å¼¾ãã¹ããªã®ã¯ã€ãƒãƒ¼ãƒä¸­ã«ã‚«ãƒ¡ãƒ©ã‚’é€šã‚Šéãã¦ã—ã¾ã†
-    // ã‚±ãƒ¼ã‚¹ã ã‘ãªã®ã§ã€ãã‚Œã¯ãƒ«ãƒ¼ãƒ—å†…ã®Zãƒã‚§ãƒƒã‚¯ã§æ‰±ã†ã€‚
+    // ³–Ê‚©‚çŒ©‚½‘‹‚Ù‚ÇA”½Ë‚ÍƒJƒƒ‰‘¤(Z‚ª¬‚³‚­‚È‚é•ûŒü)‚Ö’µ‚Ë•Ô‚é‚Ì‚ª³‚µ‚¢ - ‚±‚ê‚ğ
+    // uƒJƒƒ‰‚Ì— ‘¤‚Ö”²‚¯‚éƒŒƒCv‚ÆŒë”»’è‚µ‚Ä’e‚¢‚Ä‚¢‚½‚Ì‚ªŒ³‚ÌƒoƒO(”½Ë‚ª‘S‚­‹È‚ª‚ç‚¸
+    // ‘f’Ê‚è‚µ‚ÄŒ©‚¦‚Ä‚¢‚½Œ´ˆö)BÀÛ‚É’e‚­‚×‚«‚È‚Ì‚ÍAƒ}[ƒ`’†‚ÉƒJƒƒ‰‚ğ’Ê‚è‰ß‚¬‚Ä‚µ‚Ü‚¤
+    // ƒP[ƒX‚¾‚¯‚È‚Ì‚ÅA‚»‚ê‚Íƒ‹[ƒv“à‚ÌZƒ`ƒFƒbƒN‚Åˆµ‚¤B
 
     const int kMaxSteps = 24;
     const float kStepSize = g_SSRStepSize;
@@ -114,7 +114,7 @@ bool TraceSSR(float3 viewPos, float3 viewNormal, out float3 hitColor)
         rayPos += reflectDir * kStepSize;
         if (rayPos.z <= 0.01)
         {
-            break; // ã‚«ãƒ¡ãƒ©ã‚’é€šã‚ŠéããŸ(è¦–éŒå°ã®è£å´ã«å‡ºãŸ)
+            break; // ƒJƒƒ‰‚ğ’Ê‚è‰ß‚¬‚½(‹‘ä‚Ì— ‘¤‚Éo‚½)
         }
 
         float4 clip = mul(float4(rayPos, 1.0), g_mP);
@@ -131,15 +131,15 @@ bool TraceSSR(float3 viewPos, float3 viewNormal, out float3 hitColor)
 
         float sceneViewZ = SampleOpaqueViewZ(uv);
 
-        // å·¦æ‰‹ç³»: ZãŒå¤§ãã„ã»ã©å¥¥ã€‚ãƒãƒ¼ãƒä¸­ã®ç‚¹ãŒå®Ÿéš›ã®ã‚·ãƒ¼ãƒ³è¡¨é¢ã‚ˆã‚Šå¥¥ã¾ã§é€²ã‚“ã ã‚‰
-        // ãã“ã«ãƒ’ãƒƒãƒˆã—ãŸã¨ã¿ãªã™ã€‚ãŸã ã—è¡¨é¢ã‚ˆã‚Šãšã£ã¨å¥¥ã¾ã§æŠœã‘ã¦ã„ã‚‹å ´åˆã¯ã€æ‰‹å‰ã®
-        // ç´°ã„ç‰©ä½“(ç´ã®ã¤ã¾ã¿ç­‰)ã®ã€Œè£å´ã€ã‚’é€šéã—ãŸã ã‘ãªã®ã§å½“ãŸã‚Šã«ã—ãªã„(åšã¿ãƒã‚§ãƒƒã‚¯)ã€‚
-        // ã“ã‚ŒãŒç„¡ã„ã¨å‘¨å›²ã®ãƒ”ã‚¯ã‚»ãƒ«ã®ãƒ¬ã‚¤ãŒå…¨éƒ¨åŒã˜ç‰©ä½“ã‚’æ‹¾ã„ã€ã‚¹ãƒ†ãƒƒãƒ—é–“éš”ã§ãã®ç‰©ä½“ã®
-        // ã‚³ãƒ”ãƒ¼ãŒçª“ã«ä½•å€‹ã‚‚ä¸¦ã‚“ã§æ˜ ã£ã¦ã„ãŸ(SSROpaque_PS.hlslã¨åŒã˜å¯¾ç­–)ã€‚
+        // ¶èŒn: Z‚ª‘å‚«‚¢‚Ù‚Ç‰œBƒ}[ƒ`’†‚Ì“_‚ªÀÛ‚ÌƒV[ƒ“•\–Ê‚æ‚è‰œ‚Ü‚Åi‚ñ‚¾‚ç
+        // ‚»‚±‚Éƒqƒbƒg‚µ‚½‚Æ‚İ‚È‚·B‚½‚¾‚µ•\–Ê‚æ‚è‚¸‚Á‚Æ‰œ‚Ü‚Å”²‚¯‚Ä‚¢‚éê‡‚ÍAè‘O‚Ì
+        // ×‚¢•¨‘Ì(•R‚Ì‚Â‚Ü‚İ“™)‚Ìu— ‘¤v‚ğ’Ê‰ß‚µ‚½‚¾‚¯‚È‚Ì‚Å“–‚½‚è‚É‚µ‚È‚¢(Œú‚İƒ`ƒFƒbƒN)B
+        // ‚±‚ê‚ª–³‚¢‚ÆüˆÍ‚ÌƒsƒNƒZƒ‹‚ÌƒŒƒC‚ª‘S•”“¯‚¶•¨‘Ì‚ğE‚¢AƒXƒeƒbƒvŠÔŠu‚Å‚»‚Ì•¨‘Ì‚Ì
+        // ƒRƒs[‚ª‘‹‚É‰½ŒÂ‚à•À‚ñ‚Å‰f‚Á‚Ä‚¢‚½(SSROpaque_PS.hlsl‚Æ“¯‚¶‘Îô)B
         float depthDiff = rayPos.z - sceneViewZ;
         if (depthDiff >= 0.0 && depthDiff < kStepSize * 2.0)
         {
-            // 1ã‚¹ãƒ†ãƒƒãƒ—åˆ†ã®åŒºé–“ã‚’äºŒåˆ†æ¢ç´¢ã—ã¦äº¤ç‚¹ã‚’è©°ã‚ã‚‹(ã‚¹ãƒ†ãƒƒãƒ—çŠ¶ã®æ®µå·®ã‚’æ¶ˆã™)
+            // 1ƒXƒeƒbƒv•ª‚Ì‹æŠÔ‚ğ“ñ•ª’Tõ‚µ‚ÄŒğ“_‚ğ‹l‚ß‚é(ƒXƒeƒbƒvó‚Ì’i·‚ğÁ‚·)
             float3 lo = rayPos - reflectDir * kStepSize;
             float3 hi = rayPos;
             [unroll]
@@ -160,7 +160,7 @@ bool TraceSSR(float3 viewPos, float3 viewNormal, out float3 hitColor)
             clip = mul(float4(hi, 1.0), g_mP);
             uv = (clip.xy / clip.w) * float2(0.5, -0.5) + 0.5;
 
-            // ç”»é¢ç«¯ã§ã®ãƒ–ãƒ„åˆ‡ã‚Œã‚’é¿ã‘ã‚‹ãŸã‚ã€UVã®ç«¯ã§ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¢ã‚¦ãƒˆã•ã›ã‚‹
+            // ‰æ–Ê’[‚Å‚ÌƒuƒcØ‚ê‚ğ”ğ‚¯‚é‚½‚ßAUV‚Ì’[‚ÅƒtƒF[ƒhƒAƒEƒg‚³‚¹‚é
             float2 edgeFade = saturate((0.5 - abs(uv - 0.5)) * 8.0);
             float fade = edgeFade.x * edgeFade.y;
             if (fade <= 0.0)
@@ -175,21 +175,21 @@ bool TraceSSR(float3 viewPos, float3 viewNormal, out float3 hitColor)
     return false;
 }
 
-// ãƒ”ã‚¯ã‚»ãƒ«ã‚·ã‚§ãƒ¼ãƒ€
+// ƒsƒNƒZƒ‹ƒVƒF[ƒ_
 PSOutput main(VSOutput In) : SV_Target0
 {
     PSOutput Out = (PSOutput)0; //
 
-    // Dissolveç”¨: ãƒ‡ã‚£ã‚¾ãƒ«ãƒ–ã®ç¸ãŒç™ºå…‰ã™ã‚‹é‡(0=ç„¡ã—)ã€‚ãƒ—ãƒ­ã‚·ãƒ¼ã‚¸ãƒ£ãƒ«åˆ†å²å†…ã§è¨­å®šã—ã€
-    // ã‚¨ãƒŸãƒƒã‚·ãƒ–ã¨åŒã˜ã‚¿ã‚¤ãƒŸãƒ³ã‚°ã§åŠ ç®—ã™ã‚‹(å½±ã®ä¸­ã§ã‚‚å…‰ã£ã¦è¦‹ãˆã‚‹ã‚ˆã†ã«)ã€‚
+    // Dissolve—p: ƒfƒBƒ]ƒ‹ƒu‚Ì‰‚ª”­Œõ‚·‚é—Ê(0=–³‚µ)BƒvƒƒV[ƒWƒƒƒ‹•ªŠò“à‚Åİ’è‚µA
+    // ƒGƒ~ƒbƒVƒu‚Æ“¯‚¶ƒ^ƒCƒ~ƒ“ƒO‚Å‰ÁZ‚·‚é(‰e‚Ì’†‚Å‚àŒõ‚Á‚ÄŒ©‚¦‚é‚æ‚¤‚É)B
     float dissolveEdgeGlow = 0;
 
-    // ã‚«ãƒ¡ãƒ©ã¸ã®æ–¹å‘
+    // ƒJƒƒ‰‚Ö‚Ì•ûŒü
     float3 vCam = g_CamPos - In.wPos;
-    float camDist = length(vCam); // ã‚«ãƒ¡ãƒ© - ãƒ”ã‚¯ã‚»ãƒ«è·é›¢
+    float camDist = length(vCam); // ƒJƒƒ‰ - ƒsƒNƒZƒ‹‹——£
     vCam = normalize(vCam);
 
-    // æ³•ç·š
+    // –@ü
     float3x3 mTBN =
         {
             normalize(In.wT),
@@ -209,29 +209,29 @@ PSOutput main(VSOutput In) : SV_Target0
     float NdotV = saturate(dot(wN, vCam));
 
     //------------------------------------------
-    // æè³ªè‰²
+    // Ş¿F
     //------------------------------------------
 
-    // Specular coefficiant - éé‡‘å±å›ºå®šåå°„
+    // Specular coefficiant - ”ñ‹à‘®ŒÅ’è”½Ë
     static const float3 kSpecularCoefficient = float3(0.04, 0.04, 0.04);
 
     float4 mr = g_metallicRoughnessMap_white.Sample(g_ss_aniso_wrap, In.UV);
-    // é‡‘å±æ€§ (B channel)
+    // ‹à‘®« (B channel)
     float metallic = mr.b * g_metallicFactor;
-    // ç²—ã• (G channel)
+    // ‘e‚³ (G channel)
     float roughness = mr.g * g_roughnessFactor;
-    // ãƒ©ãƒ•ãƒã‚¹ã®2ä¹—ã—ãŸã»ã†ãŒã€æ„Ÿè¦šçš„ã«ãƒªãƒ‹ã‚¢ã«è¦‹ãˆã‚‹ã‚‰ã—ã„
+    // ƒ‰ƒtƒlƒX‚Ì2æ‚µ‚½‚Ù‚¤‚ªAŠ´Šo“I‚ÉƒŠƒjƒA‚ÉŒ©‚¦‚é‚ç‚µ‚¢
     const float roughness2 = roughness * roughness;
 
-    // æè³ªã®è‰²
+    // Ş¿‚ÌF
     float4 baseColor = g_baseMap_white.Sample(g_ss_aniso_wrap, In.UV) * g_baseColorFactor;
 
-    // ãƒ—ãƒ­ã‚·ãƒ¼ã‚¸ãƒ£ãƒ«ãƒ‡ã‚«ãƒ¼ãƒ«
+    // ƒvƒƒV[ƒWƒƒƒ‹ƒfƒJ[ƒ‹
     if (g_proceduralType == 1) // Blood
     {
-        float2 uv = In.UV * 2.0 - 1.0; // -1..1ã«æ­£è¦åŒ–
-        float n1 = Noise2D(uv * 3.0);  // å¤§ããªæŸ“ã¿ã®å½¢
-        float n2 = Noise2D(uv * 14.0); // ç´°ã‹ã„ã«ã˜ã¿
+        float2 uv = In.UV * 2.0 - 1.0; // -1..1‚É³‹K‰»
+        float n1 = Noise2D(uv * 3.0);  // ‘å‚«‚Èõ‚İ‚ÌŒ`
+        float n2 = Noise2D(uv * 14.0); // ×‚©‚¢‚É‚¶‚İ
         float mask = n1 * 0.55 + n2 * 0.45;
 
         float alpha = smoothstep(0.45, 0.62, mask);
@@ -241,80 +241,80 @@ PSOutput main(VSOutput In) : SV_Target0
         float sceneZ = LinearizeDepth(opaqueDepth);
         float pixelZ = LinearizeDepth(In.Pos.z);
         float diffZ = abs(sceneZ - pixelZ);
-        float depthFade = saturate(diffZ / 0.5); // 0.5m ã®ç¯„å›²ã§ãƒ•ã‚§ãƒ¼ãƒ‰
+        float depthFade = saturate(diffZ / 0.5); // 0.5m ‚Ì”ÍˆÍ‚ÅƒtƒF[ƒh
         alpha *= depthFade;
 
         float3 bColor = lerp(float3(0.05, 0.0, 0.0), float3(0.28, 0.02, 0.02), mask);
 
         baseColor = float4(bColor, alpha);
         metallic = 0.2;
-        roughness = 0.2; // è¡€ç—•ã¯å°‘ã—ãƒ„ãƒ¤ãŒã‚ã‚‹
+        roughness = 0.2; // ŒŒ­‚Í­‚µƒcƒ„‚ª‚ ‚é
     }
-    else if (g_proceduralType == 2) // Cobweb (ã¨ã‚Šã‚ãˆãšæ¿ãƒãƒªç”¨ã¨ã—ã¦å‡¦ç†)
+    else if (g_proceduralType == 2) // Cobweb (‚Æ‚è‚ ‚¦‚¸”Âƒ|ƒŠ—p‚Æ‚µ‚Äˆ—)
     {
         float2 uv = In.UV * 2.0 - 1.0;
         float r = length(uv);
         float theta = atan2(uv.y, uv.x);
 
-        // æ”¾å°„çŠ¶ã®ç³¸
+        // •úËó‚Ì…
         float spokes = 8.0;
         float spokeFrac = frac(theta / (2.0 * 3.14159265) * spokes);
-        float spokeDist = min(spokeFrac, 1.0 - spokeFrac); // 0ã«è¿‘ã„ã»ã©ç³¸ã®ä¸Š
+        float spokeDist = min(spokeFrac, 1.0 - spokeFrac); // 0‚É‹ß‚¢‚Ù‚Ç…‚Ìã
         float spokeMask = smoothstep(0.03, 0.0, spokeDist);
 
-        // åŒå¿ƒå††ã®ç³¸
+        // “¯S‰~‚Ì…
         float rings = 4.0;
         float ringFrac = frac(r * rings);
         float ringDist = min(ringFrac, 1.0 - ringFrac);
         float ringMask = smoothstep(0.04, 0.0, ringDist);
 
         float webMask = saturate(spokeMask + ringMask);
-        webMask *= smoothstep(1.0, 0.8, r); // å¤–å´ã‚’ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¢ã‚¦ãƒˆ
-        webMask *= step(r, 1.0);            // å††ã®å¤–å´ã¯å®Œå…¨ã«åˆ‡ã‚Šæ¨ã¦
+        webMask *= smoothstep(1.0, 0.8, r); // ŠO‘¤‚ğƒtƒF[ƒhƒAƒEƒg
+        webMask *= step(r, 1.0);            // ‰~‚ÌŠO‘¤‚ÍŠ®‘S‚ÉØ‚èÌ‚Ä
 
         baseColor = float4(1.0, 1.0, 1.0, webMask * 0.8);
         metallic = 0.0;
         roughness = 0.8;
     }
-    else if (g_proceduralType == 4) // Dissolve (å¹½éœŠã®å®Ÿä½“åŒ–/æ¶ˆæ»…ã€ç„¼å¤±æ¼”å‡ºç­‰)
+    else if (g_proceduralType == 4) // Dissolve (—H—ì‚ÌÀ‘Ì‰»/Á–ÅAÄ¸‰‰o“™)
     {
-        // 2å‘¨æ³¢æ•°ã®ãƒã‚¤ã‚ºã‚’é‡ã­ã¦ç„¦ã’ãŸã‚ˆã†ãªä¸è¦å‰‡ãªå¢ƒç•Œã«ã™ã‚‹
+        // 2ü”g”‚ÌƒmƒCƒY‚ğd‚Ë‚ÄÅ‚°‚½‚æ‚¤‚È•s‹K‘¥‚È‹«ŠE‚É‚·‚é
         float n1 = Noise2D(In.UV * 18.0);
         float n2 = Noise2D(In.UV * 60.0 + 11.3);
         float noise = saturate(n1 * 0.7 + n2 * 0.3);
 
-        // dissolveAmountãŒä¸ŠãŒã‚‹ã»ã©ã€ãƒã‚¤ã‚ºå€¤ã®ä½ã„éƒ¨åˆ†ã‹ã‚‰é †ã«æ¶ˆãˆã¦ã„ã
+        // dissolveAmount‚ªã‚ª‚é‚Ù‚ÇAƒmƒCƒY’l‚Ì’á‚¢•”•ª‚©‚ç‡‚ÉÁ‚¦‚Ä‚¢‚­
         clip(noise - g_dissolveAmount);
 
-        // æ¶ˆãˆã‚‹å¢ƒç•Œã ã‘ç™ºå…‰ã•ã›ã‚‹(ãƒã‚¤ã‚ºå€¤ãŒdissolveAmountç›´ä¸Šã®ã”ãç‹­ã„å¸¯)
+        // Á‚¦‚é‹«ŠE‚¾‚¯”­Œõ‚³‚¹‚é(ƒmƒCƒY’l‚ªdissolveAmount’¼ã‚Ì‚²‚­‹·‚¢‘Ñ)
         const float edgeWidth = 0.08;
         dissolveEdgeGlow = 1.0 - smoothstep(0.0, edgeWidth, noise - g_dissolveAmount);
     }
 
-    // ã‚¢ãƒ«ãƒ•ã‚¡ãƒ†ã‚¹ãƒˆï¼ˆ0.1æœªæº€ãªã‚‰ç ´æ£„: MASKãƒ¢ãƒ¼ãƒ‰ã®ã¿ï¼‰
+    // ƒAƒ‹ƒtƒ@ƒeƒXƒgi0.1–¢–‚È‚ç”jŠü: MASKƒ‚[ƒh‚Ì‚İj
     if (g_alphaMode == 1)
     {
         clip(baseColor.a - 0.1f);
     }
 
-    // æè³ªã®æ‹¡æ•£è‰²ã€€éé‡‘å±ã»ã©æè³ªã®è‰²ã«ãªã‚Šã€é‡‘å±ã»ã©æ‹¡æ•£è‰²ã¯ç„¡ããªã‚‹
+    // Ş¿‚ÌŠgUF@”ñ‹à‘®‚Ù‚ÇŞ¿‚ÌF‚É‚È‚èA‹à‘®‚Ù‚ÇŠgUF‚Í–³‚­‚È‚é
     const float3 baseDiffuse = lerp(baseColor.rgb * (1.0 - kSpecularCoefficient), float3(0, 0, 0), metallic);
-    // æè³ªã®åå°„ã€€éé‡‘å±ã»ã©å…‰ã®è‰²ã‚’ãã®ã¾ã¾åå°„ã€é‡‘å±ã»ã©æè³ªã®è‰²ãŒä¹—ã‚‹
+    // Ş¿‚Ì”½Ë@”ñ‹à‘®‚Ù‚ÇŒõ‚ÌF‚ğ‚»‚Ì‚Ü‚Ü”½ËA‹à‘®‚Ù‚ÇŞ¿‚ÌF‚ªæ‚é
     const float3 baseSpecular = lerp(kSpecularCoefficient, baseColor.rgb, metallic);
 
-    // æœ€çµ‚çš„ãªè‰²
+    // ÅI“I‚ÈF
     float3 color = 0;
 
-    // å¹³è¡Œå…‰(æœˆ/å¤ªé™½)ã®å¯è¦–ç‡ã€‚ç›´å°„å…‰ã ã‘ã§ãªãã€Ambient/IBLã®é–“æ¥å…‰ã«ã‚‚ä½¿ã„ã€
-    // ã€Œå…‰æºãŒå±Šã‹ãªã„å ´æ‰€ã¯ç¾å®Ÿã®ã‚ˆã†ã«æš—ããªã‚‹ã€ã‚’å®Ÿç¾ã™ã‚‹(g_IndirectShadowFloorãŒä¸‹é™)ã€‚
+    // •½sŒõ(Œ/‘¾—z)‚Ì‰Â‹—¦B’¼ËŒõ‚¾‚¯‚Å‚È‚­AAmbient/IBL‚ÌŠÔÚŒõ‚É‚àg‚¢A
+    // uŒõŒ¹‚ª“Í‚©‚È‚¢êŠ‚ÍŒ»À‚Ì‚æ‚¤‚ÉˆÃ‚­‚È‚év‚ğÀŒ»‚·‚é(g_IndirectShadowFloor‚ª‰ºŒÀ)B
     float moonVisibility = 1;
 
-    // å®¤å†…(RoomAreaã®ç¯„å›²å†…)ã¯å¤–ã®å…‰ãŒå±Šã‹ãªã„ã€‚å±‹æ ¹/ä¸Šéšã®åºŠãŒã‚·ãƒ£ãƒ‰ã‚¦ãƒãƒƒãƒ—ã§æ­£ã—ã
-    // é®ã‚Œã¦ã„ã‚‹ã‹ã«é–¢ä¿‚ãªãã€å¸¸ã«æœˆã®å½±ã®ä¸­ã¨åŒã˜æ‰±ã„ã«ã™ã‚‹ã€‚
+    // º“à(RoomArea‚Ì”ÍˆÍ“à)‚ÍŠO‚ÌŒõ‚ª“Í‚©‚È‚¢B‰®ª/ãŠK‚Ì°‚ªƒVƒƒƒhƒEƒ}ƒbƒv‚Å³‚µ‚­
+    // Õ‚ê‚Ä‚¢‚é‚©‚ÉŠÖŒW‚È‚­Aí‚ÉŒ‚Ì‰e‚Ì’†‚Æ“¯‚¶ˆµ‚¢‚É‚·‚éB
     const bool indoor = IsIndoor(In.wPos);
 
     //------------------
-    // å¹³è¡Œå…‰
+    // •½sŒõ
     //------------------
     if (indoor)
     {
@@ -329,43 +329,43 @@ PSOutput main(VSOutput In) : SV_Target0
         const float LdotH = saturate(dot(-g_DL_Dir, H));
         const float NdotH = saturate(dot(wN, H));
 
-        // å½±
+        // ‰e
         float shadow = 1;
         if (g_DL_ShadowPower > 0)
         {
-            // ç°¡æ˜“ã‚·ãƒ£ãƒ‰ã‚¦ï¼ˆã‚«ã‚¹ã‚±ãƒ¼ãƒ‰ãªã—ï¼‰
+            // ŠÈˆÕƒVƒƒƒhƒEiƒJƒXƒP[ƒh‚È‚µj
             uint cascadeIndex = 0;
             float4 liPos = mul(float4(In.wPos, 1), g_DL_mLightVP[0]);
             liPos.xyz /= liPos.w;
 
-            // æŠ•å½±åº§æ¨™ã®ç¯„å›²å†…ã‹åˆ¤å®š
+            // “Š‰eÀ•W‚Ì”ÍˆÍ“à‚©”»’è
             if (abs(liPos.x) <= 1 && abs(liPos.y) <= 1 && liPos.z <= 1)
             {
-                // æŠ•å½±åº§æ¨™-> UVåº§æ¨™ã¸å¤‰æ›
+                // “Š‰eÀ•W-> UVÀ•W‚Ö•ÏŠ·
                 float2 uv = liPos.xy * float2(1, -1) * 0.5 + 0.5;
 
-                // ãƒ©ã‚¤ãƒˆã‚«ãƒ¡ãƒ©ã‹ã‚‰ã®è·é›¢ã‚’ã€ãƒã‚¤ã‚¢ã‚¹å¼•ã„ãŸå€¤ã¨æ¯”è¼ƒã—ã‚·ãƒ£ãƒ‰ã‚¦ã‚¢ã‚¯ãƒå¯¾ç­–ã€‚
-                // å£ãŒå…‰ã«å¯¾ã—ã¦æ–œã‚ã«ãªã‚‹ã»ã©(NdotLãŒå°ã•ã„ã»ã©)ã€æ·±åº¦ã®å¤‰åŒ–ãŒæ€¥å³»ã«ãªã‚Š
-                // å›ºå®šãƒã‚¤ã‚¢ã‚¹ã ã‘ã§ã¯ç¸çŠ¶ã®ãƒãƒ³ãƒ‡ã‚£ãƒ³ã‚°ãŒæ®‹ã‚‹ã®ã§ã€ã‚¹ãƒ­ãƒ¼ãƒ—ã‚¹ã‚±ãƒ¼ãƒ«ã§è£œã†ã€‚
+                // ƒ‰ƒCƒgƒJƒƒ‰‚©‚ç‚Ì‹——£‚ğAƒoƒCƒAƒXˆø‚¢‚½’l‚Æ”äŠr‚µƒVƒƒƒhƒEƒAƒNƒl‘ÎôB
+                // •Ç‚ªŒõ‚É‘Î‚µ‚ÄÎ‚ß‚É‚È‚é‚Ù‚Ç(NdotL‚ª¬‚³‚¢‚Ù‚Ç)A[“x‚Ì•Ï‰»‚ª‹}s‚É‚È‚è
+                // ŒÅ’èƒoƒCƒAƒX‚¾‚¯‚Å‚ÍÈó‚Ìƒoƒ“ƒfƒBƒ“ƒO‚ªc‚é‚Ì‚ÅAƒXƒ[ƒvƒXƒP[ƒ‹‚Å•â‚¤B
                 float bias = g_DL_DirLightShadowBias * lerp(1.0, 16.0, 1.0 - saturate(NdotL));
-                float z = liPos.z - bias; // ã‚·ãƒ£ãƒ‰ã‚¦ã‚¢ã‚¯ãƒå¯¾ç­–
+                float z = liPos.z - bias; // ƒVƒƒƒhƒEƒAƒNƒl‘Îô
 
-                // ç”»é¢ã®ã‚µã‚¤ã‚º
+                // ‰æ–Ê‚ÌƒTƒCƒY
                 float2 pxSize;
                 float levels;
                 g_dirLightShadowMap.GetDimensions(0, pxSize.x, pxSize.y, levels);
                 pxSize.x = max(pxSize.x, 1.0);
                 pxSize.y = max(pxSize.y, 1.0);
 
-                // ãƒ©ãƒ³ãƒ€ãƒ å›è»¢
+                // ƒ‰ƒ“ƒ_ƒ€‰ñ“]
                 float noise = InterleavedGradientNoise(In.Pos.xy);
                 float s = sin(noise * 6.28318530718);
                 float c = cos(noise * 6.28318530718);
                 float2x2 rot = float2x2(c, -s, s, c);
 
-                // PCFè¨ˆç®— (16å›ã¯é‡ã™ãã‚‹ãŸã‚4å›ã«è»½é‡åŒ–)ã€‚ãƒ•ã‚£ãƒ«ã‚¿åŠå¾„ã‚’æ•°texelåˆ†ã«åºƒã’ã¦ã€
-                // ã‚·ãƒ£ãƒ‰ã‚¦ãƒãƒƒãƒ—ã®ãƒ†ã‚¯ã‚»ãƒ«æ ¼å­ãŒãã®ã¾ã¾ç¸æ¨¡æ§˜ã¨ã—ã¦è¦‹ãˆã¦ã—ã¾ã†
-                // (æ–œã‚å…¥å°„æ™‚ã®ã‚¨ã‚¤ãƒªã‚¢ã‚·ãƒ³ã‚°)ã®ã‚’ç›®ç«‹ãŸãªãã™ã‚‹ã€‚
+                // PCFŒvZ (16‰ñ‚Íd‚·‚¬‚é‚½‚ß4‰ñ‚ÉŒy—Ê‰»)BƒtƒBƒ‹ƒ^”¼Œa‚ğ”texel•ª‚ÉL‚°‚ÄA
+                // ƒVƒƒƒhƒEƒ}ƒbƒv‚ÌƒeƒNƒZƒ‹Šiq‚ª‚»‚Ì‚Ü‚ÜÈ–Í—l‚Æ‚µ‚ÄŒ©‚¦‚Ä‚µ‚Ü‚¤
+                // (Î‚ß“üË‚ÌƒGƒCƒŠƒAƒVƒ“ƒO)‚Ì‚ğ–Ú—§‚½‚È‚­‚·‚éB
                 const float kFilterRadiusTexels = 10.0;
                 shadow = 0;
                 for (int i = 0; i < 8; i++)
@@ -375,26 +375,26 @@ PSOutput main(VSOutput In) : SV_Target0
                 }
                 shadow /= 8.0;
 
-                // å½±ã®å¼·åº¦
+                // ‰e‚Ì‹­“x
                 shadow = lerp(1.0, shadow, g_DL_ShadowPower);
             }
         }
 
-        // æ‹¡æ•£å…‰
+        // ŠgUŒõ
         float3 diffuse = Diffuse_Burley(baseDiffuse, NdotL, NdotV, LdotH, roughness);
-        // åå°„å…‰
+        // ”½ËŒõ
         float3 specular = Specular_BRDF(roughness2, baseSpecular, NdotV, NdotL, LdotH, NdotH);
 
-        // å…‰ã‚’åŠ ç®—
+        // Œõ‚ğ‰ÁZ
         color += NdotL * g_DL_Color * (diffuse + specular) * shadow;
 
-        // é–“æ¥å…‰(Ambient/IBL)å´ã§ä½¿ã†å¯è¦–ç‡ã€‚ä¸‹é™ã‚’g_IndirectShadowFloorã§ç¢ºä¿ã—ã€
-        // å®Œå…¨ãªçœŸã£æš—ã«ã¯ã›ãšã€ç¾å®Ÿã®ãƒã‚¦ãƒ³ã‚¹å…‰ç¨‹åº¦ã®æ˜ã‚‹ã•ã‚’æ®‹ã™ã€‚
+        // ŠÔÚŒõ(Ambient/IBL)‘¤‚Åg‚¤‰Â‹—¦B‰ºŒÀ‚ğg_IndirectShadowFloor‚ÅŠm•Û‚µA
+        // Š®‘S‚È^‚ÁˆÃ‚É‚Í‚¹‚¸AŒ»À‚ÌƒoƒEƒ“ƒXŒõ’ö“x‚Ì–¾‚é‚³‚ğc‚·B
         moonVisibility = max(shadow, g_IndirectShadowFloor);
     }
 
     //------------------
-    // ç’°å¢ƒå…‰
+    // ŠÂ‹«Œõ
     //------------------
 
     //------------------
@@ -412,7 +412,7 @@ PSOutput main(VSOutput In) : SV_Target0
         // Spotlight cone
         float cosAngle = dot(-L, normalize(g_SL[i].Dir));
         float coneAtt = saturate((cosAngle - g_SL[i].OuterCorn) / (g_SL[i].InnerCorn - g_SL[i].OuterCorn));
-        // SpotShadowæœªä½¿ç”¨ã®ãŸã‚å¸¸ã«1ï¼ˆå½±ãªã—ï¼‰
+        // SpotShadow–¢g—p‚Ì‚½‚ßí‚É1i‰e‚È‚µj
         float spotShadow = 1;
 
         float NdotL_SL = saturate(dot(wN, L));
@@ -427,7 +427,7 @@ PSOutput main(VSOutput In) : SV_Target0
     }
 
     //------------------
-    // Point Lights (ãƒ­ã‚¦ã‚½ã‚¯/è£¸é›»çƒç­‰ã€‚ãƒ•ãƒªãƒƒã‚«ãƒ¼ã¯Colorã«åæ˜ æ¸ˆã¿ã®ãŸã‚ã“ã“ã§ã¯è€ƒæ…®ä¸è¦)
+    // Point Lights (ƒƒEƒ\ƒN/—‡“d‹…“™BƒtƒŠƒbƒJ[‚ÍColor‚É”½‰fÏ‚İ‚Ì‚½‚ß‚±‚±‚Å‚Íl—¶•s—v)
     //------------------
     for (int j = 0; j < g_PL_Count; j++)
     {
@@ -436,7 +436,7 @@ PSOutput main(VSOutput In) : SV_Target0
         L_PL = L_PL / max(d_PL, 0.0001);
 
         float attenuation_PL = saturate(1.0 - (d_PL / max(g_PL[j].Range, 0.0001)));
-        attenuation_PL *= attenuation_PL; // Phase3ã§ã‚·ãƒ£ãƒ‰ã‚¦ã‚’è¿½åŠ ã™ã‚‹ä½™åœ°ã‚’æ®‹ã—ã€ã‚·ãƒ³ãƒ—ãƒ«ãªäºŒä¹—æ¸›è¡°ã®ã¿
+        attenuation_PL *= attenuation_PL; // Phase3‚ÅƒVƒƒƒhƒE‚ğ’Ç‰Á‚·‚é—]’n‚ğc‚µAƒVƒ“ƒvƒ‹‚È“ñæŒ¸Š‚Ì‚İ
 
         float NdotL_PL = saturate(dot(wN, L_PL));
         float3 H_PL = normalize(L_PL + vCam);
@@ -446,8 +446,8 @@ PSOutput main(VSOutput In) : SV_Target0
         float3 diff_PL = Diffuse_Burley(baseDiffuse, NdotL_PL, NdotV, LdotH_PL, roughness);
         float3 spec_PL = Specular_BRDF(roughness2, baseSpecular, NdotV, NdotL_PL, LdotH_PL, NdotH_PL);
 
-        // å½±(æœ€ã‚‚è¿‘ã„1ç¯[j==0]ã®ã¿)ã€‚6é¢ã‚­ãƒ¥ãƒ¼ãƒ–ã‚·ãƒ£ãƒ‰ã‚¦(Texture2DÃ—6ã®ç°¡æ˜“å®Ÿè£…)ã€‚
-        // ãƒ©ã‚¤ãƒˆã‹ã‚‰ã“ã®ãƒ”ã‚¯ã‚»ãƒ«ã¸ã®ãƒ™ã‚¯ãƒˆãƒ«ã®ä¸»è»¸ã‹ã‚‰ã€6é¢ã®ã†ã¡ã©ã‚Œã«å±ã™ã‚‹ã‹ã‚’åˆ¤å®šã™ã‚‹ã€‚
+        // ‰e(Å‚à‹ß‚¢1“”[j==0]‚Ì‚İ)B6–ÊƒLƒ…[ƒuƒVƒƒƒhƒE(Texture2D~6‚ÌŠÈˆÕÀ‘•)B
+        // ƒ‰ƒCƒg‚©‚ç‚±‚ÌƒsƒNƒZƒ‹‚Ö‚ÌƒxƒNƒgƒ‹‚Ìå²‚©‚çA6–Ê‚Ì‚¤‚¿‚Ç‚ê‚É‘®‚·‚é‚©‚ğ”»’è‚·‚éB
         float shadow_PL = 1;
         if (j == 0 && g_PL0_ShadowEnabled != 0)
         {
@@ -472,13 +472,13 @@ PSOutput main(VSOutput In) : SV_Target0
             if (plPos.w > 0 && abs(plPos.x) <= 1 && abs(plPos.y) <= 1 && plPos.z <= 1)
             {
                 float2 uv = plPos.xy * float2(1, -1) * 0.5 + 0.5;
-                // æ–œã‚ã®é¢ã»ã©æ·±åº¦ã®å¤‰åŒ–ãŒæ€¥ã«ãªã‚Šã€å›ºå®šãƒã‚¤ã‚¢ã‚¹ã ã‘ã ã¨ç¸çŠ¶ã®ã‚¢ã‚¯ãƒãŒå‡ºã‚‹ã®ã§ã€
-                // å…‰ã¨æ³•ç·šã®ãªã™è§’ã«å¿œã˜ã¦ãƒã‚¤ã‚¢ã‚¹ã‚’å¢—ã‚„ã™(ã‚¹ãƒ­ãƒ¼ãƒ—ã‚¹ã‚±ãƒ¼ãƒ«ãƒã‚¤ã‚¢ã‚¹)ã€‚
+                // Î‚ß‚Ì–Ê‚Ù‚Ç[“x‚Ì•Ï‰»‚ª‹}‚É‚È‚èAŒÅ’èƒoƒCƒAƒX‚¾‚¯‚¾‚ÆÈó‚ÌƒAƒNƒl‚ªo‚é‚Ì‚ÅA
+                // Œõ‚Æ–@ü‚Ì‚È‚·Šp‚É‰‚¶‚ÄƒoƒCƒAƒX‚ğ‘‚â‚·(ƒXƒ[ƒvƒXƒP[ƒ‹ƒoƒCƒAƒX)B
                 float slopeBias = g_PL0_ShadowBias * lerp(1.0, 8.0, 1.0 - saturate(NdotL_PL));
                 float z = plPos.z - slopeBias;
 
-                // GraphicsDeviceå´ã§å„é¢768x768å›ºå®šã§ä½œã£ã¦ã„ã‚‹ã®ã§ã€GetDimensionsã§
-                // é¢ã”ã¨ã«åˆ‡ã‚Šæ›¿ãˆã‚‹æ‰‹é–“ã‚’é¿ã‘ã¦å®šæ•°ã®ã¾ã¾ä½¿ã†ã€‚
+                // GraphicsDevice‘¤‚ÅŠe–Ê768x768ŒÅ’è‚Åì‚Á‚Ä‚¢‚é‚Ì‚ÅAGetDimensions‚Å
+                // –Ê‚²‚Æ‚ÉØ‚è‘Ö‚¦‚éèŠÔ‚ğ”ğ‚¯‚Ä’è”‚Ì‚Ü‚Üg‚¤B
                 const float2 pxSize = float2(768.0, 768.0);
 
                 float noise = InterleavedGradientNoise(In.Pos.xy + 7.0);
@@ -486,8 +486,8 @@ PSOutput main(VSOutput In) : SV_Target0
                 float c = cos(noise * 6.28318530718);
                 float2x2 rot = float2x2(c, -s, s, c);
 
-                // æ·±åº¦ãƒãƒƒãƒ•ã‚¡ç²¾åº¦ã®ç²—ã•ç”±æ¥ã®ç¸çŠ¶ãƒãƒ³ãƒ‡ã‚£ãƒ³ã‚°ã‚’ç›®ç«‹ãŸãªãã™ã‚‹ãŸã‚ã€
-                // ãƒ•ã‚£ãƒ«ã‚¿åŠå¾„ã‚’æ•°texelåˆ†ã«åºƒã’ã¦ã¼ã‹ã™ã€‚
+                // [“xƒoƒbƒtƒ@¸“x‚Ì‘e‚³—R—ˆ‚ÌÈóƒoƒ“ƒfƒBƒ“ƒO‚ğ–Ú—§‚½‚È‚­‚·‚é‚½‚ßA
+                // ƒtƒBƒ‹ƒ^”¼Œa‚ğ”texel•ª‚ÉL‚°‚Ä‚Ú‚©‚·B
                 const float kFilterRadiusTexels = 4.0;
                 shadow_PL = 0;
                 for (int k = 0; k < 4; k++)
@@ -526,26 +526,26 @@ PSOutput main(VSOutput In) : SV_Target0
         color += NdotL_PL * g_PL[j].Color * (diff_PL + spec_PL) * attenuation_PL * shadow_PL;
     }
 
-    // ã‚ªã‚¯ãƒ«ãƒ¼ã‚¸ãƒ§ãƒ³ (R channel: ãƒãƒ†ãƒªã‚¢ãƒ«ã®ãƒ™ã‚¤ã‚¯æ¸ˆã¿AOãƒãƒƒãƒ—)
+    // ƒIƒNƒ‹[ƒWƒ‡ƒ“ (R channel: ƒ}ƒeƒŠƒAƒ‹‚ÌƒxƒCƒNÏ‚İAOƒ}ƒbƒv)
     float occTex = g_occlusionMap_white.Sample(g_ss_aniso_wrap, In.UV).r;
     float occlusion = lerp(1.0, occTex, g_occlusionStrength);
 
-    // SSAO (ç”»é¢ç©ºé–“ã€ã‚¸ã‚ªãƒ¡ãƒˆãƒªåŒå£«ã®éš™é–“ç­‰ã‚’ãƒªã‚¢ãƒ«ã‚¿ã‚¤ãƒ ã«è¿‘ä¼¼)
+    // SSAO (‰æ–Ê‹óŠÔAƒWƒIƒƒgƒŠ“¯m‚ÌŒ„ŠÔ“™‚ğƒŠƒAƒ‹ƒ^ƒCƒ€‚É‹ß—)
     float2 screenUV = In.Pos.xy / float2(g_ScreenWidth, g_ScreenHeight);
     float ssao = g_ssaoMap.Sample(g_ss_linear_clamp, screenUV).r;
 
     color += g_AmbientLight * baseColor.rgb * baseColor.a * occlusion * ssao * moonVisibility;
 
     //------------------
-    // ã‚¨ãƒŸãƒƒã‚·ãƒ–
+    // ƒGƒ~ƒbƒVƒu
     //------------------
     float3 emissiveColor = g_emissiveMap_white.Sample(g_ss_aniso_wrap, In.UV).rgb * g_emissiveFactor;
     color += emissiveColor * g_emissiveStrength;
 
-    // Dissolveã®ç¸ã®ç™ºå…‰(å½±ã®ä¸­ã§ã‚‚è¦‹ãˆã‚‹ã‚ˆã†ã«ã€ãƒ©ã‚¤ãƒ†ã‚£ãƒ³ã‚°è¨ˆç®—ã¨ã¯ç‹¬ç«‹ã«åŠ ç®—)
+    // Dissolve‚Ì‰‚Ì”­Œõ(‰e‚Ì’†‚Å‚àŒ©‚¦‚é‚æ‚¤‚ÉAƒ‰ƒCƒeƒBƒ“ƒOŒvZ‚Æ‚Í“Æ—§‚É‰ÁZ)
     if (dissolveEdgeGlow > 0)
     {
-        const float3 kDissolveEdgeColor = float3(1.0, 0.45, 0.08); // ç„¼ã‘ç„¦ã’ã‚‹ã‚ˆã†ãªã‚ªãƒ¬ãƒ³ã‚¸
+        const float3 kDissolveEdgeColor = float3(1.0, 0.45, 0.08); // Ä‚¯Å‚°‚é‚æ‚¤‚ÈƒIƒŒƒ“ƒW
         color += kDissolveEdgeColor * dissolveEdgeGlow * 4.0;
     }
 
@@ -555,19 +555,19 @@ PSOutput main(VSOutput In) : SV_Target0
     float3 skyColor = float3(0.5, 0.6, 0.8);
     float3 groundColor = float3(0.3, 0.25, 0.2);
 
-    // æ‹¡æ•£
+    // ŠgU
     float envWeight = wN.y * 0.5 + 0.5;
     float3 envDiff = lerp(groundColor, skyColor, envWeight) * 1.5;
     color += envDiff * baseDiffuse.rgb / 3.141592 * moonVisibility;
 
-    // é¡é¢
+    // ‹¾–Ê
     float3 vRef = reflect(-vCam, wN);
-    // ç²—ã„é¢ã»ã©åå°„åƒãŒã¼ã‚„ã‘ã‚‹ã®ã§ã€åå°„æ–¹å‘ã®ã‚°ãƒ©ãƒ‡ãƒ¼ã‚·ãƒ§ãƒ³ã‚’æ³•ç·šæ–¹å‘(æ‹¡æ•£ã¨åŒã˜)ã¸å¯„ã›ã‚‹
+    // ‘e‚¢–Ê‚Ù‚Ç”½Ë‘œ‚ª‚Ú‚â‚¯‚é‚Ì‚ÅA”½Ë•ûŒü‚ÌƒOƒ‰ƒf[ƒVƒ‡ƒ“‚ğ–@ü•ûŒü(ŠgU‚Æ“¯‚¶)‚ÖŠñ‚¹‚é
     float specWeight = lerp(vRef.y * 0.5 + 0.5, envWeight, roughness);
     float3 envSpec = lerp(groundColor, skyColor, specWeight) * 2.0;
 
-    // ç’°å¢ƒBRDFè¿‘ä¼¼(Karis, UE4 Mobile)ã€‚ç²—ã•ã¨ãƒ•ãƒ¬ãƒãƒ«ã§åå°„é‡ã‚’æ±ºã‚ã‚‹
-    // (ç²—ã„ã»ã©æ­£é¢ã®åå°„ãŒå¼±ã¾ã‚Šã€æµ…ã„è§’åº¦ã»ã©å¼·ã¾ã‚‹)
+    // ŠÂ‹«BRDF‹ß—(Karis, UE4 Mobile)B‘e‚³‚ÆƒtƒŒƒlƒ‹‚Å”½Ë—Ê‚ğŒˆ‚ß‚é
+    // (‘e‚¢‚Ù‚Ç³–Ê‚Ì”½Ë‚ªã‚Ü‚èAó‚¢Šp“x‚Ù‚Ç‹­‚Ü‚é)
     const float4 kEnvC0 = float4(-1.0, -0.0275, -0.572, 0.022);
     const float4 kEnvC1 = float4(1.0, 0.0425, 1.04, -0.04);
     float4 envR = roughness * kEnvC0 + kEnvC1;
@@ -575,29 +575,29 @@ PSOutput main(VSOutput In) : SV_Target0
     float2 envAB = float2(-1.04, 1.04) * envA004 + envR.zw;
     float3 envBRDF = baseSpecular * envAB.x + envAB.y;
 
-    // ã‚¹ãƒšã‚­ãƒ¥ãƒ©ã‚ªã‚¯ãƒ«ãƒ¼ã‚¸ãƒ§ãƒ³(Lagarde)ã€‚éš…ã‚„éš™é–“(AO/SSAO)ã§ã¯åå°„ã‚‚é®ã‚‰ã‚Œã‚‹
+    // ƒXƒyƒLƒ…ƒ‰ƒIƒNƒ‹[ƒWƒ‡ƒ“(Lagarde)B‹÷‚âŒ„ŠÔ(AO/SSAO)‚Å‚Í”½Ë‚àÕ‚ç‚ê‚é
     float specAO = occlusion * ssao;
     float specOcclusion = saturate(pow(NdotV + specAO, exp2(-16.0 * roughness2 - 1.0)) - 1.0 + specAO);
 
     color += envSpec * envBRDF * specOcclusion * moonVisibility;
 
     //------------------------------------------
-    // è·é›¢ãƒ•ã‚©ã‚°
+    // ‹——£ƒtƒHƒO
     //------------------------------------------
     if (g_DistanceFogDensity > 0)
     {
         float d = camDist * g_DistanceFogDensity;
 
-        // æŒã¡ãƒ•ã‚©ã‚° 1(è¿‘ã„)ã‹ã‚‰0(é ã„)
+        // ‚¿ƒtƒHƒO 1(‹ß‚¢)‚©‚ç0(‰“‚¢)
         float f = saturate(1.0 / exp(d * d));
-        // é©ç”¨
+        // “K—p
         color = lerp(g_DistanceFogColor, color, f);
     }
 
     //------------------------------------------
-    // ãƒ‡ãƒãƒƒã‚°ãƒ“ãƒ¥ãƒ¼åˆ‡ã‚Šæ›¿ãˆ
+    // ƒfƒoƒbƒOƒrƒ…[Ø‚è‘Ö‚¦
     //------------------------------------------
-    if (g_DebugView != 0) // Finalä»¥å¤–ã®æ™‚
+    if (g_DebugView != 0) // FinalˆÈŠO‚Ì
     {
         switch (g_DebugView)
         {
@@ -606,7 +606,7 @@ PSOutput main(VSOutput In) : SV_Target0
             break; // Albedo
         case 2:
             color = wN * 0.5 + 0.5;
-            break; // Normal (WorldNormalã¨åŒã˜æ‰±ã„)
+            break; // Normal (WorldNormal‚Æ“¯‚¶ˆµ‚¢)
         case 3:
             color = wN * 0.5 + 0.5;
             break; // WorldNormal
@@ -621,7 +621,7 @@ PSOutput main(VSOutput In) : SV_Target0
             break; // AO
         case 7:
             color = frac(camDist / 10.0).xxx;
-            break; // Depth (ç°¡æ˜“å¯è¦–åŒ–)
+            break; // Depth (ŠÈˆÕ‰Â‹‰»)
         case 8:
             color = frac(In.wPos / 10.0);
             break; // Position
@@ -636,14 +636,14 @@ PSOutput main(VSOutput In) : SV_Target0
     //------------------------------------------
     if (g_proceduralType == 3)
     {
-        // çª“ã®å¤§ãã•ã«ä¾å­˜ã—ãªã„ã‚ˆã†ã€ãƒ¯ãƒ¼ãƒ«ãƒ‰åº§æ¨™ã‚’ã‚°ãƒªãƒƒãƒ‰åˆ†å‰²ã—ã¦ã²ã³ã‚’ç™ºç”Ÿã•ã›ã‚‹
-        float gridSize = 3.0; // ã‚ˆã‚Šå¤§ãããƒãƒªãƒ³ã¨
+        // ‘‹‚Ì‘å‚«‚³‚ÉˆË‘¶‚µ‚È‚¢‚æ‚¤Aƒ[ƒ‹ƒhÀ•W‚ğƒOƒŠƒbƒh•ªŠ„‚µ‚Ä‚Ğ‚Ñ‚ğ”­¶‚³‚¹‚é
+        float gridSize = 3.0; // ‚æ‚è‘å‚«‚­ƒoƒŠƒ“‚Æ
         float3 gridId = floor(In.wPos / gridSize);
         float3 gridLocal = frac(In.wPos / gridSize) - 0.5;
 
-        // ãƒ©ãƒ³ãƒ€ãƒ ãªä¸­å¿ƒä½ç½®ã®ç”Ÿæˆ
-        // å¢ƒç•Œã‹ã‚‰ã¯ã¿å‡ºã•ãªã„ã‚ˆã†ã«ã€ã‚ºãƒ¬ã®æœ€å¤§å¹…ã‚’ 0.4 ã«æŠ‘ãˆã‚‹ (Â±0.2)
-        // gridLocal ã¯ -0.5 ~ 0.5 ãªã®ã§ã€ç«¯ã¾ã§ã®æœ€çŸ­è·é›¢ã¯ 0.3 ã«ãªã‚‹
+        // ƒ‰ƒ“ƒ_ƒ€‚È’†SˆÊ’u‚Ì¶¬
+        // ‹«ŠE‚©‚ç‚Í‚İo‚³‚È‚¢‚æ‚¤‚ÉAƒYƒŒ‚ÌÅ‘å•‚ğ 0.4 ‚É—}‚¦‚é (}0.2)
+        // gridLocal ‚Í -0.5 ~ 0.5 ‚È‚Ì‚ÅA’[‚Ü‚Å‚ÌÅ’Z‹——£‚Í 0.3 ‚É‚È‚é
         float3 p3_1 = frac((gridId + 1.0) * 0.1031);
         p3_1 += dot(p3_1, p3_1.yzx + 33.33);
         float3 p3_2 = frac((gridId + 2.0) * 0.1031);
@@ -656,52 +656,52 @@ PSOutput main(VSOutput In) : SV_Target0
                                frac((p3_3.x + p3_3.y) * p3_3.z) - 0.5) *
                         0.4;
 
-        // ä¸­å¿ƒã‹ã‚‰ã®ç›¸å¯¾ãƒ™ã‚¯ãƒˆãƒ«
+        // ’†S‚©‚ç‚Ì‘Š‘ÎƒxƒNƒgƒ‹
         float3 diff = gridLocal - center;
 
-        // æ³•ç·šæ–¹å‘ã®æˆåˆ†ã‚’é™¤å»ã—ã¦å¹³é¢ä¸Šã®ãƒ™ã‚¯ãƒˆãƒ«ã«ã™ã‚‹
+        // –@ü•ûŒü‚Ì¬•ª‚ğœ‹‚µ‚Ä•½–Êã‚ÌƒxƒNƒgƒ‹‚É‚·‚é
         float3 diffPlane = diff - dot(diff, wN) * wN;
 
-        // æ¥ç©ºé–“ã®2Dåº§æ¨™ã«å¤‰æ›ï¼ˆIn.wT, In.wBã‚’ä½¿ç”¨ï¼‰
+        // Ú‹óŠÔ‚Ì2DÀ•W‚É•ÏŠ·iIn.wT, In.wB‚ğg—pj
         float2 crackUV = float2(dot(diffPlane, normalize(In.wT)), dot(diffPlane, normalize(In.wB)));
 
-        // ã‚¹ã‚±ãƒ¼ãƒ«èª¿æ•´ï¼š1.0ã«æˆ»ã™ (ComputeCrackMaskå†…ã§ dist=0.4 ã§å®Œå…¨ã«ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¢ã‚¦ãƒˆã™ã‚‹)
-        // ã“ã‚Œã§ã‚°ãƒªãƒƒãƒ‰ã®å¢ƒç•Œ(0.5)ã«åˆ°é”ã™ã‚‹å‰ã«ãƒ’ãƒ“ãŒæ¶ˆæ»…ã™ã‚‹ãŸã‚ã€çµ¶å¯¾ã«ã‚¹ãƒ‘ã£ã¨åˆ‡ã‚Œãªã„
+        // ƒXƒP[ƒ‹’²®F1.0‚É–ß‚· (ComputeCrackMask“à‚Å dist=0.4 ‚ÅŠ®‘S‚ÉƒtƒF[ƒhƒAƒEƒg‚·‚é)
+        // ‚±‚ê‚ÅƒOƒŠƒbƒh‚Ì‹«ŠE(0.5)‚É“’B‚·‚é‘O‚Éƒqƒr‚ªÁ–Å‚·‚é‚½‚ßAâ‘Î‚ÉƒXƒp‚Á‚ÆØ‚ê‚È‚¢
         crackUV *= 1.0;
 
         float3 p3_r = frac((gridId + 6.0) * 0.1031);
         p3_r += dot(p3_r, p3_r.yzx + 33.33);
         float randBase = frac((p3_r.x + p3_r.y) * p3_r.z);
 
-        // --- ç‰©ç†çš„ãªç©´ã‚’é–‹ã‘ã‚‹ ---
+        // --- •¨—“I‚ÈŒŠ‚ğŠJ‚¯‚é ---
         float holeRadius = 0.05;
-        // ComputeCrackMask ã¨å…¨ãåŒã˜å¼ã§ç©´ã®å½¢ã‚’æ¿€ã—ãæ­ªã¾ã›ã‚‹
+        // ComputeCrackMask ‚Æ‘S‚­“¯‚¶®‚ÅŒŠ‚ÌŒ`‚ğŒƒ‚µ‚­˜c‚Ü‚¹‚é
         float holeAngle = atan2(crackUV.y, crackUV.x);
         float holeDist = length(crackUV) + (Noise2D(float2(holeAngle * 3.0, randBase * 5.0)) - 0.5) * 0.06 + (Noise2D(crackUV * 30.0) - 0.5) * 0.03;
 
         if (holeDist < holeRadius)
         {
-            // ç©´ã®ä¸­ã¯ã‚¬ãƒ©ã‚¹ã‚’æç”»ã—ãªã„ï¼ˆå®Œå…¨ã«é€ã‘ã•ã›ã‚‹ï¼‰
+            // ŒŠ‚Ì’†‚ÍƒKƒ‰ƒX‚ğ•`‰æ‚µ‚È‚¢iŠ®‘S‚É“§‚¯‚³‚¹‚éj
             clip(-1);
         }
 
-        // ã²ã³ãƒã‚¹ã‚¯ã®ç”Ÿæˆ
+        // ‚Ğ‚Ñƒ}ƒXƒN‚Ì¶¬
         float crackMask = ComputeCrackMask(crackUV, randBase);
 
-        // æ³•ç·šã‚’ã²ã³ã«æ²¿ã£ã¦å¾®å¦™ã«ãšã‚‰ã—ã€ãƒã‚¤ãƒ©ã‚¤ãƒˆãŒç·šã‚’è¾¿ã‚‹ã‚ˆã†ã«ã™ã‚‹
+        // –@ü‚ğ‚Ğ‚Ñ‚É‰ˆ‚Á‚Ä”÷–­‚É‚¸‚ç‚µAƒnƒCƒ‰ƒCƒg‚ªü‚ğ’H‚é‚æ‚¤‚É‚·‚é
         float2 crackGrad = float2(
             ComputeCrackMask(crackUV + float2(0.01, 0.0), randBase) - crackMask,
             ComputeCrackMask(crackUV + float2(0.0, 0.01), randBase) - crackMask);
         wN = normalize(wN + In.wT * crackGrad.x * 2.5 + In.wB * crackGrad.y * 2.5);
 
-        // ã²ã³éƒ¨åˆ†ã¯ã–ã‚‰ã¤ã(ã™ã‚Šã‚¬ãƒ©ã‚¹åŒ–) - æ±šã‚Œæ„Ÿã®ãŸã‚ã«ãƒ©ãƒ•ãƒã‚¹ã‚’ã•ã‚‰ã«ä¸Šã’ã‚‹
+        // ‚Ğ‚Ñ•”•ª‚Í‚´‚ç‚Â‚­(‚·‚èƒKƒ‰ƒX‰») - ‰˜‚êŠ´‚Ì‚½‚ß‚Éƒ‰ƒtƒlƒX‚ğ‚³‚ç‚Éã‚°‚é
         float currentRoughness = lerp(roughness, 0.85, crackMask);
 
         float IOR = 1.45;
         float F0 = pow((1.0 - IOR) / (1.0 + IOR), 2.0); // approx 0.0337
-        // é€šå¸¸ã®ã‚¬ãƒ©ã‚¹ã®F0(ç´„0.03ã€œ0.1)ã ã¨ã€æ­£é¢ã‹ã‚‰è¦‹ãŸæ™‚(NdotVâ‰ˆ1)ã¯
-        // fresnelâ‰’F0ã¾ã§ä¸‹ãŒã‚Šã€é€éè‰²(å¤–ã®æ™¯è‰²)ãŒã»ã¼å…¨é¢ã«å‡ºã¦é¡åƒãŒã»ã¼è¦‹ãˆãªããªã‚‹ã€‚
-        // çª“ã‚’æ­£é¢ã‹ã‚‰è¦‹ã¦ã‚‚é¡”ãŒæ˜ ã‚‹ã€Œé¡ã®ã‚ˆã†ãªçª“ã€ã«ã™ã‚‹ãŸã‚ã€F0ã‚’å¤§ããåº•ä¸Šã’ã™ã‚‹ã€‚
+        // ’Êí‚ÌƒKƒ‰ƒX‚ÌF0(–ñ0.03`0.1)‚¾‚ÆA³–Ê‚©‚çŒ©‚½(NdotVà1)‚Í
+        // fresnelàF0‚Ü‚Å‰º‚ª‚èA“§‰ßF(ŠO‚ÌŒiF)‚ª‚Ù‚Ú‘S–Ê‚Éo‚Ä‹¾‘œ‚ª‚Ù‚ÚŒ©‚¦‚È‚­‚È‚éB
+        // ‘‹‚ğ³–Ê‚©‚çŒ©‚Ä‚àŠç‚ª‰f‚éu‹¾‚Ì‚æ‚¤‚È‘‹v‚É‚·‚é‚½‚ßAF0‚ğ‘å‚«‚­’êã‚°‚·‚éB
         F0 = max(F0, 0.5);
 
         float fresnel = F0 + (1.0 - F0) * pow(1.0 - NdotV, 5.0);
@@ -709,27 +709,27 @@ PSOutput main(VSOutput In) : SV_Target0
 
         float2 screenUV = In.Pos.xy / float2(g_ScreenWidth, g_ScreenHeight);
 
-        // ãƒãƒ¼ãƒãƒ«ã¨ã²ã³å‰²ã‚Œã«ã‚ˆã‚‹å±ˆæŠ˜ã‚ªãƒ•ã‚»ãƒƒãƒˆ
+        // ƒm[ƒ}ƒ‹‚Æ‚Ğ‚ÑŠ„‚ê‚É‚æ‚é‹üÜƒIƒtƒZƒbƒg
         float2 refractOffset = wN.xy * 0.05 * (1.0 - currentRoughness * 0.5);
 
         float2 sampleUV = saturate(screenUV + refractOffset);
         float3 refractColor = g_refractionMap.Sample(g_ss_linear_clamp, sampleUV).rgb;
 
-        // ã²ã³å‰²ã‚Œéƒ¨åˆ†ã¯ç™½æ¿ã™ã‚‹ï¼ˆã‚¬ãƒ©ã‚¹ã®æ–­é¢ï¼‰
+        // ‚Ğ‚ÑŠ„‚ê•”•ª‚Í”’‘÷‚·‚éiƒKƒ‰ƒX‚Ì’f–Êj
         float glassOpacity = currentRoughness * 0.8 + 0.15;
 
-        // å…‰ã®æ•£ä¹±ã§ç™½ã£ã½ãè¦‹ã›ã‚‹
+        // Œõ‚ÌU—‚Å”’‚Á‚Û‚­Œ©‚¹‚é
         float3 glassColor = lerp(baseColor.rgb, float3(0.9, 0.92, 0.95), crackMask * 0.6);
 
-        // é€éè‰²: èƒŒæ™¯ã«ã‚¬ãƒ©ã‚¹è‰²ã‚’æ›ã‘ãŸã‚‚ã®ã¨ã€ã‚¬ãƒ©ã‚¹è‡ªä½“ã®Diffuseè‰²ã‚’ãƒ–ãƒ¬ãƒ³ãƒ‰
+        // “§‰ßF: ”wŒi‚ÉƒKƒ‰ƒXF‚ğŠ|‚¯‚½‚à‚Ì‚ÆAƒKƒ‰ƒX©‘Ì‚ÌDiffuseF‚ğƒuƒŒƒ“ƒh
         float3 transColor = lerp(refractColor * glassColor, glassColor, glassOpacity);
 
-        // å¹³é¢åå°„è‰²ã®å–å¾—(æœ€å¤§3æš=3çª“ã¾ã§åŒæ™‚ã‚¢ã‚¯ãƒ†ã‚£ãƒ–å¯¾å¿œ)
-        // ãƒ¡ã‚¤ãƒ³ã‚«ãƒ¡ãƒ©ã®ã‚¹ã‚¯ãƒªãƒ¼ãƒ³UV(sampleUV)ã¯åˆ¥ã‚«ãƒ¡ãƒ©(åå°„ã‚«ãƒ¡ãƒ©)ã§æã„ãŸ
-        // g_planarReflectionMapNã¨ã¯å¯¾å¿œã—ãªã„ãŸã‚ä½¿ãˆãªã„ã€‚
-        // ã“ã®ãƒ”ã‚¯ã‚»ãƒ«ã®ãƒ¯ãƒ¼ãƒ«ãƒ‰åº§æ¨™(In.wPos)ã‚’ã€ã“ã®ãƒ¡ãƒƒã‚·ãƒ¥ã«å‰²ã‚Šå½“ã¦ã‚‰ã‚ŒãŸ
-        // åå°„ã‚¹ãƒ­ãƒƒãƒˆ(g_reflectionSlot)ã®åå°„ã‚«ãƒ¡ãƒ©View*Projè¡Œåˆ—ã§ç›´æ¥å†æŠ•å½±ã—ã¦ã€
-        // æ­£ã—ã„UVã‚’æ±‚ã‚ã‚‹ã€‚-1(æœªå‰²ã‚Šå½“ã¦)ãªã‚‰SSRãƒ•ã‚©ãƒ¼ãƒ«ãƒãƒƒã‚¯ã¸ã€‚
+        // •½–Ê”½ËF‚Ìæ“¾(Å‘å3–‡=3‘‹‚Ü‚Å“¯ƒAƒNƒeƒBƒu‘Î‰)
+        // ƒƒCƒ“ƒJƒƒ‰‚ÌƒXƒNƒŠ[ƒ“UV(sampleUV)‚Í•ÊƒJƒƒ‰(”½ËƒJƒƒ‰)‚Å•`‚¢‚½
+        // g_planarReflectionMapN‚Æ‚Í‘Î‰‚µ‚È‚¢‚½‚ßg‚¦‚È‚¢B
+        // ‚±‚ÌƒsƒNƒZƒ‹‚Ìƒ[ƒ‹ƒhÀ•W(In.wPos)‚ğA‚±‚ÌƒƒbƒVƒ…‚ÉŠ„‚è“–‚Ä‚ç‚ê‚½
+        // ”½ËƒXƒƒbƒg(g_reflectionSlot)‚Ì”½ËƒJƒƒ‰View*Projs—ñ‚Å’¼ÚÄ“Š‰e‚µ‚ÄA
+        // ³‚µ‚¢UV‚ğ‹‚ß‚éB-1(–¢Š„‚è“–‚Ä)‚È‚çSSRƒtƒH[ƒ‹ƒoƒbƒN‚ÖB
         float3 reflectionColor = float3(0.0, 0.0, 0.0);
         bool slotHasReflection =
             (g_reflectionSlot == 0 && g_HasReflectionPacked.x != 0) ||
@@ -760,8 +760,8 @@ PSOutput main(VSOutput In) : SV_Target0
         }
         else if (g_EnableSSR != 0)
         {
-            // å¹³é¢åå°„(å°‚ç”¨ã®åå°„ã‚«ãƒ¡ãƒ©è¨­å®šãŒè¦ã‚‹)ãŒç„¡ã„å ´åˆã®ãƒ•ã‚©ãƒ¼ãƒ«ãƒãƒƒã‚¯ã€‚
-            // Opaqueãƒ‘ã‚¹ã®æ·±åº¦+ã‚«ãƒ©ãƒ¼ã ã‘ã§ãƒ¬ã‚¤ãƒãƒ¼ãƒã™ã‚‹SSRã‚’è©¦ã™ã€‚
+            // •½–Ê”½Ë(ê—p‚Ì”½ËƒJƒƒ‰İ’è‚ª—v‚é)‚ª–³‚¢ê‡‚ÌƒtƒH[ƒ‹ƒoƒbƒNB
+            // OpaqueƒpƒX‚Ì[“x+ƒJƒ‰[‚¾‚¯‚ÅƒŒƒCƒ}[ƒ`‚·‚éSSR‚ğ‚·B
             float3 viewPos = mul(float4(In.wPos, 1.0), g_mV).xyz;
             float3 viewNormal = normalize(mul(wN, (float3x3)g_mV));
             float3 ssrColor;
@@ -771,11 +771,11 @@ PSOutput main(VSOutput In) : SV_Target0
             }
         }
 
-        // åå°„è‰²ã¨ç’°å¢ƒãƒãƒƒãƒ—ãƒ™ãƒ¼ã‚¹ã‚«ãƒ©ãƒ¼ã‚’ãƒ–ãƒ¬ãƒ³ãƒ‰ï¼ˆç’°å¢ƒãƒãƒƒãƒ—ã¯ã¼ã‚“ã‚„ã‚Šå…¨ä½“ã«ã€å¹³é¢åå°„ã¯ãã£ãã‚Šï¼‰
-        // å®Œå…¨ãªé»’ï¼ˆåå°„å¯¾è±¡ãŒãªã„éƒ¨åˆ†ï¼‰ã‚’é¿ã‘ã‚‹ãŸã‚
+        // ”½ËF‚ÆŠÂ‹«ƒ}ƒbƒvƒx[ƒXƒJƒ‰[‚ğƒuƒŒƒ“ƒhiŠÂ‹«ƒ}ƒbƒv‚Í‚Ú‚ñ‚â‚è‘S‘Ì‚ÉA•½–Ê”½Ë‚Í‚­‚Á‚«‚èj
+        // Š®‘S‚È•i”½Ë‘ÎÛ‚ª‚È‚¢•”•ªj‚ğ”ğ‚¯‚é‚½‚ß
         float3 finalReflection = lerp(color, reflectionColor, 0.8);
 
-        // é€éè‰²ã¨åå°„è‰²ã‚’ãƒ•ãƒ¬ãƒãƒ«ã§ãƒ–ãƒ¬ãƒ³ãƒ‰
+        // “§‰ßF‚Æ”½ËF‚ğƒtƒŒƒlƒ‹‚ÅƒuƒŒƒ“ƒh
         color = lerp(transColor, finalReflection, fresnel);
         baseColor.a = 1.0;
     }
@@ -784,14 +784,14 @@ PSOutput main(VSOutput In) : SV_Target0
     // We output linear HDR colors directly.
 
     //------------------------------------------
-    // å‡ºåŠ›
+    // o—Í
     //------------------------------------------
     Out.color = float4(color, baseColor.a);
     return Out;
 }
 
 //-------------------------------
-// ã‚·ãƒ£ãƒ‰ã‚¦ãƒãƒƒãƒ—ç”Ÿæˆç”¨ ãƒ”ã‚¯ã‚»ãƒ«ã‚·ã‚§ãƒ¼ãƒ€
+// ƒVƒƒƒhƒEƒ}ƒbƒv¶¬—p ƒsƒNƒZƒ‹ƒVƒF[ƒ_
 //-------------------------------
 float4 ShadowCasterPS(ShadowCasterVSOutput In) : SV_Target0
 {

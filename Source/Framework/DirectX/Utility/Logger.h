@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 class Logger
 {
@@ -21,11 +21,11 @@ public:
         std::string debugStr = "[LOG] " + message + "\n";
         OutputDebugStringA(debugStr.c_str());
 
-        // 呼ぶたびにfopen/fcloseするのではなく、プロセスの生存期間中ファイルを開きっぱなしに
-        // する - あのペアはディスクI/O+OSハンドルの生成/破棄を毎回行うことになり、
-        // 何かが毎フレームログを出す(経路探索のクエリ、エンティティごとのデバッグ出力等)
-        // と非常に高くつく。fflushは変わらず行うので、プロセスがクラッシュしても
-        // 内容が失われないようにしている。
+        // �ĂԂ��т�fopen/fclose����̂ł͂Ȃ��A�v���Z�X�̐������Ԓ��t�@�C�����J�����ςȂ���
+        // ���� - ���̃y�A�̓f�B�X�NI/O+OS�n���h���̐���/�j���𖈉�s�����ƂɂȂ�A
+        // ���������t���[�����O���o��(�o�H�T���̃N�G���A�G���e�B�e�B���Ƃ̃f�o�b�O�o�͓�)
+        // �Ɣ��ɍ������Bfflush�͕ς�炸�s���̂ŁA�v���Z�X���N���b�V�����Ă�
+        // ���e�������Ȃ��悤�ɂ��Ă���B
         if (m_logFile)
         {
             fwrite(debugStr.data(), 1, debugStr.size(), m_logFile);
@@ -83,7 +83,7 @@ public:
 
         std::lock_guard<std::mutex> lock(m_mutex);
 
-        // 常時表示の行(ログが流れたりClearされても消えない)
+        // �펞�\���̍s(���O�����ꂽ��Clear����Ă������Ȃ�)
         if (!m_pinnedLines.empty())
         {
             ImGui::Separator();
@@ -138,8 +138,8 @@ public:
         m_logs.clear();
     }
 
-    // Log Window上部に「key: text」を常時表示する(同じkeyなら上書き)。
-    // 文字列はASCIIのみ想定(ログ本文と違いSJIS変換はしない)。
+    // Log Window�㕔�Ɂukey: text�v���펞�\������(����key�Ȃ�㏑��)�B
+    // �������ASCII�̂ݑz��(���O�{���ƈႢSJIS�ϊ��͂��Ȃ�)�B
     void SetPinnedLine(const std::string& key, const std::string& text)
     {
         std::lock_guard<std::mutex> lock(m_mutex);

@@ -1,4 +1,4 @@
-ï»¿#include "../../../Pch.h"
+#include "../../../Pch.h"
 #include "../../Manager/Scene/Scene.h"
 #include "../../Manager/Scene/SceneManager.h"
 #include "../../Manager/Collision/CollisionManager.h"
@@ -39,8 +39,8 @@ bool Editor::s_previewCameraHovered = false;
 void Editor::Init()
 {
     s_selectedObject = nullptr;
-    s_scenePath.clear(); // ä¿å­˜å…ˆã¯å„ã‚·ãƒ¼ãƒ³ã®Init()ã§è¨­å®šã™ã‚‹(å‰ã‚·ãƒ¼ãƒ³ã®ãƒ•ã‚¡ã‚¤ãƒ«ã‚’å¼•ãç¶™ãŒãªã„)
-    LoadEditorData();    // ãƒ‘ã‚¹ãŒç©ºãªã®ã§ãƒ•ã‚©ãƒ«ãƒ€æ§‹æˆã‚‚ç©ºã«æˆ»ã‚‹(å‰ã‚·ãƒ¼ãƒ³ã®ãƒ•ã‚©ãƒ«ãƒ€ã‚’å¼•ãç¶™ãŒãªã„)
+    s_scenePath.clear(); // •Û‘¶æ‚ÍŠeƒV[ƒ“‚ÌInit()‚Åİ’è‚·‚é(‘OƒV[ƒ“‚Ìƒtƒ@ƒCƒ‹‚ğˆø‚«Œp‚ª‚È‚¢)
+    LoadEditorData();    // ƒpƒX‚ª‹ó‚È‚Ì‚ÅƒtƒHƒ‹ƒ_\¬‚à‹ó‚É–ß‚é(‘OƒV[ƒ“‚ÌƒtƒHƒ‹ƒ_‚ğˆø‚«Œp‚ª‚È‚¢)
     s_scene = std::make_shared<Scene>();
     s_scene->Init();
 }
@@ -79,7 +79,7 @@ void Editor::Draw()
     }
     else
     {
-        s_previewCameraHovered = false; // ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’é–‰ã˜ã¦ã„ã‚‹é–“ã¯å³ã‚¯ãƒªãƒƒã‚¯æ“ä½œã‚’æœ‰åŠ¹ã«ã—ãŸã¾ã¾ã«ã—ãªã„
+        s_previewCameraHovered = false; // ƒEƒBƒ“ƒhƒE‚ğ•Â‚¶‚Ä‚¢‚éŠÔ‚Í‰EƒNƒŠƒbƒN‘€ì‚ğ—LŒø‚É‚µ‚½‚Ü‚Ü‚É‚µ‚È‚¢
     }
 
     static GameEditor gameEditor;
@@ -131,9 +131,9 @@ void Editor::DrawProfilerOverlay()
         return;
     }
 
-    // å‘¼ã³å‡ºã—å…ƒã¯ãƒ•ãƒ«ã‚¹ã‚¯ãƒªãƒ¼ãƒ³/ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼è¦–ç‚¹ã®ãƒ¬ãƒ³ãƒ€ãƒ¼ãƒ‘ã‚¹(GameScene::Render())ã‹ã‚‰ã®ã¿
-    // ã“ã“ã«åˆ°é”ã—ã€åŒã˜ãƒ•ãƒ¬ãƒ¼ãƒ ã§ãƒ•ãƒ«ã‚¨ãƒ‡ã‚£ã‚¿UI(ä¸Šã®Draw()ã€ç‹¬è‡ªã®Statisticsã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
-    // æŒã¡)ãŒåŒæ™‚ã«å‘¼ã°ã‚Œã‚‹ã“ã¨ã¯ç„¡ã„ - ãªã®ã§ã“ã“ã§ã¯äºŒé‡æç”»ã®ãƒªã‚¹ã‚¯ã‚’ã‚¬ãƒ¼ãƒ‰ã™ã‚‹å¿…è¦ãŒãªã„ã€‚
+    // ŒÄ‚Ño‚µŒ³‚Íƒtƒ‹ƒXƒNƒŠ[ƒ“/ƒvƒŒƒCƒ„[‹“_‚ÌƒŒƒ“ƒ_[ƒpƒX(GameScene::Render())‚©‚ç‚Ì‚İ
+    // ‚±‚±‚É“’B‚µA“¯‚¶ƒtƒŒ[ƒ€‚Åƒtƒ‹ƒGƒfƒBƒ^UI(ã‚ÌDraw()A“Æ©‚ÌStatisticsƒEƒBƒ“ƒhƒE
+    // ‚¿)‚ª“¯‚ÉŒÄ‚Î‚ê‚é‚±‚Æ‚Í–³‚¢ - ‚È‚Ì‚Å‚±‚±‚Å‚Í“ñd•`‰æ‚ÌƒŠƒXƒN‚ğƒK[ƒh‚·‚é•K—v‚ª‚È‚¢B
     ImGui::SetNextWindowPos(ImVec2(10.0f, 10.0f), ImGuiCond_Always);
     DrawStatistics();
 }

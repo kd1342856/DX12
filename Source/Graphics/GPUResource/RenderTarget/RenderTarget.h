@@ -1,4 +1,4 @@
-ï»¿#pragma once
+#pragma once
 #include "../GPUResource.h"
 class RenderTarget : public GPUResource
 {
@@ -37,8 +37,8 @@ public:
     {
         return m_dsvIndex;
     }
-    // ã“ã®RenderTargetå°‚ç”¨ã®æ·±åº¦ãƒãƒƒãƒ•ã‚¡ã‚’ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‹ã‚‰èª­ã‚€ãŸã‚ã®SRV
-    // (DOF/SSAO/SSRç­‰ã€"ã“ã®RTã«å®Ÿéš›ã«æ›¸ãè¾¼ã¾ã‚ŒãŸæ·±åº¦"ã‚’å¾Œæ®µãƒ‘ã‚¹ã§å‚ç…§ã™ã‚‹ç”¨é€”)ã€‚
+    // ‚±‚ÌRenderTargetê—p‚Ì[“xƒoƒbƒtƒ@‚ğƒVƒF[ƒ_[‚©‚ç“Ç‚Ş‚½‚ß‚ÌSRV
+    // (DOF/SSAO/SSR“™A"‚±‚ÌRT‚ÉÀÛ‚É‘‚«‚Ü‚ê‚½[“x"‚ğŒã’iƒpƒX‚ÅQÆ‚·‚é—p“r)B
     int GetDepthSRVIndex() const
     {
         return m_depthSrvIndex;

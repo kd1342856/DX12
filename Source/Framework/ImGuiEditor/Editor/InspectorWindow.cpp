@@ -1,4 +1,4 @@
-ï»¿#include "../../../Pch.h"
+#include "../../../Pch.h"
 #include "../../Manager/Scene/Scene.h"
 #include "../../Manager/Scene/SceneManager.h"
 #include "../../Manager/Collision/CollisionManager.h"
@@ -148,7 +148,7 @@ void Editor::DrawInspector()
                     ImGui::Checkbox("Per-Instance Animation", &m.m_perInstanceAnimation);
                     if (ImGui::IsItemHovered())
                     {
-                        ImGui::SetTooltip(u8"åŒã˜ãƒ¢ãƒ‡ãƒ«ã‚’è¤‡æ•°ç½®ã„ã¦ã‚‚ã€ã“ã®ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã ã‘åˆ¥ã€…ã«ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã•ã›ã‚‹(ãƒãƒ¼ãƒ‰ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®ã¿)");
+                        ImGui::SetTooltip(u8"“¯‚¶ƒ‚ƒfƒ‹‚ğ•¡”’u‚¢‚Ä‚àA‚±‚ÌƒIƒuƒWƒFƒNƒg‚¾‚¯•ÊX‚ÉƒAƒjƒ[ƒVƒ‡ƒ“‚³‚¹‚é(ƒm[ƒhƒAƒjƒ[ƒVƒ‡ƒ“‚Ì‚İ)");
                     }
                 }
             }
@@ -192,11 +192,11 @@ void Editor::DrawInspector()
                     if (ImGui::IsItemHovered())
                     {
                         ImGui::SetTooltip(
-                            u8"ONã«ã™ã‚‹ã¨ã€ã“ã®ã‚«ãƒ¡ãƒ©ã®Transform(ä½ç½®ãƒ»å›è»¢)ã‹ã‚‰è¦‹ãŸçµµã‚’æ¯ãƒ•ãƒ¬ãƒ¼ãƒ \n"
-                            u8"å°‚ç”¨ã®ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼RTã«æç”»ã™ã‚‹ã€‚ã€ŒWindow > Preview Cameraã€ã§çµæœã‚’ç¢ºèªã§ãã‚‹ã€‚\n"
-                            u8"æ™®é€šã®GameObjectãªã®ã§ã€Transformã§è‡ªç”±ã«å‹•ã‹ã—ã¦ä»»æ„ã®è§’åº¦ã‹ã‚‰\n"
-                            u8"ã‚·ãƒ¼ãƒ³ã‚„ã‚¬ãƒ©ã‚¹é¢ã®åå°„ã‚’ç¢ºèªã§ãã‚‹(ã‚¨ãƒ‡ã‚£ã‚¿ã®ãƒ•ãƒªãƒ¼ã‚«ãƒ¡ãƒ©ã‚„åå°„ã‚«ãƒ¡ãƒ©ã¨ã¯ç„¡é–¢ä¿‚)ã€‚\n"
-                            u8"åŒæ™‚ã«è¤‡æ•°ã®ã‚«ãƒ¡ãƒ©ã§ONã«ã—ãŸå ´åˆã€è¦‹ã¤ã‹ã£ãŸæœ€åˆã®1ã¤ã ã‘ãŒä½¿ã‚ã‚Œã‚‹ã€‚");
+                            u8"ON‚É‚·‚é‚ÆA‚±‚ÌƒJƒƒ‰‚ÌTransform(ˆÊ’uE‰ñ“])‚©‚çŒ©‚½ŠG‚ğ–ˆƒtƒŒ[ƒ€\n"
+                            u8"ê—p‚ÌƒvƒŒƒrƒ…[RT‚É•`‰æ‚·‚éBuWindow > Preview Camerav‚ÅŒ‹‰Ê‚ğŠm”F‚Å‚«‚éB\n"
+                            u8"•’Ê‚ÌGameObject‚È‚Ì‚ÅATransform‚Å©—R‚É“®‚©‚µ‚Ä”CˆÓ‚ÌŠp“x‚©‚ç\n"
+                            u8"ƒV[ƒ“‚âƒKƒ‰ƒX–Ê‚Ì”½Ë‚ğŠm”F‚Å‚«‚é(ƒGƒfƒBƒ^‚ÌƒtƒŠ[ƒJƒƒ‰‚â”½ËƒJƒƒ‰‚Æ‚Í–³ŠÖŒW)B\n"
+                            u8"“¯‚É•¡”‚ÌƒJƒƒ‰‚ÅON‚É‚µ‚½ê‡AŒ©‚Â‚©‚Á‚½Å‰‚Ì1‚Â‚¾‚¯‚ªg‚í‚ê‚éB");
                     }
                 }
             }
@@ -328,7 +328,7 @@ void Editor::DrawInspector()
                     ImGui::DragFloat("Flicker Seed", &l.m_flickerSeed, 0.1f);
                     if (ImGui::IsItemHovered())
                     {
-                        ImGui::SetTooltip(u8"åŒã˜éƒ¨å±‹ã«è¤‡æ•°ã®ãƒ•ãƒªãƒƒã‚«ãƒ¼ãƒ©ã‚¤ãƒˆã‚’ç½®ãæ™‚ã€ä½ç›¸ã‚’ãšã‚‰ã—ã¦ãƒãƒ©ãƒãƒ©ã«æ˜æ»…ã•ã›ãŸã„å ´åˆã«å¤‰ãˆã‚‹ã€‚");
+                        ImGui::SetTooltip(u8"“¯‚¶•”‰®‚É•¡”‚ÌƒtƒŠƒbƒJ[ƒ‰ƒCƒg‚ğ’u‚­AˆÊ‘Š‚ğ‚¸‚ç‚µ‚Äƒoƒ‰ƒoƒ‰‚É–¾–Å‚³‚¹‚½‚¢ê‡‚É•Ï‚¦‚éB");
                     }
                 }
             }
@@ -347,17 +347,17 @@ void Editor::DrawInspector()
                     ImGui::DragFloat3("Local Offset", &l.m_localOffset.x, 0.01f);
                     if (ImGui::IsItemHovered())
                     {
-                        ImGui::SetTooltip(u8"å…‰æºä½ç½®(ã“ã®ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®ãƒ­ãƒ¼ã‚«ãƒ«ç©ºé–“ã€‚Scaleã‚‚æ›ã‹ã‚‹)");
+                        ImGui::SetTooltip(u8"ŒõŒ¹ˆÊ’u(‚±‚ÌƒIƒuƒWƒFƒNƒg‚Ìƒ[ƒJƒ‹‹óŠÔBScale‚àŠ|‚©‚é)");
                     }
                     ImGui::DragFloat3("Local Direction", &l.m_localDirection.x, 0.01f, -1.0f, 1.0f);
                     if (ImGui::IsItemHovered())
                     {
-                        ImGui::SetTooltip(u8"ç…§ã‚‰ã™å‘ã(ã“ã®ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®ãƒ­ãƒ¼ã‚«ãƒ«ç©ºé–“)");
+                        ImGui::SetTooltip(u8"Æ‚ç‚·Œü‚«(‚±‚ÌƒIƒuƒWƒFƒNƒg‚Ìƒ[ƒJƒ‹‹óŠÔ)");
                     }
                     ImGui::DragFloat("Model Glow", &l.m_modelGlow, 0.1f, 0.0f, 100.0f);
                     if (ImGui::IsItemHovered())
                     {
-                        ImGui::SetTooltip(u8"ç‚¹ç¯ä¸­ã«ãƒ¢ãƒ‡ãƒ«è‡ªä½“ã‚’å…‰ã‚‰ã›ã‚‹å¼·ã•(ColorÃ—ã“ã®å€¤ã®Emissiveã€‚Bloomã§å…‰ã£ã¦è¦‹ãˆã‚‹)");
+                        ImGui::SetTooltip(u8"“_“”’†‚Éƒ‚ƒfƒ‹©‘Ì‚ğŒõ‚ç‚¹‚é‹­‚³(Color~‚±‚Ì’l‚ÌEmissiveBBloom‚ÅŒõ‚Á‚ÄŒ©‚¦‚é)");
                     }
                     char glowMatBuf[64] = {};
                     strncpy_s(glowMatBuf, l.m_glowMaterial.c_str(), _TRUNCATE);
@@ -367,7 +367,7 @@ void Editor::DrawInspector()
                     }
                     if (ImGui::IsItemHovered())
                     {
-                        ImGui::SetTooltip(u8"ç©ºãªã‚‰å…¨ãƒ¡ãƒƒã‚·ãƒ¥ã€‚æŒ‡å®šæ™‚ã¯ã“ã®åå‰ã®ãƒãƒ†ãƒªã‚¢ãƒ«ã ã‘å…‰ã‚‰ã›ã‚‹");
+                        ImGui::SetTooltip(u8"‹ó‚È‚ç‘SƒƒbƒVƒ…Bw’è‚Í‚±‚Ì–¼‘O‚Ìƒ}ƒeƒŠƒAƒ‹‚¾‚¯Œõ‚ç‚¹‚é");
                     }
                     ImGui::PopID();
                 }

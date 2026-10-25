@@ -1,4 +1,4 @@
-ï»¿#include "../../../Pch.h"
+#include "../../../Pch.h"
 #include "ResultScene.h"
 #include "../TitleScene/TitleScene.h"
 #include "../../../Graphics/Shader/ShaderLibrary.h"
@@ -42,7 +42,7 @@ void ResultScene::Init()
     Editor::Init();
     ecs.FlushCommands();
 
-    // ã‚¯ãƒªã‚¢ç”»é¢ã®èƒŒæ™¯ã¯MistShader(é’ç™½ã„éœ§)ã§æãã®ã§ã€èƒŒæ™¯ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆã¯ä½œã‚‰ãªã„
+    // ƒNƒŠƒA‰æ–Ê‚Ì”wŒi‚ÍMistShader(Â”’‚¢–¶)‚Å•`‚­‚Ì‚ÅA”wŒiƒXƒvƒ‰ƒCƒg‚Íì‚ç‚È‚¢
     if (!m_isClear)
     {
         m_deathEntity = ecs.CreateEntity();
@@ -98,7 +98,7 @@ void ResultScene::Update(float deltaTime)
     Renderer::BeginFrame();
     GraphicsDevice::Instance().SetBackBuffer();
 
-    // èƒŒæ™¯: ã‚²ãƒ¼ãƒ ã‚ªãƒ¼ãƒãƒ¼ã¯èµ¤ã„éœ§(FogShader)ã€ã‚¯ãƒªã‚¢ã¯é’ç™½ã„éœ§(MistShader)
+    // ”wŒi: ƒQ[ƒ€ƒI[ƒo[‚ÍÔ‚¢–¶(FogShader)AƒNƒŠƒA‚ÍÂ”’‚¢–¶(MistShader)
     auto* pCmdList = GraphicsDevice::Instance().GetCmdList();
 
     D3D12_VIEWPORT viewport = {};
@@ -155,14 +155,14 @@ void ResultScene::Update(float deltaTime)
     Renderer::EndFrame();
 }
 
-// è©•ä¾¡ãƒ©ãƒ³ã‚¯: ã‚¯ãƒªã‚¢ã‚¿ã‚¤ãƒ (ç§’)ã«ã€ç”Ÿãå»¶ã³ãŸãƒãƒ³ãƒˆ1å›ã«ã¤ãkHuntPenaltyç§’ã‚’è¶³ã—ãŸå€¤ã§æ±ºã‚ã‚‹
-// (ãƒãƒ³ãƒˆã‚’èµ·ã“ã•ã›ãšã«æ—©ãç¥“ã†ã»ã©é«˜è©•ä¾¡)
+// •]‰¿ƒ‰ƒ“ƒN: ƒNƒŠƒAƒ^ƒCƒ€(•b)‚ÉA¶‚«‰„‚Ñ‚½ƒnƒ“ƒg1‰ñ‚É‚Â‚«kHuntPenalty•b‚ğ‘«‚µ‚½’l‚ÅŒˆ‚ß‚é
+// (ƒnƒ“ƒg‚ğ‹N‚±‚³‚¹‚¸‚É‘‚­âP‚¤‚Ù‚Ç‚•]‰¿)
 char ResultScene::CalcRank() const
 {
     const float kHuntPenalty = 30.0f;
-    const float kRankS = 240.0f; // 4åˆ†
-    const float kRankA = 420.0f; // 7åˆ†
-    const float kRankB = 600.0f; // 10åˆ†
+    const float kRankS = 240.0f; // 4•ª
+    const float kRankA = 420.0f; // 7•ª
+    const float kRankB = 600.0f; // 10•ª
     float score = m_timeTaken + kHuntPenalty * (float)m_huntsSurvived;
     if (score <= kRankS)
     {
@@ -181,13 +181,13 @@ char ResultScene::CalcRank() const
 
 void ResultScene::DrawClearReport()
 {
-    // ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆã¨åŒã˜1280x720ã®ä»®æƒ³åº§æ¨™ã§é…ç½®ã—ã€å®Ÿéš›ã®ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®å¤§ãã•ã¸æ‹¡å¤§ç¸®å°ã—ã¦æãã€‚
-    // ImGui 1.92ã¯ãƒ•ã‚©ãƒ³ãƒˆã‚’å¿…è¦ãªã‚µã‚¤ã‚ºã§ãã®éƒ½åº¦ãƒ©ã‚¹ã‚¿ãƒ©ã‚¤ã‚ºã™ã‚‹ã®ã§ã€å¤§ããæã„ã¦ã‚‚ã¼ã‚„ã‘ãªã„ã€‚
+    // ƒXƒvƒ‰ƒCƒg‚Æ“¯‚¶1280x720‚Ì‰¼‘zÀ•W‚Å”z’u‚µAÀÛ‚ÌƒEƒBƒ“ƒhƒE‚Ì‘å‚«‚³‚ÖŠg‘åk¬‚µ‚Ä•`‚­B
+    // ImGui 1.92‚ÍƒtƒHƒ“ƒg‚ğ•K—v‚ÈƒTƒCƒY‚Å‚»‚Ì“s“xƒ‰ƒXƒ^ƒ‰ƒCƒY‚·‚é‚Ì‚ÅA‘å‚«‚­•`‚¢‚Ä‚à‚Ú‚â‚¯‚È‚¢B
     const ImGuiViewport* vp = ImGui::GetMainViewport();
     const float sx = vp->Size.x / 1280.0f;
     const float sy = vp->Size.y / 720.0f;
-    ImDrawList* dl = ImGui::GetBackgroundDrawList(); // ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆã®ä¸Šã€ã‚¨ãƒ‡ã‚£ã‚¿ã®ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚ˆã‚Šä¸‹
-    // ç­†æ–‡å­—ãƒ•ã‚©ãƒ³ãƒˆ(GraphicsDeviceãŒ"ResultFont"ã¨ã„ã†åå‰ã§èª­ã¿è¾¼ã‚€)ã€‚ç„¡ã‘ã‚Œã°æ¨™æº–ãƒ•ã‚©ãƒ³ãƒˆã§æã
+    ImDrawList* dl = ImGui::GetBackgroundDrawList(); // ƒXƒvƒ‰ƒCƒg‚ÌãAƒGƒfƒBƒ^‚ÌƒEƒBƒ“ƒhƒE‚æ‚è‰º
+    // •M•¶šƒtƒHƒ“ƒg(GraphicsDevice‚ª"ResultFont"‚Æ‚¢‚¤–¼‘O‚Å“Ç‚İ‚Ş)B–³‚¯‚ê‚Î•W€ƒtƒHƒ“ƒg‚Å•`‚­
     ImFont* font = ImGui::GetFont();
     for (ImFont* f : ImGui::GetIO().Fonts->Fonts)
     {
@@ -198,12 +198,12 @@ void ResultScene::DrawClearReport()
         }
     }
 
-    // æ™‚é–“å·®ã§ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¤ãƒ³ã•ã›ã‚‹(startç§’ã‹ã‚‰0.6ç§’ã‹ã‘ã¦)
+    // ŠÔ·‚ÅƒtƒF[ƒhƒCƒ“‚³‚¹‚é(start•b‚©‚ç0.6•b‚©‚¯‚Ä)
     auto fade = [&](float start)
     { return std::clamp((m_time - start) / 0.6f, 0.0f, 1.0f); };
     auto toScreen = [&](float x, float y)
     { return ImVec2(vp->Pos.x + x * sx, vp->Pos.y + y * sy); };
-    // align: 0=å·¦æƒãˆ, 0.5=ä¸­å¤®, 1=å³æƒãˆã€‚å½±ã‚’ä»˜ã‘ã¦ã€æ˜ã‚‹ã„èƒŒæ™¯ã®ä¸Šã§ã‚‚èª­ã‚ã‚‹ã‚ˆã†ã«ã™ã‚‹
+    // align: 0=¶‘µ‚¦, 0.5=’†‰›, 1=‰E‘µ‚¦B‰e‚ğ•t‚¯‚ÄA–¾‚é‚¢”wŒi‚Ìã‚Å‚à“Ç‚ß‚é‚æ‚¤‚É‚·‚é
     auto text = [&](const char* str, float x, float y, float size, ImVec4 color, float alpha, float align = 0.0f)
     {
         if (alpha <= 0.0f)
@@ -220,61 +220,61 @@ void ResultScene::DrawClearReport()
         dl->AddText(font, px, pos, ImGui::GetColorU32(ImVec4(color.x, color.y, color.z, color.w * alpha)), str);
     };
 
-    const ImVec4 kInk = {0.94f, 0.89f, 0.79f, 1.0f}; // å¤ã„ç´™ã®ã‚ˆã†ãªè‰²
+    const ImVec4 kInk = {0.94f, 0.89f, 0.79f, 1.0f}; // ŒÃ‚¢†‚Ì‚æ‚¤‚ÈF
     const ImVec4 kLabel = {0.80f, 0.72f, 0.60f, 1.0f};
-    const ImVec4 kTitle = {0.78f, 0.16f, 0.12f, 1.0f}; // æœ±è‰²
+    const ImVec4 kTitle = {0.78f, 0.16f, 0.12f, 1.0f}; // éF
 
-    // è¦‹å‡ºã—
-    text(u8"é™¤éœŠå®Œäº†", 640.0f, 150.0f, 84.0f, kTitle, fade(0.2f), 0.5f);
+    // Œ©o‚µ
+    text(u8"œ—ìŠ®—¹", 640.0f, 150.0f, 84.0f, kTitle, fade(0.2f), 0.5f);
 
-    // ã‚´ãƒ¼ã‚¹ãƒˆã®æ­£ä½“
-    const char* ghostName = u8"ä¸æ˜";
+    // ƒS[ƒXƒg‚Ì³‘Ì
+    const char* ghostName = u8"•s–¾";
     const char* ghostDesc = "";
     switch (m_ghostType)
     {
     case (int)GhostAI::GhostType::Jibakurei:
-        ghostName = u8"åœ°ç¸›éœŠ";
-        ghostDesc = u8"ãã®å ´æ‰€ã«ç¸›ã‚‰ã‚ŒãŸéœŠã€‚åˆºæ¿€ã«ã¯åå¿œã—ãªã„ã€‚";
+        ghostName = u8"’n”›—ì";
+        ghostDesc = u8"‚»‚ÌêŠ‚É”›‚ç‚ê‚½—ìBhŒƒ‚É‚Í”½‰‚µ‚È‚¢B";
         break;
     case (int)GhostAI::GhostType::Kageonna:
-        ghostName = u8"å½±å¥³";
-        ghostDesc = u8"æ˜ã‹ã‚Šã‚’å«Œã£ã¦æ¶ˆã—ã¦å›ã‚‹å½±ã®å¦–æ€ªã€‚éƒ¨å±‹ã®é›»æ°—ã®ä¸‹ã§ã ã‘ç¥“ãˆã‚‹ã€‚";
+        ghostName = u8"‰e—";
+        ghostDesc = u8"–¾‚©‚è‚ğŒ™‚Á‚ÄÁ‚µ‚Ä‰ñ‚é‰e‚Ì—d‰öB•”‰®‚Ì“d‹C‚Ì‰º‚Å‚¾‚¯âP‚¦‚éB";
         break;
     case (int)GhostAI::GhostType::Yanari:
-        ghostName = u8"å®¶é³´";
-        ghostDesc = u8"å®¶ã‚’è»‹ã¾ã›ã€éŸ³ã«å¯„ã£ã¦ãã‚‹å°é¬¼ã€‚";
+        ghostName = u8"‰Æ–Â";
+        ghostDesc = u8"‰Æ‚ğça‚Ü‚¹A‰¹‚ÉŠñ‚Á‚Ä‚­‚é¬‹SB";
         break;
     }
     const float kLabelX = 230.0f;
     const float kValueX = 520.0f;
-    text(u8"ã‚´ãƒ¼ã‚¹ãƒˆã®æ­£ä½“", kLabelX, 265.0f, 30.0f, kLabel, fade(1.0f));
+    text(u8"ƒS[ƒXƒg‚Ì³‘Ì", kLabelX, 265.0f, 30.0f, kLabel, fade(1.0f));
     text(ghostName, kValueX, 265.0f, 44.0f, kInk, fade(1.0f));
     text(ghostDesc, kValueX, 312.0f, 21.0f, kLabel, fade(1.0f));
 
-    // ã‚¯ãƒªã‚¢ã‚¿ã‚¤ãƒ 
+    // ƒNƒŠƒAƒ^ƒCƒ€
     int totalSec = (int)m_timeTaken;
     char timeStr[64];
-    snprintf(timeStr, sizeof(timeStr), u8"%dåˆ†%02dç§’", totalSec / 60, totalSec % 60);
-    text(u8"ã‚¯ãƒªã‚¢ã‚¿ã‚¤ãƒ ", kLabelX, 385.0f, 30.0f, kLabel, fade(1.4f));
+    snprintf(timeStr, sizeof(timeStr), u8"%d•ª%02d•b", totalSec / 60, totalSec % 60);
+    text(u8"ƒNƒŠƒAƒ^ƒCƒ€", kLabelX, 385.0f, 30.0f, kLabel, fade(1.4f));
     text(timeStr, kValueX, 385.0f, 40.0f, kInk, fade(1.4f));
 
-    // ç”Ÿãå»¶ã³ãŸãƒãƒ³ãƒˆ
+    // ¶‚«‰„‚Ñ‚½ƒnƒ“ƒg
     char huntStr[32];
-    snprintf(huntStr, sizeof(huntStr), u8"%då›", m_huntsSurvived);
-    text(u8"ç”Ÿãå»¶ã³ãŸãƒãƒ³ãƒˆ", kLabelX, 465.0f, 30.0f, kLabel, fade(1.8f));
+    snprintf(huntStr, sizeof(huntStr), u8"%d‰ñ", m_huntsSurvived);
+    text(u8"¶‚«‰„‚Ñ‚½ƒnƒ“ƒg", kLabelX, 465.0f, 30.0f, kLabel, fade(1.8f));
     text(huntStr, kValueX, 465.0f, 40.0f, kInk, fade(1.8f));
 
-    // è©•ä¾¡ãƒ©ãƒ³ã‚¯: åˆ¤å­ã‚’æŠ¼ã™ã‚ˆã†ã«ã€å¤§ãã„æ‰€ã‹ã‚‰ç¸®ã¿ãªãŒã‚‰ç¾ã‚Œã‚‹
+    // •]‰¿ƒ‰ƒ“ƒN: ”»q‚ğ‰Ÿ‚·‚æ‚¤‚ÉA‘å‚«‚¢Š‚©‚çk‚İ‚È‚ª‚çŒ»‚ê‚é
     char rank = CalcRank();
     ImVec4 rankColor;
     switch (rank)
     {
     case 'S':
         rankColor = {0.95f, 0.78f, 0.25f, 1.0f};
-        break; // é‡‘
+        break; // ‹à
     case 'A':
         rankColor = {0.85f, 0.20f, 0.15f, 1.0f};
-        break; // æœ±
+        break; // é
     case 'B':
         rankColor = {0.85f, 0.80f, 0.70f, 1.0f};
         break;
@@ -286,7 +286,7 @@ void ResultScene::DrawClearReport()
     float stamp = std::clamp((m_time - kStampStart) / 0.25f, 0.0f, 1.0f);
     float stampScale = 1.0f + (1.0f - stamp) * 0.8f;
     char rankStr[2] = {rank, '\0'};
-    text(u8"è©•ä¾¡", 1010.0f, 265.0f, 30.0f, kLabel, fade(kStampStart - 0.3f), 0.5f);
+    text(u8"•]‰¿", 1010.0f, 265.0f, 30.0f, kLabel, fade(kStampStart - 0.3f), 0.5f);
     text(rankStr, 1010.0f, 390.0f, 160.0f * stampScale, rankColor, stamp, 0.5f);
 }
 

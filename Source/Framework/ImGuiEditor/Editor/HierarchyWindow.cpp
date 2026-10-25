@@ -1,4 +1,4 @@
-ï»¿#include "../../../Pch.h"
+#include "../../../Pch.h"
 #include "../../Manager/Scene/Scene.h"
 #include "../../Manager/Scene/SceneManager.h"
 #include "../../Manager/Collision/CollisionManager.h"
@@ -21,10 +21,10 @@ static std::shared_ptr<Scene> GetCurrentScenePtr()
 }
 
 // =============================================
-// ãƒ’ã‚¨ãƒ©ãƒ«ã‚­ãƒ¼ã®è¡¨ç¤ºãƒ•ã‚£ãƒ«ã‚¿ãƒ¼
-// è¡¨ç¤ºã‚’çµã‚Šè¾¼ã‚€ã ã‘ã§ã€è¦ªå­é–¢ä¿‚ã‚„ã‚·ãƒ¼ãƒ³ã®ä¸­èº«ã«ã¯ä¸€åˆ‡è§¦ã‚Œãªã„ã€‚
-// ãƒ•ã‚£ãƒ«ã‚¿ãƒ¼ä¸­ã¯ã€Œæ¡ä»¶ã«ä¸€è‡´ã—ãŸã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã€ã¨ã€Œãã®ç¥–å…ˆ(ãƒ„ãƒªãƒ¼ã‚’è¾¿ã‚‹ãŸã‚)ã€ã ã‘ã‚’æç”»ã—ã€
-// ç¥–å…ˆå´ã¯æ–‡å­—ã‚’è–„ãã—ã¦ä¸€è‡´ã—ãŸã‚‚ã®ã¨åŒºåˆ¥ã™ã‚‹ã€‚
+// ƒqƒGƒ‰ƒ‹ƒL[‚Ì•\¦ƒtƒBƒ‹ƒ^[
+// •\¦‚ği‚è‚Ş‚¾‚¯‚ÅAeqŠÖŒW‚âƒV[ƒ“‚Ì’†g‚É‚ÍˆêØG‚ê‚È‚¢B
+// ƒtƒBƒ‹ƒ^[’†‚ÍuğŒ‚Éˆê’v‚µ‚½ƒIƒuƒWƒFƒNƒgv‚Æu‚»‚Ì‘cæ(ƒcƒŠ[‚ğ’H‚é‚½‚ß)v‚¾‚¯‚ğ•`‰æ‚µA
+// ‘cæ‘¤‚Í•¶š‚ğ”–‚­‚µ‚Äˆê’v‚µ‚½‚à‚Ì‚Æ‹æ•Ê‚·‚éB
 // =============================================
 namespace HierarchyFilter
 {
@@ -37,7 +37,7 @@ namespace HierarchyFilter
         Cat_Animation = 1 << 4,
         Cat_PointLight = 1 << 5,
         Cat_Script = 1 << 6,
-        Cat_Empty = 1 << 7, // Transformä»¥å¤–ä½•ã‚‚æŒã£ã¦ã„ãªã„(ã‚°ãƒ«ãƒ¼ãƒ—ç”¨ã®ç©ºã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆç­‰)
+        Cat_Empty = 1 << 7, // TransformˆÈŠO‰½‚à‚Á‚Ä‚¢‚È‚¢(ƒOƒ‹[ƒv—p‚Ì‹óƒIƒuƒWƒFƒNƒg“™)
     };
 
     struct CategoryInfo
@@ -58,11 +58,11 @@ namespace HierarchyFilter
 
     static char s_search[128] = "";
     static uint32_t s_categoryMask = 0;
-    static std::set<std::string> s_scripts; // é¸æŠä¸­ã®ã‚¹ã‚¯ãƒªãƒ—ãƒˆå
-    static std::set<std::string> s_tags;    // é¸æŠä¸­ã®ã‚¿ã‚°
-    static bool s_forceOpen = false;        // æ¡ä»¶ãŒå¤‰ã‚ã£ãŸç›´å¾Œã®ãƒ•ãƒ¬ãƒ¼ãƒ ã ã‘ç¥–å…ˆã‚’å±•é–‹ã™ã‚‹
+    static std::set<std::string> s_scripts; // ‘I‘ğ’†‚ÌƒXƒNƒŠƒvƒg–¼
+    static std::set<std::string> s_tags;    // ‘I‘ğ’†‚Ìƒ^ƒO
+    static bool s_forceOpen = false;        // ğŒ‚ª•Ï‚í‚Á‚½’¼Œã‚ÌƒtƒŒ[ƒ€‚¾‚¯‘cæ‚ğ“WŠJ‚·‚é
 
-    // æ¯ãƒ•ãƒ¬ãƒ¼ãƒ ä½œã‚Šç›´ã™ã€æç”»å¯¾è±¡ã®åˆ¤å®šçµæœ
+    // –ˆƒtƒŒ[ƒ€ì‚è’¼‚·A•`‰æ‘ÎÛ‚Ì”»’èŒ‹‰Ê
     static std::unordered_set<GameObject*> s_matched;
     static std::unordered_set<GameObject*> s_visible;
     static int s_matchCount = 0;
@@ -149,7 +149,7 @@ namespace HierarchyFilter
             return false;
         }
 
-        // ç¨®é¡(ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆ)ã¨ã‚¹ã‚¯ãƒªãƒ—ãƒˆåã¯ORæ¡ä»¶: ã©ã‚Œã‹1ã¤ã§ã‚‚æŒã£ã¦ã„ã‚Œã°ä¸€è‡´
+        // í—Ş(ƒRƒ“ƒ|[ƒlƒ“ƒg)‚ÆƒXƒNƒŠƒvƒg–¼‚ÍORğŒ: ‚Ç‚ê‚©1‚Â‚Å‚à‚Á‚Ä‚¢‚ê‚Îˆê’v
         if (s_categoryMask != 0 || !s_scripts.empty())
         {
             std::string scriptName;
@@ -164,7 +164,7 @@ namespace HierarchyFilter
         return true;
     }
 
-    // å­å­«ã«ä¸€è‡´ãŒã‚ã‚Œã°è‡ªåˆ†ã‚‚(ç¥–å…ˆã¨ã—ã¦)è¡¨ç¤ºå¯¾è±¡ã«ã™ã‚‹
+    // q‘·‚Éˆê’v‚ª‚ ‚ê‚Î©•ª‚à(‘cæ‚Æ‚µ‚Ä)•\¦‘ÎÛ‚É‚·‚é
     static bool Evaluate(const std::shared_ptr<GameObject>& obj)
     {
         bool anyChild = false;
@@ -189,7 +189,7 @@ namespace HierarchyFilter
         return false;
     }
 
-    // ã‚·ãƒ¼ãƒ³å†…ã«å­˜åœ¨ã™ã‚‹ã‚¹ã‚¯ãƒªãƒ—ãƒˆåãƒ»ã‚¿ã‚°ã‚’é›†ã‚ã‚‹(ãƒ•ã‚£ãƒ«ã‚¿ãƒ¼ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã®é¸æŠè‚¢ç”¨)
+    // ƒV[ƒ““à‚É‘¶İ‚·‚éƒXƒNƒŠƒvƒg–¼Eƒ^ƒO‚ğW‚ß‚é(ƒtƒBƒ‹ƒ^[ƒƒjƒ…[‚Ì‘I‘ğˆ—p)
     static void Collect(const std::shared_ptr<GameObject>& obj, std::set<std::string>& scripts, std::set<std::string>& tags)
     {
         std::string scriptName;
@@ -243,7 +243,7 @@ namespace HierarchyFilter
 
         if (ImGui::BeginPopup("HierarchyFilterPopup"))
         {
-            ImGui::TextDisabled(u8"ç¨®é¡ (ã„ãšã‚Œã‹ã‚’æŒã¤)");
+            ImGui::TextDisabled(u8"í—Ş (‚¢‚¸‚ê‚©‚ğ‚Â)");
             for (auto& c : kCategories)
             {
                 bool on = (s_categoryMask & c.cat) != 0;
@@ -325,11 +325,11 @@ namespace HierarchyFilter
 }
 
 // =============================================
-// ãƒ’ã‚¨ãƒ©ãƒ«ã‚­ãƒ¼ã®ãƒ•ã‚©ãƒ«ãƒ€
-// ã‚¨ãƒ‡ã‚£ã‚¿ä¸Šã®è¦‹ãŸç›®ã ã‘ã®æ•´ç†ç”¨ã€‚GameObjectã®è¦ªå­é–¢ä¿‚ãƒ»ECSã«ã¯ä¸€åˆ‡è§¦ã‚Œãšã€
-// ã€Œãƒ«ãƒ¼ãƒˆGameObjectã®UUID â†’ ãƒ•ã‚©ãƒ«ãƒ€IDã€ã®å¯¾å¿œã ã‘ã‚’æŒã¤ã€‚
-// è¦ªã‚’æŒã¤(å­)ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã¯ãƒ•ã‚©ãƒ«ãƒ€ã«å…¥ã‚‰ãšã€ä»Šã¾ã§é€šã‚Šè¦ªã®ä¸‹ã«è¡¨ç¤ºã•ã‚Œã‚‹ã€‚
-// ä¿å­˜å…ˆã¯ã‚·ãƒ¼ãƒ³JSONã®éš£ã®ã€ŒXXX.editor.jsonã€ã€‚
+// ƒqƒGƒ‰ƒ‹ƒL[‚ÌƒtƒHƒ‹ƒ_
+// ƒGƒfƒBƒ^ã‚ÌŒ©‚½–Ú‚¾‚¯‚Ì®——pBGameObject‚ÌeqŠÖŒWEECS‚É‚ÍˆêØG‚ê‚¸A
+// uƒ‹[ƒgGameObject‚ÌUUID ¨ ƒtƒHƒ‹ƒ_IDv‚Ì‘Î‰‚¾‚¯‚ğ‚ÂB
+// e‚ğ‚Â(q)ƒIƒuƒWƒFƒNƒg‚ÍƒtƒHƒ‹ƒ_‚É“ü‚ç‚¸A¡‚Ü‚Å’Ê‚èe‚Ì‰º‚É•\¦‚³‚ê‚éB
+// •Û‘¶æ‚ÍƒV[ƒ“JSON‚Ì—×‚ÌuXXX.editor.jsonvB
 // =============================================
 namespace HierarchyFolders
 {
@@ -337,19 +337,19 @@ namespace HierarchyFolders
     {
         uint32_t id = 0;
         std::string name;
-        uint32_t parent = 0; // 0 = ãƒ«ãƒ¼ãƒˆç›´ä¸‹
+        uint32_t parent = 0; // 0 = ƒ‹[ƒg’¼‰º
         bool open = true;
     };
 
     static std::vector<Folder> s_folders;
-    static std::unordered_map<uint64_t, uint32_t> s_objectFolder; // ãƒ«ãƒ¼ãƒˆGameObjectã®UUID -> ãƒ•ã‚©ãƒ«ãƒ€ID
+    static std::unordered_map<uint64_t, uint32_t> s_objectFolder; // ƒ‹[ƒgGameObject‚ÌUUID -> ƒtƒHƒ‹ƒ_ID
     static uint32_t s_nextId = 1;
 
     static uint32_t s_renamingId = 0;
     static char s_renameBuf[128] = "";
     static bool s_focusRename = false;
 
-    // ãƒ•ã‚£ãƒ«ã‚¿ãƒ¼ä¸­ã€è¡¨ç¤ºå¯¾è±¡ã®ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’(å­å­«ãƒ•ã‚©ãƒ«ãƒ€å«ã‚)ä¸­ã«æŒã¤ãƒ•ã‚©ãƒ«ãƒ€
+    // ƒtƒBƒ‹ƒ^[’†A•\¦‘ÎÛ‚ÌƒIƒuƒWƒFƒNƒg‚ğ(q‘·ƒtƒHƒ‹ƒ_ŠÜ‚ß)’†‚É‚ÂƒtƒHƒ‹ƒ_
     static std::unordered_set<uint32_t> s_visibleFolders;
 
     static Folder* Find(uint32_t id)
@@ -394,7 +394,7 @@ namespace HierarchyFolders
         }
     }
 
-    // idãŒancestorè‡ªèº«ã€ã¾ãŸã¯ãã®å­å­«ãƒ•ã‚©ãƒ«ãƒ€ã‹
+    // id‚ªancestor©gA‚Ü‚½‚Í‚»‚Ìq‘·ƒtƒHƒ‹ƒ_‚©
     static bool IsInside(uint32_t id, uint32_t ancestor)
     {
         for (Folder* f = Find(id); f; f = Find(f->parent))
@@ -432,7 +432,7 @@ namespace HierarchyFolders
         s_focusRename = true;
     }
 
-    // ä½œæˆç›´å¾Œã¯ãã®ã¾ã¾åå‰å…¥åŠ›ãƒ¢ãƒ¼ãƒ‰ã«ã™ã‚‹
+    // ì¬’¼Œã‚Í‚»‚Ì‚Ü‚Ü–¼‘O“ü—Íƒ‚[ƒh‚É‚·‚é
     static uint32_t Create(uint32_t parent)
     {
         Folder f;
@@ -448,7 +448,7 @@ namespace HierarchyFolders
         return f.id;
     }
 
-    // ãƒ•ã‚©ãƒ«ãƒ€ã ã‘ã‚’æ¶ˆã—ã€ä¸­èº«(å­ãƒ•ã‚©ãƒ«ãƒ€ãƒ»ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ)ã¯ã²ã¨ã¤ä¸Šã®éšå±¤ã¸ç§»ã™
+    // ƒtƒHƒ‹ƒ_‚¾‚¯‚ğÁ‚µA’†g(qƒtƒHƒ‹ƒ_EƒIƒuƒWƒFƒNƒg)‚Í‚Ğ‚Æ‚Âã‚ÌŠK‘w‚ÖˆÚ‚·
     static void Remove(uint32_t id)
     {
         Folder* f = Find(id);
@@ -506,7 +506,7 @@ namespace HierarchyFolders
         return scenePath + ".editor.json";
     }
 
-    // ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’ãƒ•ã‚©ãƒ«ãƒ€ã¸ç§»ã™ã€‚å­ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã ã£ãŸå ´åˆã¯ãƒ«ãƒ¼ãƒˆã«æˆ»ã—ã¦ã‹ã‚‰å…¥ã‚Œã‚‹
+    // ƒIƒuƒWƒFƒNƒg‚ğƒtƒHƒ‹ƒ_‚ÖˆÚ‚·BqƒIƒuƒWƒFƒNƒg‚¾‚Á‚½ê‡‚Íƒ‹[ƒg‚É–ß‚µ‚Ä‚©‚ç“ü‚ê‚é
     static void MoveObject(GameObject* raw, uint32_t folderId)
     {
         auto obj = raw->shared_from_this();
@@ -517,7 +517,7 @@ namespace HierarchyFolders
         SetFolder(obj.get(), folderId);
     }
 
-    // ãƒ•ã‚©ãƒ«ãƒ€ç§»å‹•ç”¨ã®ãƒ¡ãƒ‹ãƒ¥ãƒ¼(ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®å³ã‚¯ãƒªãƒƒã‚¯ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‹ã‚‰ä½¿ã†)
+    // ƒtƒHƒ‹ƒ_ˆÚ“®—p‚Ìƒƒjƒ…[(ƒIƒuƒWƒFƒNƒg‚Ì‰EƒNƒŠƒbƒNƒƒjƒ…[‚©‚çg‚¤)
     static void DrawMoveMenuItems(GameObject* obj, uint32_t parent)
     {
         for (uint32_t id : ChildFolders(parent))
@@ -562,7 +562,7 @@ void Editor::LoadEditorData()
     std::ifstream in(EditorDataPath(s_scenePath));
     if (!in.is_open())
     {
-        return; // ã¾ã ä¸€åº¦ã‚‚ä¿å­˜ã—ã¦ã„ãªã„ã‚·ãƒ¼ãƒ³
+        return; // ‚Ü‚¾ˆê“x‚à•Û‘¶‚µ‚Ä‚¢‚È‚¢ƒV[ƒ“
     }
 
     nlohmann::json j = nlohmann::json::parse(in, nullptr, false);
@@ -588,7 +588,7 @@ void Editor::LoadEditorData()
             s_folders.push_back(f);
             s_nextId = (std::max)(s_nextId, f.id + 1);
         }
-        // å£Šã‚ŒãŸå‚ç…§(å­˜åœ¨ã—ãªã„è¦ªãƒ»å¾ªç’°)ã¯ãƒ«ãƒ¼ãƒˆã«æˆ»ã™
+        // ‰ó‚ê‚½QÆ(‘¶İ‚µ‚È‚¢eEzŠÂ)‚Íƒ‹[ƒg‚É–ß‚·
         for (auto& f : s_folders)
         {
             if (f.parent != 0 && (!Find(f.parent) || IsInside(f.parent, f.id)))
@@ -619,7 +619,7 @@ void Editor::SaveEditorData()
         return;
     }
 
-    // ä»Šã®ã‚·ãƒ¼ãƒ³ã®ãƒ«ãƒ¼ãƒˆã«å­˜åœ¨ã—ãªã„ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®å¯¾å¿œã¯æ›¸ãå‡ºã•ãªã„(å‰Šé™¤æ¸ˆã¿ãªã©)
+    // ¡‚ÌƒV[ƒ“‚Ìƒ‹[ƒg‚É‘¶İ‚µ‚È‚¢ƒIƒuƒWƒFƒNƒg‚Ì‘Î‰‚Í‘‚«o‚³‚È‚¢(íœÏ‚İ‚È‚Ç)
     std::unordered_set<uint64_t> alive;
     if (s_scene)
     {
@@ -672,7 +672,7 @@ void Editor::DrawHierarchyFolder(uint32_t folderId, const std::vector<std::share
     bool opened = false;
     if (s_renamingId == folderId)
     {
-        // åå‰å¤‰æ›´ä¸­: ãƒ„ãƒªãƒ¼ãƒãƒ¼ãƒ‰ã®ä»£ã‚ã‚Šã«å…¥åŠ›æ¬„ã‚’å‡ºã™(Enter/ãƒ•ã‚©ãƒ¼ã‚«ã‚¹ã‚’å¤–ã™ã¨ç¢ºå®š)
+        // –¼‘O•ÏX’†: ƒcƒŠ[ƒm[ƒh‚Ì‘ã‚í‚è‚É“ü—Í—“‚ğo‚·(Enter/ƒtƒH[ƒJƒX‚ğŠO‚·‚ÆŠm’è)
         if (s_focusRename)
         {
             ImGui::SetKeyboardFocusHere();
@@ -733,7 +733,7 @@ void Editor::DrawHierarchyFolder(uint32_t folderId, const std::vector<std::share
                 BeginRename(folderId);
             }
             ImGui::Separator();
-            if (ImGui::MenuItem(u8"Delete Folder (ä¸­èº«ã¯ã²ã¨ã¤ä¸Šã¸)"))
+            if (ImGui::MenuItem(u8"Delete Folder (’†g‚Í‚Ğ‚Æ‚Âã‚Ö)"))
             {
                 Remove(folderId);
             }
@@ -763,7 +763,7 @@ void Editor::DrawHierarchyFolder(uint32_t folderId, const std::vector<std::share
             if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("HIERARCHY_FOLDER"))
             {
                 uint32_t dropped = *(const uint32_t*)payload->Data;
-                // è‡ªåˆ†è‡ªèº«ã‚„è‡ªåˆ†ã®å­å­«ãƒ•ã‚©ãƒ«ãƒ€ã®ä¸­ã«ã¯å…¥ã‚Œã‚‰ã‚Œãªã„
+                // ©•ª©g‚â©•ª‚Ìq‘·ƒtƒHƒ‹ƒ_‚Ì’†‚É‚Í“ü‚ê‚ç‚ê‚È‚¢
                 if (Folder* df = Find(dropped); df && !IsInside(folderId, dropped))
                 {
                     df->parent = folderId;
@@ -777,7 +777,7 @@ void Editor::DrawHierarchyFolder(uint32_t folderId, const std::vector<std::share
         }
     }
 
-    // ãƒ¡ãƒ‹ãƒ¥ãƒ¼æ“ä½œã§è‡ªåˆ†ãŒæ¶ˆãˆãŸå ´åˆ
+    // ƒƒjƒ…[‘€ì‚Å©•ª‚ªÁ‚¦‚½ê‡
     if (!Find(folderId))
     {
         if (opened)
@@ -815,9 +815,9 @@ void Editor::DrawHierarchyFolder(uint32_t folderId, const std::vector<std::share
 }
 
 
-// ã‚·ãƒªã‚¢ãƒ©ã‚¤ã‚ºæ¸ˆã¿ã®GameObject(JSON)ã‹ã‚‰ã‚·ãƒ¼ãƒ³ã«ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’ç”Ÿæˆã™ã‚‹(prefabé…ç½®ãƒ»ãƒšãƒ¼ã‚¹ãƒˆå…±é€š)ã€‚
-// åŒã˜JSONã‹ã‚‰ä½•åº¦ç”Ÿæˆã—ã¦ã‚‚UUIDãŒé‡è¤‡ã—ãªã„ã‚ˆã†ã€UUIDã¯å–ã‚Šé™¤ã„ã¦æ–°è¦ç™ºè¡Œã•ã›ã‚‹ã€‚
-// parentã‚’æ¸¡ã™ã¨ãã®å­ã¨ã—ã¦ç”Ÿæˆã™ã‚‹ã€‚ã‚·ãƒ¼ãƒ³èª­ã¿è¾¼ã¿æ™‚ã¨åŒã˜ãå­éšå±¤ã‚‚å«ã‚ã¦Awake/Startã‚’å‘¼ã¶ã€‚
+// ƒVƒŠƒAƒ‰ƒCƒYÏ‚İ‚ÌGameObject(JSON)‚©‚çƒV[ƒ“‚ÉƒIƒuƒWƒFƒNƒg‚ğ¶¬‚·‚é(prefab”z’uEƒy[ƒXƒg‹¤’Ê)B
+// “¯‚¶JSON‚©‚ç‰½“x¶¬‚µ‚Ä‚àUUID‚ªd•¡‚µ‚È‚¢‚æ‚¤AUUID‚Íæ‚èœ‚¢‚ÄV‹K”­s‚³‚¹‚éB
+// parent‚ğ“n‚·‚Æ‚»‚Ìq‚Æ‚µ‚Ä¶¬‚·‚éBƒV[ƒ““Ç‚İ‚İ‚Æ“¯‚¶‚­qŠK‘w‚àŠÜ‚ß‚ÄAwake/Start‚ğŒÄ‚ÔB
 static std::shared_ptr<GameObject> SpawnFromJson(Scene* scene, nlohmann::json j, const std::shared_ptr<GameObject>& parent)
 {
     std::function<void(nlohmann::json&)> stripUUID = [&](nlohmann::json& o)
@@ -883,9 +883,9 @@ static std::shared_ptr<GameObject> SpawnFromJson(Scene* scene, nlohmann::json j,
 }
 
 // =============================================
-// ãƒ’ã‚¨ãƒ©ãƒ«ã‚­ãƒ¼ã®ã‚³ãƒ”ãƒ¼&ãƒšãƒ¼ã‚¹ãƒˆ(Ctrl+C / Ctrl+V)
-// ã‚³ãƒ”ãƒ¼æ™‚ç‚¹ã®JSONã‚’ä¸¸ã”ã¨ä¿æŒã™ã‚‹ã®ã§ã€å…ƒã®ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’æ¶ˆã—ãŸå¾Œã‚„åˆ¥ã‚·ãƒ¼ãƒ³ã«åˆ‡ã‚Šæ›¿ãˆãŸå¾Œã§ã‚‚
-// ãƒšãƒ¼ã‚¹ãƒˆã§ãã‚‹ã€‚å­ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚‚å«ã‚ã¦è¤‡è£½ã™ã‚‹ã€‚
+// ƒqƒGƒ‰ƒ‹ƒL[‚ÌƒRƒs[&ƒy[ƒXƒg(Ctrl+C / Ctrl+V)
+// ƒRƒs[“_‚ÌJSON‚ğŠÛ‚²‚Æ•Û‚·‚é‚Ì‚ÅAŒ³‚ÌƒIƒuƒWƒFƒNƒg‚ğÁ‚µ‚½Œã‚â•ÊƒV[ƒ“‚ÉØ‚è‘Ö‚¦‚½Œã‚Å‚à
+// ƒy[ƒXƒg‚Å‚«‚éBqƒIƒuƒWƒFƒNƒg‚àŠÜ‚ß‚Ä•¡»‚·‚éB
 // =============================================
 namespace HierarchyClipboard
 {
@@ -905,8 +905,8 @@ namespace HierarchyClipboard
         Logger::Instance().AddLog(Logger::LogLevel::Info, "Copied: %s", s_name.c_str());
     }
 
-    // target(å³ã‚¯ãƒªãƒƒã‚¯ã—ãŸã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ/é¸æŠä¸­ã®ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ)ã¨åŒã˜éšå±¤ãƒ»åŒã˜ãƒ•ã‚©ãƒ«ãƒ€ã«ãƒšãƒ¼ã‚¹ãƒˆã™ã‚‹ã€‚
-    // targetãŒç„¡ã‘ã‚Œã°ãƒ«ãƒ¼ãƒˆã«ç½®ãã€‚
+    // target(‰EƒNƒŠƒbƒN‚µ‚½ƒIƒuƒWƒFƒNƒg/‘I‘ğ’†‚ÌƒIƒuƒWƒFƒNƒg)‚Æ“¯‚¶ŠK‘wE“¯‚¶ƒtƒHƒ‹ƒ_‚Éƒy[ƒXƒg‚·‚éB
+    // target‚ª–³‚¯‚ê‚Îƒ‹[ƒg‚É’u‚­B
     static std::shared_ptr<GameObject> Paste(Scene* scene, const std::shared_ptr<GameObject>& target)
     {
         if (!s_hasData || !scene)
@@ -935,9 +935,9 @@ namespace HierarchyClipboard
     }
 }
 
-// Asset/Data/Prefab/å†…ã®prefabä¸€è¦§ã‚’ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã«å‡ºã—ã€é¸ã°ã‚ŒãŸã‚‚ã®ã‚’ã‚·ãƒ¼ãƒ³ã«è¿½åŠ ã™ã‚‹(ã‚¨ãƒ‡ã‚£ã‚¿ã§ã®é…ç½®ç”¨)ã€‚
-// Scene::Instantiate()ã¯å®Ÿè¡Œæ™‚ç”Ÿæˆç”¨ã§Dynamicæ‰±ã„(ã‚·ãƒ¼ãƒ³ä¿å­˜ã®å¯¾è±¡å¤–)ã«ãªã‚‹ãŸã‚ä½¿ã‚ãšã€é€šå¸¸ã®
-// ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã¨ã—ã¦è¿½åŠ ã™ã‚‹ã€‚åŒã˜prefabã‚’ä½•åº¦ç½®ã„ã¦ã‚‚UUIDãŒé‡è¤‡ã—ãªã„ã‚ˆã†ã€UUIDã¯å–ã‚Šé™¤ã„ã¦æ–°è¦ç™ºè¡Œã•ã›ã‚‹ã€‚
+// Asset/Data/Prefab/“à‚Ìprefabˆê——‚ğƒƒjƒ…[‚Éo‚µA‘I‚Î‚ê‚½‚à‚Ì‚ğƒV[ƒ“‚É’Ç‰Á‚·‚é(ƒGƒfƒBƒ^‚Å‚Ì”z’u—p)B
+// Scene::Instantiate()‚ÍÀs¶¬—p‚ÅDynamicˆµ‚¢(ƒV[ƒ“•Û‘¶‚Ì‘ÎÛŠO)‚É‚È‚é‚½‚ßg‚í‚¸A’Êí‚Ì
+// ƒIƒuƒWƒFƒNƒg‚Æ‚µ‚Ä’Ç‰Á‚·‚éB“¯‚¶prefab‚ğ‰½“x’u‚¢‚Ä‚àUUID‚ªd•¡‚µ‚È‚¢‚æ‚¤AUUID‚Íæ‚èœ‚¢‚ÄV‹K”­s‚³‚¹‚éB
 static std::shared_ptr<GameObject> DrawCreateFromPrefabMenu(Scene* scene)
 {
     namespace fs = std::filesystem;
@@ -957,7 +957,7 @@ static std::shared_ptr<GameObject> DrawCreateFromPrefabMenu(Scene* scene)
     std::sort(files.begin(), files.end());
     if (files.empty())
     {
-        ImGui::TextDisabled(u8"(Asset/Data/Prefab/ ã« prefab ãŒã‚ã‚Šã¾ã›ã‚“)");
+        ImGui::TextDisabled(u8"(Asset/Data/Prefab/ ‚É prefab ‚ª‚ ‚è‚Ü‚¹‚ñ)");
         return nullptr;
     }
 
@@ -1010,7 +1010,7 @@ void Editor::DrawHierarchy()
     }
     ImGui::Begin("Hierarchy");
 
-    // Ctrl+C / Ctrl+V: Hierarchyã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã«ãƒ•ã‚©ãƒ¼ã‚«ã‚¹ãŒã‚ã‚‹æ™‚ã ã‘(æ¤œç´¢æ¬„ã‚„ãƒ•ã‚©ãƒ«ãƒ€åã®å…¥åŠ›ä¸­ã¯é™¤ã)
+    // Ctrl+C / Ctrl+V: HierarchyƒEƒBƒ“ƒhƒE‚ÉƒtƒH[ƒJƒX‚ª‚ ‚é‚¾‚¯(ŒŸõ—“‚âƒtƒHƒ‹ƒ_–¼‚Ì“ü—Í’†‚Íœ‚­)
     if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) && !ImGui::GetIO().WantTextInput)
     {
         if (ImGui::IsKeyChordPressed(ImGuiMod_Ctrl | ImGuiKey_C))
@@ -1026,7 +1026,7 @@ void Editor::DrawHierarchy()
         }
     }
 
-    // èƒŒæ™¯ã‚’å³ã‚¯ãƒªãƒƒã‚¯ã—ãŸæ™‚ã®ãƒãƒƒãƒ—ã‚¢ãƒƒãƒ—ãƒ¡ãƒ‹ãƒ¥ãƒ¼
+    // ”wŒi‚ğ‰EƒNƒŠƒbƒN‚µ‚½‚Ìƒ|ƒbƒvƒAƒbƒvƒƒjƒ…[
     if (ImGui::BeginPopupContextWindow("HierarchyPopup", ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
     {
         if (ImGui::MenuItem("Create Empty Object"))
@@ -1073,7 +1073,7 @@ void Editor::DrawHierarchy()
     }
     ImGui::Separator();
 
-    // ãƒ•ã‚£ãƒ«ã‚¿ãƒ¼ä¸­ã¯ã€è¡¨ç¤ºå¯¾è±¡ã‚’å«ã‚€ãƒ•ã‚©ãƒ«ãƒ€(ã¨ãã®ç¥–å…ˆãƒ•ã‚©ãƒ«ãƒ€)ã ã‘ã‚’å‡ºã™
+    // ƒtƒBƒ‹ƒ^[’†‚ÍA•\¦‘ÎÛ‚ğŠÜ‚ŞƒtƒHƒ‹ƒ_(‚Æ‚»‚Ì‘cæƒtƒHƒ‹ƒ_)‚¾‚¯‚ğo‚·
     HierarchyFolders::s_visibleFolders.clear();
     if (filtering)
     {
@@ -1090,7 +1090,7 @@ void Editor::DrawHierarchy()
         }
     }
 
-    // ãƒ•ã‚©ãƒ«ãƒ€ â†’ ãƒ•ã‚©ãƒ«ãƒ€ã«å…¥ã£ã¦ã„ãªã„ãƒ«ãƒ¼ãƒˆã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ ã®é †ã«æç”»
+    // ƒtƒHƒ‹ƒ_ ¨ ƒtƒHƒ‹ƒ_‚É“ü‚Á‚Ä‚¢‚È‚¢ƒ‹[ƒgƒIƒuƒWƒFƒNƒg ‚Ì‡‚É•`‰æ
     for (uint32_t id : HierarchyFolders::ChildFolders(0))
     {
         DrawHierarchyFolder(id, rootsCopy);
@@ -1109,7 +1109,7 @@ void Editor::DrawHierarchy()
     }
     HierarchyFilter::s_forceOpen = false;
 
-    // ç©ºãé ˜åŸŸã«ãƒ‰ãƒ­ãƒƒãƒ—ã—ãŸã‚‰è¦ªå­é–¢ä¿‚ã‚’è§£é™¤ã—ã¦ãƒ«ãƒ¼ãƒˆã«æˆ»ã™(ãƒ•ã‚©ãƒ«ãƒ€ã‹ã‚‰ã‚‚å‡ºã™)
+    // ‹ó‚«—Ìˆæ‚Éƒhƒƒbƒv‚µ‚½‚çeqŠÖŒW‚ğ‰ğœ‚µ‚Äƒ‹[ƒg‚É–ß‚·(ƒtƒHƒ‹ƒ_‚©‚ç‚ào‚·)
     ImGui::Dummy(ImGui::GetContentRegionAvail());
     if (ImGui::BeginDragDropTarget())
     {
@@ -1136,7 +1136,7 @@ void Editor::DrawHierarchyNode(std::shared_ptr<GameObject> obj)
 
     const bool filtering = HierarchyFilter::IsActive();
 
-    // ãƒ•ã‚£ãƒ«ã‚¿ãƒ¼ä¸­ã¯è¡¨ç¤ºå¯¾è±¡ã®å­ãŒã„ãªã‘ã‚Œã°è‘‰ã¨ã—ã¦æã(é–‹ã„ã¦ã‚‚ç©ºã€ã‚’é¿ã‘ã‚‹)
+    // ƒtƒBƒ‹ƒ^[’†‚Í•\¦‘ÎÛ‚Ìq‚ª‚¢‚È‚¯‚ê‚Î—t‚Æ‚µ‚Ä•`‚­(ŠJ‚¢‚Ä‚à‹óA‚ğ”ğ‚¯‚é)
     bool hasChildren = false;
     for (auto& child : obj->GetChildren())
     {
@@ -1151,7 +1151,7 @@ void Editor::DrawHierarchyNode(std::shared_ptr<GameObject> obj)
         flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
     }
 
-    // ãƒ•ã‚£ãƒ«ã‚¿ãƒ¼ä¸­ã«ã€Œä¸€è‡´ã—ãŸå­å­«ã‚’æŒã¤ã ã‘ã®ç¥–å…ˆã€ã¯è–„ãè¡¨ç¤ºã™ã‚‹
+    // ƒtƒBƒ‹ƒ^[’†‚Éuˆê’v‚µ‚½q‘·‚ğ‚Â‚¾‚¯‚Ì‘cæv‚Í”–‚­•\¦‚·‚é
     const bool dimmed = filtering && HierarchyFilter::s_matched.count(obj.get()) == 0;
     if (filtering && hasChildren && HierarchyFilter::s_forceOpen)
     {
@@ -1169,10 +1169,10 @@ void Editor::DrawHierarchyNode(std::shared_ptr<GameObject> obj)
         ImGui::PopStyleColor();
     }
 
-    // Shiftã‚’æŠ¼ã—ãªãŒã‚‰ã®ã‚¯ãƒªãƒƒã‚¯ã§ã¯é¸æŠã‚’åˆ‡ã‚Šæ›¿ãˆãªã„ - ãƒ‰ãƒ©ãƒƒã‚°&ãƒ‰ãƒ­ãƒƒãƒ—ã§ã‚«ãƒ¡ãƒ©ç­‰ã‚’
-    // ã©ã“ã‹ã®Inspectorä¸Šã®ãƒ‰ãƒ­ãƒƒãƒ—ã‚¿ãƒ¼ã‚²ãƒƒãƒˆ(ä¾‹: ReflectionComponentã®Fixed Cameraæ¬„)ã«
-    // å‰²ã‚Šå½“ã¦ãŸã„æ™‚ã€ã‚¯ãƒªãƒƒã‚¯ã—ãŸç¬é–“ã«InspectorãŒãƒ‰ãƒ©ãƒƒã‚°å…ƒã®ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã¸åˆ‡ã‚Šæ›¿ã‚ã£ã¦
-    // ã—ã¾ã†ã¨ã€ãƒ‰ãƒ­ãƒƒãƒ—å…ˆã®UIãŒæ¶ˆãˆã¦ãƒ‰ãƒ©ãƒƒã‚°ã‚’å®Œäº†ã§ããªã„ãŸã‚ã€‚
+    // Shift‚ğ‰Ÿ‚µ‚È‚ª‚ç‚ÌƒNƒŠƒbƒN‚Å‚Í‘I‘ğ‚ğØ‚è‘Ö‚¦‚È‚¢ - ƒhƒ‰ƒbƒO&ƒhƒƒbƒv‚ÅƒJƒƒ‰“™‚ğ
+    // ‚Ç‚±‚©‚ÌInspectorã‚Ìƒhƒƒbƒvƒ^[ƒQƒbƒg(—á: ReflectionComponent‚ÌFixed Camera—“)‚É
+    // Š„‚è“–‚Ä‚½‚¢AƒNƒŠƒbƒN‚µ‚½uŠÔ‚ÉInspector‚ªƒhƒ‰ƒbƒOŒ³‚ÌƒIƒuƒWƒFƒNƒg‚ÖØ‚è‘Ö‚í‚Á‚Ä
+    // ‚µ‚Ü‚¤‚ÆAƒhƒƒbƒvæ‚ÌUI‚ªÁ‚¦‚Äƒhƒ‰ƒbƒO‚ğŠ®—¹‚Å‚«‚È‚¢‚½‚ßB
     if (ImGui::IsItemClicked() && !ImGui::GetIO().KeyShift)
     {
         s_selectedObject = obj;
@@ -1261,7 +1261,7 @@ void Editor::DrawHierarchyNode(std::shared_ptr<GameObject> obj)
                 if (!isChild)
                 {
                     droppedObj->SetParent(obj);
-                    // å­ã«ãªã£ãŸæ™‚ç‚¹ã§ãƒ•ã‚©ãƒ«ãƒ€ã‹ã‚‰ã¯å¤–ã™(å¾Œã§Unparentã—ãŸæ™‚ã«å¤ã„ãƒ•ã‚©ãƒ«ãƒ€ã¸æˆ»ã‚‰ãªã„ã‚ˆã†ã«)
+                    // q‚É‚È‚Á‚½“_‚ÅƒtƒHƒ‹ƒ_‚©‚ç‚ÍŠO‚·(Œã‚ÅUnparent‚µ‚½‚ÉŒÃ‚¢ƒtƒHƒ‹ƒ_‚Ö–ß‚ç‚È‚¢‚æ‚¤‚É)
                     HierarchyFolders::SetFolder(droppedObj.get(), 0);
                 }
             }

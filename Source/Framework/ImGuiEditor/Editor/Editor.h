@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <cstdint>
 
 class Scene;
@@ -15,9 +15,9 @@ public:
         return s_editorMode;
     }
 
-    // F3で切り替えるStatistics/Profilerウィンドウ。フルエディタUI(エディタモードでしか
-    // 描かれない - RenderEditor()参照)とは独立している。フルスクリーン/プレイヤー視点の
-    // レンダーパスから呼ぶことで、エディタモードに入らなくてもProfilerを見られるようにする。
+    // F3�Ő؂�ւ���Statistics/Profiler�E�B���h�E�B�t���G�f�B�^UI(�G�f�B�^���[�h�ł���
+    // �`����Ȃ� - RenderEditor()�Q��)�Ƃ͓Ɨ����Ă���B�t���X�N���[��/�v���C���[���_��
+    // �����_�[�p�X����ĂԂ��ƂŁA�G�f�B�^���[�h�ɓ���Ȃ��Ă�Profiler��������悤�ɂ���B
     static void DrawProfilerOverlay();
 
     // s_showEditor is the flag F1 toggles in Draw(); it's a global that survives scene changes, so
@@ -33,36 +33,36 @@ public:
         return s_scene;
     }
 
-    // 現在のヒエラルキー(s_scene)の保存先JSON。シーンごとに異なるファイルを持たせ、
-    // 別シーンのヒエラルキーを別シーンのファイルに上書き保存しないようにする。
-    // Init()で空に戻るので、各シーンのInit()でEditor::Init()の後に設定すること。
-    // 空の場合は保存不可(File > Save Sceneは何もしない)。
-    // 設定時に、同じ場所のエディタ専用JSON(XXX.editor.json: ヒエラルキーのフォルダ構成)も読み込む。
+    // ���݂̃q�G�����L�[(s_scene)�̕ۑ���JSON�B�V�[�����ƂɈقȂ�t�@�C�����������A
+    // �ʃV�[���̃q�G�����L�[��ʃV�[���̃t�@�C���ɏ㏑���ۑ����Ȃ��悤�ɂ���B
+    // Init()�ŋ�ɖ߂�̂ŁA�e�V�[����Init()��Editor::Init()�̌�ɐݒ肷�邱�ƁB
+    // ��̏ꍇ�͕ۑ��s��(File > Save Scene�͉������Ȃ�)�B
+    // �ݒ莞�ɁA�����ꏊ�̃G�f�B�^��pJSON(XXX.editor.json: �q�G�����L�[�̃t�H���_�\��)���ǂݍ��ށB
     static void SetScenePath(const std::string& path);
     static const std::string& GetScenePath()
     {
         return s_scenePath;
     }
 
-    // 「Preview Camera」ウィンドウに今マウスが乗っているか。GameSceneの右クリックドラッグでの
-    // カメラ操作(通常のエディタ自由カメラと同じ操作感)を、どちらのウィンドウを操作しているかで
-    // 出し分けるために使う。PreviewCameraWindow.cppがDrawPreviewCamera()内で毎フレーム更新する。
+    // �uPreview Camera�v�E�B���h�E�ɍ��}�E�X������Ă��邩�BGameScene�̉E�N���b�N�h���b�O�ł�
+    // �J��������(�ʏ�̃G�f�B�^���R�J�����Ɠ������슴)���A�ǂ���̃E�B���h�E�𑀍삵�Ă��邩��
+    // �o�������邽�߂Ɏg���BPreviewCameraWindow.cpp��DrawPreviewCamera()���Ŗ��t���[���X�V����B
     static bool IsPreviewCameraHovered()
     {
         return s_previewCameraHovered;
     }
 
-    // シーン切り替え時に呼ぶ。選択中オブジェクトを持ったままシーンを切り替えると、
-    // 古いシーンのGameObjectがshared_ptrで生き延びてしまい(ECSからは既に消えているのに
-    // C++オブジェクトだけ残る)、Inspector/AssetBrowserがそれを参照して
-    // 「存在しないEntity」でクラッシュする原因になる。
+    // �V�[���؂�ւ����ɌĂԁB�I�𒆃I�u�W�F�N�g���������܂܃V�[����؂�ւ���ƁA
+    // �Â��V�[����GameObject��shared_ptr�Ő������тĂ��܂�(ECS����͊��ɏ����Ă���̂�
+    // C++�I�u�W�F�N�g�����c��)�AInspector/AssetBrowser��������Q�Ƃ���
+    // �u���݂��Ȃ�Entity�v�ŃN���b�V�����錴���ɂȂ�B
     static void ClearSelection()
     {
         s_selectedObject = nullptr;
     }
 
-    // ヒエラルキーのフォルダ構成(表示専用。GameObjectの親子関係には影響しない)。
-    // シーンJSONとは別の「XXX.editor.json」に保存し、Save Sceneと一緒に書き出す。
+    // �q�G�����L�[�̃t�H���_�\��(�\����p�BGameObject�̐e�q�֌W�ɂ͉e�����Ȃ�)�B
+    // �V�[��JSON�Ƃ͕ʂ́uXXX.editor.json�v�ɕۑ����ASave Scene�ƈꏏ�ɏ����o���B
     static void LoadEditorData();
     static void SaveEditorData();
 

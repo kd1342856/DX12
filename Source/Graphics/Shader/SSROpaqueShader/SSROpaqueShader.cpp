@@ -1,4 +1,4 @@
-ï»¿#include "../../../Pch.h"
+#include "../../../Pch.h"
 #include "../../../Framework/DirectX/Utility/Profiler.h"
 #include "SSROpaqueShader.h"
 #include "../../GPUResource/RenderTarget/RenderTarget.h"
@@ -9,13 +9,13 @@ void SSROpaqueShader::Create(GraphicsDevice* pGraphicsDevice)
 {
     m_pDevice = pGraphicsDevice;
 
-    // VSã¯SSAOShaderã¨å…¨ãåŒã˜(ã‚«ãƒ¡ãƒ©cbufferã®ã¿ä½¿ã†ã€cbPostProcessã¨ç«¶åˆã—ãªã„ãƒ•ãƒ«ã‚¹ã‚¯ãƒªãƒ¼ãƒ³
-    // ä¸‰è§’å½¢ç”¨VS)ãªã®ã§ä½¿ã„å›ã™ã€‚
+    // VS‚ÍSSAOShader‚Æ‘S‚­“¯‚¶(ƒJƒƒ‰cbuffer‚Ì‚İg‚¤AcbPostProcess‚Æ‹£‡‚µ‚È‚¢ƒtƒ‹ƒXƒNƒŠ[ƒ“
+    // OŠpŒ`—pVS)‚È‚Ì‚Åg‚¢‰ñ‚·B
     m_pProgram = ShaderManager::Instance().LoadShader(L"Asset/Shader/SSAOShader/SSAO_VS.hlsl", L"Asset/Shader/SSROpaqueShader/SSROpaque_PS.hlsl");
 
     PipelineDesc desc;
     desc.InputLayouts = {};
-    desc.Formats = {DXGI_FORMAT_R16G16B16A16_FLOAT}; // ã‚·ãƒ¼ãƒ³HDRã¨åŒã˜ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆã¸åŠ ç®—åˆæˆã™ã‚‹
+    desc.Formats = {DXGI_FORMAT_R16G16B16A16_FLOAT}; // ƒV[ƒ“HDR‚Æ“¯‚¶ƒtƒH[ƒ}ƒbƒg‚Ö‰ÁZ‡¬‚·‚é
     desc.BlendMode = BlendMode::Add;
     desc.IsDepth = false;
 

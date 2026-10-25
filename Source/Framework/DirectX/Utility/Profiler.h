@@ -1,4 +1,4 @@
-ï»¿#pragma once
+#pragma once
 
 #include <cstdint>
 #include <string>
@@ -71,7 +71,7 @@ public:
         return m_drawCallBreakdown;
     }
 
-    // ãƒ•ãƒ©ã‚¹ã‚¿ãƒ ã‚«ãƒªãƒ³ã‚°çµ±è¨ˆ(RenderSystem::RenderScene)ã€æ¯ãƒ•ãƒ¬ãƒ¼ãƒ ãƒªã‚»ãƒƒãƒˆã•ã‚Œã‚‹ã€‚
+    // ƒtƒ‰ƒXƒ^ƒ€ƒJƒŠƒ“ƒO“Œv(RenderSystem::RenderScene)A–ˆƒtƒŒ[ƒ€ƒŠƒZƒbƒg‚³‚ê‚éB
     void AddEntityCullResult(bool culled)
     {
         if (culled)
@@ -111,15 +111,15 @@ public:
         return m_meshesCulled;
     }
 
-    // ãƒ¡ãƒ¢ãƒªä½¿ç”¨é‡ã®å•ã„åˆã‚ã›
+    // ƒƒ‚ƒŠg—p—Ê‚Ì–â‚¢‡‚í‚¹
     float GetSystemRAMUsageMB() const;
 
     // ---------------------------------------------------------------
-    // CPUåŒºé–“è¨ˆæ¸¬ï¼ˆResetPerFrameCountersã§æ¯ãƒ•ãƒ¬ãƒ¼ãƒ ã‚¯ãƒªã‚¢ã•ã‚Œã‚‹ï¼‰
+    // CPU‹æŠÔŒv‘ªiResetPerFrameCounters‚Å–ˆƒtƒŒ[ƒ€ƒNƒŠƒA‚³‚ê‚éj
     // ---------------------------------------------------------------
     void AddCPUTiming(const std::string& name, float ms)
     {
-        // åŒã˜åå‰ãŒ1ãƒ•ãƒ¬ãƒ¼ãƒ ã§è¤‡æ•°å›ä½¿ã‚ã‚ŒãŸå ´åˆ(ã‚«ãƒ¡ãƒ©ã”ã¨ã«å‘¼ã°ã‚Œã‚‹ç­‰)ã¯åŠ ç®—ã—ã¦ã„ãã€‚
+        // “¯‚¶–¼‘O‚ª1ƒtƒŒ[ƒ€‚Å•¡”‰ñg‚í‚ê‚½ê‡(ƒJƒƒ‰‚²‚Æ‚ÉŒÄ‚Î‚ê‚é“™)‚Í‰ÁZ‚µ‚Ä‚¢‚­B
         m_cpuTimings[name] += ms;
     }
     const std::unordered_map<std::string, float>& GetCPUTimings() const
@@ -149,24 +149,24 @@ public:
     };
 
     // ---------------------------------------------------------------
-    // GPUåŒºé–“è¨ˆæ¸¬ï¼ˆD3D12ã‚¿ã‚¤ãƒ ã‚¹ã‚¿ãƒ³ãƒ—ã‚¯ã‚¨ãƒªï¼‰ã€‚
-    // ã‚­ãƒ¥ãƒ¼ã¯ã€è¨˜éŒ²ã•ã‚Œã¦ã‹ã‚‰kFrameCount-1ãƒ•ãƒ¬ãƒ¼ãƒ å¾Œã§ã‚‚ã¾ã ãã®ã‚¹ã‚³ãƒ¼ãƒ—ã®
-    // ã‚³ãƒãƒ³ãƒ‰ã‚’å®Ÿè¡Œã—ã¦ã„ã‚‹å¯èƒ½æ€§ãŒã‚ã‚‹ãŸã‚ã€ãƒ•ãƒ¬ãƒ¼ãƒ ã‚¤ãƒ³ãƒ•ãƒ©ã‚¤ãƒˆã®ã‚¹ãƒ­ãƒƒãƒˆãŒ
-    // å†åˆ©ç”¨ã—ã¦ã‚‚å®‰å…¨ã ã¨åˆ†ã‹ã£ãŸæ™‚ç‚¹ã§çµæœã‚’èª­ã¿æˆ»ã™
-    // (ãƒ•ãƒ¬ãƒ¼ãƒ ãƒªã‚½ãƒ¼ã‚¹ç®¡ç†ã®ä»–ã®éƒ¨åˆ†ã¨åŒã˜ãƒ«ãƒ¼ãƒ«)ã€‚
+    // GPU‹æŠÔŒv‘ªiD3D12ƒ^ƒCƒ€ƒXƒ^ƒ“ƒvƒNƒGƒŠjB
+    // ƒLƒ…[‚ÍA‹L˜^‚³‚ê‚Ä‚©‚çkFrameCount-1ƒtƒŒ[ƒ€Œã‚Å‚à‚Ü‚¾‚»‚ÌƒXƒR[ƒv‚Ì
+    // ƒRƒ}ƒ“ƒh‚ğÀs‚µ‚Ä‚¢‚é‰Â”\«‚ª‚ ‚é‚½‚ßAƒtƒŒ[ƒ€ƒCƒ“ƒtƒ‰ƒCƒg‚ÌƒXƒƒbƒg‚ª
+    // Ä—˜—p‚µ‚Ä‚àˆÀ‘S‚¾‚Æ•ª‚©‚Á‚½“_‚ÅŒ‹‰Ê‚ğ“Ç‚İ–ß‚·
+    // (ƒtƒŒ[ƒ€ƒŠƒ\[ƒXŠÇ—‚Ì‘¼‚Ì•”•ª‚Æ“¯‚¶ƒ‹[ƒ‹)B
     // ---------------------------------------------------------------
     static constexpr uint32_t kMaxGPUScopesPerFrame = 32;
 
     void InitGPU(ID3D12Device* pDevice, ID3D12CommandQueue* pQueue, uint32_t frameCount);
     void ShutdownGPU();
 
-    // GPUã‚¹ã‚³ãƒ¼ãƒ—ã‚’è¨˜éŒ²ã—å§‹ã‚ã‚‹å‰ã€ãƒ•ãƒ¬ãƒ¼ãƒ ã®ä¸€ç•ªæœ€åˆã«1å›ã ã‘å‘¼ã¶ã€‚
+    // GPUƒXƒR[ƒv‚ğ‹L˜^‚µn‚ß‚é‘OAƒtƒŒ[ƒ€‚Ìˆê”ÔÅ‰‚É1‰ñ‚¾‚¯ŒÄ‚ÔB
     void BeginGPUFrame(ID3D12GraphicsCommandList* pCmdList);
-    // ãƒ•ãƒ¬ãƒ¼ãƒ ã®ä¸€ç•ªæœ€å¾Œã«1å›ã ã‘å‘¼ã¶(ä¸Šã¨åŒã˜ã‚³ãƒãƒ³ãƒ‰ãƒªã‚¹ãƒˆã®ä¸­ã§)ã€‚
+    // ƒtƒŒ[ƒ€‚Ìˆê”ÔÅŒã‚É1‰ñ‚¾‚¯ŒÄ‚Ô(ã‚Æ“¯‚¶ƒRƒ}ƒ“ƒhƒŠƒXƒg‚Ì’†‚Å)B
     void EndGPUFrame(ID3D12GraphicsCommandList* pCmdList);
 
-    // EndGPUScopeã«æ¸¡ã™ãƒãƒ³ãƒ‰ãƒ«ã‚’è¿”ã™ã€‚GPUè¨ˆæ¸¬ãŒæœªåˆæœŸåŒ–ã€ã¾ãŸã¯ãƒ•ãƒ¬ãƒ¼ãƒ ã‚ãŸã‚Šã®
-    // ã‚¹ã‚³ãƒ¼ãƒ—æ•°ä¸Šé™(kMaxGPUScopesPerFrame)ã«é”ã—ã¦ã„ã‚‹å ´åˆã¯UINT32_MAXã‚’è¿”ã™ã€‚
+    // EndGPUScope‚É“n‚·ƒnƒ“ƒhƒ‹‚ğ•Ô‚·BGPUŒv‘ª‚ª–¢‰Šú‰»A‚Ü‚½‚ÍƒtƒŒ[ƒ€‚ ‚½‚è‚Ì
+    // ƒXƒR[ƒv”ãŒÀ(kMaxGPUScopesPerFrame)‚É’B‚µ‚Ä‚¢‚éê‡‚ÍUINT32_MAX‚ğ•Ô‚·B
     uint32_t BeginGPUScope(ID3D12GraphicsCommandList* pCmdList, const std::string& name);
     void EndGPUScope(ID3D12GraphicsCommandList* pCmdList, uint32_t scopeHandle);
 
@@ -195,7 +195,7 @@ public:
     };
 
     // ---------------------------------------------------------------
-    // ãƒ•ãƒ¬ãƒ¼ãƒ æ™‚é–“ã®å±¥æ­´(ms)ã€ã‚°ãƒ©ãƒ•è¡¨ç¤ºç”¨ã®ãƒªãƒ³ã‚°ãƒãƒƒãƒ•ã‚¡ã€‚
+    // ƒtƒŒ[ƒ€ŠÔ‚Ì—š—ğ(ms)AƒOƒ‰ƒt•\¦—p‚ÌƒŠƒ“ƒOƒoƒbƒtƒ@B
     // ---------------------------------------------------------------
     static constexpr int kFrameHistorySize = 120;
 
@@ -209,8 +209,8 @@ public:
         return m_frameTimeHistoryIdx;
     }
 
-    // ãƒ•ãƒ¬ãƒ¼ãƒ ã®å…ˆé ­ã§1å›å‘¼ã¶ã€‚å‰ãƒ•ãƒ¬ãƒ¼ãƒ ã®æ‰€è¦æ™‚é–“ã‚’è¨˜éŒ²ã—ã€å¹³å‡ã‚ˆã‚Šæ¥µç«¯ã«é…ã‹ã£ãŸã‚‰
-    // ãã®ãƒ•ãƒ¬ãƒ¼ãƒ ã®CPUåŒºé–“è¨ˆæ¸¬ã‚’ãƒ­ã‚°ã«å‡ºã—ã¦ã‹ã‚‰ã€æ¯ãƒ•ãƒ¬ãƒ¼ãƒ ã®ã‚«ã‚¦ãƒ³ã‚¿ã‚’ãƒªã‚»ãƒƒãƒˆã™ã‚‹ã€‚
+    // ƒtƒŒ[ƒ€‚Ìæ“ª‚Å1‰ñŒÄ‚ÔB‘OƒtƒŒ[ƒ€‚ÌŠ—vŠÔ‚ğ‹L˜^‚µA•½‹Ï‚æ‚è‹É’[‚É’x‚©‚Á‚½‚ç
+    // ‚»‚ÌƒtƒŒ[ƒ€‚ÌCPU‹æŠÔŒv‘ª‚ğƒƒO‚Éo‚µ‚Ä‚©‚çA–ˆƒtƒŒ[ƒ€‚ÌƒJƒEƒ“ƒ^‚ğƒŠƒZƒbƒg‚·‚éB
     void BeginCPUFrame();
 
 private:
@@ -227,39 +227,39 @@ private:
     std::unordered_map<std::string, uint32_t> m_instanceBreakdown;
     uint32_t m_dispatchCount = 0;
 
-    // ãƒ•ãƒ©ã‚¹ã‚¿ãƒ ã‚«ãƒªãƒ³ã‚°çµ±è¨ˆ
+    // ƒtƒ‰ƒXƒ^ƒ€ƒJƒŠƒ“ƒO“Œv
     uint32_t m_entitiesVisible = 0;
     uint32_t m_entitiesCulled = 0;
     uint32_t m_meshesVisible = 0;
     uint32_t m_meshesCulled = 0;
 
-    // CPUè¨ˆæ¸¬
+    // CPUŒv‘ª
     std::unordered_map<std::string, float> m_cpuTimings;
 
-    // GPUè¨ˆæ¸¬
+    // GPUŒv‘ª
     uint64_t m_gpuFrequency = 0;
     uint32_t m_gpuFrameCount = 0;
     uint32_t m_gpuCurrentSlot = 0;
     uint32_t m_gpuScopeCounter = 0;
     Microsoft::WRL::ComPtr<ID3D12QueryHeap> m_spQueryHeap;
-    std::vector<Microsoft::WRL::ComPtr<ID3D12Resource>> m_gpuReadbackBuffers; // ãƒ•ãƒ¬ãƒ¼ãƒ ã‚¤ãƒ³ãƒ•ãƒ©ã‚¤ãƒˆã®ã‚¹ãƒ­ãƒƒãƒˆã”ã¨ã«1ã¤
-    std::vector<std::vector<std::string>> m_gpuScopeNamesPerSlot;             // å„ã‚¹ãƒ­ãƒƒãƒˆã«è¨˜éŒ²ã•ã‚ŒãŸã‚¹ã‚³ãƒ¼ãƒ—å
-    std::vector<uint32_t> m_gpuScopeCountPerSlot;                             // å„ã‚¹ãƒ­ãƒƒãƒˆã«è¨˜éŒ²ã•ã‚ŒãŸã‚¹ã‚³ãƒ¼ãƒ—æ•°
+    std::vector<Microsoft::WRL::ComPtr<ID3D12Resource>> m_gpuReadbackBuffers; // ƒtƒŒ[ƒ€ƒCƒ“ƒtƒ‰ƒCƒg‚ÌƒXƒƒbƒg‚²‚Æ‚É1‚Â
+    std::vector<std::vector<std::string>> m_gpuScopeNamesPerSlot;             // ŠeƒXƒƒbƒg‚É‹L˜^‚³‚ê‚½ƒXƒR[ƒv–¼
+    std::vector<uint32_t> m_gpuScopeCountPerSlot;                             // ŠeƒXƒƒbƒg‚É‹L˜^‚³‚ê‚½ƒXƒR[ƒv”
     std::unordered_map<std::string, float> m_gpuTimings;
 
-    // ãƒ•ãƒ¬ãƒ¼ãƒ æ™‚é–“ã®å±¥æ­´
+    // ƒtƒŒ[ƒ€ŠÔ‚Ì—š—ğ
     std::array<float, kFrameHistorySize> m_frameTimeHistory = {};
     int m_frameTimeHistoryIdx = 0;
 
-    // ã‚¹ãƒ‘ã‚¤ã‚¯æ¤œå‡ºç”¨ã®å¹³å‡ãƒ•ãƒ¬ãƒ¼ãƒ æ™‚é–“(ms)ã¨ã€å¹³å‡ãŒå®‰å®šã™ã‚‹ã¾ã§ã®å¾…ã¡ãƒ•ãƒ¬ãƒ¼ãƒ æ•°
+    // ƒXƒpƒCƒNŒŸo—p‚Ì•½‹ÏƒtƒŒ[ƒ€ŠÔ(ms)‚ÆA•½‹Ï‚ªˆÀ’è‚·‚é‚Ü‚Å‚Ì‘Ò‚¿ƒtƒŒ[ƒ€”
     float m_avgFrameMs = 0.0f;
     int m_spikeWarmupFrames = 120;
 };
 
-// ä½¿ã„æ–¹: è¨ˆæ¸¬ã—ãŸã„ãƒ–ãƒ­ãƒƒã‚¯ã®å…ˆé ­ã§ PROFILE_CPU_SCOPE("Shadow"); ã®ã‚ˆã†ã«å‘¼ã¶ã€‚
+// g‚¢•û: Œv‘ª‚µ‚½‚¢ƒuƒƒbƒN‚Ìæ“ª‚Å PROFILE_CPU_SCOPE("Shadow"); ‚Ì‚æ‚¤‚ÉŒÄ‚ÔB
 #define PROFILE_CPU_SCOPE_CONCAT_INNER(a, b) a##b
 #define PROFILE_CPU_SCOPE_CONCAT(a, b) PROFILE_CPU_SCOPE_CONCAT_INNER(a, b)
 #define PROFILE_CPU_SCOPE(name) Profiler::ScopedCPUTimer PROFILE_CPU_SCOPE_CONCAT(cpuScope_, __LINE__)(name)
 
-// ä½¿ã„æ–¹: è¨ˆæ¸¬ã—ãŸã„ãƒ–ãƒ­ãƒƒã‚¯ã®å…ˆé ­ã§ PROFILE_GPU_SCOPE(cmdList, "Shadow"); ã®ã‚ˆã†ã«å‘¼ã¶ã€‚
+// g‚¢•û: Œv‘ª‚µ‚½‚¢ƒuƒƒbƒN‚Ìæ“ª‚Å PROFILE_GPU_SCOPE(cmdList, "Shadow"); ‚Ì‚æ‚¤‚ÉŒÄ‚ÔB
 #define PROFILE_GPU_SCOPE(cmdList, name) Profiler::ScopedGPUTimer PROFILE_CPU_SCOPE_CONCAT(gpuScope_, __LINE__)(cmdList, name)

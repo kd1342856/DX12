@@ -1,17 +1,17 @@
 #include "../Common/ShaderCore.hlsli"
 
-// SSAO/SSRのためだけの軽量な法線+深度プリパス。
-// マテリアルのテクスチャ等は一切参照せず、ビュー空間法線だけを書き出す
-// (深度は通常のZバッファそのものをそのままSRVとして後段で読む)。
+// SSAO/SSR�̂��߂����̌y�ʂȖ@��+�[�x�v���p�X�B
+// �}�e���A���̃e�N�X�`�����͈�؎Q�Ƃ����A�r���[��Ԗ@�������������o��
+// (�[�x�͒ʏ��Z�o�b�t�@���̂��̂����̂܂�SRV�Ƃ��Č�i�œǂ�)�B
 struct VSOutput
 {
     float4 Pos : SV_Position;
-    float3 vN : TEXCOORD0; // ビュー空間法線
+    float3 vN : TEXCOORD0; // �r���[��Ԗ@��
     float2 UV : TEXCOORD1;
 };
 
-// SSR(Opaque)が粗い面(壁・天井等)を鏡にしないよう、粗さだけはマテリアルから読んで
-// アルファに書き出す。レイアウトはLitShaderのcbPerMaterialと同じ(MaterialConstants)。
+// SSR(Opaque)���e����(�ǁE�V�䓙)�����ɂ��Ȃ��悤�A�e�������̓}�e���A������ǂ��
+// �A���t�@�ɏ����o���B���C�A�E�g��LitShader��cbPerMaterial�Ɠ���(MaterialConstants)�B
 cbuffer cbPerMaterial : register(b2)
 {
     float4 g_baseColorFactor;

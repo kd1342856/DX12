@@ -1,19 +1,19 @@
 //----------------------------------------
-// å…±é€šãƒ†ã‚¯ã‚¹ãƒãƒ£
+// ‹¤’ÊƒeƒNƒXƒ`ƒƒ
 //----------------------------------------
 
 Texture2D g_colorTex : register(t4);
 Texture2D g_normalTex : register(t5);
 Texture2D g_depthTex : register(t6);
 
-// å¹³è¡Œå…‰ShadowMap
+// •½sŒõShadowMap
 Texture2D g_dirLightShadowMap : register(t7);
 
 // IBL
 TextureCube g_IBLTex : register(t8);
 
 //----------------------------------------
-// å…±é€šã‚µãƒ³ãƒ—ãƒ©
+// ‹¤’ÊƒTƒ“ƒvƒ‰
 //----------------------------------------
 SamplerState g_ss_aniso_wrap : register(s0);
 SamplerState g_ss_aniso_clamp : register(s1);
@@ -25,7 +25,7 @@ SamplerState g_ss_point_clamp : register(s5);
 SamplerComparisonState g_ss_comparison : register(s15);
 
 //----------------------------------------
-// å®šæ•°ãƒãƒƒãƒ•ã‚¡[0]ï¼šãƒžãƒ†ãƒªã‚¢ãƒ«å˜ä½
+// ’è”ƒoƒbƒtƒ@[0]Fƒ}ƒeƒŠƒAƒ‹’PˆÊ
 //----------------------------------------
 /*
 cbuffer cbPerMaterial : register(b0)
@@ -34,106 +34,106 @@ cbuffer cbPerMaterial : register(b0)
 */
 
 //----------------------------------------
-// å®šæ•°ãƒãƒƒãƒ•ã‚¡[1]ï¼šæç”»å˜ä½
+// ’è”ƒoƒbƒtƒ@[1]F•`‰æ’PˆÊ
 //----------------------------------------
 cbuffer cbPerDraw : register(b1)
 {
-    row_major float4x4 g_mW; // ãƒ¯ãƒ¼ãƒ«ãƒ‰å¤‰æ›è¡Œåˆ—
+    row_major float4x4 g_mW; // ƒ[ƒ‹ƒh•ÏŠ·s—ñ
 };
 
 //----------------------------------------
-// å®šæ•°ãƒãƒƒãƒ•ã‚¡[7]ï¼šã‚«ãƒ¡ãƒ©å˜ä½
+// ’è”ƒoƒbƒtƒ@[7]FƒJƒƒ‰’PˆÊ
 //----------------------------------------
 cbuffer cbPerCamera : register(b0)
 {
-    // ã‚«ãƒ¡ãƒ©æƒ…å ±
-    row_major float4x4 g_mV;    // ãƒ“ãƒ¥ãƒ¼å¤‰æ›è¡Œåˆ—
-    row_major float4x4 g_mInvV; // ãƒ“ãƒ¥ãƒ¼å¤‰æ›è¡Œåˆ—(é€†è¡Œåˆ—)
-    row_major float4x4 g_mP;    // æŠ•å½±å¤‰æ›è¡Œåˆ—
-    row_major float4x4 g_mInvP; // æŠ•å½±å¤‰æ›è¡Œåˆ—(é€†è¡Œåˆ—)
+    // ƒJƒƒ‰î•ñ
+    row_major float4x4 g_mV;    // ƒrƒ…[•ÏŠ·s—ñ
+    row_major float4x4 g_mInvV; // ƒrƒ…[•ÏŠ·s—ñ(‹ts—ñ)
+    row_major float4x4 g_mP;    // “Š‰e•ÏŠ·s—ñ
+    row_major float4x4 g_mInvP; // “Š‰e•ÏŠ·s—ñ(‹ts—ñ)
 
-    row_major float4x4 g_mVP;    // ãƒ“ãƒ¥ãƒ¼*æŠ•å½±å¤‰æ›è¡Œåˆ—
-    row_major float4x4 g_mInvVP; // ãƒ“ãƒ¥ãƒ¼*æŠ•å½±å¤‰æ›è¡Œåˆ—(é€†è¡Œåˆ—)
+    row_major float4x4 g_mVP;    // ƒrƒ…[*“Š‰e•ÏŠ·s—ñ
+    row_major float4x4 g_mInvVP; // ƒrƒ…[*“Š‰e•ÏŠ·s—ñ(‹ts—ñ)
 
-    float3 g_CamPos; // ã‚«ãƒ¡ãƒ©åº§æ¨™(World)
+    float3 g_CamPos; // ƒJƒƒ‰À•W(World)
 };
 
 
 //----------------------------------------
-// å®šæ•°ãƒãƒƒãƒ•ã‚¡[8]ï¼šãƒ©ã‚¤ãƒˆ
+// ’è”ƒoƒbƒtƒ@[8]Fƒ‰ƒCƒg
 //----------------------------------------
 
-// ã‚¹ãƒãƒƒãƒˆãƒ©ã‚¤ãƒˆã®ãƒ‡ãƒ¼ã‚¿
+// ƒXƒ|ƒbƒgƒ‰ƒCƒg‚Ìƒf[ƒ^
 struct SpotLight
 {
-    float3 Dir;      // å…‰ã®æ–¹å‘
-    float Range;     // è·é›¢
-    float3 Color;    // è‰²
-    float InnerCorn; // å†…å´ã®è§’åº¦
-    float3 Pos;      // åº§æ¨™
-    float OuterCorn; // å¤–å´ã®è§’åº¦
+    float3 Dir;      // Œõ‚Ì•ûŒü
+    float Range;     // ‹——£
+    float3 Color;    // F
+    float InnerCorn; // “à‘¤‚ÌŠp“x
+    float3 Pos;      // À•W
+    float OuterCorn; // ŠO‘¤‚ÌŠp“x
 
     float EnableShadow;
     float ShadowBias;
     row_major float4x4 mLightVP;
 };
 
-// ãƒã‚¤ãƒ³ãƒˆãƒ©ã‚¤ãƒˆã®ãƒ‡ãƒ¼ã‚¿ (ãƒ­ã‚¦ã‚½ã‚¯/è£¸é›»çƒç­‰ã€‚ãƒ•ãƒªãƒƒã‚«ãƒ¼ã¯C++å´(LightSystem)ã§
-// æ˜Žæ»…ã•ã›ãŸçµæžœã®Colorã‚’æ¯Žãƒ•ãƒ¬ãƒ¼ãƒ æ›¸ãè¾¼ã‚€ã®ã§ã€ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼å´ã¯ãŸã ã®ç‚¹å…‰æºã¨ã—ã¦æ‰±ã†)
+// ƒ|ƒCƒ“ƒgƒ‰ƒCƒg‚Ìƒf[ƒ^ (ƒƒEƒ\ƒN/—‡“d‹…“™BƒtƒŠƒbƒJ[‚ÍC++‘¤(LightSystem)‚Å
+// –¾–Å‚³‚¹‚½Œ‹‰Ê‚ÌColor‚ð–ˆƒtƒŒ[ƒ€‘‚«ž‚Þ‚Ì‚ÅAƒVƒF[ƒ_[‘¤‚Í‚½‚¾‚Ì“_ŒõŒ¹‚Æ‚µ‚Äˆµ‚¤)
 struct PointLight
 {
-    float3 Pos;   // åº§æ¨™
-    float Range;  // æ¸›è¡°è·é›¢
-    float3 Color; // è‰²
+    float3 Pos;   // À•W
+    float Range;  // Œ¸Š‹——£
+    float3 Color; // F
     float pad;
 };
 
 cbuffer cbLight : register(b3)
 {
-    // ã‚¹ãƒãƒƒãƒˆå…‰ã®ä½¿ç”¨æ•°
+    // ƒXƒ|ƒbƒgŒõ‚ÌŽg—p”
     int g_SL_Count;
     float3 g_dummy;
 
     //-------------------------
-    // ç’°å¢ƒå…‰
+    // ŠÂ‹«Œõ
     //-------------------------
     float3 g_AmbientLight;
-    float g_IndirectShadowFloor; // å¹³è¡Œå…‰ã®å½±ãŒè½ã¡ã‚‹å ´æ‰€ã«æ®‹ã™é–“æŽ¥å…‰(Ambient/IBL)ã®ä¸‹é™ 0..1
+    float g_IndirectShadowFloor; // •½sŒõ‚Ì‰e‚ª—Ž‚¿‚éêŠ‚ÉŽc‚·ŠÔÚŒõ(Ambient/IBL)‚Ì‰ºŒÀ 0..1
 
     //-------------------------
-    // å¹³è¡Œå…‰
+    // •½sŒõ
     //-------------------------
-    float3 g_DL_Dir;               // å¹³è¡Œå…‰ã®æ–¹å‘
-    float g_DL_DirLightShadowBias; // å¹³è¡Œå…‰ã®ã‚·ãƒ£ãƒ‰ã‚¦ãƒžãƒƒãƒ—ç”¨ãƒã‚¤ã‚¢ã‚¹
+    float3 g_DL_Dir;               // •½sŒõ‚Ì•ûŒü
+    float g_DL_DirLightShadowBias; // •½sŒõ‚ÌƒVƒƒƒhƒEƒ}ƒbƒv—pƒoƒCƒAƒX
 
-    float3 g_DL_Color; // å¹³è¡Œå…‰ã®è‰²
+    float3 g_DL_Color; // •½sŒõ‚ÌF
     float g_DL_ShadowPower;
 
-    row_major float4x4 g_DL_mLightVP[3]; // å¹³è¡Œå…‰ã®ãƒ“ãƒ¥ãƒ¼*æŠ•å½±è¡Œåˆ— (ã‚«ã‚¹ã‚±ãƒ¼ãƒ‰æ•°åˆ†)
-    float4 g_DL_CascadeSplits;           // ã‚«ã‚¹ã‚±ãƒ¼ãƒ‰åˆ†å‰²æ·±åº¦
+    row_major float4x4 g_DL_mLightVP[3]; // •½sŒõ‚Ìƒrƒ…[*“Š‰es—ñ (ƒJƒXƒP[ƒh”•ª)
+    float4 g_DL_CascadeSplits;           // ƒJƒXƒP[ƒh•ªŠ„[“x
 
     //-------------------------
-    // ã‚¹ãƒãƒƒãƒˆå…‰
+    // ƒXƒ|ƒbƒgŒõ
     //-------------------------
     SpotLight g_SL[10];
 
     //-------------------------
-    // ãƒ•ã‚©ã‚°
+    // ƒtƒHƒO
     //-------------------------
     float3 g_DistanceFogColor;
     float g_DistanceFogDensity;
 
     //-------------------------
-    // ãƒã‚¤ãƒ³ãƒˆå…‰ (ãƒ­ã‚¦ã‚½ã‚¯/è£¸é›»çƒç­‰ã€ãƒ•ãƒªãƒƒã‚«ãƒ¼å¯¾å¿œ)
+    // ƒ|ƒCƒ“ƒgŒõ (ƒƒEƒ\ƒN/—‡“d‹…“™AƒtƒŠƒbƒJ[‘Î‰ž)
     //-------------------------
     int g_PL_Count;
     float3 g_dummyPL;
     PointLight g_PL[8];
 
     //-------------------------
-    // ãƒã‚¤ãƒ³ãƒˆå…‰ã®å½± (æœ€ã‚‚è¿‘ã„1ç¯ã®ã¿ã€6é¢ã‚­ãƒ¥ãƒ¼ãƒ–ã‚·ãƒ£ãƒ‰ã‚¦ã€‚TextureCubeã§ã¯ãªã
-    // Texture2Dã‚’6æžšä½¿ã†ç°¡æ˜“å®Ÿè£… - é¢ã®é¸æŠžã¯ãƒ”ã‚¯ã‚»ãƒ«ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼å´ã§Light->Pixelãƒ™ã‚¯ãƒˆãƒ«ã®
-    // ä¸»è»¸ã‹ã‚‰åˆ¤å®šã™ã‚‹ã€‚face: 0=+X,1=-X,2=+Y,3=-Y,4=+Z,5=-Z)
+    // ƒ|ƒCƒ“ƒgŒõ‚Ì‰e (Å‚à‹ß‚¢1“”‚Ì‚ÝA6–ÊƒLƒ…[ƒuƒVƒƒƒhƒEBTextureCube‚Å‚Í‚È‚­
+    // Texture2D‚ð6–‡Žg‚¤ŠÈˆÕŽÀ‘• - –Ê‚Ì‘I‘ð‚ÍƒsƒNƒZƒ‹ƒVƒF[ƒ_[‘¤‚ÅLight->PixelƒxƒNƒgƒ‹‚Ì
+    // ŽåŽ²‚©‚ç”»’è‚·‚éBface: 0=+X,1=-X,2=+Y,3=-Y,4=+Z,5=-Z)
     //-------------------------
     row_major float4x4 g_PL0_ShadowVP[6];
     float g_PL0_ShadowBias;
@@ -141,8 +141,8 @@ cbuffer cbLight : register(b3)
     float2 g_PadPL0Shadow;
 
     //-------------------------
-    // å®¤å†…åˆ¤å®š (RoomAreaã®AABBã€xyzã®ã¿ä½¿ç”¨)ã€‚ç¯„å›²å†…ã®ãƒ”ã‚¯ã‚»ãƒ«ã¯å¤–ã®å…‰(æœˆæ˜Žã‹ã‚Šãƒ»ç’°å¢ƒå…‰ãƒ»
-    // ç©ºã®åå°„å…‰)ã‚’å—ã‘ãšã€æœˆã®å½±ã®ä¸­ã¨åŒã˜æ‰±ã„ã«ãªã‚‹
+    // Žº“à”»’è (RoomArea‚ÌAABBAxyz‚Ì‚ÝŽg—p)B”ÍˆÍ“à‚ÌƒsƒNƒZƒ‹‚ÍŠO‚ÌŒõ(ŒŽ–¾‚©‚èEŠÂ‹«ŒõE
+    // ‹ó‚Ì”½ŽËŒõ)‚ðŽó‚¯‚¸AŒŽ‚Ì‰e‚Ì’†‚Æ“¯‚¶ˆµ‚¢‚É‚È‚é
     //-------------------------
     int g_IndoorCount;
     float3 g_PadIndoor;
@@ -150,7 +150,7 @@ cbuffer cbLight : register(b3)
     float4 g_IndoorMax[16];
 };
 
-// ãƒ¯ãƒ¼ãƒ«ãƒ‰åº§æ¨™ãŒã„ãšã‚Œã‹ã®å®¤å†…ç¯„å›²(RoomArea)ã«å…¥ã£ã¦ã„ã‚‹ã‹
+// ƒ[ƒ‹ƒhÀ•W‚ª‚¢‚¸‚ê‚©‚ÌŽº“à”ÍˆÍ(RoomArea)‚É“ü‚Á‚Ä‚¢‚é‚©
 bool IsIndoor(float3 wPos)
 {
     for (int r = 0; r < g_IndoorCount; r++)
@@ -164,18 +164,18 @@ bool IsIndoor(float3 wPos)
 }
 
 //----------------------------------------
-// å®šæ•°ãƒãƒƒãƒ•ã‚¡[10]ï¼šUI
+// ’è”ƒoƒbƒtƒ@[10]FUI
 //----------------------------------------
 cbuffer cbPerUI : register(b10)
 {
-    row_major float4x4 g_mUIP; // æ­£æŠ•å½±è¡Œåˆ—
-    float4 g_Color;            // å…¨ä½“ã®è‰²ãƒ»ä¸é€æ˜Žåº¦
-    float2 g_ScreenRes;        // ç”»é¢è§£åƒåº¦
+    row_major float4x4 g_mUIP; // ³“Š‰es—ñ
+    float4 g_Color;            // ‘S‘Ì‚ÌFE•s“§–¾“x
+    float2 g_ScreenRes;        // ‰æ–Ê‰ð‘œ“x
     float2 g_tmpUI;
 };
 
 //----------------------------------------
-// å®šæ•°ãƒãƒƒãƒ•ã‚¡[13]ï¼šã‚·ã‚¹ãƒ†ãƒ 
+// ’è”ƒoƒbƒtƒ@[13]FƒVƒXƒeƒ€
 //----------------------------------------
 cbuffer cbSystem : register(b4)
 {
@@ -186,12 +186,12 @@ cbuffer cbSystem : register(b4)
     float g_ScreenWidth;
     float g_ScreenHeight;
 
-    // SSR (ã‚¹ã‚¯ãƒªãƒ¼ãƒ³ã‚¹ãƒšãƒ¼ã‚¹åå°„) - å¹³é¢åå°„ãŒç„¡ã„ã‚¬ãƒ©ã‚¹ç­‰ã®ãƒ•ã‚©ãƒ¼ãƒ«ãƒãƒƒã‚¯ã«ä½¿ã†
+    // SSR (ƒXƒNƒŠ[ƒ“ƒXƒy[ƒX”½ŽË) - •½–Ê”½ŽË‚ª–³‚¢ƒKƒ‰ƒX“™‚ÌƒtƒH[ƒ‹ƒoƒbƒN‚ÉŽg‚¤
     int g_EnableSSR;
     float g_SSRStepSize;
 
-    // å¹³é¢åå°„(çª“ã‚¬ãƒ©ã‚¹ç­‰)ç”¨: å„åå°„ã‚¹ãƒ­ãƒƒãƒˆ(æœ€å¤§3æžš=3çª“ã¾ã§åŒæ™‚)ã®åå°„ã‚«ãƒ¡ãƒ©View*Projè¡Œåˆ—ã€‚
-    // ãƒ¯ãƒ¼ãƒ«ãƒ‰åº§æ¨™ã‚’ã“ã‚Œã§å†æŠ•å½±ã—ã¦g_planarReflectionMapN(N=ã‚¹ãƒ­ãƒƒãƒˆç•ªå·)ã®æ­£ã—ã„UVã‚’æ±‚ã‚ã‚‹ã€‚
+    // •½–Ê”½ŽË(‘‹ƒKƒ‰ƒX“™)—p: Še”½ŽËƒXƒƒbƒg(Å‘å3–‡=3‘‹‚Ü‚Å“¯Žž)‚Ì”½ŽËƒJƒƒ‰View*Projs—ñB
+    // ƒ[ƒ‹ƒhÀ•W‚ð‚±‚ê‚ÅÄ“Š‰e‚µ‚Äg_planarReflectionMapN(N=ƒXƒƒbƒg”Ô†)‚Ì³‚µ‚¢UV‚ð‹‚ß‚éB
     row_major float4x4 g_mReflectionVP[3];
-    int4 g_HasReflectionPacked; // x,y,z = ã‚¹ãƒ­ãƒƒãƒˆ0/1/2ãŒä»Šãƒ•ãƒ¬ãƒ¼ãƒ æœ‰åŠ¹ã‹(0/1)ã€‚wã¯æœªä½¿ç”¨
+    int4 g_HasReflectionPacked; // x,y,z = ƒXƒƒbƒg0/1/2‚ª¡ƒtƒŒ[ƒ€—LŒø‚©(0/1)Bw‚Í–¢Žg—p
 };

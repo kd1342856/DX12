@@ -1,4 +1,4 @@
-﻿#include "PostProcessPanel.h"
+#include "PostProcessPanel.h"
 #include "../EditorContext.h"
 #include "../../../../Library/ImGui/imgui.h"
 
@@ -43,7 +43,7 @@ void PostProcessPanel::Draw(EditorContext& ctx)
             }
             if (ImGui::IsItemHovered())
             {
-                ImGui::SetTooltip(u8"半径・反復回数を上げるほど広く柔らかく漏れる。既定値で変化が薄い時はまずここを疑う。");
+                ImGui::SetTooltip(u8"���a�E�����񐔂��グ��قǍL���_�炩���R���B����l�ŕω����������͂܂��������^���B");
             }
 
             ImGui::Separator();
@@ -130,7 +130,7 @@ void PostProcessPanel::Draw(EditorContext& ctx)
             }
             if (ImGui::IsItemHovered())
             {
-                ImGui::SetTooltip(u8"平行光の方向とカメラ行列から光源のスクリーン位置を推定し、Bloom結果をラジアルブラーする近似。光源がカメラの後ろにある時は自動的に無効化される。");
+                ImGui::SetTooltip(u8"���s���̕����ƃJ�����s�񂩂�����̃X�N���[���ʒu�𐄒肵�ABloom���ʂ����W�A���u���[����ߎ��B�������J�����̌��ɂ��鎞�͎����I�ɖ����������B");
             }
 
             if (changed)

@@ -1,4 +1,4 @@
-ï»¿#include "../../Pch.h"
+#include "../../Pch.h"
 #include "ComponentSerializerRegistration.h"
 #include "ComponentSerializerRegistry.h"
 #include "ECS.h"
@@ -111,7 +111,7 @@ void RegisterComponentSerializers()
         {
             d.m_farZ = cj["FarZ"];
         }
-        // æ—§å½¢å¼ã®"MoveSpeed"ã¯1ãƒ•ãƒ¬ãƒ¼ãƒ ã‚ãŸã‚Šã®ç§»å‹•é‡ã ã£ãŸã®ã§ã€60fpsæƒ³å®šã§ç§’é€Ÿã«æ›ç®—ã™ã‚‹
+        // ‹ŒŒ`®‚Ì"MoveSpeed"‚Í1ƒtƒŒ[ƒ€‚ ‚½‚è‚ÌˆÚ“®—Ê‚¾‚Á‚½‚Ì‚ÅA60fps‘z’è‚Å•b‘¬‚ÉŠ·Z‚·‚é
         if (cj.contains("MoveSpeedPerSec"))
         {
             d.m_moveSpeed = cj["MoveSpeedPerSec"];
@@ -458,7 +458,7 @@ void RegisterComponentSerializers()
         }
         else
         {
-            d.m_flickerSeed = static_cast<float>(rand() % 1000) * 0.01f; // ä½ç›¸ã‚’ãšã‚‰ã™
+            d.m_flickerSeed = static_cast<float>(rand() % 1000) * 0.01f; // ˆÊ‘Š‚ğ‚¸‚ç‚·
         }
         ecs.AddComponent(e, d);
     },

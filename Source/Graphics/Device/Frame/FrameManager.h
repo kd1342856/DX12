@@ -1,4 +1,4 @@
-ï»¿#pragma once
+#pragma once
 #include "../FrameResource.h"
 #include <vector>
 
@@ -18,7 +18,7 @@ public:
 
     FrameResource& AcquireFrame();
 
-    // ç¾åœ¨ã®ãƒ•ãƒ¬ãƒ¼ãƒ ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã‚’é€²ã‚ã‚‹
+    // Œ»İ‚ÌƒtƒŒ[ƒ€ƒCƒ“ƒfƒbƒNƒX‚ği‚ß‚é
     void MoveNextFrame();
 
     FrameResource& GetCurrentFrameResource()

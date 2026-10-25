@@ -1,4 +1,4 @@
-ï»¿#include "../../../Pch.h"
+#include "../../../Pch.h"
 #include "../../Manager/Scene/Scene.h"
 #include "../../Manager/Scene/SceneManager.h"
 #include "../../Manager/Collision/CollisionManager.h"
@@ -19,14 +19,14 @@ void Editor::DrawStatistics()
     {
         ImGui::Text("FPS: %.1f (%.3f ms/frame)", ImGui::GetIO().Framerate, 1000.0f / ImGui::GetIO().Framerate);
 #ifdef _DEBUG
-        // ã“ã®ã‚»ãƒƒã‚·ãƒ§ãƒ³ã§ã®å®Ÿæ¸¬å€¤ã€‚GraphicsDevice::Init()ã§ä¸€åº¦ã ã‘æ±ºã¾ã‚‹ - æ°¸ç¶šåŒ–ã•ã‚ŒãŸ
-        // ãƒªã‚¯ã‚¨ã‚¹ãƒˆ(æ¬¡å›èµ·å‹•æ™‚ã«åæ˜ )ã«ã¤ã„ã¦ã¯RendererPanelã®ãƒã‚§ãƒƒã‚¯ãƒœãƒƒã‚¯ã‚¹ã‚’å‚ç…§ã€‚
-        // å†èµ·å‹•ã™ã‚‹ã¾ã§ã¯ã“ã®å€¤ã¨é£Ÿã„é•ã£ã¦ã„ã¦æ­£å¸¸ã€‚
+        // ‚±‚ÌƒZƒbƒVƒ‡ƒ“‚Å‚ÌÀ‘ª’lBGraphicsDevice::Init()‚Åˆê“x‚¾‚¯Œˆ‚Ü‚é - ‰i‘±‰»‚³‚ê‚½
+        // ƒŠƒNƒGƒXƒg(Ÿ‰ñ‹N“®‚É”½‰f)‚É‚Â‚¢‚Ä‚ÍRendererPanel‚Ìƒ`ƒFƒbƒNƒ{ƒbƒNƒX‚ğQÆB
+        // Ä‹N“®‚·‚é‚Ü‚Å‚Í‚±‚Ì’l‚ÆH‚¢ˆá‚Á‚Ä‚¢‚Ä³íB
         ImGui::Text("D3D12 Debug Layer: %s", GraphicsDevice::IsDebugLayerActive() ? "ON" : "OFF");
 #endif
 
-        // Presentï½Presenté–“ã®ãƒ•ãƒ¬ãƒ¼ãƒ æ™‚é–“ã®å±¥æ­´(ä¸Šã®ImGuiè‡ªèº«ã®å¹³æ»‘åŒ–ã•ã‚ŒãŸFramerateã¨ã¯
-        // é•ã„ã€ã“ã‚ŒãŒãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ä½“æ„Ÿãã®ã‚‚ã®)ã€‚
+        // Present`PresentŠÔ‚ÌƒtƒŒ[ƒ€ŠÔ‚Ì—š—ğ(ã‚ÌImGui©g‚Ì•½ŠŠ‰»‚³‚ê‚½Framerate‚Æ‚Í
+        // ˆá‚¢A‚±‚ê‚ªƒvƒŒƒCƒ„[‚Ì‘ÌŠ´‚»‚Ì‚à‚Ì)B
         {
             const auto& frameHistory = Profiler::Instance().GetFrameTimeHistory();
             float frameTimes[Profiler::kFrameHistorySize];
@@ -48,9 +48,9 @@ void Editor::DrawStatistics()
         ImGui::Separator();
 
         ImGui::Text("--- Pass Timing (ms) ---");
-        // GPUè¨ˆæ¸¬ã¯CPUè¨ˆæ¸¬ã‚ˆã‚Šæ•°ãƒ•ãƒ¬ãƒ¼ãƒ é…ã‚Œã‚‹(è¨˜éŒ²å…ˆã®ãƒ•ãƒ¬ãƒ¼ãƒ ã‚¤ãƒ³ãƒ•ãƒ©ã‚¤ãƒˆã‚¹ãƒ­ãƒƒãƒˆãŒ
-        // å†åˆ©ç”¨ã—ã¦ã‚‚å®‰å…¨ã«ãªã£ãŸæ™‚ç‚¹ã§çµæœã‚’èª­ã¿æˆ»ã™ãŸã‚)ãŒã€ãƒ‘ã‚¹åã§å¯¾å¿œãŒå–ã‚Œã‚‹ã®ã§ã€
-        // å˜ç´”ã«æ¨ªä¸¦ã³ã®ãƒ†ãƒ¼ãƒ–ãƒ«ã«ã™ã‚‹ã ã‘ã§é‡ã„ãƒ‘ã‚¹ã‚’è¦‹ã¤ã‘ã‚‹ã«ã¯ååˆ†ã€‚
+        // GPUŒv‘ª‚ÍCPUŒv‘ª‚æ‚è”ƒtƒŒ[ƒ€’x‚ê‚é(‹L˜^æ‚ÌƒtƒŒ[ƒ€ƒCƒ“ƒtƒ‰ƒCƒgƒXƒƒbƒg‚ª
+        // Ä—˜—p‚µ‚Ä‚àˆÀ‘S‚É‚È‚Á‚½“_‚ÅŒ‹‰Ê‚ğ“Ç‚İ–ß‚·‚½‚ß)‚ªAƒpƒX–¼‚Å‘Î‰‚ªæ‚ê‚é‚Ì‚ÅA
+        // ’Pƒ‚É‰¡•À‚Ñ‚Ìƒe[ƒuƒ‹‚É‚·‚é‚¾‚¯‚Åd‚¢ƒpƒX‚ğŒ©‚Â‚¯‚é‚É‚Í\•ªB
         if (ImGui::BeginTable("PassTiming", 3, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
         {
             ImGui::TableSetupColumn("Pass");
@@ -61,7 +61,7 @@ void Editor::DrawStatistics()
             const auto& cpuTimings = Profiler::Instance().GetCPUTimings();
             const auto& gpuTimings = Profiler::Instance().GetGPUTimings();
 
-            // ä¸¡æ–¹ã«å‡ºã¦ããŸåå‰ã®å’Œé›†åˆã€‚ç‰‡æ–¹ã«ã—ã‹ç„¡ã„ãƒ‘ã‚¹ã‚‚è¡¨ç¤ºã«å‡ºã‚‹ã‚ˆã†ã«ã™ã‚‹ã€‚
+            // —¼•û‚Éo‚Ä‚«‚½–¼‘O‚Ì˜aW‡B•Ğ•û‚É‚µ‚©–³‚¢ƒpƒX‚à•\¦‚Éo‚é‚æ‚¤‚É‚·‚éB
             std::vector<std::string> names;
             names.reserve(cpuTimings.size() + gpuTimings.size());
             for (const auto& pair : cpuTimings)
@@ -107,7 +107,7 @@ void Editor::DrawStatistics()
         }
         ImGui::Separator();
 
-        // å±¥æ­´ç”¨ãƒãƒƒãƒ•ã‚¡ï¼ˆæ¯ãƒ•ãƒ¬ãƒ¼ãƒ è¨˜éŒ²ï¼‰
+        // —š—ğ—pƒoƒbƒtƒ@i–ˆƒtƒŒ[ƒ€‹L˜^j
         static float drawCallHistory[120] = {};
         static float instanceHistory[120] = {};
         static float activeJobHistory[120] = {};
@@ -155,9 +155,9 @@ void Editor::DrawStatistics()
         ImGui::Text("Workers: %zu", workerCount);
         ImGui::Text("Active Jobs: %d", activeJobs);
         ImGui::Text("Queued Jobs: %zu", JobSystem::Instance().GetQueuedJobCount());
-        // å°ã•ã„NavMeshã ã¨findPathã¯1ãƒ•ãƒ¬ãƒ¼ãƒ ã‚ˆã‚Šååˆ†é€Ÿãçµ‚ã‚ã‚‹ã®ã§ã€ã€ŒActive Jobsã€ãŒ
-        // 1ã«ãªã‚‹ç¬é–“ã‚’ç›®ã§è¿½ã†ã®ã¯é›£ã—ã„ã€‚ã“ã®åˆè¨ˆå€¤ã¯ã€éåŒæœŸã®çµŒè·¯å†è¨ˆç®—
-        // (NavMeshManager::MoveToward)ãŒå®Ÿéš›ã«èµ·ãã¦ã„ã‚‹é™ã‚Šå¢—ãˆç¶šã‘ã‚‹ã€‚
+        // ¬‚³‚¢NavMesh‚¾‚ÆfindPath‚Í1ƒtƒŒ[ƒ€‚æ‚è\•ª‘¬‚­I‚í‚é‚Ì‚ÅAuActive Jobsv‚ª
+        // 1‚É‚È‚éuŠÔ‚ğ–Ú‚Å’Ç‚¤‚Ì‚Í“ï‚µ‚¢B‚±‚Ì‡Œv’l‚ÍA”ñ“¯Šú‚ÌŒo˜HÄŒvZ
+        // (NavMeshManager::MoveToward)‚ªÀÛ‚É‹N‚«‚Ä‚¢‚éŒÀ‚è‘‚¦‘±‚¯‚éB
         ImGui::Text("Async Path Recomputes: %d", NavMeshManager::Instance().GetAsyncRecomputeCount());
 
         std::vector<bool> workerStatuses = JobSystem::Instance().GetWorkerStatuses();

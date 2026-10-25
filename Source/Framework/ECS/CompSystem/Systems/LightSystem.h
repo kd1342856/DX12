@@ -1,17 +1,17 @@
-ï»¿#pragma once
+#pragma once
 #include <algorithm>
 #include <vector>
 #include "../../../../Graphics/Shader/ShaderManager/ShaderManager.h"
 #include "../../../Manager/Collision/CollisionManager.h"
 
-// PointLightDataã‚’æŒã¤ã‚¨ãƒ³ãƒ†ã‚£ãƒ†ã‚£ã‚’æ¯ãƒ•ãƒ¬ãƒ¼ãƒ é›†ã‚ã¦ShaderManagerã¸é€ã‚‹ã‚·ã‚¹ãƒ†ãƒ ã€‚
-// - ãƒ•ãƒªãƒƒã‚«ãƒ¼(æ˜æ»…)ã¯ã“ã“ã§CPUå´ã«è¨ˆç®—ã—ã€é€ã‚‹Colorã«åæ˜ ã•ã›ã‚‹(ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼å´ã¯
-//   ãŸã ã®ç‚¹å…‰æºã¨ã—ã¦æ‰±ã†ã ã‘ã§æ¸ˆã‚€)ã€‚
-// - ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼å´ã®é…åˆ—(g_PL[8])ã«ã¯ä¸Šé™ãŒã‚ã‚‹ã®ã§ã€ã‚«ãƒ¡ãƒ©ã«è¿‘ã„é †ã§ä¸Šä½8å€‹ã ã‘ã‚’é€ã‚‹ã€‚
+// PointLightData‚ğ‚ÂƒGƒ“ƒeƒBƒeƒB‚ğ–ˆƒtƒŒ[ƒ€W‚ß‚ÄShaderManager‚Ö‘—‚éƒVƒXƒeƒ€B
+// - ƒtƒŠƒbƒJ[(–¾–Å)‚Í‚±‚±‚ÅCPU‘¤‚ÉŒvZ‚µA‘—‚éColor‚É”½‰f‚³‚¹‚é(ƒVƒF[ƒ_[‘¤‚Í
+//   ‚½‚¾‚Ì“_ŒõŒ¹‚Æ‚µ‚Äˆµ‚¤‚¾‚¯‚ÅÏ‚Ş)B
+// - ƒVƒF[ƒ_[‘¤‚Ì”z—ñ(g_PL[8])‚É‚ÍãŒÀ‚ª‚ ‚é‚Ì‚ÅAƒJƒƒ‰‚É‹ß‚¢‡‚ÅãˆÊ8ŒÂ‚¾‚¯‚ğ‘—‚éB
 class LightSystem : public SystemBase
 {
 public:
-    // RenderSceneç›´å‰ã«ã€å®Ÿéš›ã«æç”»ã¸ä½¿ã†ã‚«ãƒ¡ãƒ©ã®ä½ç½®ã‚’æ¸¡ã—ã¦å‘¼ã¶æƒ³å®š(è¿‘ã„é †ã®ã‚½ãƒ¼ãƒˆã«ä½¿ã†)ã€‚
+    // RenderScene’¼‘O‚ÉAÀÛ‚É•`‰æ‚Ög‚¤ƒJƒƒ‰‚ÌˆÊ’u‚ğ“n‚µ‚ÄŒÄ‚Ô‘z’è(‹ß‚¢‡‚Ìƒ\[ƒg‚Ég‚¤)B
     void Update(float deltaTime, const Math::Vector3& viewerPos)
     {
         m_elapsedTime += deltaTime;
@@ -39,7 +39,7 @@ public:
             float intensityMul = 1.0f;
             if (light.m_flickerEnabled)
             {
-                // è¤‡æ•°ã®é«˜ã•ã®é•ã†æ­£å¼¦æ³¢+ãƒã‚¤ã‚ºå¯„ã‚Šã®jitterã‚’è¶³ã—ã¦ã€æ©Ÿæ¢°çš„ã™ããªã„æºã‚‰ãã«ã™ã‚‹ã€‚
+                // •¡”‚Ì‚‚³‚Ìˆá‚¤³Œ·”g+ƒmƒCƒYŠñ‚è‚Ìjitter‚ğ‘«‚µ‚ÄA‹@ŠB“I‚·‚¬‚È‚¢—h‚ç‚¬‚É‚·‚éB
                 float t = (m_elapsedTime + light.m_flickerSeed) * light.m_flickerSpeed;
                 float wave = sinf(t) * 0.6f + sinf(t * 2.7f + 1.3f) * 0.4f; // -1..1
                 float flicker = 0.5f + 0.5f * wave;                         // 0..1
@@ -60,8 +60,8 @@ public:
             float distSq = Math::Vector3::DistanceSquared(pos, viewerPos);
             candidates.push_back({pos, distSq, pl});
 
-            // ã‚¨ãƒ‡ã‚£ã‚¿ã§ã®é…ç½®ç¢ºèªç”¨ã‚®ã‚ºãƒ¢(å¸¸ã«æç”»ã—ã¦ãŠã„ã¦ã‚‚ã€å®Ÿéš›ã«ç”»é¢ã«å‡ºã‚‹ã®ã¯
-            // RenderEditorã®DebugDrawçµŒç”±ã§ã‚¨ãƒ‡ã‚£ã‚¿ãƒ¢ãƒ¼ãƒ‰ã®æ™‚ã ã‘)ã€‚
+            // ƒGƒfƒBƒ^‚Å‚Ì”z’uŠm”F—pƒMƒYƒ‚(í‚É•`‰æ‚µ‚Ä‚¨‚¢‚Ä‚àAÀÛ‚É‰æ–Ê‚Éo‚é‚Ì‚Í
+            // RenderEditor‚ÌDebugDrawŒo—R‚ÅƒGƒfƒBƒ^ƒ‚[ƒh‚Ì‚¾‚¯)B
             DrawGizmo(pos, light.m_color, light.m_range);
         }
 
@@ -87,14 +87,14 @@ private:
         ImU32 col = IM_COL32(
             (int)(saturate(color.x) * 255), (int)(saturate(color.y) * 255), (int)(saturate(color.z) * 255), 255);
 
-        // ä¸­å¿ƒã®åå­—
+        // ’†S‚Ì\š
         const float s = 0.15f;
         auto& cm = CollisionManager::Instance();
         cm.AddDebugLine(pos - Math::Vector3(s, 0, 0), pos + Math::Vector3(s, 0, 0), col);
         cm.AddDebugLine(pos - Math::Vector3(0, s, 0), pos + Math::Vector3(0, s, 0), col);
         cm.AddDebugLine(pos - Math::Vector3(0, 0, s), pos + Math::Vector3(0, 0, s), col);
 
-        // Range(æ¸›è¡°è·é›¢)ã‚’ç¤ºã™æ°´å¹³ã®å††(XZå¹³é¢ã€ç°¡æ˜“12è§’å½¢)
+        // Range(Œ¸Š‹——£)‚ğ¦‚·…•½‚Ì‰~(XZ•½–ÊAŠÈˆÕ12ŠpŒ`)
         constexpr int kSegments = 12;
         for (int i = 0; i < kSegments; ++i)
         {
@@ -112,8 +112,8 @@ private:
     }
 };
 
-// SpotLightDataã‚’æŒã¤ã‚¨ãƒ³ãƒ†ã‚£ãƒ†ã‚£ã‚’æ¯ãƒ•ãƒ¬ãƒ¼ãƒ é›†ã‚ã¦ShaderManagerã¸é€ã‚‹ã‚·ã‚¹ãƒ†ãƒ ã€‚
-// ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼å´ã®é…åˆ—(g_SL[10])ã«ä¸Šé™ãŒã‚ã‚‹ã®ã§ã€ã‚«ãƒ¡ãƒ©ã«è¿‘ã„é †ã§ä¸Šä½10å€‹ã ã‘ã‚’é€ã‚‹ã€‚
+// SpotLightData‚ğ‚ÂƒGƒ“ƒeƒBƒeƒB‚ğ–ˆƒtƒŒ[ƒ€W‚ß‚ÄShaderManager‚Ö‘—‚éƒVƒXƒeƒ€B
+// ƒVƒF[ƒ_[‘¤‚Ì”z—ñ(g_SL[10])‚ÉãŒÀ‚ª‚ ‚é‚Ì‚ÅAƒJƒƒ‰‚É‹ß‚¢‡‚ÅãˆÊ10ŒÂ‚¾‚¯‚ğ‘—‚éB
 class SpotLightSystem : public SystemBase
 {
 public:
@@ -132,7 +132,7 @@ public:
             auto& trans = m_pCoordinator->GetComponent<TransformData>(entity);
             auto& light = m_pCoordinator->GetComponent<SpotLightData>(entity);
 
-            // åŒã˜ã‚¨ãƒ³ãƒ†ã‚£ãƒ†ã‚£ã«ãƒ¢ãƒ‡ãƒ«ãŒã‚ã‚Œã°ã€ç‚¹ç¯ä¸­ã ã‘ãƒ¢ãƒ‡ãƒ«è‡ªä½“ã‚’ç™ºå…‰ã•ã›ã‚‹(Bloomã§å…‰ã£ã¦è¦‹ãˆã‚‹)
+            // “¯‚¶ƒGƒ“ƒeƒBƒeƒB‚Éƒ‚ƒfƒ‹‚ª‚ ‚ê‚ÎA“_“”’†‚¾‚¯ƒ‚ƒfƒ‹©‘Ì‚ğ”­Œõ‚³‚¹‚é(Bloom‚ÅŒõ‚Á‚ÄŒ©‚¦‚é)
             if (auto* pModel = m_pCoordinator->TryGetComponent<ModelRenderData>(entity))
             {
                 pModel->m_glowColor = (light.m_enabled && !light.m_flickerOff) ? light.m_color * light.m_modelGlow : Math::Vector3::Zero;
@@ -152,7 +152,7 @@ public:
             }
             dir.Normalize();
 
-            // ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã¯è§’åº¦ã§ã¯ãªãcosã§æ¯”è¼ƒã™ã‚‹(InnerCorn > OuterCornã§ã‚ã‚‹å¿…è¦ãŒã‚ã‚‹)
+            // ƒVƒF[ƒ_[‚ÍŠp“x‚Å‚Í‚È‚­cos‚Å”äŠr‚·‚é(InnerCorn > OuterCorn‚Å‚ ‚é•K—v‚ª‚ ‚é)
             float outerDeg = (std::max)(light.m_outerAngle, 0.1f);
             float innerDeg = (std::min)(light.m_innerAngle, outerDeg - 0.05f);
             const float kDegToRad = 3.14159265f / 180.0f;
@@ -187,7 +187,7 @@ public:
     }
 
 private:
-    // å…‰æºä½ç½®ã‹ã‚‰ç…§å°„æ–¹å‘ã¸ã®ç·šã¨ã€Rangeå…ˆã®å††éŒã®ç¸(4æœ¬)ã‚’æã
+    // ŒõŒ¹ˆÊ’u‚©‚çÆË•ûŒü‚Ö‚Ìü‚ÆARangeæ‚Ì‰~‚Ì‰(4–{)‚ğ•`‚­
     static void DrawGizmo(const Math::Vector3& pos, const Math::Vector3& dir, float range, float outerRad, const Math::Vector3& color)
     {
         auto sat = [](float v)

@@ -1,15 +1,15 @@
-Texture2D g_tex : register(t0);        // ã‚·ãƒ¼ãƒ³HDR (Bloom/GodRaysç³»ãƒ‘ã‚¹ã§ã¯å…±é€šã®srcãƒ†ã‚¯ã‚¹ãƒãƒ£ã¨ã—ã¦ã‚‚ä½¿ã†)
-Texture2D g_texBloom : register(t1);   // Bloomåˆæˆçµæœ (æœ€çµ‚åˆæˆãƒ‘ã‚¹ã®ã¿ä½¿ç”¨)
-Texture2D g_texDOF : register(t2);     // è¢«å†™ç•Œæ·±åº¦ç”¨: ã‚ã‚‰ã‹ã˜ã‚ã¼ã‹ã—ãŸã‚·ãƒ¼ãƒ³ã®ã‚³ãƒ”ãƒ¼ (æœ€çµ‚åˆæˆãƒ‘ã‚¹ã®ã¿ä½¿ç”¨)
-Texture2D g_texDepth : register(t3);   // ã‚·ãƒ¼ãƒ³æ·±åº¦ (æœ€çµ‚åˆæˆãƒ‘ã‚¹ã®ã¿ä½¿ç”¨ã€‚DOFã®CoCè¨ˆç®—ç”¨)
-Texture2D g_texGodRays : register(t4); // God Rays(å…‰æ¡)ã®çµæœ (æœ€çµ‚åˆæˆãƒ‘ã‚¹ã®ã¿ä½¿ç”¨)
-// ç”»é¢ç©ºé–“ã®ãƒ‘ã‚¹ãªã®ã§ç·šå½¢+Clamp(s3)ã‚’ä½¿ã†ã€‚ä»¥å‰ã¯s0(Wrap)ã ã£ãŸãŸã‚ã€ãƒ–ãƒ©ãƒ¼/ä½è§£åƒåº¦Bloomãƒ»DOFã®
-// è£œé–“/è‰²åå·®ã§ç”»é¢ã®ç«¯ãŒåå¯¾å´ã®ç«¯ã®è‰²ã‚’æ‹¾ã„ã€å·¦å³ç«¯ã«èµ¤/æ°´è‰²ã®ç·šãŒå‡ºã¦ã„ãŸã€‚
+Texture2D g_tex : register(t0);        // ƒV[ƒ“HDR (Bloom/GodRaysŒnƒpƒX‚Å‚Í‹¤’Ê‚ÌsrcƒeƒNƒXƒ`ƒƒ‚Æ‚µ‚Ä‚àg‚¤)
+Texture2D g_texBloom : register(t1);   // Bloom‡¬Œ‹‰Ê (ÅI‡¬ƒpƒX‚Ì‚İg—p)
+Texture2D g_texDOF : register(t2);     // ”íÊŠE[“x—p: ‚ ‚ç‚©‚¶‚ß‚Ú‚©‚µ‚½ƒV[ƒ“‚ÌƒRƒs[ (ÅI‡¬ƒpƒX‚Ì‚İg—p)
+Texture2D g_texDepth : register(t3);   // ƒV[ƒ“[“x (ÅI‡¬ƒpƒX‚Ì‚İg—pBDOF‚ÌCoCŒvZ—p)
+Texture2D g_texGodRays : register(t4); // God Rays(Œõğ)‚ÌŒ‹‰Ê (ÅI‡¬ƒpƒX‚Ì‚İg—p)
+// ‰æ–Ê‹óŠÔ‚ÌƒpƒX‚È‚Ì‚ÅüŒ`+Clamp(s3)‚ğg‚¤BˆÈ‘O‚Ís0(Wrap)‚¾‚Á‚½‚½‚ßAƒuƒ‰[/’á‰ğ‘œ“xBloomEDOF‚Ì
+// •âŠÔ/Fû·‚Å‰æ–Ê‚Ì’[‚ª”½‘Î‘¤‚Ì’[‚ÌF‚ğE‚¢A¶‰E’[‚ÉÔ/…F‚Ìü‚ªo‚Ä‚¢‚½B
 SamplerState g_ss : register(s3);
 
-// PostProcessé–¢é€£ã®å…¨ãƒ‘ã‚¹(Extract/Blur/æœ€çµ‚åˆæˆ)ã§å…±æœ‰ã™ã‚‹cbufferã€‚
-// æ–°ã—ã„ãƒã‚¹ãƒˆã‚¨ãƒ•ã‚§ã‚¯ãƒˆã‚’è¿½åŠ ã™ã‚‹æ™‚ã¯ã€ã“ã“ã«ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã‚’è¶³ã—ã¦
-// PostProcessShader_PS.hlslå´ã§ä½¿ã†ã ã‘ã§ã‚ˆã„(æ‹¡å¼µæ€§ã®ãŸã‚)ã€‚
+// PostProcessŠÖ˜A‚Ì‘SƒpƒX(Extract/Blur/ÅI‡¬)‚Å‹¤—L‚·‚écbufferB
+// V‚µ‚¢ƒ|ƒXƒgƒGƒtƒFƒNƒg‚ğ’Ç‰Á‚·‚é‚ÍA‚±‚±‚Éƒpƒ‰ƒ[ƒ^‚ğ‘«‚µ‚Ä
+// PostProcessShader_PS.hlsl‘¤‚Åg‚¤‚¾‚¯‚Å‚æ‚¢(Šg’£«‚Ì‚½‚ß)B
 cbuffer cbPostProcess : register(b0)
 {
     //---------------------------------
@@ -18,17 +18,17 @@ cbuffer cbPostProcess : register(b0)
     float g_Exposure;
     float g_Gamma;
     uint g_EnableHDR;
-    float g_Time; // çµŒéæ™‚é–“(ç§’) - ãƒ•ã‚£ãƒ«ãƒ ã‚°ãƒ¬ã‚¤ãƒ³ç­‰ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã™ã‚‹ã‚¨ãƒ•ã‚§ã‚¯ãƒˆç”¨
+    float g_Time; // Œo‰ßŠÔ(•b) - ƒtƒBƒ‹ƒ€ƒOƒŒƒCƒ““™ƒAƒjƒ[ƒVƒ‡ƒ“‚·‚éƒGƒtƒFƒNƒg—p
 
     //---------------------------------
     // Bloom
     //---------------------------------
     float g_BloomThreshold;
     float g_BloomIntensity;
-    float g_BlurDirectionX; // Blurãƒ‘ã‚¹å°‚ç”¨(ExtractOverrideç­‰ã§ã¯æœªä½¿ç”¨)
+    float g_BlurDirectionX; // BlurƒpƒXê—p(ExtractOverride“™‚Å‚Í–¢g—p)
     float g_BlurDirectionY;
 
-    float g_BlurRadius; // Blurãƒ‘ã‚¹ã®ã¼ã‹ã—åŠå¾„(ãƒ†ã‚¯ã‚»ãƒ«å˜ä½ã€å¯å¤‰)
+    float g_BlurRadius; // BlurƒpƒX‚Ì‚Ú‚©‚µ”¼Œa(ƒeƒNƒZƒ‹’PˆÊA‰Â•Ï)
     //---------------------------------
     // Vignette
     //---------------------------------
@@ -50,24 +50,24 @@ cbuffer cbPostProcess : register(b0)
     float g_DOFFocusDistance;
     float g_DOFFocusRange;
 
-    // ã‚«ãƒ¡ãƒ©ã®Near/Farå¹³é¢ (æ·±åº¦ãƒãƒƒãƒ•ã‚¡ã®ãƒªãƒ‹ã‚¢åŒ–ç”¨)
+    // ƒJƒƒ‰‚ÌNear/Far•½–Ê ([“xƒoƒbƒtƒ@‚ÌƒŠƒjƒA‰»—p)
     float g_CameraNear;
     float g_CameraFar;
-    // God Rays(å¹³è¡Œå…‰ã®å…‰æ¡)ç”¨: å…‰æºã‚’ã‚¹ã‚¯ãƒªãƒ¼ãƒ³ç©ºé–“ã«æŠ•å½±ã—ãŸUV(ç”»é¢å¤–ã®å€¤ã‚‚ã‚ã‚Šã†ã‚‹)
+    // God Rays(•½sŒõ‚ÌŒõğ)—p: ŒõŒ¹‚ğƒXƒNƒŠ[ƒ“‹óŠÔ‚É“Š‰e‚µ‚½UV(‰æ–ÊŠO‚Ì’l‚à‚ ‚è‚¤‚é)
     float g_GodRaysLightU;
     float g_GodRaysLightV;
 
     //---------------------------------
     // God Rays
     //---------------------------------
-    float g_GodRaysDensity;  // ã‚µãƒ³ãƒ—ãƒ«é–“éš”ã®åºƒã•
-    float g_GodRaysDecay;    // ã‚µãƒ³ãƒ—ãƒ«ã”ã¨ã®æ¸›è¡°ç‡
-    float g_GodRaysWeight;   // å„ã‚µãƒ³ãƒ—ãƒ«ã®å¯„ä¸
-    float g_GodRaysExposure; // æœ€çµ‚çš„ãªå¼·ã•
+    float g_GodRaysDensity;  // ƒTƒ“ƒvƒ‹ŠÔŠu‚ÌL‚³
+    float g_GodRaysDecay;    // ƒTƒ“ƒvƒ‹‚²‚Æ‚ÌŒ¸Š—¦
+    float g_GodRaysWeight;   // ŠeƒTƒ“ƒvƒ‹‚ÌŠñ—^
+    float g_GodRaysExposure; // ÅI“I‚È‹­‚³
 
-    uint g_GodRaysNumSamples; // ãƒ©ã‚¸ã‚¢ãƒ«ãƒ–ãƒ©ãƒ¼ã®ã‚µãƒ³ãƒ—ãƒ«æ•°
-    uint g_EnableGodRays;     // 0/1 (å…‰æºãŒã‚«ãƒ¡ãƒ©ã®å¾Œã‚ã«ã‚ã‚‹ç­‰ã€ç„¡åŠ¹ãªæ™‚ã‚‚0)
-    float g_GodRaysIntensity; // æœ€çµ‚åˆæˆæ™‚ã«ã‚·ãƒ¼ãƒ³ã¸åŠ ç®—ã™ã‚‹å¼·ã•
+    uint g_GodRaysNumSamples; // ƒ‰ƒWƒAƒ‹ƒuƒ‰[‚ÌƒTƒ“ƒvƒ‹”
+    uint g_EnableGodRays;     // 0/1 (ŒõŒ¹‚ªƒJƒƒ‰‚ÌŒã‚ë‚É‚ ‚é“™A–³Œø‚È‚à0)
+    float g_GodRaysIntensity; // ÅI‡¬‚ÉƒV[ƒ“‚Ö‰ÁZ‚·‚é‹­‚³
     float g_PadPostProcess;
 };
 

@@ -1,4 +1,4 @@
-ï»¿#include "../../../Pch.h"
+#include "../../../Pch.h"
 
 #include "../../../Framework/Manager/Asset/AssetManager.h"
 #include "../../../Framework/Manager/Asset/LoadModelOption.h"
@@ -12,7 +12,7 @@ bool ModelData::Load(const std::string& filepath)
     LoadModelOption option;
     if (!AssetManager::Instance().LoadModel(filepath, option, this))
     {
-        OutputDebugStringA(("ãƒ¢ãƒ‡ãƒ«ã®ãƒ­ãƒ¼ãƒ‰ã«å¤±æ•—ã—ã¾ã—ãŸ: " + filepath + "\n").c_str());
+        OutputDebugStringA(("ƒ‚ƒfƒ‹‚Ìƒ[ƒh‚É¸”s‚µ‚Ü‚µ‚½: " + filepath + "\n").c_str());
         return false;
     }
     SetLoaded(true);
@@ -36,7 +36,7 @@ bool ModelData::TryGetLocalBounds(DirectX::BoundingBox& outBounds) const
             Mesh* pMesh = MeshManager::Instance().Get(meshHandle);
             if (!pMesh || !pMesh->IsReady())
             {
-                return false; // ã¾ã æº–å‚™ã§ãã¦ã„ãªã„ãƒ¡ãƒƒã‚·ãƒ¥ãŒã‚ã‚‹ - æ¬¡ã®ãƒ•ãƒ¬ãƒ¼ãƒ ã§å†æŒ‘æˆ¦
+                return false; // ‚Ü‚¾€”õ‚Å‚«‚Ä‚¢‚È‚¢ƒƒbƒVƒ…‚ª‚ ‚é - Ÿ‚ÌƒtƒŒ[ƒ€‚ÅÄ’§í
             }
 
             const DirectX::BoundingBox& meshBounds = pMesh->GetLocalAABB();
@@ -54,7 +54,7 @@ bool ModelData::TryGetLocalBounds(DirectX::BoundingBox& outBounds) const
 
     if (!any)
     {
-        return false; // ãƒ¡ãƒƒã‚·ãƒ¥ãŒ(ã¾ã )1ã¤ã‚‚ç„¡ã„ - ã‚«ãƒªãƒ³ã‚°ã®åˆ¤å®šå¯¾è±¡ãŒç„¡ã„
+        return false; // ƒƒbƒVƒ…‚ª(‚Ü‚¾)1‚Â‚à–³‚¢ - ƒJƒŠƒ“ƒO‚Ì”»’è‘ÎÛ‚ª–³‚¢
     }
 
     m_localBounds = merged;
@@ -161,7 +161,7 @@ std::vector<Math::Matrix> ModelData::GetBoneMatrices() const
         {
             Math::Vector3 s, t;
             Math::Quaternion q;
-            // boneMatricesã¯ãã®ã¾ã¾Decomposeã§ãã‚‹ã¯ãšã ãŒã€DirectXMathåŸºæº–(Row-Major)ãªã®ã§ãã®ã¾ã¾æ¸¡ã™
+            // boneMatrices‚Í‚»‚Ì‚Ü‚ÜDecompose‚Å‚«‚é‚Í‚¸‚¾‚ªADirectXMathŠî€(Row-Major)‚È‚Ì‚Å‚»‚Ì‚Ü‚Ü“n‚·
             boneMatrices[i].Decompose(s, q, t);
             //Logger::Instance().AddLog(Logger::LogLevel::Info, "Bone %zu: Scale(%.3f, %.3f, %.3f) Trans(%.3f, %.3f, %.3f)", i, s.x, s.y, s.z, t.x, t.y, t.z);
         }
@@ -198,12 +198,12 @@ void ModelData::UpdateAnimation(int animationIndex, float ticks)
             continue;
         }
 
-        // å…ƒã®ãƒ­ãƒ¼ã‚«ãƒ«å¤‰å½¢ã‹ã‚‰åˆæœŸå€¤ã‚’å–å¾—ã—ã¦ãŠã
+        // Œ³‚Ìƒ[ƒJƒ‹•ÏŒ`‚©‚ç‰Šú’l‚ğæ“¾‚µ‚Ä‚¨‚­
         Math::Vector3 defScale, defPos;
         Math::Quaternion defRot;
         m_nodes[targetNodeIdx].originalLocalTransform.Decompose(defScale, defRot, defPos);
 
-        // 1. ä½ç½®(Position)ã®è£œé–“
+        // 1. ˆÊ’u(Position)‚Ì•âŠÔ
         Math::Vector3 finalPos = defPos;
         if (!channel.positionKeys.empty())
         {
@@ -233,7 +233,7 @@ void ModelData::UpdateAnimation(int animationIndex, float ticks)
             }
         }
 
-        // 2. å›è»¢(Rotation)ã®è£œé–“
+        // 2. ‰ñ“](Rotation)‚Ì•âŠÔ
         Math::Quaternion finalRot = defRot;
         if (!channel.rotationKeys.empty())
         {
@@ -263,7 +263,7 @@ void ModelData::UpdateAnimation(int animationIndex, float ticks)
             }
         }
 
-        // 3. ã‚¹ã‚±ãƒ¼ãƒ«(Scale)ã®è£œé–“
+        // 3. ƒXƒP[ƒ‹(Scale)‚Ì•âŠÔ
         Math::Vector3 finalScale = defScale;
         if (!channel.scalingKeys.empty())
         {

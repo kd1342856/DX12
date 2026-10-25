@@ -1,15 +1,15 @@
-ï»¿#pragma once
+#pragma once
 #include "../GraphicsShader/GraphicsShader.h"
 
-// SSAO/SSRç”¨ã®ãƒ“ãƒ¥ãƒ¼ç©ºé–“æ³•ç·šãƒ—ãƒªãƒ‘ã‚¹ã€‚Opaqueå½¢çŠ¶ã ã‘ã‚’ã‚‚ã†ä¸€åº¦æãç›´ã—ã¦
-// (ShadowShaderã¨åŒã˜ã€Œã‚‚ã†1å‘¨ã‚¸ã‚ªãƒ¡ãƒˆãƒªã‚’æµã™ã€ãƒ‘ã‚¿ãƒ¼ãƒ³)ã€æ³•ç·šã‚’RTã«æ›¸ãå‡ºã™ã€‚
-// æ·±åº¦ã¯é€šå¸¸ã®Zãƒãƒƒãƒ•ã‚¡(RenderTargetãŒæŒã¤å°‚ç”¨DepthBuffer)ã‚’ãã®ã¾ã¾ä½¿ã†ã€‚
+// SSAO/SSR—p‚Ìƒrƒ…[‹óŠÔ–@üƒvƒŠƒpƒXBOpaqueŒ`ó‚¾‚¯‚ğ‚à‚¤ˆê“x•`‚«’¼‚µ‚Ä
+// (ShadowShader‚Æ“¯‚¶u‚à‚¤1üƒWƒIƒƒgƒŠ‚ğ—¬‚·vƒpƒ^[ƒ“)A–@ü‚ğRT‚É‘‚«o‚·B
+// [“x‚Í’Êí‚ÌZƒoƒbƒtƒ@(RenderTarget‚ª‚Âê—pDepthBuffer)‚ğ‚»‚Ì‚Ü‚Üg‚¤B
 class NormalPrepassShader : public GraphicsShader
 {
 public:
     virtual void Create(GraphicsDevice* pGraphicsDevice) override;
     virtual void Begin(RenderContext& context) override;
     virtual void BeginNode(const ModelData::Node& node, const Math::Matrix& nodeWorld) override;
-    // SSRç”¨ã«ç²—ã•(ãƒãƒ†ãƒªã‚¢ãƒ«å®šæ•°+MetallicRoughnessãƒ†ã‚¯ã‚¹ãƒãƒ£)ã‚’ãƒã‚¤ãƒ³ãƒ‰ã™ã‚‹
+    // SSR—p‚É‘e‚³(ƒ}ƒeƒŠƒAƒ‹’è”+MetallicRoughnessƒeƒNƒXƒ`ƒƒ)‚ğƒoƒCƒ“ƒh‚·‚é
     virtual void BeforeDrawMesh(const Mesh& mesh, const Material& material) override;
 };

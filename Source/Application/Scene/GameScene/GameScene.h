@@ -1,4 +1,4 @@
-ï»¿#pragma once
+#pragma once
 #include "../SceneBase.h"
 #include "../../../Framework/Manager/Scene/Scene.h"
 #include "../../../Graphics/GPUResource/RenderTarget/RenderTarget.h"
@@ -17,31 +17,31 @@ private:
     void Render();
     void RenderGame();
     void RenderEditor();
-    // Bloom/DOF/ToneMappingç­‰ã®ç”»é¢å…¨ä½“ã‚¨ãƒ•ã‚§ã‚¯ãƒˆä¸€å¼ã€‚RenderGame/RenderEditorå…±é€šå‡¦ç†ã¨ã—ã¦
-    // ã¾ã¨ã‚ã¦ã‚ã‚‹(2ç®‡æ‰€ã«åŒã˜ãƒ­ã‚¸ãƒƒã‚¯ã‚’ã‚³ãƒ”ãƒšã—ã¦ã„ã‚‹ã¨ã€ç‰‡æ–¹ã ã‘ç›´ã—ã¦é£Ÿã„é•ã†äº‹æ•…ãŒèµ·ãã‚‹ãŸã‚)ã€‚
-    // çµæœã¯å¸¸ã«ãƒãƒƒã‚¯ãƒãƒƒãƒ•ã‚¡ã¸åˆæˆã™ã‚‹ã€‚clearR/G/B: åˆæˆå‰ã«ãƒãƒƒã‚¯ãƒãƒƒãƒ•ã‚¡ã‚’ã‚¯ãƒªã‚¢ã™ã‚‹è‰²ã€‚
+    // Bloom/DOF/ToneMapping“™‚Ì‰æ–Ê‘S‘ÌƒGƒtƒFƒNƒgˆê®BRenderGame/RenderEditor‹¤’Êˆ—‚Æ‚µ‚Ä
+    // ‚Ü‚Æ‚ß‚Ä‚ ‚é(2‰ÓŠ‚É“¯‚¶ƒƒWƒbƒN‚ğƒRƒsƒy‚µ‚Ä‚¢‚é‚ÆA•Ğ•û‚¾‚¯’¼‚µ‚ÄH‚¢ˆá‚¤–ŒÌ‚ª‹N‚«‚é‚½‚ß)B
+    // Œ‹‰Ê‚Íí‚ÉƒoƒbƒNƒoƒbƒtƒ@‚Ö‡¬‚·‚éBclearR/G/B: ‡¬‘O‚ÉƒoƒbƒNƒoƒbƒtƒ@‚ğƒNƒŠƒA‚·‚éFB
     void DoPostProcess(Entity cameraEntity, float clearR, float clearG, float clearB);
-    // ãƒã‚¤ãƒ³ãƒˆãƒ©ã‚¤ãƒˆ(ãƒ•ãƒªãƒƒã‚«ãƒ¼å«ã‚€)ã‚’ã‚«ãƒ¡ãƒ©ä½ç½®åŸºæº–ã§æ¯ãƒ•ãƒ¬ãƒ¼ãƒ æ›´æ–°ã™ã‚‹ã€‚RenderSceneå‘¼ã³å‡ºã—å‰ã«
-    // å‘¼ã¶å¿…è¦ãŒã‚ã‚‹(LitShaderãŒèª­ã‚€cbLightã®PL[]ã‚’ã“ã“ã§ç¢ºå®šã•ã›ã‚‹ãŸã‚)ã€‚
+    // ƒ|ƒCƒ“ƒgƒ‰ƒCƒg(ƒtƒŠƒbƒJ[ŠÜ‚Ş)‚ğƒJƒƒ‰ˆÊ’uŠî€‚Å–ˆƒtƒŒ[ƒ€XV‚·‚éBRenderSceneŒÄ‚Ño‚µ‘O‚É
+    // ŒÄ‚Ô•K—v‚ª‚ ‚é(LitShader‚ª“Ç‚ŞcbLight‚ÌPL[]‚ğ‚±‚±‚ÅŠm’è‚³‚¹‚é‚½‚ß)B
     void UpdateLights(Entity cameraEntity);
-    // æœ€ã‚‚è¿‘ã„ãƒã‚¤ãƒ³ãƒˆãƒ©ã‚¤ãƒˆã®ç°¡æ˜“ã‚·ãƒ£ãƒ‰ã‚¦(å˜ä¸€ãƒ‘ãƒ¼ã‚¹ãƒšã‚¯ãƒ†ã‚£ãƒ–)ã‚’æç”»ã™ã‚‹ã€‚UpdateLights()ã®å¾Œã€
-    // RenderScene()ã‚ˆã‚Šå‰ã«å‘¼ã¶å¿…è¦ãŒã‚ã‚‹(LitShaderãŒèª­ã‚€ã‚·ãƒ£ãƒ‰ã‚¦ãƒãƒƒãƒ—/è¡Œåˆ—ã‚’ã“ã“ã§ç¢ºå®šã•ã›ã‚‹ãŸã‚)ã€‚
+    // Å‚à‹ß‚¢ƒ|ƒCƒ“ƒgƒ‰ƒCƒg‚ÌŠÈˆÕƒVƒƒƒhƒE(’Pˆêƒp[ƒXƒyƒNƒeƒBƒu)‚ğ•`‰æ‚·‚éBUpdateLights()‚ÌŒãA
+    // RenderScene()‚æ‚è‘O‚ÉŒÄ‚Ô•K—v‚ª‚ ‚é(LitShader‚ª“Ç‚ŞƒVƒƒƒhƒEƒ}ƒbƒv/s—ñ‚ğ‚±‚±‚ÅŠm’è‚³‚¹‚é‚½‚ß)B
     void UpdatePointLightShadow(Entity cameraEntity);
-    // æ³•ç·šãƒ—ãƒªãƒ‘ã‚¹+SSAOã®è¨ˆç®—ã€‚RenderSceneå‘¼ã³å‡ºã—å‰ã«å‘¼ã¶å¿…è¦ãŒã‚ã‚‹
-    // (LitShaderãŒèª­ã‚€g_ssaoMapã‚’ã“ã“ã§ç¢ºå®šã•ã›ã‚‹ãŸã‚)ã€‚
+    // –@üƒvƒŠƒpƒX+SSAO‚ÌŒvZBRenderSceneŒÄ‚Ño‚µ‘O‚ÉŒÄ‚Ô•K—v‚ª‚ ‚é
+    // (LitShader‚ª“Ç‚Şg_ssaoMap‚ğ‚±‚±‚ÅŠm’è‚³‚¹‚é‚½‚ß)B
     void RenderSSAO(Entity cameraEntity);
-    // CameraData.m_isDebugPreviewã‚’ç«‹ã¦ãŸã‚«ãƒ¡ãƒ©(ã‚ã‚Œã°1ã¤ç›®)ã®Transformã‹ã‚‰è¦‹ãŸçµµã‚’å°‚ç”¨RTã«
-    // æç”»ã™ã‚‹ã€‚RenderGame/RenderEditorã©ã¡ã‚‰ã®å¾Œã«ã‚‚Render()ã‹ã‚‰å‘¼ã¶(åå°„ã‚«ãƒ¡ãƒ©ç­‰ã®ä»–ã®
-    // ã‚·ã‚¹ãƒ†ãƒ ã¨ã¯å®Œå…¨ã«ç‹¬ç«‹ã€æ—¢å­˜ã®RenderScene()ã‚’ãã®ã¾ã¾æµç”¨ã™ã‚‹ã ã‘)ã€‚
+    // CameraData.m_isDebugPreview‚ğ—§‚Ä‚½ƒJƒƒ‰(‚ ‚ê‚Î1‚Â–Ú)‚ÌTransform‚©‚çŒ©‚½ŠG‚ğê—pRT‚É
+    // •`‰æ‚·‚éBRenderGame/RenderEditor‚Ç‚¿‚ç‚ÌŒã‚É‚àRender()‚©‚çŒÄ‚Ô(”½ËƒJƒƒ‰“™‚Ì‘¼‚Ì
+    // ƒVƒXƒeƒ€‚Æ‚ÍŠ®‘S‚É“Æ—§AŠù‘¶‚ÌRenderScene()‚ğ‚»‚Ì‚Ü‚Ü—¬—p‚·‚é‚¾‚¯)B
     void RenderDebugPreviewCamera();
 
     float m_exposure = 1.0f;
-    bool m_fullscreenGame = true; // èµ·å‹•æ™‚ã‹ã‚‰Playerã®FPSè¦–ç‚¹ã§ã‚¹ã‚¿ãƒ¼ãƒˆã™ã‚‹ï¼ˆF5ã§ãƒ‡ãƒãƒƒã‚°ç”¨ãƒ•ãƒªãƒ¼ã‚«ãƒ¡ãƒ©ã«åˆ‡æ›¿ï¼‰
+    bool m_fullscreenGame = true; // ‹N“®‚©‚çPlayer‚ÌFPS‹“_‚ÅƒXƒ^[ƒg‚·‚éiF5‚ÅƒfƒoƒbƒO—pƒtƒŠ[ƒJƒƒ‰‚ÉØ‘Öj
     bool m_isCameraDragging = false;
-    bool m_isPreviewCameraDragging = false; // Debug Preview Cameraã‚’å³ã‚¯ãƒªãƒƒã‚¯ãƒ‰ãƒ©ãƒƒã‚°ã§æ“ä½œä¸­ã‹
+    bool m_isPreviewCameraDragging = false; // Debug Preview Camera‚ğ‰EƒNƒŠƒbƒNƒhƒ‰ƒbƒO‚Å‘€ì’†‚©
     bool m_flashlightOn = false;
 
-    float m_navMeshWaitTime = 0.0f; // NavMeshæ§‹ç¯‰å‰ã«å®¶ã®ãƒ¢ãƒ‡ãƒ«ã®èª­ã¿è¾¼ã¿ã‚’å¾…ã£ãŸæ™‚é–“
+    float m_navMeshWaitTime = 0.0f; // NavMesh\’z‘O‚É‰Æ‚Ìƒ‚ƒfƒ‹‚Ì“Ç‚İ‚İ‚ğ‘Ò‚Á‚½ŠÔ
 
     Entity m_editorCameraEntity = INVALID_ENTITY;
     Entity m_gameCameraEntity = INVALID_ENTITY;

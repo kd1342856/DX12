@@ -1,23 +1,23 @@
-ï»¿#pragma once
+#pragma once
 #include "../../../Graphics/Shader/ParticleShader/ParticleShader.h"
 
-// å…‰ã®ç²’ãªã©ã®ç°¡æ˜“ãƒ‘ãƒ¼ãƒ†ã‚£ã‚¯ãƒ«ã€‚ã‚¹ã‚¯ãƒªãƒ—ãƒˆã‹ã‚‰Emit()ã§ç²’ã‚’å‡ºã™ã¨ã€å¯¿å‘½ãŒå°½ãã‚‹ã¾ã§
-// CPUå´ã§å‹•ã‹ã—(Update)ã€RenderSystem::RenderSceneã®æœ€å¾Œã«ã¾ã¨ã‚ã¦æã(Render)ã€‚
-// å®Ÿè¡Œä¸­ã ã‘ã®ã‚‚ã®ã§ã€ã‚·ãƒ¼ãƒ³ã«ã¯ä¿å­˜ã—ãªã„ã€‚
+// Œõ‚Ì—±‚È‚Ç‚ÌŠÈˆÕƒp[ƒeƒBƒNƒ‹BƒXƒNƒŠƒvƒg‚©‚çEmit()‚Å—±‚ğo‚·‚ÆAõ–½‚ªs‚«‚é‚Ü‚Å
+// CPU‘¤‚Å“®‚©‚µ(Update)ARenderSystem::RenderScene‚ÌÅŒã‚É‚Ü‚Æ‚ß‚Ä•`‚­(Render)B
+// Às’†‚¾‚¯‚Ì‚à‚Ì‚ÅAƒV[ƒ“‚É‚Í•Û‘¶‚µ‚È‚¢B
 struct Particle
 {
     Math::Vector3 m_position = {0, 0, 0};
     Math::Vector3 m_velocity = {0, 0, 0};
-    Math::Vector3 m_color = {1, 1, 1}; // HDR(1ã‚’è¶…ãˆã‚‹ã¨Bloomã§å…‰ã‚‹)
-    float m_sizeStart = 0.05f;         // åŠå¾„(m)
+    Math::Vector3 m_color = {1, 1, 1}; // HDR(1‚ğ’´‚¦‚é‚ÆBloom‚ÅŒõ‚é)
+    float m_sizeStart = 0.05f;         // ”¼Œa(m)
     float m_sizeEnd = 0.0f;
-    float m_life = 1.0f;          // å¯¿å‘½(ç§’)
-    float m_drag = 0.0f;          // 1ç§’ã‚ãŸã‚Šã®é€Ÿåº¦ã®æ¸›è¡°ç‡(0..)
-    float m_swayAmplitude = 0.0f; // æ¨ªã«ã‚†ã‚‰ã‚†ã‚‰æºã‚Œã‚‹å¹…(m)
-    float m_swayFrequency = 1.0f; // æºã‚Œã®é€Ÿã•(rad/s)
+    float m_life = 1.0f;          // õ–½(•b)
+    float m_drag = 0.0f;          // 1•b‚ ‚½‚è‚Ì‘¬“x‚ÌŒ¸Š—¦(0..)
+    float m_swayAmplitude = 0.0f; // ‰¡‚É‚ä‚ç‚ä‚ç—h‚ê‚é•(m)
+    float m_swayFrequency = 1.0f; // —h‚ê‚Ì‘¬‚³(rad/s)
     float m_swayPhase = 0.0f;
 
-    float m_age = 0.0f; // å†…éƒ¨ç”¨
+    float m_age = 0.0f; // “à•”—p
 };
 
 class ParticleManager

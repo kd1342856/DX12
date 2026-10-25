@@ -3,7 +3,7 @@ static const float EPSILON = 1e-6f;
 
 //=============================
 //
-// PBRå…±é€š
+// PBR‹¤’Ê
 //
 //=============================
 
@@ -13,14 +13,14 @@ float Pow5(float x)
     return xSq * xSq * x;
 }
 
-// (F)Shilickãƒ•ãƒ¬ãƒãƒ«è¿‘ä¼¼
+// (F)ShilickƒtƒŒƒlƒ‹‹ß—
 // https://en.wikipedia.org/wiki/Schlick%27s_approximation
 float3 Fresnel_Shlick(in float3 f0, in float3 f90, in float x)
 {
     return f0 + (f90 - f0) * Pow5(1.0f - x);
 }
 
-// æ‹¡æ•£å…‰(Burley Diffuse)
+// ŠgUŒõ(Burley Diffuse)
 // Burley B. "Physically Based Shading at Disney"
 // SIGGRAPH 2012 Course: Practical Physically Based Shading in Film and Game Production, 2012.
 float3 Diffuse_Burley(in float3 baseColor, in float NdotL, in float NdotV, in float LdotH, in float roughness)
@@ -29,7 +29,7 @@ float3 Diffuse_Burley(in float3 baseColor, in float NdotL, in float NdotV, in fl
     return (baseColor / PI) * Fresnel_Shlick(1, fd90, NdotL).x * Fresnel_Shlick(1, fd90, NdotV).x;
 }
 
-// (D)GGXã‚¹ãƒšã‚­ãƒ¥ãƒ© æ³•ç·šåˆ†å¸ƒ
+// (D)GGXƒXƒyƒLƒ…ƒ‰ –@ü•ª•z
 // https://www.cs.cornell.edu/~srm/publications/EGSR07-btdf.pdf
 float Specular_D_GGX(in float alpha, in float NdotH)
 {
@@ -38,7 +38,7 @@ float Specular_D_GGX(in float alpha, in float NdotH)
     return alpha2 / max(EPSILON, PI * lower * lower);
 }
 
-// (V) Height-Correlated Smith GGX (Vé … = Gé … / (4 * NdotL * NdotV))
+// (V) Height-Correlated Smith GGX (V€ = G€ / (4 * NdotL * NdotV))
 float V_SmithGGXCorrelated(float NdotV, float NdotL, float alpha)
 {
     float a2 = alpha * alpha;
@@ -47,22 +47,22 @@ float V_SmithGGXCorrelated(float NdotV, float NdotL, float alpha)
     return 0.5f / max(lambdaV + lambdaL, EPSILON);
 }
 
-// ãƒã‚¤ã‚¯ãƒ­ãƒ•ã‚¡ã‚»ãƒƒãƒˆBRDF
+// ƒ}ƒCƒNƒƒtƒ@ƒZƒbƒgBRDF
 float3 Specular_BRDF(in float alpha, in float3 specularColor, in float NdotV, in float NdotL, in float LdotH, in float NdotH)
 {
-    // Specular D (ãƒ•ã‚¡ã‚¤ãƒ­ãƒ•ã‚¡ã‚»ãƒƒãƒˆæ³•ç·šåˆ†å¸ƒ)
+    // Specular D (ƒtƒ@ƒCƒƒtƒ@ƒZƒbƒg–@ü•ª•z)
     float specular_D = Specular_D_GGX(alpha, NdotH);
 
     // Specular Fresnel
     float3 specular_F = Fresnel_Shlick(specularColor, 1, LdotH);
 
-    // Specular V (å¹¾ä½•æ¸›è¡°ã¨åˆ†æ¯ã®çµ±åˆ)
+    // Specular V (Šô‰½Œ¸Š‚Æ•ª•ê‚Ì“‡)
     float specular_V = V_SmithGGXCorrelated(NdotV, NdotL, alpha);
 
     return specular_D * specular_F * specular_V;
 }
 
-// ãƒãƒ¯ã‚½ãƒ³ã‚µãƒ³ãƒ—ãƒªãƒ³ã‚°ç”¨
+// ƒ|ƒƒ\ƒ“ƒTƒ“ƒvƒŠƒ“ƒO—p
 static const float2 g_poissonDisk[4] = {
     float2(-0.94201624, -0.39906216),
     float2(0.94558609, -0.76890725),

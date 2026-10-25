@@ -1,4 +1,4 @@
-ï»¿#pragma once
+#pragma once
 
 #include "../SceneBase.h"
 #include "../../../Framework/ECS/Entity/Entity.h"
@@ -7,7 +7,7 @@
 class ResultScene : public SceneBase
 {
 public:
-    // ghostType: GhostAI::GhostTypeã®å€¤(-1ãªã‚‰ä¸æ˜)ã€‚huntsSurvived: ãƒãƒ³ãƒˆã‚’ç”Ÿãå»¶ã³ãŸå›æ•°ã€‚
+    // ghostType: GhostAI::GhostType‚Ì’l(-1‚È‚ç•s–¾)BhuntsSurvived: ƒnƒ“ƒg‚ğ¶‚«‰„‚Ñ‚½‰ñ”B
     ResultScene(bool isClear, float timeTaken = 0.0f, int ghostType = -1, int huntsSurvived = 0);
 
     void Init() override;
@@ -15,7 +15,7 @@ public:
     void Unload() override;
 
 private:
-    // ã‚¯ãƒªã‚¢ç”»é¢: é’ç™½ã„éœ§ã®èƒŒæ™¯(MistShader)ã®ä¸Šã«è¦‹å‡ºã—ãƒ»ã‚´ãƒ¼ã‚¹ãƒˆã®æ­£ä½“ãƒ»ã‚¯ãƒªã‚¢ã‚¿ã‚¤ãƒ ãƒ»ç”Ÿãå»¶ã³ãŸãƒãƒ³ãƒˆãƒ»è©•ä¾¡ãƒ©ãƒ³ã‚¯ã‚’é †ã«å‡ºã™
+    // ƒNƒŠƒA‰æ–Ê: Â”’‚¢–¶‚Ì”wŒi(MistShader)‚Ìã‚ÉŒ©o‚µEƒS[ƒXƒg‚Ì³‘ÌEƒNƒŠƒAƒ^ƒCƒ€E¶‚«‰„‚Ñ‚½ƒnƒ“ƒgE•]‰¿ƒ‰ƒ“ƒN‚ğ‡‚Éo‚·
     void DrawClearReport();
     char CalcRank() const;
 

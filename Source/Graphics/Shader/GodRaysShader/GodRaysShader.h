@@ -1,14 +1,14 @@
-ï»¿#pragma once
+#pragma once
 #include "../GraphicsShader/GraphicsShader.h"
 
 class RenderTarget;
 
-// God Rays(å…‰æ¡/Crepuscular Rays)ã€‚Bloomçµæœã‚’å…‰æºã‹ã‚‰ãƒ©ã‚¸ã‚¢ãƒ«ãƒ–ãƒ©ãƒ¼ã—ã¦åŠ ç®—ã™ã‚‹ã€‚
+// God Rays(Œõğ/Crepuscular Rays)BBloomŒ‹‰Ê‚ğŒõŒ¹‚©‚çƒ‰ƒWƒAƒ‹ƒuƒ‰[‚µ‚Ä‰ÁZ‚·‚éB
 class GodRaysShader : public GraphicsShader
 {
 public:
     virtual void Create(GraphicsDevice* pDevice) override;
 
-    // pSrcRT: å…‰æºã‚’å«ã‚€æ˜ã‚‹ã„éƒ¨åˆ†ã®ãƒ†ã‚¯ã‚¹ãƒãƒ£(Bloomçµæœã®å†åˆ©ç”¨ã‚’æƒ³å®š)
+    // pSrcRT: ŒõŒ¹‚ğŠÜ‚Ş–¾‚é‚¢•”•ª‚ÌƒeƒNƒXƒ`ƒƒ(BloomŒ‹‰Ê‚ÌÄ—˜—p‚ğ‘z’è)
     void Draw(RenderTarget* pSrcRT, RenderTarget* pDestRT, const CBufferData::PostProcess& postProcessData);
 };

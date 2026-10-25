@@ -1,4 +1,4 @@
-ï»¿#pragma once
+#pragma once
 #include "RoomArea.h"
 #include <vector>
 
@@ -30,7 +30,7 @@ public:
 
     void NotifyExorcised();
     void NotifyGameOver();
-    // GhostAIã‹ã‚‰ã€ãƒãƒ³ãƒˆãŒæ™‚é–“åˆ‡ã‚Œã§çµ‚ã‚ã£ãŸ(=ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒç”Ÿãå»¶ã³ãŸ)æ™‚ã«å‘¼ã°ã‚Œã‚‹ã€‚ãƒªã‚¶ãƒ«ãƒˆã§è¡¨ç¤ºã™ã‚‹ã€‚
+    // GhostAI‚©‚çAƒnƒ“ƒg‚ªŠÔØ‚ê‚ÅI‚í‚Á‚½(=ƒvƒŒƒCƒ„[‚ª¶‚«‰„‚Ñ‚½)‚ÉŒÄ‚Î‚ê‚éBƒŠƒUƒ‹ƒg‚Å•\¦‚·‚éB
     void NotifyHuntSurvived()
     {
         if (m_currentState == State::Playing)
@@ -49,10 +49,10 @@ public:
         return s_instance;
     }
 
-    // ã‚·ãƒ¼ãƒ³åˆ‡ã‚Šæ›¿ãˆæ™‚ã«å‘¼ã¶ã€‚Scene::~Scene()ã¯GameObjectã®OnDestroy()ã‚’å‘¼ã°ãªã„
-    // (ä¸­èº«ã®shared_ptr<GameObject>ã‚’è§£æ”¾ã™ã‚‹ã ã‘)ãŸã‚ã€s_instanceã‚’ãã®ã¾ã¾ã«ã™ã‚‹ã¨
-    // ç ´æ£„æ¸ˆã¿ã®ã‚·ãƒ¼ãƒ³ã®GameSequenceã‚’æŒ‡ã™ãƒ€ãƒ³ã‚°ãƒªãƒ³ã‚°ãƒã‚¤ãƒ³ã‚¿ãŒæ®‹ã£ã¦ã—ã¾ã†
-    // (CollisionManagerã®é™çš„ã‚ªã‚¯ãƒˆãƒ„ãƒªãƒ¼ã¨åŒã˜ç¨®é¡ã®ä¸å…·åˆã®åŸå› ã«ãªã‚‹)ã€‚
+    // ƒV[ƒ“Ø‚è‘Ö‚¦‚ÉŒÄ‚ÔBScene::~Scene()‚ÍGameObject‚ÌOnDestroy()‚ğŒÄ‚Î‚È‚¢
+    // (’†g‚Ìshared_ptr<GameObject>‚ğ‰ğ•ú‚·‚é‚¾‚¯)‚½‚ßAs_instance‚ğ‚»‚Ì‚Ü‚Ü‚É‚·‚é‚Æ
+    // ”jŠüÏ‚İ‚ÌƒV[ƒ“‚ÌGameSequence‚ğw‚·ƒ_ƒ“ƒOƒŠƒ“ƒOƒ|ƒCƒ“ƒ^‚ªc‚Á‚Ä‚µ‚Ü‚¤
+    // (CollisionManager‚ÌÃ“IƒIƒNƒgƒcƒŠ[‚Æ“¯‚¶í—Ş‚Ì•s‹ï‡‚ÌŒ´ˆö‚É‚È‚é)B
     static void ResetInstance()
     {
         s_instance = nullptr;
@@ -66,7 +66,7 @@ private:
 
     // Total time spent in State::Playing, passed to ResultScene as the "time taken" stat.
     float m_playTimer = 0.0f;
-    // ãƒãƒ³ãƒˆã‚’ç”Ÿãå»¶ã³ãŸå›æ•°(ãƒªã‚¶ãƒ«ãƒˆã®è¡¨ç¤ºã¨è©•ä¾¡ãƒ©ãƒ³ã‚¯ã«ä½¿ã†)
+    // ƒnƒ“ƒg‚ğ¶‚«‰„‚Ñ‚½‰ñ”(ƒŠƒUƒ‹ƒg‚Ì•\¦‚Æ•]‰¿ƒ‰ƒ“ƒN‚Ég‚¤)
     int m_huntsSurvived = 0;
     // How long to hold on the in-scene "GAME CLEAR"/"GAME OVER" overlay before cutting to
     // ResultScene, and whether that cut has already been requested (guards against calling

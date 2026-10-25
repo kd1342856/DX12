@@ -1,4 +1,4 @@
-﻿#include "../../Pch.h"
+#include "../../Pch.h"
 #include "RenderContext.h"
 #include "../GDF/GDF.h"
 #include "../Shader/ShaderManager/ShaderManager.h"
@@ -9,10 +9,10 @@ void RenderContext::BindCamera(int slot)
     cbCamera.mView = View;
     cbCamera.mInvV = View.Invert();
     cbCamera.mProj = Projection;
-    // Projectionは非可逆になりうる特殊な行列ではない(通常の透視/正射影)前提でInvertを使う。
-    // mInvV/mInvP/mVP/mInvVPは以前ここで一切設定されておらず、Math::Matrixの既定コンストラクタ
-    // (単位行列)のまま送られていた - g_mInvPを使うシェーダー側の処理(深度のリニア化等、
-    // 血痕デカールのフェードやSSAO/SSRの視点空間復元)が総じて誤った変換をしていた原因。
+    // Projection�͔�t�ɂȂ肤�����ȍs��ł͂Ȃ�(�ʏ�̓���/���ˉe)�O���Invert���g���B
+    // mInvV/mInvP/mVP/mInvVP�͈ȑO�����ň�ؐݒ肳��Ă��炸�AMath::Matrix�̊���R���X�g���N�^
+    // (�P�ʍs��)�̂܂ܑ����Ă��� - g_mInvP���g���V�F�[�_�[���̏���(�[�x�̃��j�A�����A
+    // �����f�J�[���̃t�F�[�h��SSAO/SSR�̎��_��ԕ���)�������Č�����ϊ������Ă��������B
     cbCamera.mInvP = Projection.Invert();
     cbCamera.mVP = View * Projection;
     cbCamera.mInvVP = cbCamera.mVP.Invert();

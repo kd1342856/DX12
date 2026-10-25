@@ -1,4 +1,4 @@
-ï»¿#include "../../../Pch.h"
+#include "../../../Pch.h"
 #include "../../../Framework/DirectX/Utility/Profiler.h"
 #include "../../GDF/GDF.h"
 #include "ParticleShader.h"
@@ -10,11 +10,11 @@ void ParticleShader::Create(GraphicsDevice* pGraphicsDevice)
     m_pProgram = ShaderManager::Instance().LoadShader(L"Asset/Shader/ParticleShader/ParticleShader_VS.hlsl", L"Asset/Shader/ParticleShader/ParticleShader_PS.hlsl");
 
     PipelineDesc desc;
-    desc.InputLayouts = {}; // é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ãªã—(SV_VertexIDã‹ã‚‰å››è§’å½¢ã‚’ä½œã‚‹)
+    desc.InputLayouts = {}; // ’¸“_ƒoƒbƒtƒ@‚È‚µ(SV_VertexID‚©‚çlŠpŒ`‚ğì‚é)
     desc.Formats = {DXGI_FORMAT_R16G16B16A16_FLOAT};
     desc.BlendMode = BlendMode::Add;
     desc.CullMode = CullMode::None;
-    // å£ã‚„ç‰©ã®å¾Œã‚ã«ã¯éš ã‚Œã‚‹ãŒã€ç²’åŒå£«ã‚„åŠé€æ˜ç‰©ã®å¥¥è¡Œãã¯æ›¸ãè¾¼ã¾ãªã„
+    // •Ç‚â•¨‚ÌŒã‚ë‚É‚Í‰B‚ê‚é‚ªA—±“¯m‚â”¼“§–¾•¨‚Ì‰œs‚«‚Í‘‚«‚Ü‚È‚¢
     desc.IsDepth = true;
     desc.IsDepthMask = false;
     desc.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;

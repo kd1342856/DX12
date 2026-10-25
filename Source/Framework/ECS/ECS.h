@@ -1,4 +1,4 @@
-ï»¿#pragma once
+#pragma once
 
 // =============================================
 // ECS
@@ -10,7 +10,7 @@
 #include "CompSystem/System.h"
 #include "ECSCoordinator.h"
 
-// ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆãƒ‡ãƒ¼ã‚¿å®šç¾©ï¼ˆRenderSystem.hã‚ˆã‚Šå‰ã«ã‚¤ãƒ³ã‚¯ãƒ«ãƒ¼ãƒ‰ï¼‰
+// ƒRƒ“ƒ|[ƒlƒ“ƒgƒf[ƒ^’è‹`iRenderSystem.h‚æ‚è‘O‚ÉƒCƒ“ƒNƒ‹[ƒhj
 #include "Components/Data/TransformData.h"
 #include "Components/Data/ModelRenderData.h"
 #include "Components/Data/CameraData.h"

@@ -1,4 +1,4 @@
-﻿#include "../../../Pch.h"
+#include "../../../Pch.h"
 #include "../../../Framework/DirectX/Utility/Profiler.h"
 #include "SSAOShader.h"
 #include "../../GPUResource/RenderTarget/RenderTarget.h"
@@ -34,7 +34,7 @@ void SSAOShader::Draw(RenderTarget* pNormalRT, RenderTarget* pDestRT, const Para
     m_pDevice->GetCmdList()->SetGraphicsRootSignature(m_pProgram->pRootSignature->GetRootSignature());
     m_pDevice->GetCmdList()->IASetPrimitiveTopology(m_topology);
 
-    // b0: カメラ行列(g_mP/g_mInvP)。今描画しているシーンのカメラをそのまま使う。
+    // b0: �J�����s��(g_mP/g_mInvP)�B���`�悵�Ă���V�[���̃J���������̂܂܎g���B
     int b0 = GetRootParameterIndex(ShaderBindingType::CBV, 0);
     if (b0 != -1)
     {

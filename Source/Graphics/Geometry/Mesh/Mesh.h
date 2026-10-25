@@ -1,8 +1,8 @@
-ï»¿#pragma once
+#pragma once
 #include "MeshData/MeshData.h"
 #include "../../GPUResource/Buffer/VertexBuffer.h"
 #include "../../GPUResource/Buffer/IndexBuffer.h"
-// AssetState ã®ã¿å¿…è¦ï¼ˆGPUUploadQueue.hã‚’ç›´æ¥ã‚¤ãƒ³ã‚¯ãƒ«ãƒ¼ãƒ‰ã™ã‚‹ã¨å¾ªç’°å‚ç…§ã«ãªã‚‹ï¼‰
+// AssetState ‚Ì‚İ•K—viGPUUploadQueue.h‚ğ’¼ÚƒCƒ“ƒNƒ‹[ƒh‚·‚é‚ÆzŠÂQÆ‚É‚È‚éj
 #include "../../../Framework/Manager/Asset/AssetState.h"
 
 class Texture;
@@ -15,15 +15,15 @@ struct MeshFace
 
 // ============================================================
 // Mesh
-// GPU ãƒãƒƒãƒ•ã‚¡ã®ç”Ÿæˆã¯ CreateGPU() ã§ãƒ¡ã‚¤ãƒ³ã‚¹ãƒ¬ãƒƒãƒ‰ã®ã¿å®Ÿè¡Œã™ã‚‹
-// Begin()/End() ã¯ GPUUploadQueue::Process() ãŒå¤–å´ã§ç®¡ç†ã™ã‚‹ãŸã‚
-// CreateGPU() å†…ã§ã¯å‘¼ã°ãªã„
+// GPU ƒoƒbƒtƒ@‚Ì¶¬‚Í CreateGPU() ‚ÅƒƒCƒ“ƒXƒŒƒbƒh‚Ì‚İÀs‚·‚é
+// Begin()/End() ‚Í GPUUploadQueue::Process() ‚ªŠO‘¤‚ÅŠÇ—‚·‚é‚½‚ß
+// CreateGPU() “à‚Å‚ÍŒÄ‚Î‚È‚¢
 // ============================================================
 class Mesh
 {
 public:
-    // ãƒ¡ã‚¤ãƒ³ã‚¹ãƒ¬ãƒƒãƒ‰å°‚ç”¨ï¼šCPUãƒ‡ãƒ¼ã‚¿ â†’ GPU ãƒãƒƒãƒ•ã‚¡ç”Ÿæˆï¼‹ã‚³ãƒãƒ³ãƒ‰è¨˜éŒ²
-    // Begin()/End() ã¯å¤–å´ã® GPUUploadQueue::Process() ãŒç®¡ç†ã™ã‚‹
+    // ƒƒCƒ“ƒXƒŒƒbƒhê—pFCPUƒf[ƒ^ ¨ GPU ƒoƒbƒtƒ@¶¬{ƒRƒ}ƒ“ƒh‹L˜^
+    // Begin()/End() ‚ÍŠO‘¤‚Ì GPUUploadQueue::Process() ‚ªŠÇ—‚·‚é
     void CreateGPU(GraphicsDevice* pDevice,
                    const std::vector<MeshVertex>& vertices,
                    const std::vector<MeshFace>& faces,
@@ -53,16 +53,16 @@ public:
         return m_faces;
     }
 
-    // ãƒ­ãƒ¼ã‚«ãƒ«ç©ºé–“ã®ãƒã‚¦ãƒ³ãƒ‡ã‚£ãƒ³ã‚°ãƒœãƒƒã‚¯ã‚¹ã€CreateGPU()å†…ã§ä¸€åº¦ã ã‘è¨ˆç®—ã•ã‚Œã‚‹ã€‚
-    // ãƒ¡ãƒƒã‚·ãƒ¥ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼ã®åˆ¤å®š(CollisionSolverã®Meshã‚±ãƒ¼ã‚¹)ã§ã€å…¨ä¸‰è§’å½¢ã®å…¨é ‚ç‚¹ã‚’
-    // å¤‰æ›ã—ã¦çµå±€ã©ã‚Œã‚‚è¿‘ããªã„ã¨åˆ†ã‹ã‚‹ãã‚‰ã„ãªã‚‰ã€ãƒœãƒƒã‚¯ã‚¹1å›ã®åˆ¤å®šã§ãƒ¡ãƒƒã‚·ãƒ¥
-    // å…¨ä½“ã‚’æ£„å´ã§ãã‚‹ã‚ˆã†ã«ã™ã‚‹ã€‚
+    // ƒ[ƒJƒ‹‹óŠÔ‚ÌƒoƒEƒ“ƒfƒBƒ“ƒOƒ{ƒbƒNƒXACreateGPU()“à‚Åˆê“x‚¾‚¯ŒvZ‚³‚ê‚éB
+    // ƒƒbƒVƒ…ƒRƒ‰ƒCƒ_[‚Ì”»’è(CollisionSolver‚ÌMeshƒP[ƒX)‚ÅA‘SOŠpŒ`‚Ì‘S’¸“_‚ğ
+    // •ÏŠ·‚µ‚ÄŒ‹‹Ç‚Ç‚ê‚à‹ß‚­‚È‚¢‚Æ•ª‚©‚é‚­‚ç‚¢‚È‚çAƒ{ƒbƒNƒX1‰ñ‚Ì”»’è‚ÅƒƒbƒVƒ…
+    // ‘S‘Ì‚ğŠü‹p‚Å‚«‚é‚æ‚¤‚É‚·‚éB
     const DirectX::BoundingBox& GetLocalAABB() const
     {
         return m_localAABB;
     }
 
-    // AssetStateï¼šæç”»å‰ã« IsReady() ã‚’ç¢ºèªã™ã‚‹ã“ã¨
+    // AssetStateF•`‰æ‘O‚É IsReady() ‚ğŠm”F‚·‚é‚±‚Æ
     AssetState GetState() const
     {
         return m_state;

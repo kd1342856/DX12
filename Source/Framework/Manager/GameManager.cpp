@@ -1,4 +1,4 @@
-ï»¿#include "../../Pch.h"
+#include "../../Pch.h"
 #include "GameManager.h"
 #include "../../Graphics/Shader/ShaderLibrary.h"
 #include "../../Graphics/Shader/LitShader/LitShader.h"
@@ -26,7 +26,7 @@
 #include "../ECS/ComponentSerializerRegistration.h"
 #include "../DirectX/Utility/Profiler.h"
 
-// GameManager ã® static ãƒ¡ãƒ³ãƒå¤‰æ•°ã®å®šç¾©
+// GameManager ‚Ì static ƒƒ“ƒo•Ï”‚Ì’è‹`
 bool GameManager::s_alive = true;
 GameManager& GameManager::Instance()
 {
@@ -36,12 +36,12 @@ GameManager& GameManager::Instance()
 
 void GameManager::Init()
 {
-    // ã‚¢ãƒ—ãƒªèµ·å‹•æ™‚ã«1å›ã ã‘å‘¼ã¶æƒ³å®šã€‚GameScene::Init()ç­‰ã‹ã‚‰èª¤ã£ã¦æ¯å›å‘¼ã°ã‚Œã‚‹ã¨ã€
-    // ECSCoordinator::Init()ãŒEntity/Component/SystemManagerã‚’ä¸¸ã”ã¨æ–°ã—ã„ã‚‚ã®ã«
-    // å·®ã—æ›¿ãˆã¦ã—ã¾ã„ã€ãã®æ™‚ç‚¹ã§ç”Ÿãã¦ã„ã‚‹å…¨Entityå‚ç…§(å¤ã„ã‚·ãƒ¼ãƒ³ã®GameObjectã‚„
-    // å„ç¨®staticå‚ç…§ç­‰)ãŒç„¡åŠ¹ã«ãªã£ã¦ã€Œå­˜åœ¨ã—ãªã„Entityã€ã§è½ã¡ã‚‹åŸå› ã«ãªã£ã¦ã„ãŸ
-    // (ã‚·ãƒ¼ãƒ³åˆ‡ã‚Šæ›¿ãˆæ™‚ã«ã‚¯ãƒ©ãƒƒã‚·ãƒ¥ã—ã¦ã„ãŸä¸å…·åˆã®æ ¹æœ¬åŸå› )ã€‚
-    // äºŒé‡åˆæœŸåŒ–ã‚’é˜²ãã‚¬ãƒ¼ãƒ‰ã€‚
+    // ƒAƒvƒŠ‹N“®‚É1‰ñ‚¾‚¯ŒÄ‚Ô‘z’èBGameScene::Init()“™‚©‚çŒë‚Á‚Ä–ˆ‰ñŒÄ‚Î‚ê‚é‚ÆA
+    // ECSCoordinator::Init()‚ªEntity/Component/SystemManager‚ğŠÛ‚²‚ÆV‚µ‚¢‚à‚Ì‚É
+    // ·‚µ‘Ö‚¦‚Ä‚µ‚Ü‚¢A‚»‚Ì“_‚Å¶‚«‚Ä‚¢‚é‘SEntityQÆ(ŒÃ‚¢ƒV[ƒ“‚ÌGameObject‚â
+    // ŠeístaticQÆ“™)‚ª–³Œø‚É‚È‚Á‚Äu‘¶İ‚µ‚È‚¢Entityv‚Å—‚¿‚éŒ´ˆö‚É‚È‚Á‚Ä‚¢‚½
+    // (ƒV[ƒ“Ø‚è‘Ö‚¦‚ÉƒNƒ‰ƒbƒVƒ…‚µ‚Ä‚¢‚½•s‹ï‡‚Ìª–{Œ´ˆö)B
+    // “ñd‰Šú‰»‚ğ–h‚®ƒK[ƒhB
     if (m_isInitialized)
     {
         return;
@@ -51,7 +51,7 @@ void GameManager::Init()
     m_ecs.Init();
     RegisterComponentSerializers();
 
-    // --- Component å‹ç™»éŒ² ---
+    // --- Component Œ^“o˜^ ---
     m_ecs.RegisterComponent<TransformData>();
     m_ecs.RegisterComponent<CameraData>();
     m_ecs.RegisterComponent<ModelRenderData>();
@@ -63,7 +63,7 @@ void GameManager::Init()
     m_ecs.RegisterComponent<PointLightData>();
     m_ecs.RegisterComponent<SpotLightData>();
 
-    // --- System ç™»éŒ² & Signature è¨­å®š ---
+    // --- System “o˜^ & Signature İ’è ---
     m_spScriptSystem = m_ecs.RegisterSystem<ScriptSystem>();
     {
         Signature sig;
@@ -163,7 +163,7 @@ void GameManager::Update(float deltaTime, class Scene* pScene)
     }
 
     {
-        // Player/Ghostç­‰ã®ã‚¹ã‚¯ãƒªãƒ—ãƒˆãƒ­ã‚¸ãƒƒã‚¯ - GhostAIã®çµŒè·¯æ¢ç´¢(NavMeshã‚¯ã‚¨ãƒª)ã‚‚å«ã‚€ã€‚
+        // Player/Ghost“™‚ÌƒXƒNƒŠƒvƒgƒƒWƒbƒN - GhostAI‚ÌŒo˜H’Tõ(NavMeshƒNƒGƒŠ)‚àŠÜ‚ŞB
         PROFILE_CPU_SCOPE("ScriptSystem::Update");
         m_spScriptSystem->Update(deltaTime);
     }
@@ -173,7 +173,7 @@ void GameManager::Update(float deltaTime, class Scene* pScene)
         m_spAnimationSystem->Update(deltaTime);
     }
 
-    // Transform: ãƒ«ãƒ¼ãƒˆã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‹ã‚‰éšå±¤æ›´æ–°
+    // Transform: ƒ‹[ƒgƒIƒuƒWƒFƒNƒg‚©‚çŠK‘wXV
     std::vector<std::shared_ptr<class GameObject>> roots;
     for (auto& obj : pScene->GetGameObjects())
     {
@@ -195,7 +195,7 @@ void GameManager::Update(float deltaTime, class Scene* pScene)
         CollisionManager::Instance().Solve(pScene);
     }
 
-    // è¡çªå¾Œã® Transform å†æ›´æ–°
+    // Õ“ËŒã‚Ì Transform ÄXV
     {
         PROFILE_CPU_SCOPE("TransformSystem::Update");
         m_spTransformSystem->Update(roots);
@@ -221,7 +221,7 @@ void GameManager::Shutdown()
     }
     s_alive = false;
 
-    // å…¨ã‚¨ãƒ³ãƒ†ã‚£ãƒ†ã‚£ã¨ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã‚’å®‰å…¨ã«ç ´æ£„
+    // ‘SƒGƒ“ƒeƒBƒeƒB‚ÆƒRƒ“ƒ|[ƒlƒ“ƒg‚ğˆÀ‘S‚É”jŠü
     m_ecs.Shutdown();
 
     JobSystem::Instance().Shutdown();

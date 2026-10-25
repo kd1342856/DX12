@@ -1,4 +1,4 @@
-ï»¿#include "../../Pch.h"
+#include "../../Pch.h"
 #include "Renderer.h"
 #include "../GPUResource/RenderTarget/RenderTarget.h"
 #include "../../Graphics/Device/GraphicsDevice.h"
@@ -84,52 +84,52 @@ void Renderer::InitializeRenderTargets(int width, int height)
     s_sceneOpaqueCopy = std::make_unique<RenderTarget>();
     s_sceneOpaqueCopy->Create(width, height, DXGI_FORMAT_R16G16B16A16_FLOAT);
 
-    // Planar Reflection (1024x1024 fixed or scaled, we use screen width/height for now or fixed 1024)ã€‚
-    // æœ€å¤§3æš(3çª“)ã¾ã§åŒæ™‚ã«ã‚¢ã‚¯ãƒ†ã‚£ãƒ–ãªé¡ã‚’ã‚µãƒãƒ¼ãƒˆã™ã‚‹ãŸã‚ã€ã‚¹ãƒ­ãƒƒãƒˆã”ã¨ã«1æšãšã¤æŒã¤ã€‚
+    // Planar Reflection (1024x1024 fixed or scaled, we use screen width/height for now or fixed 1024)B
+    // Å‘å3–‡(3‘‹)‚Ü‚Å“¯‚ÉƒAƒNƒeƒBƒu‚È‹¾‚ğƒTƒ|[ƒg‚·‚é‚½‚ßAƒXƒƒbƒg‚²‚Æ‚É1–‡‚¸‚Â‚ÂB
     for (int i = 0; i < 3; ++i)
     {
         s_planarReflection[i] = std::make_unique<RenderTarget>();
         s_planarReflection[i]->Create(1024, 1024, DXGI_FORMAT_R16G16B16A16_FLOAT);
     }
 
-    // Bloom Extract (1/4è§£åƒåº¦, HDR)ã€‚ä»¥å‰ã¯1/2è§£åƒåº¦+å›ºå®šã¼ã‹ã—åŠå¾„5texelã ã£ãŸãŸã‚ã€
-    // Intensityã‚’ã„ã˜ã£ã¦ã‚‚ã»ã¼å¤‰åŒ–ãŒç„¡ã‹ã£ãŸã€‚1/4è§£åƒåº¦åŒ–ï¼‹å¯å¤‰åŠå¾„ï¼‹è¤‡æ•°å›ãƒ–ãƒ©ãƒ¼ã®
-    // çµ„ã¿åˆã‚ã›ã§ã€ã¡ã‚ƒã‚“ã¨ç”»é¢å…¨ä½“ã«åºƒãŒã‚‹"ãµã‚ã£ã¨æ¼ã‚Œã‚‹å…‰"ã«ã™ã‚‹ã€‚
+    // Bloom Extract (1/4‰ğ‘œ“x, HDR)BˆÈ‘O‚Í1/2‰ğ‘œ“x+ŒÅ’è‚Ú‚©‚µ”¼Œa5texel‚¾‚Á‚½‚½‚ßA
+    // Intensity‚ğ‚¢‚¶‚Á‚Ä‚à‚Ù‚Ú•Ï‰»‚ª–³‚©‚Á‚½B1/4‰ğ‘œ“x‰»{‰Â•Ï”¼Œa{•¡”‰ñƒuƒ‰[‚Ì
+    // ‘g‚İ‡‚í‚¹‚ÅA‚¿‚á‚ñ‚Æ‰æ–Ê‘S‘Ì‚ÉL‚ª‚é"‚Ó‚í‚Á‚Æ˜R‚ê‚éŒõ"‚É‚·‚éB
     s_bloomExtract = std::make_unique<RenderTarget>();
     s_bloomExtract->Create(width / 4, height / 4, DXGI_FORMAT_R16G16B16A16_FLOAT);
 
-    // Bloom Blur Ping-Pong (1/4è§£åƒåº¦)
+    // Bloom Blur Ping-Pong (1/4‰ğ‘œ“x)
     s_bloomBlur[0] = std::make_unique<RenderTarget>();
     s_bloomBlur[0]->Create(width / 4, height / 4, DXGI_FORMAT_R16G16B16A16_FLOAT);
     s_bloomBlur[1] = std::make_unique<RenderTarget>();
     s_bloomBlur[1]->Create(width / 4, height / 4, DXGI_FORMAT_R16G16B16A16_FLOAT);
 
-    // Depth of Fieldç”¨: ã‚·ãƒ¼ãƒ³å…¨ä½“(é–¾å€¤ãªã—)ã‚’ã‚³ãƒ”ãƒ¼ã—ã¦ã¼ã‹ã—ãŸãƒãƒƒãƒ•ã‚¡ã€‚
-    // BloomExtract/Blurã®ãƒ‘ã‚¹ã‚’ãã®ã¾ã¾(é–¾å€¤0ã§)ä½¿ã„å›ã™ã®ã§å°‚ç”¨ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã¯ä¸è¦ã€‚
+    // Depth of Field—p: ƒV[ƒ“‘S‘Ì(è‡’l‚È‚µ)‚ğƒRƒs[‚µ‚Ä‚Ú‚©‚µ‚½ƒoƒbƒtƒ@B
+    // BloomExtract/Blur‚ÌƒpƒX‚ğ‚»‚Ì‚Ü‚Ü(è‡’l0‚Å)g‚¢‰ñ‚·‚Ì‚Åê—pƒVƒF[ƒ_[‚Í•s—vB
     s_dofBlur[0] = std::make_unique<RenderTarget>();
     s_dofBlur[0]->Create(width / 4, height / 4, DXGI_FORMAT_R16G16B16A16_FLOAT);
     s_dofBlur[1] = std::make_unique<RenderTarget>();
     s_dofBlur[1]->Create(width / 4, height / 4, DXGI_FORMAT_R16G16B16A16_FLOAT);
 
-    // God Rays(å…‰æ¡)çµæœ (1/4è§£åƒåº¦ã€‚ãƒ©ã‚¸ã‚¢ãƒ«ãƒ–ãƒ©ãƒ¼ãªã®ã§ä½è§£åƒåº¦ã§ã‚‚ååˆ†)
+    // God Rays(Œõğ)Œ‹‰Ê (1/4‰ğ‘œ“xBƒ‰ƒWƒAƒ‹ƒuƒ‰[‚È‚Ì‚Å’á‰ğ‘œ“x‚Å‚à\•ª)
     s_godRays = std::make_unique<RenderTarget>();
     s_godRays->Create(width / 4, height / 4, DXGI_FORMAT_R16G16B16A16_FLOAT);
 
-    // SSAO/SSRç”¨ã®ãƒ“ãƒ¥ãƒ¼ç©ºé–“æ³•ç·šãƒ—ãƒªãƒ‘ã‚¹(ç­‰å€è§£åƒåº¦ã€‚æ·±åº¦ã¯ã“ã®RTè‡ªèº«ã®å°‚ç”¨DepthBufferã‚’ä½¿ã†)
+    // SSAO/SSR—p‚Ìƒrƒ…[‹óŠÔ–@üƒvƒŠƒpƒX(“™”{‰ğ‘œ“xB[“x‚Í‚±‚ÌRT©g‚Ìê—pDepthBuffer‚ğg‚¤)
     s_normalPrepass = std::make_unique<RenderTarget>();
     s_normalPrepass->Create(width, height, DXGI_FORMAT_R8G8B8A8_UNORM);
 
-    // SSAOçµæœ + ã¼ã‹ã—ç”¨ãƒ”ãƒ³ãƒãƒ³ (ç­‰å€ã ã¨ãƒã‚¤ã‚ºãŒç›®ç«‹ã¤ã®ã§åŠè§£åƒåº¦)ã€‚
-    // ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆã¯Bloomã®ãƒ–ãƒ©ãƒ¼ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³(DrawBlur)ã‚’ãã®ã¾ã¾æµç”¨ã™ã‚‹ãŸã‚ã€
-    // BloomShaderã®PSOã¨åŒã˜R16G16B16A16_FLOATã«åˆã‚ã›ã¦ã‚ã‚‹ã€‚
+    // SSAOŒ‹‰Ê + ‚Ú‚©‚µ—pƒsƒ“ƒ|ƒ“ (“™”{‚¾‚ÆƒmƒCƒY‚ª–Ú—§‚Â‚Ì‚Å”¼‰ğ‘œ“x)B
+    // ƒtƒH[ƒ}ƒbƒg‚ÍBloom‚Ìƒuƒ‰[ƒpƒCƒvƒ‰ƒCƒ“(DrawBlur)‚ğ‚»‚Ì‚Ü‚Ü—¬—p‚·‚é‚½‚ßA
+    // BloomShader‚ÌPSO‚Æ“¯‚¶R16G16B16A16_FLOAT‚É‡‚í‚¹‚Ä‚ ‚éB
     s_ssao = std::make_unique<RenderTarget>();
     s_ssao->Create(width / 2, height / 2, DXGI_FORMAT_R16G16B16A16_FLOAT);
     s_ssaoBlur = std::make_unique<RenderTarget>();
     s_ssaoBlur->Create(width / 2, height / 2, DXGI_FORMAT_R16G16B16A16_FLOAT);
 
-    // Debug Preview Cameraç”¨: CameraData.m_isDebugPreviewã‚’ç«‹ã¦ãŸã‚«ãƒ¡ãƒ©ã®Transformã‹ã‚‰è¦‹ãŸçµµã‚’
-    // æ¯ãƒ•ãƒ¬ãƒ¼ãƒ æãå°‚ç”¨RTã€‚CameraSystemã®ProjectionãŒ16:9å›ºå®š(1280/720)ãªã®ã§ã€ã‚¢ã‚¹ãƒšã‚¯ãƒˆã‚’
-    // åˆã‚ã›ã‚‹ãŸã‚640x360ã«ã™ã‚‹(åŠåˆ†ã®è§£åƒåº¦ã§ååˆ†ã€ãƒ‡ãƒãƒƒã‚°ç”¨é€”ã®ãŸã‚)ã€‚
+    // Debug Preview Camera—p: CameraData.m_isDebugPreview‚ğ—§‚Ä‚½ƒJƒƒ‰‚ÌTransform‚©‚çŒ©‚½ŠG‚ğ
+    // –ˆƒtƒŒ[ƒ€•`‚­ê—pRTBCameraSystem‚ÌProjection‚ª16:9ŒÅ’è(1280/720)‚È‚Ì‚ÅAƒAƒXƒyƒNƒg‚ğ
+    // ‡‚í‚¹‚é‚½‚ß640x360‚É‚·‚é(”¼•ª‚Ì‰ğ‘œ“x‚Å\•ªAƒfƒoƒbƒO—p“r‚Ì‚½‚ß)B
     s_debugPreview = std::make_unique<RenderTarget>();
     s_debugPreview->Create(640, 360, DXGI_FORMAT_R16G16B16A16_FLOAT);
 }

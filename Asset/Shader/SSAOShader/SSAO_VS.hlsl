@@ -1,5 +1,5 @@
-// SSAO/SSRç­‰ã€ã‚·ãƒ¼ãƒ³ã®ã‚«ãƒ¡ãƒ©è¡Œåˆ—(cbPerCamera, b0)ã‚’PSå´ã§ä½¿ã†ãƒ•ãƒ«ã‚¹ã‚¯ãƒªãƒ¼ãƒ³ãƒ‘ã‚¹å°‚ç”¨ã®VSã€‚
-// PostProcessShader_VS.hlslã¯åŒã˜b0ã«cbPostProcessã‚’ç½®ã„ã¦ã„ã‚‹ãŸã‚ä½¿ã„å›žã›ãªã„(ç«¶åˆã™ã‚‹)ã€‚
+// SSAO/SSR“™AƒV[ƒ“‚ÌƒJƒƒ‰s—ñ(cbPerCamera, b0)‚ðPS‘¤‚ÅŽg‚¤ƒtƒ‹ƒXƒNƒŠ[ƒ“ƒpƒXê—p‚ÌVSB
+// PostProcessShader_VS.hlsl‚Í“¯‚¶b0‚ÉcbPostProcess‚ð’u‚¢‚Ä‚¢‚é‚½‚ßŽg‚¢‰ñ‚¹‚È‚¢(‹£‡‚·‚é)B
 struct PSInput
 {
     float4 Pos : SV_Position;

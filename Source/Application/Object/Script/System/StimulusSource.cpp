@@ -1,4 +1,4 @@
-ï»¿#include "../../../../Pch.h"
+#include "../../../../Pch.h"
 #include "StimulusSource.h"
 #include "../../../../Framework/Object/GameObject.h"
 #include "LightSwitch.h"
@@ -9,7 +9,7 @@ REGISTER_COMPONENT(StimulusSource);
 
 void StimulusSource::Start()
 {
-    // ã‚·ãƒ¼ãƒ³èª­ã¿è¾¼ã¿æ™‚ã®çŠ¶æ…‹(m_isActive)ã‚’ãƒ©ã‚¤ãƒˆã«ã‚‚åæ˜ ã—ã¦ãŠã
+    // ƒV[ƒ““Ç‚İ‚İ‚Ìó‘Ô(m_isActive)‚ğƒ‰ƒCƒg‚É‚à”½‰f‚µ‚Ä‚¨‚­
     ApplyToLights();
 }
 
@@ -23,7 +23,7 @@ void StimulusSource::Update(float deltaTime)
     m_flickerTimer -= deltaTime;
     if (m_flickerTimer <= 0.0f || !m_isActive)
     {
-        // ç‚¹æ»…çµ‚äº†(ã¾ãŸã¯é€”ä¸­ã§æ¶ˆç¯ã•ã‚ŒãŸ): æœ¬æ¥ã®ç‚¹ç¯çŠ¶æ…‹ã«æˆ»ã™
+        // “_–ÅI—¹(‚Ü‚½‚Í“r’†‚ÅÁ“”‚³‚ê‚½): –{—ˆ‚Ì“_“”ó‘Ô‚É–ß‚·
         m_flickerTimer = 0.0f;
         ApplyToLights();
         return;
@@ -33,7 +33,7 @@ void StimulusSource::Update(float deltaTime)
     if (m_flickerToggleTimer <= 0.0f)
     {
         m_flickerLit = !m_flickerLit;
-        // æ¶ˆãˆã¦ã„ã‚‹æ™‚é–“ã¯çŸ­ã‚ã€ç‚¹ã„ã¦ã„ã‚‹æ™‚é–“ã¯ä¸è¦å‰‡ã«ã—ã¦é›»æ°—ãŒä¸å®‰å®šãªæ„Ÿã˜ã‚’å‡ºã™
+        // Á‚¦‚Ä‚¢‚éŠÔ‚Í’Z‚ßA“_‚¢‚Ä‚¢‚éŠÔ‚Í•s‹K‘¥‚É‚µ‚Ä“d‹C‚ª•sˆÀ’è‚ÈŠ´‚¶‚ğo‚·
         m_flickerToggleTimer = m_flickerLit ? Random::Instance().Range(0.03f, 0.25f)
                                             : Random::Instance().Range(0.02f, 0.12f);
         SetLightsEnabled(m_flickerLit);
@@ -48,7 +48,7 @@ void StimulusSource::Flicker(float duration)
     }
     if (m_flickerTimer <= 0.0f)
     {
-        m_flickerToggleTimer = 0.0f; // æ¬¡ã®Updateã§ã™ãä¸€åº¦æ¶ˆãˆã‚‹
+        m_flickerToggleTimer = 0.0f; // Ÿ‚ÌUpdate‚Å‚·‚®ˆê“xÁ‚¦‚é
         m_flickerLit = true;
     }
     m_flickerTimer = (std::max)(m_flickerTimer, duration);
@@ -77,7 +77,7 @@ void StimulusSource::SetLightsEnabled(bool enabled)
         return;
     }
 
-    // ãƒ©ãƒ³ãƒ—ã®ãƒ¢ãƒ‡ãƒ«æ§‹æˆã«ã‚ˆã£ã¦ã¯ãƒ©ã‚¤ãƒˆãŒå­ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆå´ã«ä»˜ã„ã¦ã„ã‚‹ãŸã‚ã€å­éšå±¤ã‚‚è¾¿ã‚‹
+    // ƒ‰ƒ“ƒv‚Ìƒ‚ƒfƒ‹\¬‚É‚æ‚Á‚Ä‚Íƒ‰ƒCƒg‚ªqƒIƒuƒWƒFƒNƒg‘¤‚É•t‚¢‚Ä‚¢‚é‚½‚ßAqŠK‘w‚à’H‚é
     auto& ecs = GameManager::Instance().GetECS();
     std::function<void(GameObject*)> apply = [&](GameObject* obj)
     {
@@ -104,7 +104,7 @@ void StimulusSource::PlayToggleSound() const
         m_ownerSwitch->PlaySwitchSound();
         return;
     }
-    const char* path = "Asset/Sound/SE/kabe_switch.wav"; // ãƒ©ã‚¸ã‚«ã‚»ç­‰(å°‚ç”¨ã®éŸ³ãŒã¾ã ãªã„)
+    const char* path = "Asset/Sound/SE/kabe_switch.wav"; // ƒ‰ƒWƒJƒZ“™(ê—p‚Ì‰¹‚ª‚Ü‚¾‚È‚¢)
     if (m_type == StimulusType::Light)
     {
         path = m_isActive ? "Asset/Sound/SE/keikoutou_on.wav" : "Asset/Sound/SE/keikoutou_off.wav";
@@ -208,14 +208,14 @@ void StimulusSource::ImGuiUpdate()
     ImGui::SliderFloat("Sound Volume", &m_soundVolume, 0.0f, 1.0f);
     if (ImGui::IsItemHovered())
     {
-        ImGui::SetTooltip(u8"æœ¬ä½“(ç´ã‚¹ã‚¤ãƒƒãƒ)ã‚’on/offã—ãŸæ™‚ã®éŸ³é‡ã€‚å£ã‚¹ã‚¤ãƒƒãƒæ¥ç¶šä¸­ã¯ã‚¹ã‚¤ãƒƒãƒå´ã®éŸ³é‡ã‚’ä½¿ã†");
+        ImGui::SetTooltip(u8"–{‘Ì(•RƒXƒCƒbƒ`)‚ğon/off‚µ‚½‚Ì‰¹—ÊB•ÇƒXƒCƒbƒ`Ú‘±’†‚ÍƒXƒCƒbƒ`‘¤‚Ì‰¹—Ê‚ğg‚¤");
     }
     if (m_type == StimulusType::Light)
     {
         ImGui::Checkbox("Room Light", &m_isRoomLight);
         if (ImGui::IsItemHovered())
         {
-            ImGui::SetTooltip(u8"éƒ¨å±‹ã®é›»æ°—(å¤©äº•ç…§æ˜ç­‰)ã‹ã€‚ãƒ©ãƒ³ãƒ—ç­‰ã®å°ã•ãªæ˜ã‹ã‚Šã¯ã‚ªãƒ•ã«ã™ã‚‹ã€‚\nå½±å¥³ã®é€€æ²»æ¡ä»¶ã¯ã‚ªãƒ³ã®ç…§æ˜ã ã‘ã‚’æ•°ãˆã‚‹ã€‚");
+            ImGui::SetTooltip(u8"•”‰®‚Ì“d‹C(“VˆäÆ–¾“™)‚©Bƒ‰ƒ“ƒv“™‚Ì¬‚³‚È–¾‚©‚è‚ÍƒIƒt‚É‚·‚éB\n‰e—‚Ì‘Ş¡ğŒ‚ÍƒIƒ“‚ÌÆ–¾‚¾‚¯‚ğ”‚¦‚éB");
         }
     }
 }

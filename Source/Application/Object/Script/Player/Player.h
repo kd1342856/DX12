@@ -1,4 +1,4 @@
-ï»¿#pragma once
+#pragma once
 #include "../Item/ItemTypes.h"
 #include "../../../../Framework/Manager/Audio/AudioManager.h"
 #include "../System/RoomArea.h"
@@ -41,7 +41,7 @@ public:
     {
         return m_flashLightFlicker.IsFlickering();
     }
-    // ç‚¹ç¯ã—ãŸãƒ•ãƒ©ãƒƒã‚·ãƒ¥ãƒ©ã‚¤ãƒˆã‚’æ‰‹ã«æŒã£ã¦ã„ã‚‹(è£…å‚™ä¸­)ã‹ã€‚ãƒãƒ³ãƒˆä¸­ã®Ghostã¯ã“ã‚Œã‚’ç›®å°ã«å‘ã‹ã£ã¦ãã‚‹
+    // “_“”‚µ‚½ƒtƒ‰ƒbƒVƒ…ƒ‰ƒCƒg‚ğè‚É‚Á‚Ä‚¢‚é(‘•”õ’†)‚©Bƒnƒ“ƒg’†‚ÌGhost‚Í‚±‚ê‚ğ–Úˆó‚ÉŒü‚©‚Á‚Ä‚­‚é
     bool IsHoldingLitFlashLight() const
     {
         return m_flashLightOn && m_hasFlashLight && m_currentEquipped == Item::FlashLight;
@@ -51,8 +51,8 @@ public:
     // the next owned item, if any.
     void DropEquippedItem(const Math::Vector3& playerPos, const Math::Vector3& forward, float playerYaw);
 
-    //ã—ã‚ƒãŒã¿å…·åˆ(0=ç«‹ã¡,1=å®Œå…¨ã«ã—ã‚ƒãŒã¿)ã€‚Crouchã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®å®Ÿéš›ã®å†ç”Ÿä½ç½®ã¨åŒæœŸã—ã¦ã„ã‚‹ã®ã§ã€
-    // ã‚«ãƒ¡ãƒ©ã®é«˜ã•ã‚‚ã“ã‚Œã«åˆã‚ã›ã‚‹ã¨ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã¨ã‚ºãƒ¬ãªã„ã€‚
+    //‚µ‚á‚ª‚İ‹ï‡(0=—§‚¿,1=Š®‘S‚É‚µ‚á‚ª‚İ)BCrouchƒAƒjƒ[ƒVƒ‡ƒ“‚ÌÀÛ‚ÌÄ¶ˆÊ’u‚Æ“¯Šú‚µ‚Ä‚¢‚é‚Ì‚ÅA
+    // ƒJƒƒ‰‚Ì‚‚³‚à‚±‚ê‚É‡‚í‚¹‚é‚ÆƒAƒjƒ[ƒVƒ‡ƒ“‚ÆƒYƒŒ‚È‚¢B
     float GetCrouchAmount() const
     {
         return m_crouchBlend;
@@ -63,28 +63,28 @@ public:
     }
 
 private:
-    // Fã‚­ãƒ¼ã§ãƒ‰ã‚¢ã‚’é–‹é–‰ã™ã‚‹å‡¦ç†
+    // FƒL[‚ÅƒhƒA‚ğŠJ•Â‚·‚éˆ—
     void TryInteractDoor(const Math::Vector3& playerPos);
 
     // --- Sound ---
-    // è¶³éŸ³ã¯æ­©ã„ã¦ã„ã‚‹é–“ãƒ«ãƒ¼ãƒ—å†ç”Ÿã—ã€æ­¢ã¾ã£ãŸã‚‰åœæ­¢ã™ã‚‹ã€‚åºŠã®ç¨®é¡(FloorType)ã”ã¨ã«éŸ³ã‚’åˆ‡ã‚Šæ›¿ãˆã‚‹:
-    // ã„ã‚‹éƒ¨å±‹(RoomArea)ã®åºŠã®ç¨®é¡ã€ã©ã®éƒ¨å±‹ã«ã‚‚å…¥ã£ã¦ã„ãªã‘ã‚Œã°å®¶ã®å¤–(åœŸ)ã¨ã¿ãªã™
-    std::unique_ptr<DirectX::SoundEffectInstance> m_footstepSounds[3]; // FloorTypeã®é †(æœ¨/ç•³/åœŸ)
+    // ‘«‰¹‚Í•à‚¢‚Ä‚¢‚éŠÔƒ‹[ƒvÄ¶‚µA~‚Ü‚Á‚½‚ç’â~‚·‚éB°‚Ìí—Ş(FloorType)‚²‚Æ‚É‰¹‚ğØ‚è‘Ö‚¦‚é:
+    // ‚¢‚é•”‰®(RoomArea)‚Ì°‚Ìí—ŞA‚Ç‚Ì•”‰®‚É‚à“ü‚Á‚Ä‚¢‚È‚¯‚ê‚Î‰Æ‚ÌŠO(“y)‚Æ‚İ‚È‚·
+    std::unique_ptr<DirectX::SoundEffectInstance> m_footstepSounds[3]; // FloorType‚Ì‡(–Ø/ô/“y)
     float m_footstepVolumes[3] = {0.6f, 0.6f, 0.6f};
-    float m_crouchFootstepScale = 0.4f; // ã—ã‚ƒãŒã¿æ­©ãã®è¶³éŸ³ã®éŸ³é‡å€ç‡
+    float m_crouchFootstepScale = 0.4f; // ‚µ‚á‚ª‚İ•à‚«‚Ì‘«‰¹‚Ì‰¹—Ê”{—¦
     FloorType m_currentFloor = FloorType::Wood;
     FloorType DetectFloorType(const Math::Vector3& pos) const;
     float m_flashLightSoundVolume = 1.0f;
     float m_doorSoundVolume = 0.9f;
     float m_doorLockedSoundVolume = 1.0f;
     float m_smudgeSoundVolume = 1.0f;
-    // ãŠé¦™(smadge.wav)ã¯é•·ã„ç‡»ã‚‹éŸ³ãªã®ã§ã€ä½¿ã£ã¦ã‹ã‚‰ä¸€å®šæ™‚é–“ã ã‘é³´ã‚‰ã—ã¦ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¢ã‚¦ãƒˆã™ã‚‹
+    // ‚¨(smadge.wav)‚Í’·‚¢à‚é‰¹‚È‚Ì‚ÅAg‚Á‚Ä‚©‚çˆê’èŠÔ‚¾‚¯–Â‚ç‚µ‚ÄƒtƒF[ƒhƒAƒEƒg‚·‚é
     std::unique_ptr<DirectX::SoundEffectInstance> m_smudgeSound;
     float m_smudgeSoundTimer = 0.0f;
     float m_smudgeSoundDuration = 6.0f;
     void SetFlashLightOnWithSound(bool on);
     void UpdateSounds(bool isMoving, float deltaTime);
-    float m_moveSpeedKmh = 10.8f; // ç§»å‹•é€Ÿåº¦(km/h)ã€‚ç§»å‹•è¨ˆç®—ã§ã¯/3.6ã—ã¦m/sã«ã™ã‚‹
+    float m_moveSpeedKmh = 10.8f; // ˆÚ“®‘¬“x(km/h)BˆÚ“®ŒvZ‚Å‚Í/3.6‚µ‚Äm/s‚É‚·‚é
     bool m_useGravity = true;
     float m_gravityStrength = 9.8f;
     float m_velocityY = 0.0f;
@@ -121,8 +121,8 @@ private:
     Entity m_flashLightIconEntity = INVALID_ENTITY;
     Entity m_itemSlotEntities[kItemSlotCount] = {INVALID_ENTITY, INVALID_ENTITY, INVALID_ENTITY};
 
-    // æ‰€æŒã‚¢ã‚¤ãƒ†ãƒ ã‚’æ‹¾ã£ãŸé †ã«ä¸¦ã¹ãŸã‚‚ã®ã€‚ã‚¹ãƒ­ãƒƒãƒˆN(ã¨ã‚­ãƒ¼N)ã«ã¯Nç•ªç›®ã«æ‹¾ã£ãŸã‚¢ã‚¤ãƒ†ãƒ ãŒå…¥ã‚‹ã€‚
-    // AddItemã§æœ«å°¾ã«è¿½åŠ ã—ã€æ¨ã¦ãŸã‚‰è©°ã‚ã‚‹ã€‚ã‚·ãƒ¼ãƒ³ã‹ã‚‰èª­ã‚“ã åˆæœŸæ‰€æŒå“ã¯SyncItemOrder()ãŒæ—¢å®šé †ã§è£œã†ã€‚
+    // ŠƒAƒCƒeƒ€‚ğE‚Á‚½‡‚É•À‚×‚½‚à‚ÌBƒXƒƒbƒgN(‚ÆƒL[N)‚É‚ÍN”Ô–Ú‚ÉE‚Á‚½ƒAƒCƒeƒ€‚ª“ü‚éB
+    // AddItem‚Å––”ö‚É’Ç‰Á‚µAÌ‚Ä‚½‚ç‹l‚ß‚éBƒV[ƒ“‚©‚ç“Ç‚ñ‚¾‰ŠúŠ•i‚ÍSyncItemOrder()‚ªŠù’è‡‚Å•â‚¤B
     std::vector<Item> m_itemOrder;
     void SyncItemOrder();
     Entity GetItemIconEntity(Item item) const;
@@ -158,19 +158,19 @@ private:
     float m_calibWaitTimer = 0.0f;
     void UpdateHeldItemAttach(const Math::Vector3& playerPos, float playerYaw, bool isMoving);
 
-    // --- æ‰‹ã®ãƒœãƒ¼ãƒ³è¿½å¾“(Attach_RightHand) ---
-    // æŒã¡ç‰©ã¯æ¯ãƒ•ãƒ¬ãƒ¼ãƒ ã€æ‰‹ã®ãƒœãƒ¼ãƒ³ã®ãƒ¯ãƒ¼ãƒ«ãƒ‰ä½ç½®ãƒ»å›è»¢ã«è¿½å¾“ã™ã‚‹ã€‚ã‚¢ã‚¤ãƒ†ãƒ ã”ã¨ã«ã€Œæ‰‹ã‹ã‚‰è¦‹ãŸ
-    // ãƒ­ãƒ¼ã‚«ãƒ«ã®ã‚ªãƒ•ã‚»ãƒƒãƒˆ(m)ã¨å›è»¢(åº¦)ã€ã‚’æŒã¡ã€ImGuiUpdate()ã§èª¿æ•´ã§ãã‚‹(æ·»å­—ã¯(int)ItemTypeã€2ã€œ4)ã€‚
-    // ãƒœãƒ¼ãƒ³ãŒç„¡ã„ãƒ¢ãƒ‡ãƒ«ã§ã¯å¾“æ¥ã®ä½“åŸºæº–ã®å›ºå®šã‚ªãƒ•ã‚»ãƒƒãƒˆ(m_heldItemOffset)ã«ãƒ•ã‚©ãƒ¼ãƒ«ãƒãƒƒã‚¯ã™ã‚‹ã€‚
+    // --- è‚Ìƒ{[ƒ“’Ç](Attach_RightHand) ---
+    // ‚¿•¨‚Í–ˆƒtƒŒ[ƒ€Aè‚Ìƒ{[ƒ“‚Ìƒ[ƒ‹ƒhˆÊ’uE‰ñ“]‚É’Ç]‚·‚éBƒAƒCƒeƒ€‚²‚Æ‚Éuè‚©‚çŒ©‚½
+    // ƒ[ƒJƒ‹‚ÌƒIƒtƒZƒbƒg(m)‚Æ‰ñ“](“x)v‚ğ‚¿AImGuiUpdate()‚Å’²®‚Å‚«‚é(“Yš‚Í(int)ItemTypeA2`4)B
+    // ƒ{[ƒ“‚ª–³‚¢ƒ‚ƒfƒ‹‚Å‚Í]—ˆ‚Ì‘ÌŠî€‚ÌŒÅ’èƒIƒtƒZƒbƒg(m_heldItemOffset)‚ÉƒtƒH[ƒ‹ƒoƒbƒN‚·‚éB
     struct HeldPose
     {
         Math::Vector3 pos = Math::Vector3::Zero;
         Math::Vector3 rotDeg = Math::Vector3::Zero;
     };
     HeldPose m_heldPose[5];
-    // æ‰‹ã®ãƒœãƒ¼ãƒ³ã®ãƒ¯ãƒ¼ãƒ«ãƒ‰ä½ç½®ãƒ»å›è»¢(ã‚¹ã‚±ãƒ¼ãƒ«ã¯é™¤ã)ã€‚å–å¾—ã§ããªã‘ã‚Œã°falseã€‚
+    // è‚Ìƒ{[ƒ“‚Ìƒ[ƒ‹ƒhˆÊ’uE‰ñ“](ƒXƒP[ƒ‹‚Íœ‚­)Bæ“¾‚Å‚«‚È‚¯‚ê‚ÎfalseB
     bool GetHandWorld(const Math::Vector3& playerPos, float playerYaw, Math::Vector3& outPos, Math::Quaternion& outRot) const;
-    // itemã‚’æ‰‹ã«æŒã£ãŸã¨ãã®ãƒ¯ãƒ¼ãƒ«ãƒ‰ä½ç½®ãƒ»å›è»¢(ã‚ªã‚¤ãƒ©ãƒ¼è§’,ãƒ©ã‚¸ã‚¢ãƒ³)ã€‚ãƒœãƒ¼ãƒ³ãŒç„¡ã‘ã‚Œã°falseã€‚
+    // item‚ğè‚É‚Á‚½‚Æ‚«‚Ìƒ[ƒ‹ƒhˆÊ’uE‰ñ“](ƒIƒCƒ‰[Šp,ƒ‰ƒWƒAƒ“)Bƒ{[ƒ“‚ª–³‚¯‚ê‚ÎfalseB
     bool ComputeHeldItemWorld(Item item, const Math::Vector3& playerPos, float playerYaw, Math::Vector3& outPos, Math::Vector3& outRotRad) const;
     // One-shot: reads Attach_RightHand's current world position and converts it into a body-local
     // offset (undoing the player's current position/yaw), storing it into m_heldItemOffset. Only
@@ -189,12 +189,12 @@ private:
     InteractKind m_interactKind = InteractKind::None;
     // Only meaningful when m_interactKind == Pickup/Stimulus: the targeted PickupItem's/StimulusSource's entity.
     Entity m_interactEntity = INVALID_ENTITY;
-    // Fã‚­ãƒ¼é€£æ‰“é˜²æ­¢ã®ã‚¯ãƒ¼ãƒ«ãƒ€ã‚¦ãƒ³(ç§’)ã€‚ä»¥å‰ã¯é–¢æ•°å†…staticã§å…¨Playerå…±æœ‰ã ã£ãŸãŸã‚ã€
-    // ä½™åˆ†ãªPlayerã‚¹ã‚¯ãƒªãƒ—ãƒˆãŒ1ã¤ã‚ã‚‹ã ã‘ã§æœ¬ç‰©ã®Playerã®Få…¥åŠ›ãŒæ½°ã‚Œã¦ã„ãŸã€‚
+    // FƒL[˜A‘Å–h~‚ÌƒN[ƒ‹ƒ_ƒEƒ“(•b)BˆÈ‘O‚ÍŠÖ”“àstatic‚Å‘SPlayer‹¤—L‚¾‚Á‚½‚½‚ßA
+    // —]•ª‚ÈPlayerƒXƒNƒŠƒvƒg‚ª1‚Â‚ ‚é‚¾‚¯‚Å–{•¨‚ÌPlayer‚ÌF“ü—Í‚ª’×‚ê‚Ä‚¢‚½B
     float m_interactCooldown = 0.0f;
     // "Press F" HUD prompt Sprite entity (named "InteractPrompt" in GameScene.json).
     Entity m_interactPromptEntity = INVALID_ENTITY;
-    // ç”»é¢ä¸­å¤®ã®ç‚¹ã‚¯ãƒ­ã‚¹ãƒ˜ã‚¢(GameScene.jsonã®"Crosshair")ã€‚Fãƒ—ãƒ­ãƒ³ãƒ—ãƒˆã¨åŒã˜ãæ“ä½œå¯¾è±¡ã‚’æ‰ãˆã¦ã„ã‚‹é–“ã ã‘è¡¨ç¤º
+    // ‰æ–Ê’†‰›‚Ì“_ƒNƒƒXƒwƒA(GameScene.json‚Ì"Crosshair")BFƒvƒƒ“ƒvƒg‚Æ“¯‚¶‚­‘€ì‘ÎÛ‚ğ‘¨‚¦‚Ä‚¢‚éŠÔ‚¾‚¯•\¦
     Entity m_crosshairEntity = INVALID_ENTITY;
     void UpdateInteractionTarget(const Math::Vector3& playerPos, const Math::Vector3& forward);
     void UpdateInteractPrompt();
@@ -203,15 +203,15 @@ private:
     // in TryInteractDoor() on F press).
     bool FindNearestDoor(const Math::Vector3& playerPos, const Math::Vector3& forward, float maxRange, float& outDist) const;
     Entity FindNearestPickup(const Math::Vector3& playerPos, const Math::Vector3& forward, float maxRange, float& outDist) const;
-    // Fã‚­ãƒ¼ã§on/offã§ãã‚‹StimulusSource(ãƒ©ãƒ³ãƒ—/ãƒ©ã‚¸ã‚«ã‚»)ã®ã†ã¡ã€ç¯„å›²å†…ãƒ»æ­£é¢ã«ã‚ã‚‹æœ€ã‚‚è¿‘ã„ã‚‚ã®
+    // FƒL[‚Åon/off‚Å‚«‚éStimulusSource(ƒ‰ƒ“ƒv/ƒ‰ƒWƒJƒZ)‚Ì‚¤‚¿A”ÍˆÍ“àE³–Ê‚É‚ ‚éÅ‚à‹ß‚¢‚à‚Ì
     Entity FindNearestStimulus(const Math::Vector3& playerPos, const Math::Vector3& forward, float maxRange, float& outDist) const;
 
-    // FindNearestDoorã¯ä»¥å‰ã€ã€Œè¿‘ãã«ãƒ‰ã‚¢ãŒã‚ã‚‹ã‹ã€ã«ç­”ãˆã‚‹ãŸã‚ã ã‘ã«ã€æ¯ãƒ•ãƒ¬ãƒ¼ãƒ å…¨
-    // ã‚¨ãƒ³ãƒ†ã‚£ãƒ†ã‚£ã®å…¨ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‚’å†ã‚¹ã‚­ãƒ£ãƒ³ã—(ãƒ‰ã‚¢ã ã£ãŸå ´åˆã¯ã•ã‚‰ã«ãƒ¢ãƒ‡ãƒ«ã®
-    // ãƒãƒ¼ãƒ‰ãƒªã‚¹ãƒˆå…¨ä½“ã‚’è¾¿ã£ã¦Decomposeã¾ã§ã—ã¦)ã„ãŸ - Debugã§è¨ˆæ¸¬ã™ã‚‹ã¨ç´„5msã€‚
-    // ãƒ‰ã‚¢ã®è¶ç•ªã¯é–‹é–‰æ™‚ã«å¹³è¡Œç§»å‹•ã›ãš(å›è»¢ã™ã‚‹ã ã‘)ã€ãã®ãƒ¯ãƒ¼ãƒ«ãƒ‰ä½ç½®ã¯ä¸å¤‰ãªã®ã§
-    // ä¸€åº¦è¨ˆç®—ã™ã‚Œã°ååˆ† - é…å»¶ã‚­ãƒ£ãƒƒã‚·ãƒ¥ã—ã¦ãŠãã€æ¯ãƒ•ãƒ¬ãƒ¼ãƒ ã¯è·é›¢+å‘ãã®å®‰ã„åˆ¤å®š
-    // ã ã‘ã‚’è¡Œã†ã‚ˆã†ã«ã™ã‚‹ã€‚
+    // FindNearestDoor‚ÍˆÈ‘OAu‹ß‚­‚ÉƒhƒA‚ª‚ ‚é‚©v‚É“š‚¦‚é‚½‚ß‚¾‚¯‚ÉA–ˆƒtƒŒ[ƒ€‘S
+    // ƒGƒ“ƒeƒBƒeƒB‚Ì‘SƒAƒjƒ[ƒVƒ‡ƒ“‚ğÄƒXƒLƒƒƒ“‚µ(ƒhƒA‚¾‚Á‚½ê‡‚Í‚³‚ç‚Éƒ‚ƒfƒ‹‚Ì
+    // ƒm[ƒhƒŠƒXƒg‘S‘Ì‚ğ’H‚Á‚ÄDecompose‚Ü‚Å‚µ‚Ä)‚¢‚½ - Debug‚ÅŒv‘ª‚·‚é‚Æ–ñ5msB
+    // ƒhƒA‚Ì’±”Ô‚ÍŠJ•Â‚É•½sˆÚ“®‚¹‚¸(‰ñ“]‚·‚é‚¾‚¯)A‚»‚Ìƒ[ƒ‹ƒhˆÊ’u‚Í•s•Ï‚È‚Ì‚Å
+    // ˆê“xŒvZ‚·‚ê‚Î\•ª - ’x‰„ƒLƒƒƒbƒVƒ…‚µ‚Ä‚¨‚«A–ˆƒtƒŒ[ƒ€‚Í‹——£+Œü‚«‚ÌˆÀ‚¢”»’è
+    // ‚¾‚¯‚ğs‚¤‚æ‚¤‚É‚·‚éB
     struct DoorCandidate
     {
         Entity entity;
@@ -222,21 +222,21 @@ private:
     mutable bool m_doorCandidateCacheBuilt = false;
     void RebuildDoorCandidateCache() const;
 
-    // --- ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ ---
-    // AnimationDataComponentã¯è‡ªåˆ†è‡ªèº«ã§ã¯ãªãå­ã®"Model"ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã«ä»˜ã„ã¦ã„ã‚‹ãŸã‚ã€
-    // å­éšå±¤ã‚’æ¢ã—ã¦è¦šãˆã¦ãŠã(æ¯ãƒ•ãƒ¬ãƒ¼ãƒ æ¢ç´¢ã—ãªãã¦ã„ã„ã‚ˆã†ã«Start()ã§ã‚­ãƒ£ãƒƒã‚·ãƒ¥ã™ã‚‹)
+    // --- ƒAƒjƒ[ƒVƒ‡ƒ“ ---
+    // AnimationDataComponent‚Í©•ª©g‚Å‚Í‚È‚­q‚Ì"Model"ƒIƒuƒWƒFƒNƒg‚É•t‚¢‚Ä‚¢‚é‚½‚ßA
+    // qŠK‘w‚ğ’T‚µ‚ÄŠo‚¦‚Ä‚¨‚­(–ˆƒtƒŒ[ƒ€’Tõ‚µ‚È‚­‚Ä‚¢‚¢‚æ‚¤‚ÉStart()‚ÅƒLƒƒƒbƒVƒ…‚·‚é)
     Entity m_animEntity = INVALID_ENTITY;
-    std::string m_lastAnimClip; // ç›´è¿‘ã«å†ç”Ÿè¦æ±‚ã—ãŸã‚¯ãƒªãƒƒãƒ—å(Crouchã®å†ç”Ÿã—ç›´ã—é˜²æ­¢ç”¨)
+    std::string m_lastAnimClip; // ’¼‹ß‚ÉÄ¶—v‹‚µ‚½ƒNƒŠƒbƒv–¼(Crouch‚ÌÄ¶‚µ’¼‚µ–h~—p)
 
     bool m_isCrouching = false;
-    float m_crouchBlend = 0.0f;      // 0=ç«‹ã¡,1=å®Œå…¨ã«ã—ã‚ƒãŒã¿ã€‚æ¯ãƒ•ãƒ¬ãƒ¼ãƒ ç›®æ¨™å€¤ã¸æ»‘ã‚‰ã‹ã«è¿‘ã¥ã‘ã‚‹
-    float m_crouchBlendSpeed = 6.0f; // å¤§ãã„ã»ã©ç´ æ—©ãè¿½å¾“ã™ã‚‹
-    // Ctrlã‚’æŠ¼ã—ã¦ã‹ã‚‰ã‚«ãƒ¡ãƒ©ãŒå‹•ãå‡ºã™ã¾ã§ã®é…å»¶(ç§’)ã€‚
-    // ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³å´ã®å‹•ãå‡ºã—ã®ãƒ©ã‚°ã«åˆã‚ã›ã¦èª¿æ•´ã™ã‚‹ã€‚
+    float m_crouchBlend = 0.0f;      // 0=—§‚¿,1=Š®‘S‚É‚µ‚á‚ª‚İB–ˆƒtƒŒ[ƒ€–Ú•W’l‚ÖŠŠ‚ç‚©‚É‹ß‚Ã‚¯‚é
+    float m_crouchBlendSpeed = 6.0f; // ‘å‚«‚¢‚Ù‚Ç‘f‘‚­’Ç]‚·‚é
+    // Ctrl‚ğ‰Ÿ‚µ‚Ä‚©‚çƒJƒƒ‰‚ª“®‚«o‚·‚Ü‚Å‚Ì’x‰„(•b)B
+    // ƒAƒjƒ[ƒVƒ‡ƒ“‘¤‚Ì“®‚«o‚µ‚Ìƒ‰ƒO‚É‡‚í‚¹‚Ä’²®‚·‚éB
     float m_crouchCameraDelay = 0.1f;
     float m_crouchCameraDelayTimer = 0.0f;
 
-    // Walk/CrouchWalkç³»ã®ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³å†ç”Ÿé€Ÿåº¦å€ç‡ã€‚1.0ã§ç­‰å€ã€‚
+    // Walk/CrouchWalkŒn‚ÌƒAƒjƒ[ƒVƒ‡ƒ“Ä¶‘¬“x”{—¦B1.0‚Å“™”{B
     float m_animWalkSpeed = 1.0f;
 
     // Animation state machine: picks one of Idle/Walk/Crouch/CrouchWalk (or its UseItem_* variant

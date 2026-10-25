@@ -16,7 +16,7 @@ struct TextureUploadData;
 // 将来的には CreateGPU() をさらに
 //   CreateResource()        : GPU バッファ生成
 //   RecordUploadCommands()  : コマンド記録
-// に分割することも可能
+// に分割することも可能。
 // ============================================================
 class Texture : public GPUResource
 {

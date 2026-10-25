@@ -1,4 +1,4 @@
-﻿#include "../../../Pch.h"
+#include "../../../Pch.h"
 #include "../../../Framework/DirectX/Utility/Profiler.h"
 #include "GodRaysShader.h"
 #include "../../GPUResource/RenderTarget/RenderTarget.h"

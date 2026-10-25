@@ -1,4 +1,4 @@
-ï»¿#include "../../../../Pch.h"
+#include "../../../../Pch.h"
 #include "LightSwitch.h"
 #include "StimulusSource.h"
 #include "../../../../Framework/Object/GameObject.h"
@@ -17,7 +17,7 @@ void LightSwitch::Start()
 
 void LightSwitch::Update(float deltaTime)
 {
-    // ç…§æ˜å´ã®Startã‚ˆã‚Šå…ˆã«å‘¼ã°ã‚ŒãŸå ´åˆã‚„ã€ã‚´ãƒ¼ã‚¹ãƒˆãŒå‹æ‰‹ã«ç‚¹ã‘ãŸå ´åˆã«ã‚‚è¿½å¾“ã•ã›ã‚‹
+    // Æ–¾‘¤‚ÌStart‚æ‚èæ‚ÉŒÄ‚Î‚ê‚½ê‡‚âAƒS[ƒXƒg‚ªŸè‚É“_‚¯‚½ê‡‚É‚à’Ç]‚³‚¹‚é
     if (!m_resolved)
     {
         ResolveTargets();
@@ -38,7 +38,7 @@ void LightSwitch::UpdateRocker()
         return;
     }
 
-    // ã‚¹ã‚¤ãƒƒãƒæœ¬ä½“ã‹å­("Model")ã®ã†ã¡ã€ãƒ¢ãƒ‡ãƒ«ã¨ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‚’æŒã¤ã‚‚ã®
+    // ƒXƒCƒbƒ`–{‘Ì‚©q("Model")‚Ì‚¤‚¿Aƒ‚ƒfƒ‹‚ÆƒAƒjƒ[ƒVƒ‡ƒ“‚ğ‚Â‚à‚Ì
     auto& ecs = GameManager::Instance().GetECS();
     ModelRenderData* pModel = nullptr;
     AnimationDataComponent* pAnim = nullptr;
@@ -65,7 +65,7 @@ void LightSwitch::UpdateRocker()
     }
     if (!pModel->m_spModelData || !pModel->m_spModelData->IsLoaded())
     {
-        return; // èª­ã¿è¾¼ã¿å¾…ã¡(æ¬¡ãƒ•ãƒ¬ãƒ¼ãƒ ã§å†è©¦è¡Œ)
+        return; // “Ç‚İ‚İ‘Ò‚¿(ŸƒtƒŒ[ƒ€‚ÅÄs)
     }
 
     const auto& anims = pModel->m_spModelData->GetAnimations();
@@ -81,7 +81,7 @@ void LightSwitch::UpdateRocker()
     }
     if (clip < 0)
     {
-        clip = want ? 0 : 1; // åå‰ãŒå–ã‚Œãªã„å ´åˆã¯glTFå†…ã®ä¸¦ã³é †
+        clip = want ? 0 : 1; // –¼‘O‚ªæ‚ê‚È‚¢ê‡‚ÍglTF“à‚Ì•À‚Ñ‡
     }
     if (clip >= (int)anims.size())
     {
@@ -94,7 +94,7 @@ void LightSwitch::UpdateRocker()
     a.Speed = 1.0f;
     a.StopAtTime = -1.0f;
     a.IsPlaying = true;
-    // åˆå›ã¯ã‚¯ãƒªãƒƒãƒ—ã®çµ‚ç«¯ã‹ã‚‰å§‹ã‚ã¦ã€ãã®ãƒ•ãƒ¬ãƒ¼ãƒ ã§æœ€çµ‚ãƒãƒ¼ã‚ºã«æ­¢ã¾ã‚‹ã‚ˆã†ã«ã™ã‚‹
+    // ‰‰ñ‚ÍƒNƒŠƒbƒv‚ÌI’[‚©‚çn‚ß‚ÄA‚»‚ÌƒtƒŒ[ƒ€‚ÅÅIƒ|[ƒY‚É~‚Ü‚é‚æ‚¤‚É‚·‚é
     a.ProgressTime = (m_rockerState < 0) ? (std::max)(anims[clip].duration - 0.002f, 0.0f) : 0.0f;
     m_rockerState = want;
 }
@@ -134,7 +134,7 @@ void LightSwitch::ResolveTargets()
             {
                 if (auto* src = dynamic_cast<StimulusSource*>(sd->Instance.get()))
                 {
-                    // ç…§æ˜æœ¬ä½“ã¯ã‚¹ã‚¤ãƒƒãƒçµŒç”±ã§ã—ã‹æ“ä½œã§ããªã„ã‚ˆã†ã«ã™ã‚‹
+                    // Æ–¾–{‘Ì‚ÍƒXƒCƒbƒ`Œo—R‚Å‚µ‚©‘€ì‚Å‚«‚È‚¢‚æ‚¤‚É‚·‚é
                     src->m_interactable = false;
                     src->m_controlledBySwitch = true;
                     src->m_ownerSwitch = this;
@@ -152,7 +152,7 @@ void LightSwitch::ResolveTargets()
         visit(obj.get());
     }
 
-    // ã‚¹ã‚¯ãƒªãƒ—ãƒˆã®InstanceãŒã¾ã ä½œã‚‰ã‚Œã¦ã„ãªã„ç­‰ã§è¦‹ã¤ã‹ã‚‰ãªã‘ã‚Œã°ã€æ¬¡ã®Updateã§å†è©¦è¡Œã™ã‚‹
+    // ƒXƒNƒŠƒvƒg‚ÌInstance‚ª‚Ü‚¾ì‚ç‚ê‚Ä‚¢‚È‚¢“™‚ÅŒ©‚Â‚©‚ç‚È‚¯‚ê‚ÎAŸ‚ÌUpdate‚ÅÄs‚·‚é
     m_resolved = !m_targets.empty();
 }
 
@@ -174,7 +174,7 @@ void LightSwitch::Toggle()
     {
         ResolveTargets();
     }
-    // 1ã¤ã§ã‚‚ç‚¹ã„ã¦ã„ã‚Œã°å…¨éƒ¨æ¶ˆã™ã€å…¨éƒ¨æ¶ˆãˆã¦ã„ã‚Œã°å…¨éƒ¨ç‚¹ã‘ã‚‹
+    // 1‚Â‚Å‚à“_‚¢‚Ä‚¢‚ê‚Î‘S•”Á‚·A‘S•”Á‚¦‚Ä‚¢‚ê‚Î‘S•”“_‚¯‚é
     bool turnOn = !IsOn();
     for (auto* src : m_targets)
     {
@@ -267,9 +267,9 @@ void LightSwitch::ImGuiUpdate()
     }
     if (ImGui::IsItemHovered())
     {
-        ImGui::SetTooltip(u8"æ“ä½œã™ã‚‹ç…§æ˜ã®GameObjectå(ã‚«ãƒ³ãƒåŒºåˆ‡ã‚Šã§è¤‡æ•°å¯)");
+        ImGui::SetTooltip(u8"‘€ì‚·‚éÆ–¾‚ÌGameObject–¼(ƒJƒ“ƒ}‹æØ‚è‚Å•¡”‰Â)");
     }
-    ImGui::Text(u8"æ¥ç¶šä¸­ã®ç…§æ˜: %d  çŠ¶æ…‹: %s", (int)m_targets.size(), IsOn() ? "ON" : "OFF");
+    ImGui::Text(u8"Ú‘±’†‚ÌÆ–¾: %d  ó‘Ô: %s", (int)m_targets.size(), IsOn() ? "ON" : "OFF");
     if (ImGui::Button("Toggle"))
     {
         Toggle();

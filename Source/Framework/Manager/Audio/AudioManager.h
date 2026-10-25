@@ -1,4 +1,4 @@
-ï»¿#pragma once
+#pragma once
 #include <Audio.h>
 #include <codecvt>
 #include <locale>
@@ -12,23 +12,23 @@ public:
     void Update();
     void Shutdown();
 
-    // SE(åŠ¹æœéŸ³)ã®å†ç”Ÿã€‚vol=éŸ³é‡(0.0~1.0), pitch=ãƒ”ãƒƒãƒ(-1.0~1.0), pan=ãƒ‘ãƒ³(-1.0~1.0)
+    // SE(Œø‰Ê‰¹)‚ÌÄ¶Bvol=‰¹—Ê(0.0~1.0), pitch=ƒsƒbƒ`(-1.0~1.0), pan=ƒpƒ“(-1.0~1.0)
     void PlaySE(const std::string& filepath, float vol = 1.0f, float pitch = 0.0f, float pan = 0.0f);
 
-    // ãƒ¯ãƒ¼ãƒ«ãƒ‰åº§æ¨™ã§é³´ã‚‰ã™SEã€‚ãƒªã‚¹ãƒŠãƒ¼(SetListener)ã‹ã‚‰ã®è·é›¢ã§æ¸›è¡°ã—ã€å·¦å³ã«ãƒ‘ãƒ³ã™ã‚‹ã€‚maxDistä»¥ä¸Šé›¢ã‚Œã¦ã„ã‚Œã°é³´ã‚‰ã•ãªã„
+    // ƒ[ƒ‹ƒhÀ•W‚Å–Â‚ç‚·SEBƒŠƒXƒi[(SetListener)‚©‚ç‚Ì‹——£‚ÅŒ¸Š‚µA¶‰E‚Éƒpƒ“‚·‚éBmaxDistˆÈã—£‚ê‚Ä‚¢‚ê‚Î–Â‚ç‚³‚È‚¢
     void PlaySEAt(const std::string& filepath, const Math::Vector3& pos, float vol = 1.0f, float maxDist = 15.0f);
 
-    // èãæ‰‹(ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼)ã®ä½ç½®ã¨å‘ãã€‚PlaySEAtã®æ¸›è¡°ãƒ»ãƒ‘ãƒ³ã«ä½¿ã†
+    // •·‚«è(ƒvƒŒƒCƒ„[)‚ÌˆÊ’u‚ÆŒü‚«BPlaySEAt‚ÌŒ¸ŠEƒpƒ“‚Ég‚¤
     void SetListener(const Math::Vector3& pos, const Math::Vector3& forward)
     {
         m_listenerPos = pos;
         m_listenerForward = forward;
     }
 
-    // ãƒ«ãƒ¼ãƒ—å†ç”Ÿã‚„é€”ä¸­åœæ­¢ãŒå¿…è¦ãªSEç”¨ã®ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ã‚’ä½œã‚‹(è¶³éŸ³ãªã©)ã€‚å‘¼ã³å‡ºã—å´ãŒæ‰€æœ‰ã—ã€Shutdownã‚ˆã‚Šå‰ã«ç ´æ£„ã™ã‚‹ã“ã¨
+    // ƒ‹[ƒvÄ¶‚â“r’†’â~‚ª•K—v‚ÈSE—p‚ÌƒCƒ“ƒXƒ^ƒ“ƒX‚ğì‚é(‘«‰¹‚È‚Ç)BŒÄ‚Ño‚µ‘¤‚ªŠ—L‚µAShutdown‚æ‚è‘O‚É”jŠü‚·‚é‚±‚Æ
     std::unique_ptr<DirectX::SoundEffectInstance> CreateSEInstance(const std::string& filepath);
 
-    // BGMã®å†ç”Ÿã€‚vol=éŸ³é‡(0.0~1.0)
+    // BGM‚ÌÄ¶Bvol=‰¹—Ê(0.0~1.0)
     void PlayBGM(const std::string& filepath, float vol = 1.0f);
     void StopBGM();
     void SetBGMVolume(float vol);
@@ -40,7 +40,7 @@ public:
     }
     DirectX::SoundState GetBGMState() const;
 
-    // --- éŸ³é‡ãƒã‚¹(Sound Managerã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã§èª¿æ•´)ã€‚å„å†ç”Ÿæ™‚ã®éŸ³é‡ã«ã•ã‚‰ã«æ›ã‘åˆã‚ã•ã‚Œã‚‹ ---
+    // --- ‰¹—ÊƒoƒX(Sound ManagerƒEƒBƒ“ƒhƒE‚Å’²®)BŠeÄ¶‚Ì‰¹—Ê‚É‚³‚ç‚ÉŠ|‚¯‡‚í‚³‚ê‚é ---
     float GetMasterVolume() const
     {
         return m_masterVolume;
@@ -49,7 +49,7 @@ public:
     {
         return m_bgmBusVolume;
     }
-    // CreateSEInstanceã§ä½œã£ãŸã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ã«SetVolumeã™ã‚‹æ™‚ã¯ã€ã“ã®å€¤ã‚’æ›ã‘ã‚‹ã“ã¨
+    // CreateSEInstance‚Åì‚Á‚½ƒCƒ“ƒXƒ^ƒ“ƒX‚ÉSetVolume‚·‚é‚ÍA‚±‚Ì’l‚ğŠ|‚¯‚é‚±‚Æ
     float GetSEVolume() const
     {
         return m_seBusVolume;
@@ -66,22 +66,22 @@ public:
     }
     void SetMuted(bool muted);
 
-    // --- æ›²ã”ã¨ã®éŸ³é‡(Sound Managerã§èª¿æ•´ãƒ»ä¿å­˜)ã€‚BGMã®æœ€çµ‚éŸ³é‡ = PlayBGMã®vol Ã— æ›²ã®éŸ³é‡ Ã— BGMãƒã‚¹ ---
-    // æ›²ã‚’ä½¿ã†å´(TitleSceneç­‰)ãŒè¡¨ç¤ºåã¨åˆæœŸéŸ³é‡ã‚’ç™»éŒ²ã™ã‚‹ã€‚ä¿å­˜æ¸ˆã¿ã®å€¤ãŒã‚ã‚Œã°ãã¡ã‚‰ã‚’å„ªå…ˆã™ã‚‹
+    // --- ‹È‚²‚Æ‚Ì‰¹—Ê(Sound Manager‚Å’²®E•Û‘¶)BBGM‚ÌÅI‰¹—Ê = PlayBGM‚Ìvol ~ ‹È‚Ì‰¹—Ê ~ BGMƒoƒX ---
+    // ‹È‚ğg‚¤‘¤(TitleScene“™)‚ª•\¦–¼‚Æ‰Šú‰¹—Ê‚ğ“o˜^‚·‚éB•Û‘¶Ï‚İ‚Ì’l‚ª‚ ‚ê‚Î‚»‚¿‚ç‚ğ—Dæ‚·‚é
     void RegisterBGMTrack(const std::string& filepath, const std::string& label, float defaultVolume);
     float GetBGMTrackVolume(const std::string& filepath) const;
     void SetBGMTrackVolume(const std::string& filepath, float vol);
-    // è¡¨ç¤ºå(æœªç™»éŒ²ãªã‚‰ç©º)
+    // •\¦–¼(–¢“o˜^‚È‚ç‹ó)
     const std::string& GetBGMTrackLabel(const std::string& filepath) const;
-    // éŸ³é‡ãŒè¨­å®š/ç™»éŒ²ã•ã‚Œã¦ã„ã‚‹æ›²ã®ä¸€è¦§
+    // ‰¹—Ê‚ªİ’è/“o˜^‚³‚ê‚Ä‚¢‚é‹È‚Ìˆê——
     std::vector<std::string> GetBGMTrackPaths() const;
 
-    // éŸ³é‡è¨­å®šã®ä¿å­˜/èª­ã¿è¾¼ã¿(Initã§è‡ªå‹•çš„ã«èª­ã¿è¾¼ã‚€)
+    // ‰¹—Êİ’è‚Ì•Û‘¶/“Ç‚İ‚İ(Init‚Å©“®“I‚É“Ç‚İ‚Ş)
     static constexpr const char* kSettingsPath = "Asset/Data/AudioSettings.json";
     void LoadSettings();
     void SaveSettings() const;
 
-    // èª­ã¿è¾¼ã¿æ¸ˆã¿(ã‚­ãƒ£ãƒƒã‚·ãƒ¥æ¸ˆã¿)ã®ã‚µã‚¦ãƒ³ãƒ‰ã®ãƒ‘ã‚¹ä¸€è¦§
+    // “Ç‚İ‚İÏ‚İ(ƒLƒƒƒbƒVƒ…Ï‚İ)‚ÌƒTƒEƒ“ƒh‚ÌƒpƒXˆê——
     std::vector<std::string> GetLoadedSoundPaths() const;
 
 private:
@@ -94,9 +94,9 @@ private:
 
     std::unique_ptr<DirectX::SoundEffectInstance> m_bgmInstance;
     std::string m_currentBGM;
-    float m_bgmBaseVolume = 1.0f;                        // PlayBGM/SetBGMVolumeã§æŒ‡å®šã•ã‚ŒãŸéŸ³é‡(ãƒã‚¹é©ç”¨å‰)
-    std::map<std::string, float> m_bgmTrackVolumes;      // æ›²ã”ã¨ã®éŸ³é‡(ä¿å­˜å¯¾è±¡)
-    std::map<std::string, std::string> m_bgmTrackLabels; // æ›²ã®è¡¨ç¤ºå(å®Ÿè¡Œæ™‚ã®ã¿)
+    float m_bgmBaseVolume = 1.0f;                        // PlayBGM/SetBGMVolume‚Åw’è‚³‚ê‚½‰¹—Ê(ƒoƒX“K—p‘O)
+    std::map<std::string, float> m_bgmTrackVolumes;      // ‹È‚²‚Æ‚Ì‰¹—Ê(•Û‘¶‘ÎÛ)
+    std::map<std::string, std::string> m_bgmTrackLabels; // ‹È‚Ì•\¦–¼(Às‚Ì‚İ)
 
     float m_masterVolume = 1.0f;
     float m_bgmBusVolume = 1.0f;

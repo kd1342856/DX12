@@ -1,4 +1,4 @@
-ï»¿#include "../../../Pch.h"
+#include "../../../Pch.h"
 #include "LitShader.h"
 
 #include "../../GDF/GDF.h"
@@ -19,7 +19,7 @@ void LitShader::Create(GraphicsDevice* pGraphicsDevice)
     m_topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
     // Opaque
-    desc.CullMode = CullMode::None; // åå°„ã®é¡åƒæç”»ã§ã‚«ãƒªãƒ³ã‚°ãŒåè»¢ã—ã¦ã‚‚æç”»ã•ã‚Œã‚‹ã‚ˆã†ã«Noneã«ã™ã‚‹
+    desc.CullMode = CullMode::None; // ”½Ë‚Ì‹¾‘œ•`‰æ‚ÅƒJƒŠƒ“ƒO‚ª”½“]‚µ‚Ä‚à•`‰æ‚³‚ê‚é‚æ‚¤‚ÉNone‚É‚·‚é
     desc.BlendMode = BlendMode::None;
     desc.DepthBias = 0;
     desc.IsDepthMask = true;
@@ -32,14 +32,14 @@ void LitShader::Create(GraphicsDevice* pGraphicsDevice)
     desc.IsDepthMask = true;
     m_psoMask = ShaderManager::Instance().GetPipelineState(m_pProgram, desc);
 
-    // Blend (ãƒ‡ã‚«ãƒ¼ãƒ«ç”¨)
+    // Blend (ƒfƒJ[ƒ‹—p)
     desc.CullMode = CullMode::None;
     desc.BlendMode = BlendMode::Alpha;
-    desc.DepthBias = -100;    // Zãƒ•ã‚¡ã‚¤ãƒˆã‚’é¿ã‘ã¦æ‰‹å‰ã«æç”»
-    desc.IsDepthMask = false; // åŠé€æ˜ãªã®ã§Zæ›¸ãè¾¼ã¿ãªã—
+    desc.DepthBias = -100;    // Zƒtƒ@ƒCƒg‚ğ”ğ‚¯‚Äè‘O‚É•`‰æ
+    desc.IsDepthMask = false; // ”¼“§–¾‚È‚Ì‚ÅZ‘‚«‚İ‚È‚µ
     m_psoBlend = ShaderManager::Instance().GetPipelineState(m_pProgram, desc);
 
-    // ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆ
+    // ƒfƒtƒHƒ‹ƒg
     m_pPipelineState = m_psoOpaque.Get();
 }
 
@@ -78,10 +78,10 @@ void LitShader::Begin(RenderContext& context)
     }
 
     // Bind Opaque Depth to t9
-    // ä»¥å‰ã¯GraphicsDevice::GetDepthStencil()(å…±æœ‰ã®æœªä½¿ç”¨æ°—å‘³ãªãƒãƒƒãƒ•ã‚¡)ã‚’æŸç¸›ã—ã¦ã„ãŸãŒã€
-    // å®Ÿéš›ã®Opaqueãƒ‘ã‚¹ã¯pSceneHDRãŒæŒã¤å°‚ç”¨æ·±åº¦ãƒãƒƒãƒ•ã‚¡ã«æ›¸ãè¾¼ã¾ã‚Œã‚‹ãŸã‚ã€è¡€ç—•ãƒ‡ã‚«ãƒ¼ãƒ«ã®
-    // æ·±åº¦ãƒ•ã‚§ãƒ¼ãƒ‰ã‚„DOFã®CoCè¨ˆç®—ãŒã“ã“ã‚’è¦‹ã¦ã‚‚æ­£ã—ã„æ·±åº¦ã‚’æ‹¾ãˆã¦ã„ãªã‹ã£ãŸã€‚
-    // pSceneHDRè‡ªèº«ã®æ·±åº¦SRV(RenderTarget::GetDepthSRVIndex)ã‚’æŸç¸›ã™ã‚‹ã‚ˆã†ä¿®æ­£ã€‚
+    // ˆÈ‘O‚ÍGraphicsDevice::GetDepthStencil()(‹¤—L‚Ì–¢g—p‹C–¡‚Èƒoƒbƒtƒ@)‚ğ‘©”›‚µ‚Ä‚¢‚½‚ªA
+    // ÀÛ‚ÌOpaqueƒpƒX‚ÍpSceneHDR‚ª‚Âê—p[“xƒoƒbƒtƒ@‚É‘‚«‚Ü‚ê‚é‚½‚ßAŒŒ­ƒfƒJ[ƒ‹‚Ì
+    // [“xƒtƒF[ƒh‚âDOF‚ÌCoCŒvZ‚ª‚±‚±‚ğŒ©‚Ä‚à³‚µ‚¢[“x‚ğE‚¦‚Ä‚¢‚È‚©‚Á‚½B
+    // pSceneHDR©g‚Ì[“xSRV(RenderTarget::GetDepthSRVIndex)‚ğ‘©”›‚·‚é‚æ‚¤C³B
     int t9 = GetRootParameterIndex(ShaderBindingType::SRV, 9);
     if (t9 != -1)
     {
@@ -104,7 +104,7 @@ void LitShader::Begin(RenderContext& context)
         }
     }
 
-    // Bind Planar Reflection Maps (æœ€å¤§3æš=3çª“ã¾ã§åŒæ™‚) to t11, t19, t20
+    // Bind Planar Reflection Maps (Å‘å3–‡=3‘‹‚Ü‚Å“¯) to t11, t19, t20
     {
         static const int kReflectionSlotRegisters[3] = {11, 19, 20};
         for (int slot = 0; slot < 3; ++slot)
@@ -123,8 +123,8 @@ void LitShader::Begin(RenderContext& context)
     }
 
     // Bind SSAO Map to t12
-    // GameScene::RenderSSAOãŒ ç”Ÿæˆ(index0)->ãƒ–ãƒ©ãƒ¼H(index0â†’1)->ãƒ–ãƒ©ãƒ¼V(index1â†’0) ã®é †ã§å‡¦ç†ã™ã‚‹
-    // ã®ã§ã€æœ€çµ‚çµæœã¯å¿…ãšindex0ã«å…¥ã£ã¦ã„ã‚‹ã€‚
+    // GameScene::RenderSSAO‚ª ¶¬(index0)->ƒuƒ‰[H(index0¨1)->ƒuƒ‰[V(index1¨0) ‚Ì‡‚Åˆ—‚·‚é
+    // ‚Ì‚ÅAÅIŒ‹‰Ê‚Í•K‚¸index0‚É“ü‚Á‚Ä‚¢‚éB
     int t12 = GetRootParameterIndex(ShaderBindingType::SRV, 12);
     if (t12 != -1)
     {

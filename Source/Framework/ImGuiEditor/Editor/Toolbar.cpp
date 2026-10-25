@@ -47,7 +47,7 @@ void Editor::DrawMenuBar()
                 }
                 else
                 {
-                    Logger::Instance().AddLog(Logger::LogLevel::Warning, "ã“ã®ã‚·ãƒ¼ãƒ³ã«ã¯ä¿å­˜å…ˆãŒã‚ã‚Šã¾ã›ã‚“(ä¿å­˜ã—ã¾ã›ã‚“ã§ã—ãŸ)");
+                    Logger::Instance().AddLog(Logger::LogLevel::Warning, u8"‚±‚ÌƒV[ƒ“‚É‚Í•Û‘¶æ‚ª‚ ‚è‚Ü‚¹‚ñ(•Û‘¶‚µ‚Ü‚¹‚ñ‚Å‚µ‚½)");
                 }
             }
             ImGui::EndMenu();

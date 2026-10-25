@@ -1,4 +1,4 @@
-ï»¿#include "DebugPanel.h"
+#include "DebugPanel.h"
 #include "../EditorContext.h"
 #include "../../../../Library/ImGui/imgui.h"
 
@@ -30,7 +30,7 @@ void DebugPanel::Draw(EditorContext& ctx)
         }
     }
 
-    // åå°„RTã®ç”Ÿç¢ºèªã¯ã€ŒWindow > Preview Cameraã€ã«ç§»ã—ãŸ(PreviewCameraWindow.cpp)ã€‚
-    // CameraDataã«Debug Preview Cameraãƒ•ãƒ©ã‚°ã‚’ç«‹ã¦ãŸã‚«ãƒ¡ãƒ©ã®Transformã‚’å‹•ã‹ã—ã¦
-    // å¥½ããªè§’åº¦ã‹ã‚‰è¦‹ã‚‰ã‚Œã‚‹ã®ã§ã€ã‚¨ãƒ‡ã‚£ã‚¿ã®ãƒ•ãƒªãƒ¼ã‚«ãƒ¡ãƒ©ã®å‹•ãã«å¼•ããšã‚‰ã‚Œã‚‹å•é¡ŒãŒç„¡ã„ã€‚
+    // ”½ËRT‚Ì¶Šm”F‚ÍuWindow > Preview Camerav‚ÉˆÚ‚µ‚½(PreviewCameraWindow.cpp)B
+    // CameraData‚ÉDebug Preview Cameraƒtƒ‰ƒO‚ğ—§‚Ä‚½ƒJƒƒ‰‚ÌTransform‚ğ“®‚©‚µ‚Ä
+    // D‚«‚ÈŠp“x‚©‚çŒ©‚ç‚ê‚é‚Ì‚ÅAƒGƒfƒBƒ^‚ÌƒtƒŠ[ƒJƒƒ‰‚Ì“®‚«‚Éˆø‚«‚¸‚ç‚ê‚é–â‘è‚ª–³‚¢B
 }

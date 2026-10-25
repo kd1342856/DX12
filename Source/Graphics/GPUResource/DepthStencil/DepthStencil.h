@@ -1,4 +1,4 @@
-ï»¿#pragma once
+#pragma once
 enum class DepthStencilFormat
 {
     DepthLowQuality = DXGI_FORMAT_R16_TYPELESS,
@@ -13,7 +13,7 @@ public:
 
     void ClearBuffer();
 
-    // ãƒªã‚½ãƒ¼ã‚¹ãƒãƒªã‚¢é·ç§»ï¼ˆçŠ¶æ…‹ç®¡ç†ä»˜ãï¼‰
+    // ƒŠƒ\[ƒXƒoƒŠƒA‘JˆÚió‘ÔŠÇ—•t‚«j
 
     UINT GetDSVNumber() const
     {
@@ -32,5 +32,5 @@ private:
     UINT m_dsvNumber = 0;
     int m_srvNumber = -1;
 
-    // ç¾åœ¨ã®ãƒªã‚½ãƒ¼ã‚¹ã‚¹ãƒ†ãƒ¼ãƒˆï¼ˆCreateç›´å¾Œã¯DEPTH_WRITEï¼‰
+    // Œ»İ‚ÌƒŠƒ\[ƒXƒXƒe[ƒgiCreate’¼Œã‚ÍDEPTH_WRITEj
 };

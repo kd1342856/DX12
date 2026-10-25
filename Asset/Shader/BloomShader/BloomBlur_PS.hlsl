@@ -6,7 +6,7 @@ float4 main(PSInput In) : SV_Target0
     g_tex.GetDimensions(texSize.x, texSize.y);
     float2 invSize = 1.0 / texSize;
 
-    // ã¼ã‹ã—åŠå¾„ã¯cbPostProcessã®g_BlurRadiusã§å¯å¤‰(ShaderEditorã‹ã‚‰èª¿æ•´å¯èƒ½)
+    // ‚Ú‚©‚µ”¼Œa‚ÍcbPostProcess‚Ìg_BlurRadius‚Å‰Â•Ï(ShaderEditor‚©‚ç’²®‰Â”\)
     float2 dir = float2(g_BlurDirectionX, g_BlurDirectionY) * invSize * g_BlurRadius;
 
     // Simple 9-tap Gaussian blur weights

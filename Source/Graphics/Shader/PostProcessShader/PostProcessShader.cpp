@@ -32,35 +32,35 @@ void PostProcessShader::Draw(RenderTarget* pSceneRT, RenderTarget* pBloomRT, con
 
     auto srvHeap = GraphicsDevice::Instance().GetDescriptorHeapManager()->GetCBVSRVUAVAllocator();
 
-    // t0: ã‚·ãƒ¼ãƒ³HDR
+    // t0: ƒV[ƒ“HDR
     int t0 = GetRootParameterIndex(ShaderBindingType::SRV, 0);
     if (t0 != -1 && pSceneRT)
     {
         m_pDevice->GetCmdList()->SetGraphicsRootDescriptorTable(t0, srvHeap->GetGPUHandle(pSceneRT->GetSRVIndex()));
     }
 
-    // t1: Bloomåˆæˆçµæœ
+    // t1: Bloom‡¬Œ‹‰Ê
     int t1 = GetRootParameterIndex(ShaderBindingType::SRV, 1);
     if (t1 != -1 && pBloomRT)
     {
         m_pDevice->GetCmdList()->SetGraphicsRootDescriptorTable(t1, srvHeap->GetGPUHandle(pBloomRT->GetSRVIndex()));
     }
 
-    // t2: DOFç”¨ã«ã¼ã‹ã—æ¸ˆã¿ã®ã‚·ãƒ¼ãƒ³ã‚³ãƒ”ãƒ¼ (DOFç„¡åŠ¹æ™‚ã¯ä½•ã‚‚ãƒã‚¤ãƒ³ãƒ‰ã—ãªã„ - ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼å´ã‚‚g_EnableDOFã§åˆ†å²)
+    // t2: DOF—p‚É‚Ú‚©‚µÏ‚İ‚ÌƒV[ƒ“ƒRƒs[ (DOF–³Œø‚Í‰½‚àƒoƒCƒ“ƒh‚µ‚È‚¢ - ƒVƒF[ƒ_[‘¤‚àg_EnableDOF‚Å•ªŠò)
     int t2 = GetRootParameterIndex(ShaderBindingType::SRV, 2);
     if (t2 != -1 && pDofRT)
     {
         m_pDevice->GetCmdList()->SetGraphicsRootDescriptorTable(t2, srvHeap->GetGPUHandle(pDofRT->GetSRVIndex()));
     }
 
-    // t3: ã‚·ãƒ¼ãƒ³æ·±åº¦ (DOFã®CoCè¨ˆç®—ç”¨) - pSceneRTè‡ªèº«ã®å°‚ç”¨æ·±åº¦ãƒãƒƒãƒ•ã‚¡ã‚’èª­ã‚€
+    // t3: ƒV[ƒ“[“x (DOF‚ÌCoCŒvZ—p) - pSceneRT©g‚Ìê—p[“xƒoƒbƒtƒ@‚ğ“Ç‚Ş
     int t3 = GetRootParameterIndex(ShaderBindingType::SRV, 3);
     if (t3 != -1 && pSceneRT && pSceneRT->GetDepthSRVIndex() != -1)
     {
         m_pDevice->GetCmdList()->SetGraphicsRootDescriptorTable(t3, srvHeap->GetGPUHandle(pSceneRT->GetDepthSRVIndex()));
     }
 
-    // t4: God Raysçµæœ
+    // t4: God RaysŒ‹‰Ê
     int t4 = GetRootParameterIndex(ShaderBindingType::SRV, 4);
     if (t4 != -1 && pGodRaysRT)
     {

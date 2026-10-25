@@ -1,4 +1,4 @@
-﻿#include "../../../Pch.h"
+#include "../../../Pch.h"
 #include "Profiler.h"
 #include "Logger.h"
 #include <windows.h>
@@ -25,7 +25,7 @@ float Profiler::GetSystemRAMUsageMB() const
 }
 
 // ---------------------------------------------------------------
-// GPU区間計測
+// GPU��Ԍv��
 // ---------------------------------------------------------------
 void Profiler::InitGPU(ID3D12Device* pDevice, ID3D12CommandQueue* pQueue, uint32_t frameCount)
 {
@@ -45,9 +45,9 @@ void Profiler::InitGPU(ID3D12Device* pDevice, ID3D12CommandQueue* pQueue, uint32
     if (FAILED(hr))
     {
         LogGPUProfilerHResultFailure("GetTimestampFrequency", hr);
-        // 失敗してもそのままヒープ/バッファは作る - freq==0の場合は計測結果が
-        // 報告されないだけ(ReadGPUResultsForSlotがm_gpuFrequency != 0でガードしている)
-        // だが、少なくともGPUプロファイリングの他の部分はこれとは独立して診断できる。
+        // ���s���Ă����̂܂܃q�[�v/�o�b�t�@�͍�� - freq==0�̏ꍇ�͌v�����ʂ�
+        // �񍐂���Ȃ�����(ReadGPUResultsForSlot��m_gpuFrequency != 0�ŃK�[�h���Ă���)
+        // �����A���Ȃ��Ƃ�GPU�v���t�@�C�����O�̑��̕����͂���Ƃ͓Ɨ����Đf�f�ł���B
     }
     m_gpuFrequency = freq;
     if (freq == 0)
@@ -156,10 +156,10 @@ void Profiler::BeginGPUFrame(ID3D12GraphicsCommandList* pCmdList)
         return;
     }
 
-    // これから(再)使おうとしているスロットは、kFrameCountフレーム前に最後に書き込まれた
-    // ものであり、フレームリソースのフェンス管理のルールにより、GPUは既にそれを使い終えて
-    // いることが保証されている。なので、このフレームのクエリで上書きする前に結果を
-    // 読んでも安全。
+    // ���ꂩ��(��)�g�����Ƃ��Ă���X���b�g�́AkFrameCount�t���[���O�ɍŌ�ɏ������܂ꂽ
+    // ���̂ł���A�t���[�����\�[�X�̃t�F���X�Ǘ��̃��[���ɂ��AGPU�͊��ɂ�����g���I����
+    // ���邱�Ƃ��ۏ؂���Ă���B�Ȃ̂ŁA���̃t���[���̃N�G���ŏ㏑������O�Ɍ��ʂ�
+    // �ǂ�ł����S�B
     ReadGPUResultsForSlot(m_gpuCurrentSlot);
 
     m_gpuScopeCounter = 0;
@@ -210,7 +210,7 @@ void Profiler::EndGPUScope(ID3D12GraphicsCommandList* pCmdList, uint32_t scopeHa
 }
 
 // ---------------------------------------------------------------
-// フレーム時間の履歴
+// �t���[�����Ԃ̗���
 // ---------------------------------------------------------------
 void Profiler::AddFrameTime(float ms)
 {
@@ -219,12 +219,12 @@ void Profiler::AddFrameTime(float ms)
 }
 
 // ---------------------------------------------------------------
-// フレーム境界 + スパイク検出
+// �t���[�����E + �X�p�C�N���o
 // ---------------------------------------------------------------
 void Profiler::BeginCPUFrame()
 {
-    // 前回のBeginCPUFrame～今回までの実時間 = 直前の1フレーム全体(アップロード処理・GPU待ち・Present込み)。
-    // m_cpuTimingsにはまだ同じフレームの区間計測が残っているので、リセット前に判定する。
+    // �O���BeginCPUFrame�`����܂ł̎����� = ���O��1�t���[���S��(�A�b�v���[�h�����EGPU�҂��EPresent����)�B
+    // m_cpuTimings�ɂ͂܂������t���[���̋�Ԍv�����c���Ă���̂ŁA���Z�b�g�O�ɔ��肷��B
     static auto s_last = std::chrono::high_resolution_clock::now();
     auto now = std::chrono::high_resolution_clock::now();
     float frameMs = std::chrono::duration<float, std::milli>(now - s_last).count();
@@ -234,13 +234,13 @@ void Profiler::BeginCPUFrame()
 
     if (m_spikeWarmupFrames > 0)
     {
-        // 起動直後はロード等で荒れるので、平均を作るだけで判定はしない
+        // �N������̓��[�h���ōr���̂ŁA���ς���邾���Ŕ���͂��Ȃ�
         --m_spikeWarmupFrames;
         m_avgFrameMs = (m_avgFrameMs == 0.0f) ? frameMs : m_avgFrameMs * 0.9f + frameMs * 0.1f;
     }
     else if (frameMs > m_avgFrameMs * 3.0f && frameMs > m_avgFrameMs + 10.0f)
     {
-        // スパイクは平均に混ぜない(混ぜると直後の判定が鈍る)
+        // �X�p�C�N�͕��ςɍ����Ȃ�(������ƒ���̔��肪�݂�)
         ReportFrameSpike(frameMs);
     }
     else
@@ -257,7 +257,7 @@ void Profiler::ReportFrameSpike(float frameMs) const
     std::sort(sorted.begin(), sorted.end(), [](const auto& a, const auto& b)
     { return a.second > b.second; });
 
-    // 区間は入れ子になっている(SceneManager::Updateの中にShadow等がある)ので合計は一致しない
+    // ��Ԃ͓���q�ɂȂ��Ă���(SceneManager::Update�̒���Shadow��������)�̂ō��v�͈�v���Ȃ�
     std::string detail;
     const size_t count = (std::min)(sorted.size(), static_cast<size_t>(10));
     for (size_t i = 0; i < count; ++i)

@@ -1,4 +1,4 @@
-ï»¿#include "../../../Pch.h"
+#include "../../../Pch.h"
 #include "GameScene.h"
 #include "../../../Framework/Manager/GameManager.h"
 #include "../../../Framework/ECS/CompSystem/SpriteRenderSystem/SpriteRenderSystem.h"
@@ -28,27 +28,27 @@
 
 void GameScene::Init()
 {
-    // å‰ã®ãƒ—ãƒ¬ã‚¤ã§å‡ºã¦ã„ãŸãƒ‘ãƒ¼ãƒ†ã‚£ã‚¯ãƒ«ãŒæ®‹ã‚‰ãªã„ã‚ˆã†ã«ã™ã‚‹
+    // ‘O‚ÌƒvƒŒƒC‚Åo‚Ä‚¢‚½ƒp[ƒeƒBƒNƒ‹‚ªc‚ç‚È‚¢‚æ‚¤‚É‚·‚é
     ParticleManager::Instance().Clear();
 
     auto pDevice = GraphicsDevice::Instance().GetDevice();
 
-    // GameManager::Init()ã¯Application::Execute()ã®èµ·å‹•æ™‚ã«1å›ã ã‘å‘¼ã¶æƒ³å®šã€‚
-    // (ã“ã“ã§å†åº¦å‘¼ã¶ã¨ECSãŒå…¨ã¦æ–°ã—ãä½œã‚Šç›´ã•ã‚Œã¦ã—ã¾ã„ã€æ—¢å­˜ã®å…¨EntityIDãŒç„¡åŠ¹ã«ãªã£ã¦ã—ã¾ã†ãŸã‚
-    //  ã“ã“ã§ã¯å‘¼ã°ãªã„ã€‚ä¸‡ä¸€å‘¼ã°ã‚ŒãŸå ´åˆã«å‚™ãˆã¦GameManager::Init()å´ã«ã‚¬ãƒ¼ãƒ‰ã‚’å…¥ã‚Œã¦ã‚ã‚‹ãŒã€
-    //  ã“ã“ã§ã¯Editorã®åˆæœŸåŒ–ã®ã¿è¡Œã†)ã€‚
+    // GameManager::Init()‚ÍApplication::Execute()‚Ì‹N“®‚É1‰ñ‚¾‚¯ŒÄ‚Ô‘z’èB
+    // (‚±‚±‚ÅÄ“xŒÄ‚Ô‚ÆECS‚ª‘S‚ÄV‚µ‚­ì‚è’¼‚³‚ê‚Ä‚µ‚Ü‚¢AŠù‘¶‚Ì‘SEntityID‚ª–³Œø‚É‚È‚Á‚Ä‚µ‚Ü‚¤‚½‚ß
+    //  ‚±‚±‚Å‚ÍŒÄ‚Î‚È‚¢B–œˆêŒÄ‚Î‚ê‚½ê‡‚É”õ‚¦‚ÄGameManager::Init()‘¤‚ÉƒK[ƒh‚ğ“ü‚ê‚Ä‚ ‚é‚ªA
+    //  ‚±‚±‚Å‚ÍEditor‚Ì‰Šú‰»‚Ì‚İs‚¤)B
     Editor::Init();
     Editor::SetScenePath("Asset/Data/Scene/GameScene.json");
 
-    // Editor::Init()ã¯Editor::s_sceneã«æ–°ã—ã„Sceneã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’ä»£å…¥ã™ã‚‹ã€‚
-    // ã“ã®ã‚¿ã‚¤ãƒŸãƒ³ã‚°ã§ã€Œå‰ã®ã‚·ãƒ¼ãƒ³ã€ãŒä¿æŒã—ã¦ã„ãŸGameObjectç¾¤ã®shared_ptrã®å‚ç…§ã‚«ã‚¦ãƒ³ãƒˆãŒ
-    // 0ã«ãªã£ã¦ç ´æ£„ã•ã‚Œã‚‹ãŸã‚ã€GameObjectã®ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿ãŒECSã‚³ãƒãƒ³ãƒ‰ãƒãƒƒãƒ•ã‚¡ã«
-    // DestroyEntityã‚’ç©ã‚€ãŒã€ãã‚Œã¯ã¾ã åæ˜ ã•ã‚Œã¦ã„ãªã„ã€‚
-    // ã“ã®ã¾ã¾Deserialize()/Scene::Init()(Awake/Start)ã§æ–°ã—ã„ã‚·ãƒ¼ãƒ³ã‚’æ§‹ç¯‰ã—ãŸæ™‚ç‚¹ã§ã€
-    // ãã®ç ´æ£„ã‚³ãƒãƒ³ãƒ‰ãŒåæ˜ ã•ã‚Œã¦ã„ãªã„ã¨ã€Œå‰ã®ã‚·ãƒ¼ãƒ³ã®ã¾ã¾æ®‹ã£ã¦ã„ã‚‹ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã€ãŒ
-    // æ–°ã‚·ãƒ¼ãƒ³å´ã®ã‚³ãƒ¼ãƒ‰ã‹ã‚‰å‚ç…§ã•ã‚Œã€æ—¢ã«ç ´æ£„ã•ã‚ŒãŸã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’æŒ‡ã™ãƒã‚¤ãƒ³ã‚¿çµŒç”±ã§
-    // ã‚¯ãƒ©ãƒƒã‚·ãƒ¥ã™ã‚‹(SceneManagerå´ã§ã‚‚Flushã—ã¦ã„ã‚‹ãŒã€åˆå›ã®Editor::s_sceneç”Ÿæˆã¯
-    // SceneManagerã‚’çµŒç”±ã—ãªã„ã‚¿ã‚¤ãƒŸãƒ³ã‚°ã®ãŸã‚ã€ã“ã“ã§æ˜ç¤ºçš„ã«åæ˜ ã—ã¦ãŠã)ã€‚
+    // Editor::Init()‚ÍEditor::s_scene‚ÉV‚µ‚¢SceneƒIƒuƒWƒFƒNƒg‚ğ‘ã“ü‚·‚éB
+    // ‚±‚Ìƒ^ƒCƒ~ƒ“ƒO‚Åu‘O‚ÌƒV[ƒ“v‚ª•Û‚µ‚Ä‚¢‚½GameObjectŒQ‚Ìshared_ptr‚ÌQÆƒJƒEƒ“ƒg‚ª
+    // 0‚É‚È‚Á‚Ä”jŠü‚³‚ê‚é‚½‚ßAGameObject‚ÌƒfƒXƒgƒ‰ƒNƒ^‚ªECSƒRƒ}ƒ“ƒhƒoƒbƒtƒ@‚É
+    // DestroyEntity‚ğÏ‚Ş‚ªA‚»‚ê‚Í‚Ü‚¾”½‰f‚³‚ê‚Ä‚¢‚È‚¢B
+    // ‚±‚Ì‚Ü‚ÜDeserialize()/Scene::Init()(Awake/Start)‚ÅV‚µ‚¢ƒV[ƒ“‚ğ\’z‚µ‚½“_‚ÅA
+    // ‚»‚Ì”jŠüƒRƒ}ƒ“ƒh‚ª”½‰f‚³‚ê‚Ä‚¢‚È‚¢‚Æu‘O‚ÌƒV[ƒ“‚Ì‚Ü‚Üc‚Á‚Ä‚¢‚éƒRƒ“ƒ|[ƒlƒ“ƒgv‚ª
+    // VƒV[ƒ“‘¤‚ÌƒR[ƒh‚©‚çQÆ‚³‚êAŠù‚É”jŠü‚³‚ê‚½ƒIƒuƒWƒFƒNƒg‚ğw‚·ƒ|ƒCƒ“ƒ^Œo—R‚Å
+    // ƒNƒ‰ƒbƒVƒ…‚·‚é(SceneManager‘¤‚Å‚àFlush‚µ‚Ä‚¢‚é‚ªA‰‰ñ‚ÌEditor::s_scene¶¬‚Í
+    // SceneManager‚ğŒo—R‚µ‚È‚¢ƒ^ƒCƒ~ƒ“ƒO‚Ì‚½‚ßA‚±‚±‚Å–¾¦“I‚É”½‰f‚µ‚Ä‚¨‚­)B
     GameManager::Instance().GetECS().FlushCommands();
 
     std::ifstream in("Asset/Data/Scene/GameScene.json");
@@ -76,12 +76,12 @@ void GameScene::Init()
         }
     }
 
-    Editor::GetScene()->Init(); // ã‚·ãƒ¼ãƒ³ã‚’ãƒ­ãƒ¼ãƒ‰ã—ãŸå¾Œã€å…¨ã‚¹ã‚¯ãƒªãƒ—ãƒˆã®Awake/Startã‚’å‘¼ã¶
+    Editor::GetScene()->Init(); // ƒV[ƒ“‚ğƒ[ƒh‚µ‚½ŒãA‘SƒXƒNƒŠƒvƒg‚ÌAwake/Start‚ğŒÄ‚Ô
     JobSystem::Instance().Wait();
 
-    // m_fullscreenGameãŒtrueã§ã‚²ãƒ¼ãƒ ã‚’é–‹å§‹ã—ãŸå ´åˆã€HandleModeSwitch()ã®F5ãƒˆãƒªã‚¬ã‚’é€šã‚‰ãªã„ãŸã‚
-    // ãƒã‚¦ã‚¹ãƒ¢ãƒ¼ãƒ‰ãŒAbsoluteã®ã¾ã¾ã«ãªã‚‹ã€‚Playerã¯FPSè¦–ç‚¹ã§æ“ä½œã‚’é–‹å§‹ã™ã‚‹ãŸã‚ã€
-    // ã“ã“ã§Relativeãƒ¢ãƒ¼ãƒ‰ã‚’ã‚»ãƒƒãƒˆã—ã¦ãŠã
+    // m_fullscreenGame‚ªtrue‚ÅƒQ[ƒ€‚ğŠJn‚µ‚½ê‡AHandleModeSwitch()‚ÌF5ƒgƒŠƒK‚ğ’Ê‚ç‚È‚¢‚½‚ß
+    // ƒ}ƒEƒXƒ‚[ƒh‚ªAbsolute‚Ì‚Ü‚Ü‚É‚È‚éBPlayer‚ÍFPS‹“_‚Å‘€ì‚ğŠJn‚·‚é‚½‚ßA
+    // ‚±‚±‚ÅRelativeƒ‚[ƒh‚ğƒZƒbƒg‚µ‚Ä‚¨‚­
     if (m_fullscreenGame)
     {
         Input::Instance().SetMouseModeRelative();
@@ -117,10 +117,10 @@ void GameScene::Update(float deltaTime)
     UpdateCamera();
     GameManager::Instance().Update(deltaTime, Editor::GetScene().get());
     ParticleManager::Instance().Update(deltaTime);
-    // NavMeshã¯GameManager::Updateã®å¾Œã§ä½œã‚‹ã€‚éƒ¨å±‹åŒå£«ã®ã¤ãªãŒã‚Š(é–‹å£éƒ¨)ã‚’å®¶ã®ãƒ¢ãƒ‡ãƒ«ã¸ã®ãƒ¬ã‚¤ã‚­ãƒ£ã‚¹ãƒˆã§
-    // æ±ºã‚ã‚‹ãŒã€CollisionManagerã®å¯¾è±¡ã‚·ãƒ¼ãƒ³(SetScene)ã¨Transformã®ãƒ¯ãƒ¼ãƒ«ãƒ‰è¡Œåˆ—ã¯GameManager::Updateã®
-    // ä¸­ã§ç¢ºå®šã™ã‚‹ãŸã‚ã€‚å‰ã«ç½®ã„ã¦ã„ãŸé ƒã¯ã€å®¶ã®ãƒ¢ãƒ‡ãƒ«ãŒèª­ã¿è¾¼ã¿æ¸ˆã¿ã ã¨æœ€åˆã®ãƒ•ãƒ¬ãƒ¼ãƒ ã§ã‚·ãƒ¼ãƒ³æœªè¨­å®šã®
-    // ã¾ã¾ä½œã£ã¦ã—ã¾ã„ã€ãƒ¬ã‚¤ãŒä½•ã«ã‚‚å½“ãŸã‚‰ãšå…¨ã¦ã®å£ãŒã€Œé–‹ã„ã¦ã„ã‚‹ã€æ‰±ã„ã«ãªã£ã¦ã„ãŸã€‚
+    // NavMesh‚ÍGameManager::Update‚ÌŒã‚Åì‚éB•”‰®“¯m‚Ì‚Â‚È‚ª‚è(ŠJŒû•”)‚ğ‰Æ‚Ìƒ‚ƒfƒ‹‚Ö‚ÌƒŒƒCƒLƒƒƒXƒg‚Å
+    // Œˆ‚ß‚é‚ªACollisionManager‚Ì‘ÎÛƒV[ƒ“(SetScene)‚ÆTransform‚Ìƒ[ƒ‹ƒhs—ñ‚ÍGameManager::Update‚Ì
+    // ’†‚ÅŠm’è‚·‚é‚½‚ßB‘O‚É’u‚¢‚Ä‚¢‚½ ‚ÍA‰Æ‚Ìƒ‚ƒfƒ‹‚ª“Ç‚İ‚İÏ‚İ‚¾‚ÆÅ‰‚ÌƒtƒŒ[ƒ€‚ÅƒV[ƒ“–¢İ’è‚Ì
+    // ‚Ü‚Üì‚Á‚Ä‚µ‚Ü‚¢AƒŒƒC‚ª‰½‚É‚à“–‚½‚ç‚¸‘S‚Ä‚Ì•Ç‚ªuŠJ‚¢‚Ä‚¢‚évˆµ‚¢‚É‚È‚Á‚Ä‚¢‚½B
     TryBuildNavMesh();
 
     Render();
@@ -145,21 +145,21 @@ void GameScene::UpdateCamera()
     {
         if (auto* pCam = ecs.TryGetComponent<CameraData>(obj->GetEntityID()))
         {
-            // Debug Preview Cameraã¯ãƒ‡ãƒãƒƒã‚°å°‚ç”¨ã®ç‹¬ç«‹ã—ãŸã‚«ãƒ¡ãƒ©(GameScene::RenderDebugPreviewCamera
-            // ãŒåˆ¥RTã«æç”»ã™ã‚‹)ãªã®ã§ã€ã‚¨ãƒ‡ã‚£ã‚¿/ã‚²ãƒ¼ãƒ ã®æœ¬ç·¨ã‚«ãƒ¡ãƒ©é¸å®šã«ã¯ä¸€åˆ‡é–¢ä¸ã•ã›ãªã„ã€‚
-            // ã“ã‚Œã‚’é™¤å¤–ã—ãªã„ã¨ã€åå‰ãŒã€ŒMainCameraã€ã§ãªã„CameraDataã¯ç„¡æ¡ä»¶ã§m_gameCameraEntityã«
-            // ãªã£ã¦ã—ã¾ã†ãŸã‚ã€ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼ç”¨ã«ç½®ã„ãŸæ–°ã—ã„ã‚«ãƒ¡ãƒ©ãŒæœ¬æ¥ã®ã‚²ãƒ¼ãƒ ã‚«ãƒ¡ãƒ©ã‚’ä¹—ã£å–ã£ã¦
-            // ç”»é¢å…¨ä½“ãŒãã®ã‚«ãƒ¡ãƒ©ã«åˆ‡ã‚Šæ›¿ã‚ã£ã¦ã—ã¾ã†(æ“ä½œã‚‚ã§ããªããªã‚‹)ã€‚
+            // Debug Preview Camera‚ÍƒfƒoƒbƒOê—p‚Ì“Æ—§‚µ‚½ƒJƒƒ‰(GameScene::RenderDebugPreviewCamera
+            // ‚ª•ÊRT‚É•`‰æ‚·‚é)‚È‚Ì‚ÅAƒGƒfƒBƒ^/ƒQ[ƒ€‚Ì–{•ÒƒJƒƒ‰‘I’è‚É‚ÍˆêØŠÖ—^‚³‚¹‚È‚¢B
+            // ‚±‚ê‚ğœŠO‚µ‚È‚¢‚ÆA–¼‘O‚ªuMainCamerav‚Å‚È‚¢CameraData‚Í–³ğŒ‚Åm_gameCameraEntity‚É
+            // ‚È‚Á‚Ä‚µ‚Ü‚¤‚½‚ßAƒvƒŒƒrƒ…[—p‚É’u‚¢‚½V‚µ‚¢ƒJƒƒ‰‚ª–{—ˆ‚ÌƒQ[ƒ€ƒJƒƒ‰‚ğæ‚Áæ‚Á‚Ä
+            // ‰æ–Ê‘S‘Ì‚ª‚»‚ÌƒJƒƒ‰‚ÉØ‚è‘Ö‚í‚Á‚Ä‚µ‚Ü‚¤(‘€ì‚à‚Å‚«‚È‚­‚È‚é)B
             if (pCam->m_isDebugPreview)
             {
-                // ã‚¹ã‚­ãƒƒãƒ—
+                // ƒXƒLƒbƒv
             }
             else if (obj->GetName() == "MainCamera")
             {
                 m_editorCameraEntity = obj->GetEntityID();
                 pEditorCameraObj = obj;
 
-                // ã‚¨ãƒ‡ã‚£ã‚¿ã‚«ãƒ¡ãƒ©ã«ã¯ã‚¹ã‚¯ãƒªãƒ—ãƒˆã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã‚’ä»˜ã‘ã¦ã„ãªã„å‰æ(ãƒ•ãƒªãƒ¼ã‚«ãƒ¡ãƒ©ã®æ“ä½œã¯ã“ã“ã§ç›´æ¥è¡Œã†)
+                // ƒGƒfƒBƒ^ƒJƒƒ‰‚É‚ÍƒXƒNƒŠƒvƒgƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ•t‚¯‚Ä‚¢‚È‚¢‘O’ñ(ƒtƒŠ[ƒJƒƒ‰‚Ì‘€ì‚Í‚±‚±‚Å’¼Ús‚¤)
             }
             else
             {
@@ -234,7 +234,7 @@ void GameScene::UpdateCamera()
                 Math::Vector3 up = Math::Vector3(0, 1, 0);
 
                 Math::Vector3 moveVec = Math::Vector3(0, 0, 0);
-                // m_moveSpeedã¯ç§’é€Ÿ(m/s)ã€‚ãƒ•ãƒ¬ãƒ¼ãƒ å˜ä½ã§è¶³ã™ã¨FPSãŒä¸ŠãŒã‚‹ã»ã©é€Ÿããªã‚‹ãŸã‚ã€çµŒéæ™‚é–“ã‚’æ›ã‘ã‚‹
+                // m_moveSpeed‚Í•b‘¬(m/s)BƒtƒŒ[ƒ€’PˆÊ‚Å‘«‚·‚ÆFPS‚ªã‚ª‚é‚Ù‚Ç‘¬‚­‚È‚é‚½‚ßAŒo‰ßŠÔ‚ğŠ|‚¯‚é
                 float moveSpeed = camData.m_moveSpeed * GameTimer::Instance().DeltaTime();
 
                 if (Input::Instance().IsKeyHold('W'))
@@ -296,7 +296,7 @@ void GameScene::UpdateCamera()
             findPlayer(obj);
         }
 
-        // ã‚¨ãƒ‡ã‚£ã‚¿ã‚«ãƒ¡ãƒ©(MainCamera)ãŒã‚²ãƒ¼ãƒ ã‚«ãƒ¡ãƒ©ã¨ã—ã¦ä½¿ã‚ã‚Œã¦ã„ãªã„å ´åˆã€ã¾ãŸã¯ã‚²ãƒ¼ãƒ ãƒ—ãƒ¬ã‚¤(å…¨ç”»é¢)ä¸­ã®ã¿ã‚¹ãƒŠãƒƒãƒ—ã™ã‚‹
+        // ƒGƒfƒBƒ^ƒJƒƒ‰(MainCamera)‚ªƒQ[ƒ€ƒJƒƒ‰‚Æ‚µ‚Äg‚í‚ê‚Ä‚¢‚È‚¢ê‡A‚Ü‚½‚ÍƒQ[ƒ€ƒvƒŒƒC(‘S‰æ–Ê)’†‚Ì‚İƒXƒiƒbƒv‚·‚é
         bool shouldSnap = (m_gameCameraEntity != m_editorCameraEntity) || m_fullscreenGame;
         if (pPlayerObj && pGameCamObj && shouldSnap)
         {
@@ -331,16 +331,16 @@ void GameScene::UpdateCamera()
                 Math::Vector3 right = Math::Vector3::TransformNormal(Math::Vector3(1, 0, 0), playerRot);
 
                 bool isChild = (pGameCamObj->GetParent() != nullptr);
-                Math::Vector3 pivotOffset(0, 1.0f, 0); // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®èº«ä½“ã®ä¸­å¿ƒ
+                Math::Vector3 pivotOffset(0, 1.0f, 0); // ƒvƒŒƒCƒ„[‚Ìg‘Ì‚Ì’†S
 
-                // ã—ã‚ƒãŒã¿é‡ã«å¿œã˜ã¦ã‚«ãƒ¡ãƒ©ã‚’ä¸‹ã’ã‚‹
-                // (Playerã¯NativeScriptã§ã‚ã‚ŠECSã«ç‹¬ç«‹ã—ãŸComponentå‹ã¨ã—ã¦ç™»éŒ²ã•ã‚Œã¦ã„ãªã„ãŸã‚ã€
-                //  TryGetComponent<Player>()ã¯ä½¿ãˆãªã„ã€‚NativeScriptDataçµŒç”±ã§dynamic_castã™ã‚‹)
+                // ‚µ‚á‚ª‚İ—Ê‚É‰‚¶‚ÄƒJƒƒ‰‚ğ‰º‚°‚é
+                // (Player‚ÍNativeScript‚Å‚ ‚èECS‚É“Æ—§‚µ‚½ComponentŒ^‚Æ‚µ‚Ä“o˜^‚³‚ê‚Ä‚¢‚È‚¢‚½‚ßA
+                //  TryGetComponent<Player>()‚Íg‚¦‚È‚¢BNativeScriptDataŒo—R‚Ådynamic_cast‚·‚é)
                 if (auto* pScriptData = ecs.TryGetComponent<NativeScriptData>(pPlayerObj->GetEntityID()))
                 {
                     if (auto* pPlayerScript = dynamic_cast<Player*>(pScriptData->Instance.get()))
                     {
-                        const float kCrouchCameraLower = 0.5f; // å®Œå…¨ã«ã—ã‚ƒãŒã‚“ã æ™‚ã«ã‚«ãƒ¡ãƒ©ã‚’ä¸‹ã’ã‚‹é‡
+                        const float kCrouchCameraLower = 0.5f; // Š®‘S‚É‚µ‚á‚ª‚ñ‚¾‚ÉƒJƒƒ‰‚ğ‰º‚°‚é—Ê
                         pivotOffset.y -= pPlayerScript->GetCrouchAmount() * kCrouchCameraLower;
                     }
                 }
@@ -379,9 +379,9 @@ void GameScene::UpdateCamera()
         }
     }
 
-    // Debug Preview Camera: ã€ŒPreview Cameraã€ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã«ãƒã‚¦ã‚¹ãŒä¹—ã£ã¦ã„ã‚‹é–“ã ã‘ã€å³ã‚¯ãƒªãƒƒã‚¯
-    // ãƒ‰ãƒ©ãƒƒã‚°ã§ã‚¨ãƒ‡ã‚£ã‚¿è‡ªç”±ã‚«ãƒ¡ãƒ©ã¨åŒã˜æ“ä½œæ„Ÿã§å‹•ã‹ã›ã‚‹ã‚ˆã†ã«ã™ã‚‹(ShaderEditorå†…ã§åå°„RTã‚’
-    // ç›´æ¥è¦—ãã®ã‚’ã‚„ã‚ã€Transformã§è‡ªç”±ã«ç½®ã‘ã‚‹ã‚«ãƒ¡ãƒ©ã«ç½®ãæ›ãˆãŸã“ã¨ã«ä¼´ã†æ“ä½œæ–¹æ³•)ã€‚
+    // Debug Preview Camera: uPreview CameravƒEƒBƒ“ƒhƒE‚Éƒ}ƒEƒX‚ªæ‚Á‚Ä‚¢‚éŠÔ‚¾‚¯A‰EƒNƒŠƒbƒN
+    // ƒhƒ‰ƒbƒO‚ÅƒGƒfƒBƒ^©—RƒJƒƒ‰‚Æ“¯‚¶‘€ìŠ´‚Å“®‚©‚¹‚é‚æ‚¤‚É‚·‚é(ShaderEditor“à‚Å”½ËRT‚ğ
+    // ’¼Ú”`‚­‚Ì‚ğ‚â‚ßATransform‚Å©—R‚É’u‚¯‚éƒJƒƒ‰‚É’u‚«Š·‚¦‚½‚±‚Æ‚É”º‚¤‘€ì•û–@)B
     {
         auto& camArray = ecs.GetComponentArray<CameraData>();
         Entity previewEntity = INVALID_ENTITY;
@@ -399,11 +399,11 @@ void GameScene::UpdateCamera()
             Input::Instance().SetMouseModeRelative();
             m_isPreviewCameraDragging = true;
         }
-        // IsMouseRightRelease()ã®å–ã‚Šã“ã¼ã—(ãƒ•ã‚©ãƒ¼ã‚«ã‚¹ãŒå¤–ã‚Œã‚‹ç­‰ã§ãƒœã‚¿ãƒ³ã‚¢ãƒƒãƒ—ã®ã‚¨ãƒƒã‚¸ã‚¤ãƒ™ãƒ³ãƒˆã‚’
-        // è¦‹é€ƒã™)ã§m_isPreviewCameraDraggingãŒtrueã®ã¾ã¾å›ºç€ã™ã‚‹ã¨ã€ãƒã‚¦ã‚¹ã®å¾®å°ãªãƒã‚¤ã‚ºå…¥åŠ›ãŒ
-        // æ¯ãƒ•ãƒ¬ãƒ¼ãƒ è“„ç©ã—ç¶šã‘ã€ã„ã¤ã®é–“ã«ã‹å›è»¢ãŒç•°å¸¸ãªå€¤(ä¾‹: Yè»¸ãŒ-1530Â°ç­‰)ã¾ã§æš´èµ°ã—ã¦ã—ã¾ã†ã€‚
-        // ã‚¨ãƒƒã‚¸ã‚¤ãƒ™ãƒ³ãƒˆã«é ¼ã‚‰ãšã€ã€Œä»Šå®Ÿéš›ã«å³ã‚¯ãƒªãƒƒã‚¯ãŒæŠ¼ã•ã‚Œã¦ã„ã‚‹ã‹ã€ã‚’æ¯ãƒ•ãƒ¬ãƒ¼ãƒ ç›´æ¥è¦‹ã¦
-        // åˆ¤å®šã™ã‚Œã°ã€å–ã‚Šã“ã¼ã—ãŒã‚ã£ã¦ã‚‚æ¬¡ã®ãƒ•ãƒ¬ãƒ¼ãƒ ã§ç¢ºå®Ÿã«è‡ªå·±ä¿®å¾©ã™ã‚‹ã€‚
+        // IsMouseRightRelease()‚Ìæ‚è‚±‚Ú‚µ(ƒtƒH[ƒJƒX‚ªŠO‚ê‚é“™‚Åƒ{ƒ^ƒ“ƒAƒbƒv‚ÌƒGƒbƒWƒCƒxƒ“ƒg‚ğ
+        // Œ©“¦‚·)‚Åm_isPreviewCameraDragging‚ªtrue‚Ì‚Ü‚ÜŒÅ’…‚·‚é‚ÆAƒ}ƒEƒX‚Ì”÷¬‚ÈƒmƒCƒY“ü—Í‚ª
+        // –ˆƒtƒŒ[ƒ€’~Ï‚µ‘±‚¯A‚¢‚Â‚ÌŠÔ‚É‚©‰ñ“]‚ªˆÙí‚È’l(—á: Y²‚ª-1530‹“™)‚Ü‚Å–\‘–‚µ‚Ä‚µ‚Ü‚¤B
+        // ƒGƒbƒWƒCƒxƒ“ƒg‚É—Š‚ç‚¸Au¡ÀÛ‚É‰EƒNƒŠƒbƒN‚ª‰Ÿ‚³‚ê‚Ä‚¢‚é‚©v‚ğ–ˆƒtƒŒ[ƒ€’¼ÚŒ©‚Ä
+        // ”»’è‚·‚ê‚ÎAæ‚è‚±‚Ú‚µ‚ª‚ ‚Á‚Ä‚àŸ‚ÌƒtƒŒ[ƒ€‚ÅŠmÀ‚É©ŒÈC•œ‚·‚éB
         if (m_isPreviewCameraDragging && !Input::Instance().IsMouseRightHold())
         {
             Input::Instance().SetMouseModeAbsolute();
@@ -439,7 +439,7 @@ void GameScene::UpdateCamera()
                 Math::Vector3 up = Math::Vector3(0, 1, 0);
 
                 Math::Vector3 moveVec = Math::Vector3(0, 0, 0);
-                // m_moveSpeedã¯ç§’é€Ÿ(m/s)ã€‚ãƒ•ãƒ¬ãƒ¼ãƒ å˜ä½ã§è¶³ã™ã¨FPSãŒä¸ŠãŒã‚‹ã»ã©é€Ÿããªã‚‹ãŸã‚ã€çµŒéæ™‚é–“ã‚’æ›ã‘ã‚‹
+                // m_moveSpeed‚Í•b‘¬(m/s)BƒtƒŒ[ƒ€’PˆÊ‚Å‘«‚·‚ÆFPS‚ªã‚ª‚é‚Ù‚Ç‘¬‚­‚È‚é‚½‚ßAŒo‰ßŠÔ‚ğŠ|‚¯‚é
                 float moveSpeed = camData.m_moveSpeed * GameTimer::Instance().DeltaTime();
 
                 if (Input::Instance().IsKeyHold('W'))
@@ -490,8 +490,8 @@ void GameScene::TryBuildNavMesh()
         return; // GameSequence::Start() has not populated the room list yet, retry next frame
     }
 
-    // éƒ¨å±‹åŒå£«ã®ã¤ãªãŒã‚Š(é–‹å£éƒ¨)ã¯å®¶ã®ãƒ¢ãƒ‡ãƒ«ã¸ã®ãƒ¬ã‚¤ã‚­ãƒ£ã‚¹ãƒˆã¨ãƒ‰ã‚¢ã®ä½ç½®ã‹ã‚‰æ±ºã‚ã‚‹ã®ã§ã€å®¶ã®ãƒ¢ãƒ‡ãƒ«ãŒ
-    // èª­ã¿è¾¼ã¿çµ‚ã‚ã‚‹ã¾ã§å¾…ã¤ã€‚èª­ã¿è¾¼ã‚ãªã„ã¾ã¾NavMeshç„¡ã—ã«ãªã‚‹ã®ã‚’é¿ã‘ã€ä¸€å®šæ™‚é–“å¾…ã£ãŸã‚‰åˆ¤å®šãªã—ã§ä½œã‚‹ã€‚
+    // •”‰®“¯m‚Ì‚Â‚È‚ª‚è(ŠJŒû•”)‚Í‰Æ‚Ìƒ‚ƒfƒ‹‚Ö‚ÌƒŒƒCƒLƒƒƒXƒg‚ÆƒhƒA‚ÌˆÊ’u‚©‚çŒˆ‚ß‚é‚Ì‚ÅA‰Æ‚Ìƒ‚ƒfƒ‹‚ª
+    // “Ç‚İ‚İI‚í‚é‚Ü‚Å‘Ò‚ÂB“Ç‚İ‚ß‚È‚¢‚Ü‚ÜNavMesh–³‚µ‚É‚È‚é‚Ì‚ğ”ğ‚¯Aˆê’èŠÔ‘Ò‚Á‚½‚ç”»’è‚È‚µ‚Åì‚éB
     const float kMaxStageWait = 10.0f;
     if (!NavMeshManager::IsStageCollisionReady() && m_navMeshWaitTime < kMaxStageWait)
     {
@@ -568,7 +568,7 @@ void GameScene::Render()
     if (m_fullscreenGame)
     {
         RenderGame();
-        Editor::DrawProfilerOverlay(); // F3ã§åˆ‡ã‚Šæ›¿ãˆ - ã‚¨ãƒ‡ã‚£ã‚¿ãƒ¢ãƒ¼ãƒ‰ã§ã¯RenderEditor()ã®ãƒ•ãƒ«UIã§æ—¢ã«è¡¨ç¤ºã•ã‚Œã‚‹
+        Editor::DrawProfilerOverlay(); // F3‚ÅØ‚è‘Ö‚¦ - ƒGƒfƒBƒ^ƒ‚[ƒh‚Å‚ÍRenderEditor()‚Ìƒtƒ‹UI‚ÅŠù‚É•\¦‚³‚ê‚é
     }
     else
     {
@@ -594,10 +594,10 @@ void GameScene::RenderDebugPreviewCamera()
         return;
     }
 
-    // CameraData.m_isDebugPreviewã‚’ç«‹ã¦ãŸã‚«ãƒ¡ãƒ©ã‚’æ¢ã™ã€‚è¤‡æ•°è¦‹ã¤ã‹ã£ãŸå ´åˆã¯ã€Œæœ€å¾Œ(ï¼Entityç•ªå·ãŒ
-    // ä¸€ç•ªå¤§ãã„=ä¸€ç•ªæ–°ã—ãä½œã‚‰ã‚ŒãŸ)ã‚‚ã®ã€ã‚’ä½¿ã†ã€‚éå»ã«GameObjectã‚’å‰Šé™¤/è¦ªå­é–¢ä¿‚å¤‰æ›´ã—ãŸéš›ã€
-    // ECSå´ã«ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã ã‘å­¤å…ã¨ã—ã¦æ®‹ã£ã¦ã—ã¾ã†ã‚±ãƒ¼ã‚¹ãŒã‚ã‚Š(è¡¨ç¤ºä¸Šã¯1ã¤ã—ã‹ç„¡ã„ã®ã«å®Ÿéš›ã¯
-    // è¤‡æ•°ã‚ã‚‹)ã€ãã‚ŒãŒå¤ã„æ–¹ã‹ã‚‰è¦‹ã¤ã‹ã£ã¦å„ªå…ˆã•ã‚Œã¦ã—ã¾ã†äº‹æ•…ã‚’é¿ã‘ã‚‹ãŸã‚ã€‚
+    // CameraData.m_isDebugPreview‚ğ—§‚Ä‚½ƒJƒƒ‰‚ğ’T‚·B•¡”Œ©‚Â‚©‚Á‚½ê‡‚ÍuÅŒã(Entity”Ô†‚ª
+    // ˆê”Ô‘å‚«‚¢=ˆê”ÔV‚µ‚­ì‚ç‚ê‚½)‚à‚Ìv‚ğg‚¤B‰ß‹‚ÉGameObject‚ğíœ/eqŠÖŒW•ÏX‚µ‚½ÛA
+    // ECS‘¤‚ÉƒRƒ“ƒ|[ƒlƒ“ƒg‚¾‚¯ŒÇ™‚Æ‚µ‚Äc‚Á‚Ä‚µ‚Ü‚¤ƒP[ƒX‚ª‚ ‚è(•\¦ã‚Í1‚Â‚µ‚©–³‚¢‚Ì‚ÉÀÛ‚Í
+    // •¡”‚ ‚é)A‚»‚ê‚ªŒÃ‚¢•û‚©‚çŒ©‚Â‚©‚Á‚Ä—Dæ‚³‚ê‚Ä‚µ‚Ü‚¤–ŒÌ‚ğ”ğ‚¯‚é‚½‚ßB
     auto& ecs = GameManager::Instance().GetECS();
     auto& camArray = ecs.GetComponentArray<CameraData>();
     Entity previewCameraEntity = INVALID_ENTITY;
@@ -618,23 +618,23 @@ void GameScene::RenderDebugPreviewCamera()
         return;
     }
 
-    // RenderScene()ã¯å†…éƒ¨ã§RenderSystem::m_cameraEntityã‚’æ›¸ãæ›ãˆã‚‹(ãƒ•ãƒ©ã‚¹ã‚¿ãƒ ã‚«ãƒªãƒ³ã‚°ç­‰ãŒ
-    // å‚ç…§ã™ã‚‹ãŸã‚)ã€‚ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼æç”»ã®ãŸã‚ã«ã“ã‚Œã‚’ä¸€æ™‚çš„ã«å·®ã—æ›¿ãˆãŸã‚‰ã€ä»–ã®å‡¦ç†(ãƒã‚¹ãƒˆãƒ—ãƒ­ã‚»ã‚¹ç­‰)
-    // ãŒæœ¬æ¥ã®ãƒ¡ã‚¤ãƒ³ã‚«ãƒ¡ãƒ©ã ã¨æ€ã£ã¦èª­ã‚“ã§ã„ã‚‹å€¤ã‚’å£Šã•ãªã„ã‚ˆã†ã€å¿…ãšå…ƒã«æˆ»ã™ã€‚
+    // RenderScene()‚Í“à•”‚ÅRenderSystem::m_cameraEntity‚ğ‘‚«Š·‚¦‚é(ƒtƒ‰ƒXƒ^ƒ€ƒJƒŠƒ“ƒO“™‚ª
+    // QÆ‚·‚é‚½‚ß)BƒvƒŒƒrƒ…[•`‰æ‚Ì‚½‚ß‚É‚±‚ê‚ğˆê“I‚É·‚µ‘Ö‚¦‚½‚çA‘¼‚Ìˆ—(ƒ|ƒXƒgƒvƒƒZƒX“™)
+    // ‚ª–{—ˆ‚ÌƒƒCƒ“ƒJƒƒ‰‚¾‚Æv‚Á‚Ä“Ç‚ñ‚Å‚¢‚é’l‚ğ‰ó‚³‚È‚¢‚æ‚¤A•K‚¸Œ³‚É–ß‚·B
     Entity savedCameraEntity = renderSystem->GetCameraEntity();
 
-    // ãƒ«ãƒ¼ãƒ å˜ä½ã®ã‚«ãƒªãƒ³ã‚°(RoomVisibilityManager)ã¯ã€Œä»Šã©ã®éƒ¨å±‹ã«ã„ã‚‹ã‹ã€ã‚’åŸºæº–ã«é–“å¼•ããŸã‚ã€
-    // è‡ªç”±ã«ç½®ã„ãŸãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼ã‚«ãƒ¡ãƒ©ãŒã©ã®éƒ¨å±‹ã«ã‚‚å±ã•ãªã„åº§æ¨™ã«ã‚ã‚‹ã¨å…¨ã¦éè¡¨ç¤ºã«ãªã£ã¦ã—ã¾ã†ã€‚
-    // ãƒ‡ãƒãƒƒã‚°ç”¨é€”ã§ã¯å¸¸ã«ã‚·ãƒ¼ãƒ³å…¨ä½“ãŒè¦‹ãˆã¦ã»ã—ã„ã®ã§ã€ã“ã®æç”»ã®é–“ã ã‘ç„¡åŠ¹åŒ–ã™ã‚‹ã€‚
+    // ƒ‹[ƒ€’PˆÊ‚ÌƒJƒŠƒ“ƒO(RoomVisibilityManager)‚Íu¡‚Ç‚Ì•”‰®‚É‚¢‚é‚©v‚ğŠî€‚ÉŠÔˆø‚­‚½‚ßA
+    // ©—R‚É’u‚¢‚½ƒvƒŒƒrƒ…[ƒJƒƒ‰‚ª‚Ç‚Ì•”‰®‚É‚à‘®‚³‚È‚¢À•W‚É‚ ‚é‚Æ‘S‚Ä”ñ•\¦‚É‚È‚Á‚Ä‚µ‚Ü‚¤B
+    // ƒfƒoƒbƒO—p“r‚Å‚Íí‚ÉƒV[ƒ“‘S‘Ì‚ªŒ©‚¦‚Ä‚Ù‚µ‚¢‚Ì‚ÅA‚±‚Ì•`‰æ‚ÌŠÔ‚¾‚¯–³Œø‰»‚·‚éB
     bool savedRoomCulling = RenderSystem::s_enableRoomCulling;
     bool savedFrustumCulling = RenderSystem::s_enableFrustumCulling;
     RenderSystem::s_enableRoomCulling = false;
-    RenderSystem::s_enableFrustumCulling = false; // å¿µã®ãŸã‚è¦–éŒå°ã‚«ãƒªãƒ³ã‚°ã‚‚ç„¡åŠ¹åŒ–ã—ã¦åˆ‡ã‚Šåˆ†ã‘ã‚‹
+    RenderSystem::s_enableFrustumCulling = false; // ”O‚Ì‚½‚ß‹‘äƒJƒŠƒ“ƒO‚à–³Œø‰»‚µ‚ÄØ‚è•ª‚¯‚é
 
-    // RenderScene(cameraEntity, pRT)ã¯pRTã‚’æ¸¡ã•ã‚ŒãŸæ™‚ã€SetRenderTarget()ã§ãƒã‚¤ãƒ³ãƒ‰ã™ã‚‹ã ã‘ã§
-    // ä¸­èº«(ã‚«ãƒ©ãƒ¼ãƒ»æ·±åº¦)ã‚’ä¸€åˆ‡ã‚¯ãƒªã‚¢ã—ãªã„(å‘¼ã³å‡ºã—å´ãŒæ—¢ã«ã‚¯ãƒªã‚¢æ¸ˆã¿ã¨ã„ã†å‰æã®è¨­è¨ˆ)ã€‚
-    // ã“ã®RTã¯æ¯ãƒ•ãƒ¬ãƒ¼ãƒ ä½¿ã„å›ã—ãªã®ã§ã€ã‚¯ãƒªã‚¢ã›ãšã«æãã¨å‰ãƒ•ãƒ¬ãƒ¼ãƒ ã®æ·±åº¦ãƒãƒƒãƒ•ã‚¡ãŒæ®‹ã£ãŸã¾ã¾
-    // æ–°ã—ã„ã‚¸ã‚ªãƒ¡ãƒˆãƒªã®æ·±åº¦ãƒ†ã‚¹ãƒˆã¨è¡çªã—ã€å®Ÿè³ªä½•ã‚‚æ›´æ–°ã•ã‚Œãªã„ã‚ˆã†ã«è¦‹ãˆã‚‹ãƒã‚°ã«ãªã‚‹ã€‚
+    // RenderScene(cameraEntity, pRT)‚ÍpRT‚ğ“n‚³‚ê‚½ASetRenderTarget()‚ÅƒoƒCƒ“ƒh‚·‚é‚¾‚¯‚Å
+    // ’†g(ƒJƒ‰[E[“x)‚ğˆêØƒNƒŠƒA‚µ‚È‚¢(ŒÄ‚Ño‚µ‘¤‚ªŠù‚ÉƒNƒŠƒAÏ‚İ‚Æ‚¢‚¤‘O’ñ‚ÌİŒv)B
+    // ‚±‚ÌRT‚Í–ˆƒtƒŒ[ƒ€g‚¢‰ñ‚µ‚È‚Ì‚ÅAƒNƒŠƒA‚¹‚¸‚É•`‚­‚Æ‘OƒtƒŒ[ƒ€‚Ì[“xƒoƒbƒtƒ@‚ªc‚Á‚½‚Ü‚Ü
+    // V‚µ‚¢ƒWƒIƒƒgƒŠ‚Ì[“xƒeƒXƒg‚ÆÕ“Ë‚µAÀ¿‰½‚àXV‚³‚ê‚È‚¢‚æ‚¤‚ÉŒ©‚¦‚éƒoƒO‚É‚È‚éB
     GraphicsDevice::Instance().SetRenderTarget(pPreviewRT);
     pPreviewRT->Clear(0.0f, 0.0f, 0.0f, 1.0f);
 
@@ -644,10 +644,10 @@ void GameScene::RenderDebugPreviewCamera()
     RenderSystem::s_enableFrustumCulling = savedFrustumCulling;
     renderSystem->SetCameraEntity(savedCameraEntity);
 
-    // RenderScene(previewCameraEntity, pPreviewRT)ãŒå°ã•ã„ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼ç”¨RT(640x360)ã‚’
-    // ãƒ¬ãƒ³ãƒ€ãƒ¼ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã«ãƒã‚¤ãƒ³ãƒ‰ã—ãŸã¾ã¾ãªã®ã§ã€ã“ã“ã§æˆ»ã•ãªã„ã¨ç›´å¾Œã®Renderer::EndFrame()ã®
-    // ImGuiæç”»ãŒãã®ã‚ªãƒ•ã‚¹ã‚¯ãƒªãƒ¼ãƒ³RTã«æã‹ã‚Œã¦ã—ã¾ã„ã€ç”»é¢(ãƒãƒƒã‚¯ãƒãƒƒãƒ•ã‚¡)ã‹ã‚‰ImGuiãƒ‘ãƒãƒ«ãŒ
-    // å…¨ã¦æ¶ˆãˆãŸã‚ˆã†ã«è¦‹ãˆã‚‹(ã‚²ãƒ¼ãƒ è‡ªä½“ã¯åˆ¥çµŒè·¯ã§æ—¢ã«ãƒãƒƒã‚¯ãƒãƒƒãƒ•ã‚¡ã¸åˆæˆæ¸ˆã¿ãªã®ã§æ™®é€šã«å‹•ãç¶šã‘ã‚‹)ã€‚
+    // RenderScene(previewCameraEntity, pPreviewRT)‚ª¬‚³‚¢ƒvƒŒƒrƒ…[—pRT(640x360)‚ğ
+    // ƒŒƒ“ƒ_[ƒ^[ƒQƒbƒg‚ÉƒoƒCƒ“ƒh‚µ‚½‚Ü‚Ü‚È‚Ì‚ÅA‚±‚±‚Å–ß‚³‚È‚¢‚Æ’¼Œã‚ÌRenderer::EndFrame()‚Ì
+    // ImGui•`‰æ‚ª‚»‚ÌƒIƒtƒXƒNƒŠ[ƒ“RT‚É•`‚©‚ê‚Ä‚µ‚Ü‚¢A‰æ–Ê(ƒoƒbƒNƒoƒbƒtƒ@)‚©‚çImGuiƒpƒlƒ‹‚ª
+    // ‘S‚ÄÁ‚¦‚½‚æ‚¤‚ÉŒ©‚¦‚é(ƒQ[ƒ€©‘Ì‚Í•ÊŒo˜H‚ÅŠù‚ÉƒoƒbƒNƒoƒbƒtƒ@‚Ö‡¬Ï‚İ‚È‚Ì‚Å•’Ê‚É“®‚«‘±‚¯‚é)B
     GraphicsDevice::Instance().SetBackBuffer();
     D3D12_VIEWPORT viewport = {};
     viewport.Width = 1280.0f;
@@ -677,10 +677,10 @@ void GameScene::RenderGame()
         UpdatePointLightShadow(m_gameCameraEntity);
         RenderSSAO(m_gameCameraEntity);
 
-        // ReflectionComponent::PreDraw()ãŒã“ã“ã§å¹³é¢ã®ä½ç½®/æ³•ç·šã‚’ãƒ¯ãƒ¼ãƒ«ãƒ‰ç©ºé–“ã¸å¤‰æ›ã™ã‚‹ã€‚
-        // ä»¥å‰ã¯RenderGame()çµŒè·¯(å®Ÿéš›ã®ã‚²ãƒ¼ãƒ ãƒ—ãƒ¬ã‚¤=FPSã‚«ãƒ¡ãƒ©)ã§ã“ã‚ŒãŒä¸€åº¦ã‚‚å‘¼ã°ã‚Œã¦ãŠã‚‰ãšã€
-        // RenderReflection()ãŒåˆæœŸå€¤(point=(0,0,0), normal=(0,0,1))ã®ã¾ã¾é¡ã‚’æç”»ã—ã¦ã„ãŸ
-        // (ã‚²ãƒ¼ãƒ ãƒ—ãƒ¬ã‚¤ä¸­ã®åå°„ãŒå®Ÿéš›ã®çª“ã®ä½ç½®ãƒ»å‘ãã‚’ç„¡è¦–ã—ã¦ã„ãŸåŸå› )ã€‚
+        // ReflectionComponent::PreDraw()‚ª‚±‚±‚Å•½–Ê‚ÌˆÊ’u/–@ü‚ğƒ[ƒ‹ƒh‹óŠÔ‚Ö•ÏŠ·‚·‚éB
+        // ˆÈ‘O‚ÍRenderGame()Œo˜H(ÀÛ‚ÌƒQ[ƒ€ƒvƒŒƒC=FPSƒJƒƒ‰)‚Å‚±‚ê‚ªˆê“x‚àŒÄ‚Î‚ê‚Ä‚¨‚ç‚¸A
+        // RenderReflection()‚ª‰Šú’l(point=(0,0,0), normal=(0,0,1))‚Ì‚Ü‚Ü‹¾‚ğ•`‰æ‚µ‚Ä‚¢‚½
+        // (ƒQ[ƒ€ƒvƒŒƒC’†‚Ì”½Ë‚ªÀÛ‚Ì‘‹‚ÌˆÊ’uEŒü‚«‚ğ–³‹‚µ‚Ä‚¢‚½Œ´ˆö)B
         auto scriptSystemPreDraw = GameManager::Instance().GetScriptSystem();
         if (scriptSystemPreDraw)
         {
@@ -709,8 +709,8 @@ void GameScene::RenderGame()
             spriteRenderSystem->Render();
         }
 
-        // Script Draw (Player UI, GameClear/Over è¡¨ç¤ºãªã©)
-        // â€» DebugWireã¯ã‚²ãƒ¼ãƒ ãƒ¢ãƒ¼ãƒ‰ã§ã¯éè¡¨ç¤º
+        // Script Draw (Player UI, GameClear/Over •\¦‚È‚Ç)
+        // ¦ DebugWire‚ÍƒQ[ƒ€ƒ‚[ƒh‚Å‚Í”ñ•\¦
         auto scriptSystem = GameManager::Instance().GetScriptSystem();
         if (scriptSystem)
         {
@@ -749,7 +749,7 @@ void GameScene::UpdateLights(Entity cameraEntity)
         spotLightSystem->Update(camPos);
     }
 
-    // å®¤å†…åˆ¤å®š: RoomAreaã®AABB(ä½™ç™½ä»˜ã)ã‚’ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã¸é€ã‚‹ã€‚ç¯„å›²å†…ã¯å¤–ã®å…‰ã‚’å—ã‘ãªããªã‚‹ã€‚
+    // º“à”»’è: RoomArea‚ÌAABB(—]”’•t‚«)‚ğƒVƒF[ƒ_[‚Ö‘—‚éB”ÍˆÍ“à‚ÍŠO‚ÌŒõ‚ğó‚¯‚È‚­‚È‚éB
     constexpr int kMaxIndoorVolumes = 16;
     const auto& lighting = ShaderManager::Instance().GetLightingSettings();
     auto& lightData = ShaderManager::Instance().GetMutableLightData();
@@ -803,7 +803,7 @@ void GameScene::UpdatePointLightShadow(Entity cameraEntity)
         return;
     }
 
-    // g_PL[0]ã¯LightSystemãŒè¦–ç‚¹ã«è¿‘ã„é †ã§ã‚½ãƒ¼ãƒˆæ¸ˆã¿ãªã®ã§ã€ãã®ã¾ã¾æœ€ã‚‚è¿‘ã„ãƒ©ã‚¤ãƒˆã‚’ä½¿ã†ã€‚
+    // g_PL[0]‚ÍLightSystem‚ª‹“_‚É‹ß‚¢‡‚Åƒ\[ƒgÏ‚İ‚È‚Ì‚ÅA‚»‚Ì‚Ü‚ÜÅ‚à‹ß‚¢ƒ‰ƒCƒg‚ğg‚¤B
     Math::Vector3 lightPos = lightData.PL[0].Pos;
     float range = lightData.PL[0].Range;
 
@@ -824,7 +824,7 @@ void GameScene::RenderSSAO(Entity cameraEntity)
 
     if (!ssaoSettings.EnableSSAO)
     {
-        // ç„¡åŠ¹æ™‚ã¯AO=1(é®è”½ãªã—)ã‚’ç¶­æŒã™ã‚‹ã€‚LitShaderã¯æ¯ãƒ•ãƒ¬ãƒ¼ãƒ ã“ã®RT(index0)ã‚’èª­ã‚€ãŸã‚ã€‚
+        // –³Œø‚ÍAO=1(Õ•Á‚È‚µ)‚ğˆÛ‚·‚éBLitShader‚Í–ˆƒtƒŒ[ƒ€‚±‚ÌRT(index0)‚ğ“Ç‚Ş‚½‚ßB
         GraphicsDevice::Instance().SetRenderTarget(pSSAORaw);
         pSSAORaw->Clear(1.0f, 1.0f, 1.0f, 1.0f);
         GraphicsDevice::Instance().TransitionToSRV(pSSAORaw);
@@ -842,9 +842,9 @@ void GameScene::RenderSSAO(Entity cameraEntity)
     params.Intensity = ssaoSettings.Intensity;
     ssaoShader.Draw(pNormalRT, pSSAORaw, params);
 
-    // Bloomã®ãƒ–ãƒ©ãƒ¼ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ã‚’å†åˆ©ç”¨ã—ã¦è»½ãã¼ã‹ã™(SSAOç‰¹æœ‰ã®ãƒã‚¤ã‚ºã‚’å‡ã™)ã€‚
-    // index0(raw)â†’index1(H)â†’index0(V)ã®é †ã§å‡¦ç†ã™ã‚‹ã®ã§ã€æœ€çµ‚çµæœã¯å¿…ãšindex0ã«æˆ»ã‚‹
-    // (LitShader.cppã®t12ãƒã‚¤ãƒ³ãƒ‰ãŒindex0ã‚’èª­ã‚€å‰æã¨å¯¾å¿œã•ã›ã¦ã„ã‚‹)ã€‚
+    // Bloom‚Ìƒuƒ‰[ƒpƒCƒvƒ‰ƒCƒ“‚ğÄ—˜—p‚µ‚ÄŒy‚­‚Ú‚©‚·(SSAO“Á—L‚ÌƒmƒCƒY‚ğ‹Ï‚·)B
+    // index0(raw)¨index1(H)¨index0(V)‚Ì‡‚Åˆ—‚·‚é‚Ì‚ÅAÅIŒ‹‰Ê‚Í•K‚¸index0‚É–ß‚é
+    // (LitShader.cpp‚Ìt12ƒoƒCƒ“ƒh‚ªindex0‚ğ“Ç‚Ş‘O’ñ‚Æ‘Î‰‚³‚¹‚Ä‚¢‚é)B
     auto& bloomShader = ShaderLibrary::Instance().Get<BloomShader>();
     CBufferData::PostProcess blurData = {};
     blurData.BlurRadius = 1.5f;
@@ -865,7 +865,7 @@ void GameScene::DoPostProcess(Entity cameraEntity, float clearR, float clearG, f
     auto& bloomShader = ShaderLibrary::Instance().Get<BloomShader>();
     auto& postProcessShader = ShaderLibrary::Instance().Get<PostProcessShader>();
 
-    // DOFã®æ·±åº¦ãƒªãƒ‹ã‚¢åŒ–ã«ä½¿ã†Near/Farã‚’ã€å®Ÿéš›ã«æç”»ã—ãŸã‚«ãƒ¡ãƒ©ã®å€¤ã¸åŒæœŸ
+    // DOF‚Ì[“xƒŠƒjƒA‰»‚Ég‚¤Near/Far‚ğAÀÛ‚É•`‰æ‚µ‚½ƒJƒƒ‰‚Ì’l‚Ö“¯Šú
     if (cameraEntity != INVALID_ENTITY)
     {
         auto& ecs = GameManager::Instance().GetECS();
@@ -878,10 +878,10 @@ void GameScene::DoPostProcess(Entity cameraEntity, float clearR, float clearG, f
     const auto& postProcessSettings = ShaderManager::Instance().GetPostProcessSettings();
     const auto& postProcessData = ShaderManager::Instance().GetPostProcessData();
 
-    // 0. SSR (Opaqueæè³ªå‘ã‘) - å°‚ç”¨ã®G-Bufferãƒ‘ã‚¹ã‚’è¿½åŠ ã›ãšã€NormalPrepass(SSAOç”¨)ã®æ³•ç·š+æ·±åº¦ã¨
-    // Opaqueãƒ‘ã‚¹ã®ã‚«ãƒ©ãƒ¼ã‚³ãƒ”ãƒ¼ã‚’å†åˆ©ç”¨ã—ã¦ã‚·ãƒ¼ãƒ³HDRã¸åŠ ç®—åˆæˆã™ã‚‹ã€‚ã‚¬ãƒ©ã‚¹é™å®šã®SSR(LitShaderå†…)
-    // ã¨ã¯åˆ¥ç‰©ã§ã€åºŠãƒ»ã‚¿ã‚¤ãƒ«ç­‰ã®Opaqueæè³ªã«åŠ¹ãã€‚RenderSceneç›´å¾Œã€ã¾ã pSceneHDRãŒRENDER_TARGET
-    // çŠ¶æ…‹ã®ã“ã®ã‚¿ã‚¤ãƒŸãƒ³ã‚°ã§ã ã‘åŠ ç®—ã§ãã‚‹(ã“ã®å¾Œã™ãSRVã¸é·ç§»ã—ã¦Bloomç­‰ã«èª­ã¾ã‚Œã‚‹ãŸã‚)ã€‚
+    // 0. SSR (OpaqueŞ¿Œü‚¯) - ê—p‚ÌG-BufferƒpƒX‚ğ’Ç‰Á‚¹‚¸ANormalPrepass(SSAO—p)‚Ì–@ü+[“x‚Æ
+    // OpaqueƒpƒX‚ÌƒJƒ‰[ƒRƒs[‚ğÄ—˜—p‚µ‚ÄƒV[ƒ“HDR‚Ö‰ÁZ‡¬‚·‚éBƒKƒ‰ƒXŒÀ’è‚ÌSSR(LitShader“à)
+    // ‚Æ‚Í•Ê•¨‚ÅA°Eƒ^ƒCƒ‹“™‚ÌOpaqueŞ¿‚ÉŒø‚­BRenderScene’¼ŒãA‚Ü‚¾pSceneHDR‚ªRENDER_TARGET
+    // ó‘Ô‚Ì‚±‚Ìƒ^ƒCƒ~ƒ“ƒO‚Å‚¾‚¯‰ÁZ‚Å‚«‚é(‚±‚ÌŒã‚·‚®SRV‚Ö‘JˆÚ‚µ‚ÄBloom“™‚É“Ç‚Ü‚ê‚é‚½‚ß)B
     auto& rendererSettings = ShaderManager::Instance().GetRendererSettings();
     if (rendererSettings.EnableSSR)
     {
@@ -894,14 +894,14 @@ void GameScene::DoPostProcess(Entity cameraEntity, float clearR, float clearG, f
         ssrOpaqueShader.Draw(pNormalRT, pSceneOpaqueCopy, pSceneHDR, ssrParams);
     }
 
-    // 1. Bloom Extract (è¼åº¦ãŒé–¾å€¤ã‚’è¶…ãˆãŸéƒ¨åˆ†ã ã‘æŠ½å‡º)
+    // 1. Bloom Extract (‹P“x‚ªè‡’l‚ğ’´‚¦‚½•”•ª‚¾‚¯’Šo)
     auto* pExtractRT = Renderer::GetBloomExtractRenderTarget();
     GraphicsDevice::Instance().TransitionToSRV(pSceneHDR);
     bloomShader.DrawExtract(pSceneHDR, pExtractRT, postProcessData);
 
-    // 2. Bloom Blur - åŠå¾„(BloomRadius)ã¨åå¾©å›æ•°(BloomIterations)ã¯ShaderEditorã‹ã‚‰èª¿æ•´å¯èƒ½ã€‚
-    // ä»¥å‰ã¯1/2è§£åƒåº¦+å›ºå®šåŠå¾„5texel+1å›ã ã‘ã ã£ãŸãŸã‚ã€Intensityã‚’ä¸Šã’ã¦ã‚‚ã»ã¼å¤‰åŒ–ãŒ
-    // è¦‹ãˆãªã‹ã£ãŸã€‚1/4è§£åƒåº¦åŒ–+å¯å¤‰åŠå¾„+è¤‡æ•°å›ãƒ–ãƒ©ãƒ¼ã§ç”»é¢ã«åºƒãŒã‚‹é‡ã‚’ç¢ºä¿ã™ã‚‹ã€‚
+    // 2. Bloom Blur - ”¼Œa(BloomRadius)‚Æ”½•œ‰ñ”(BloomIterations)‚ÍShaderEditor‚©‚ç’²®‰Â”\B
+    // ˆÈ‘O‚Í1/2‰ğ‘œ“x+ŒÅ’è”¼Œa5texel+1‰ñ‚¾‚¯‚¾‚Á‚½‚½‚ßAIntensity‚ğã‚°‚Ä‚à‚Ù‚Ú•Ï‰»‚ª
+    // Œ©‚¦‚È‚©‚Á‚½B1/4‰ğ‘œ“x‰»+‰Â•Ï”¼Œa+•¡”‰ñƒuƒ‰[‚Å‰æ–Ê‚ÉL‚ª‚é—Ê‚ğŠm•Û‚·‚éB
     auto* pBlurRT0 = Renderer::GetBloomBlurRenderTarget(0);
     auto* pBlurRT1 = Renderer::GetBloomBlurRenderTarget(1);
     RenderTarget* pBloomResult = pExtractRT;
@@ -915,8 +915,8 @@ void GameScene::DoPostProcess(Entity cameraEntity, float clearR, float clearG, f
         pBloomResult = pBlurRT1;
     }
 
-    // 3. Depth of Field - æœ‰åŠ¹ãªæ™‚ã ã‘ã€ã‚·ãƒ¼ãƒ³å…¨ä½“(é–¾å€¤ãªã—)ã‚’ã¼ã‹ã—ãŸã‚³ãƒ”ãƒ¼ã‚’ä½œã‚‹ã€‚
-    // Bloomã®Extract/Blurãƒ‘ã‚¹ã‚’ãã®ã¾ã¾é–¾å€¤0ã§ä½¿ã„å›ã—ã¦ã„ã‚‹ã®ã§å°‚ç”¨ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã¯ä¸è¦ã€‚
+    // 3. Depth of Field - —LŒø‚È‚¾‚¯AƒV[ƒ“‘S‘Ì(è‡’l‚È‚µ)‚ğ‚Ú‚©‚µ‚½ƒRƒs[‚ğì‚éB
+    // Bloom‚ÌExtract/BlurƒpƒX‚ğ‚»‚Ì‚Ü‚Üè‡’l0‚Åg‚¢‰ñ‚µ‚Ä‚¢‚é‚Ì‚Åê—pƒVƒF[ƒ_[‚Í•s—vB
     auto* pDofRT0 = Renderer::GetDOFBlurRenderTarget(0);
     RenderTarget* pDofResult = pDofRT0;
     if (postProcessSettings.EnableDOF)
@@ -924,7 +924,7 @@ void GameScene::DoPostProcess(Entity cameraEntity, float clearR, float clearG, f
         auto* pDofRT1 = Renderer::GetDOFBlurRenderTarget(1);
 
         CBufferData::PostProcess dofExtractData = postProcessData;
-        dofExtractData.BloomThreshold = 0.0f; // é–¾å€¤0 = ç´ é€šã—(ã‚·ãƒ¼ãƒ³å…¨ä½“ã‚’ãã®ã¾ã¾ã‚³ãƒ”ãƒ¼)
+        dofExtractData.BloomThreshold = 0.0f; // è‡’l0 = ‘f’Ê‚µ(ƒV[ƒ“‘S‘Ì‚ğ‚»‚Ì‚Ü‚ÜƒRƒs[)
 
         GraphicsDevice::Instance().TransitionToSRV(pSceneHDR);
         bloomShader.DrawExtract(pSceneHDR, pDofRT0, dofExtractData);
@@ -936,15 +936,15 @@ void GameScene::DoPostProcess(Entity cameraEntity, float clearR, float clearG, f
     }
     GraphicsDevice::Instance().TransitionToSRV(pDofResult);
 
-    // 4. God Rays - å¹³è¡Œå…‰ã‚’ã‚¹ã‚¯ãƒªãƒ¼ãƒ³ç©ºé–“ã«æŠ•å½±ã—ãŸä½ç½®ã‹ã‚‰ã€Bloomçµæœã‚’ãƒ©ã‚¸ã‚¢ãƒ«ãƒ–ãƒ©ãƒ¼ã—ã¦
-    // å…‰æ¡ã‚’ä½œã‚‹ã€‚æ–°ã—ã„ã‚·ãƒ£ãƒ‰ã‚¦ãƒãƒƒãƒ—ç­‰ã¯ä½¿ã‚ãªã„è»½é‡ãªè¿‘ä¼¼ã€‚
+    // 4. God Rays - •½sŒõ‚ğƒXƒNƒŠ[ƒ“‹óŠÔ‚É“Š‰e‚µ‚½ˆÊ’u‚©‚çABloomŒ‹‰Ê‚ğƒ‰ƒWƒAƒ‹ƒuƒ‰[‚µ‚Ä
+    // Œõğ‚ğì‚éBV‚µ‚¢ƒVƒƒƒhƒEƒ}ƒbƒv“™‚Íg‚í‚È‚¢Œy—Ê‚È‹ß—B
     auto* pGodRaysRT = Renderer::GetGodRaysRenderTarget();
     if (postProcessSettings.EnableGodRays)
     {
         auto& context = Renderer::GetContext();
         Math::Matrix vp = context.View * context.Projection;
         Math::Vector3 camPos = context.View.Invert().Translation();
-        Math::Vector3 dlDir = ShaderManager::Instance().GetLightData().DL_Dir; // ã‚·ãƒ¼ãƒ³ã¸å‘ã‹ã†æ–¹å‘
+        Math::Vector3 dlDir = ShaderManager::Instance().GetLightData().DL_Dir; // ƒV[ƒ“‚ÖŒü‚©‚¤•ûŒü
         Math::Vector3 towardLight = -dlDir;
         Math::Vector3 farPoint = camPos + towardLight * 5000.0f;
 
@@ -961,8 +961,8 @@ void GameScene::DoPostProcess(Entity cameraEntity, float clearR, float clearG, f
         if (lightValid)
         {
             auto& godRaysShader = ShaderLibrary::Instance().Get<GodRaysShader>();
-            // g_EnableGodRaysã¯SetGodRaysLightScreenPosç›´å¾Œã®UpdateConstantBuffersã§ç¢ºå®šã™ã‚‹ãŸã‚ã€
-            // ã“ã“ã§ã¯postProcessDataã§ã¯ãªãæœ€æ–°ã®GetPostProcessData()ã‚’ä½¿ã†ã€‚
+            // g_EnableGodRays‚ÍSetGodRaysLightScreenPos’¼Œã‚ÌUpdateConstantBuffers‚ÅŠm’è‚·‚é‚½‚ßA
+            // ‚±‚±‚Å‚ÍpostProcessData‚Å‚Í‚È‚­ÅV‚ÌGetPostProcessData()‚ğg‚¤B
             const auto& godRaysData = ShaderManager::Instance().GetPostProcessData();
             GraphicsDevice::Instance().TransitionToSRV(pBloomResult);
             godRaysShader.Draw(pBloomResult, pGodRaysRT, godRaysData);
@@ -975,8 +975,8 @@ void GameScene::DoPostProcess(Entity cameraEntity, float clearR, float clearG, f
     }
 
     // 5. Composite to Back Buffer
-    // pSceneHDRè‡ªèº«ã®æ·±åº¦ãƒãƒƒãƒ•ã‚¡ã‚’DOFã®CoCè¨ˆç®—ç”¨ã«SRVã¸é·ç§»(RenderSceneçµ‚äº†æ™‚ã«æ›¸ãè¾¼ã¿ç”¨ã¸
-    // æˆ»ã•ã‚Œã¦ã„ã‚‹ãŸã‚)ã€‚Drawå¾Œã¯DEPTH_WRITEã¸æˆ»ã—ã€æ¬¡ãƒ•ãƒ¬ãƒ¼ãƒ ã®æç”»ã«å‚™ãˆã‚‹ã€‚
+    // pSceneHDR©g‚Ì[“xƒoƒbƒtƒ@‚ğDOF‚ÌCoCŒvZ—p‚ÉSRV‚Ö‘JˆÚ(RenderSceneI—¹‚É‘‚«‚İ—p‚Ö
+    // –ß‚³‚ê‚Ä‚¢‚é‚½‚ß)BDrawŒã‚ÍDEPTH_WRITE‚Ö–ß‚µAŸƒtƒŒ[ƒ€‚Ì•`‰æ‚É”õ‚¦‚éB
     GraphicsDevice::Instance().TransitionDepthToSRV(pSceneHDR);
     GraphicsDevice::Instance().TransitionToSRV(pBloomResult);
     GraphicsDevice::Instance().SetBackBuffer();
@@ -1007,9 +1007,9 @@ void GameScene::RenderEditor()
         UpdatePointLightShadow(m_editorCameraEntity);
         RenderSSAO(m_editorCameraEntity);
 
-        // ReflectionComponent::PreDraw()ãŒã“ã“ã§å¹³é¢ã®ä½ç½®/æ³•ç·šã‚’ãƒ¯ãƒ¼ãƒ«ãƒ‰ç©ºé–“ã¸å¤‰æ›ã™ã‚‹ã€‚
-        // RenderReflection()ã‚ˆã‚Šå¾Œã«å‘¼ã‚“ã§ã„ã‚‹ã¨1ãƒ•ãƒ¬ãƒ¼ãƒ é…ã‚ŒãŸ(å¤ã„)å¹³é¢æƒ…å ±ã‚’ä½¿ã£ã¦ã—ã¾ã†ã®ã§ã€
-        // å…ˆã«å‘¼ã‚“ã§ãŠã(ä»¥å‰ã¯ScriptDrawéƒ¨åˆ†ã§RenderScene/Spriteæç”»ã‚ˆã‚Šå¾Œã«å‘¼ã°ã‚Œã¦ã„ãŸ)ã€‚
+        // ReflectionComponent::PreDraw()‚ª‚±‚±‚Å•½–Ê‚ÌˆÊ’u/–@ü‚ğƒ[ƒ‹ƒh‹óŠÔ‚Ö•ÏŠ·‚·‚éB
+        // RenderReflection()‚æ‚èŒã‚ÉŒÄ‚ñ‚Å‚¢‚é‚Æ1ƒtƒŒ[ƒ€’x‚ê‚½(ŒÃ‚¢)•½–Êî•ñ‚ğg‚Á‚Ä‚µ‚Ü‚¤‚Ì‚ÅA
+        // æ‚ÉŒÄ‚ñ‚Å‚¨‚­(ˆÈ‘O‚ÍScriptDraw•”•ª‚ÅRenderScene/Sprite•`‰æ‚æ‚èŒã‚ÉŒÄ‚Î‚ê‚Ä‚¢‚½)B
         auto scriptSystem = GameManager::Instance().GetScriptSystem();
         if (scriptSystem)
         {
@@ -1019,9 +1019,9 @@ void GameScene::RenderEditor()
         }
 
         {
-            // ä»¥å‰ã¯RenderGame()çµŒç”±(FPSã‚«ãƒ¡ãƒ©)ã§ã—ã‹å‘¼ã°ã‚Œã¦ãŠã‚‰ãšã€ã‚¨ãƒ‡ã‚£ã‚¿ã®ãƒ•ãƒªãƒ¼ã‚«ãƒ¡ãƒ©ã§ã¯
-            // åå°„ãƒ†ã‚¯ã‚¹ãƒãƒ£ãŒç›´å‰ã®ã‚²ãƒ¼ãƒ ãƒ—ãƒ¬ã‚¤æ™‚ç‚¹ã®ã¾ã¾å‡çµã—ã¦ã„ãŸ(åå°„ã®ãƒ‡ãƒãƒƒã‚°ãŒ
-            // äº‹å®Ÿä¸Šã§ããªã‹ã£ãŸåŸå› )ã€‚ãƒ•ãƒªãƒ¼ã‚«ãƒ¡ãƒ©ã§ã‚‚éƒ½åº¦æ›´æ–°ã™ã‚‹ã‚ˆã†ã«ã™ã‚‹ã€‚
+            // ˆÈ‘O‚ÍRenderGame()Œo—R(FPSƒJƒƒ‰)‚Å‚µ‚©ŒÄ‚Î‚ê‚Ä‚¨‚ç‚¸AƒGƒfƒBƒ^‚ÌƒtƒŠ[ƒJƒƒ‰‚Å‚Í
+            // ”½ËƒeƒNƒXƒ`ƒƒ‚ª’¼‘O‚ÌƒQ[ƒ€ƒvƒŒƒC“_‚Ì‚Ü‚Ü“€Œ‹‚µ‚Ä‚¢‚½(”½Ë‚ÌƒfƒoƒbƒO‚ª
+            // –Àã‚Å‚«‚È‚©‚Á‚½Œ´ˆö)BƒtƒŠ[ƒJƒƒ‰‚Å‚à“s“xXV‚·‚é‚æ‚¤‚É‚·‚éB
             PROFILE_CPU_SCOPE("Reflection");
             PROFILE_GPU_SCOPE(pCmdList, "Reflection");
             renderSystem->RenderReflection(m_editorCameraEntity);
@@ -1037,7 +1037,7 @@ void GameScene::RenderEditor()
             spriteRenderSystem->Render();
         }
 
-        // Script Draw (ãƒ‡ãƒãƒƒã‚°ãƒ¯ã‚¤ãƒ¤ãƒ¼ç­‰è¡¨ç¤º)
+        // Script Draw (ƒfƒoƒbƒOƒƒCƒ„[“™•\¦)
         if (scriptSystem)
         {
             PROFILE_CPU_SCOPE("ScriptDraw");

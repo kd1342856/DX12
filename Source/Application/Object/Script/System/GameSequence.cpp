@@ -1,4 +1,4 @@
-ï»¿#include "../../../../Pch.h"
+#include "../../../../Pch.h"
 #include "GameSequence.h"
 #include "../../../../Framework/Object/GameObject.h"
 #include "../../../../Framework/Manager/Scene/Scene.h"
@@ -63,12 +63,12 @@ void GameSequence::Start()
             RoomArea* targetRoom = candidates[r];
             ghost->SetTargetRoom(targetRoom);
 
-            // ã‚´ãƒ¼ã‚¹ãƒˆã‚’é¸ã°ã‚ŒãŸéƒ¨å±‹ã®ä¸­å¿ƒã«é…ç½®
+            // ƒS[ƒXƒg‚ğ‘I‚Î‚ê‚½•”‰®‚Ì’†S‚É”z’u
             auto& gTrans = ecs.GetComponent<TransformData>(ghost->GetGameObject()->GetEntityID());
             gTrans.m_position = targetRoom->GetCenter();
-            // â€» y = 0.0f ã®å¼·åˆ¶ãƒªã‚»ãƒƒãƒˆã¯å»ƒæ­¢ã€‚2éšãƒ«ãƒ¼ãƒ ãŒé¸ã°ã‚ŒãŸå ´åˆã‚‚ãƒ«ãƒ¼ãƒ ã®Yåº§æ¨™ã‚’ä½¿ã†
+            // ¦ y = 0.0f ‚Ì‹­§ƒŠƒZƒbƒg‚Í”p~B2ŠKƒ‹[ƒ€‚ª‘I‚Î‚ê‚½ê‡‚àƒ‹[ƒ€‚ÌYÀ•W‚ğg‚¤
 
-            // ãƒ­ã‚°ã«ç¾åœ¨æŒ‡å®šã•ã‚ŒãŸãƒ«ãƒ¼ãƒ ã‚’å‡ºã™
+            // ƒƒO‚ÉŒ»İw’è‚³‚ê‚½ƒ‹[ƒ€‚ğo‚·
             std::string roomName = targetRoom->GetGameObject()->GetName();
             Logger::Instance().AddLog(Logger::LogLevel::Info, "Ghost Room Selected: %s", roomName.c_str());
         }
@@ -113,7 +113,7 @@ void GameSequence::UpdateResultSceneTransition(float deltaTime)
     m_resultSceneRequested = true;
     bool isClear = (m_currentState == State::GameClear);
 
-    // é€€æ²»ã—ãŸã‚´ãƒ¼ã‚¹ãƒˆã®ç¨®é¡(ãƒªã‚¶ãƒ«ãƒˆã§æ­£ä½“ã¨ã—ã¦è¡¨ç¤ºã™ã‚‹)
+    // ‘Ş¡‚µ‚½ƒS[ƒXƒg‚Ìí—Ş(ƒŠƒUƒ‹ƒg‚Å³‘Ì‚Æ‚µ‚Ä•\¦‚·‚é)
     int ghostType = -1;
     for (auto& scriptData : GameManager::Instance().GetECS().GetComponentArray<NativeScriptData>())
     {
@@ -138,9 +138,9 @@ void GameSequence::PreDraw()
 
 void GameSequence::Draw()
 {
-    // ImGuiå´ã®ã‚¯ãƒªã‚¢/ã‚ªãƒ¼ãƒãƒ¼ãƒ†ã‚­ã‚¹ãƒˆã‚ªãƒ¼ãƒãƒ¼ãƒ¬ã‚¤ã¯å»ƒæ­¢ã€‚
-    // ResultSceneã®ç”»åƒ(bg_clear.jpg/Death.png)ã§çµæœã‚’æç”»ã™ã‚‹ã®ã§ã€
-    // ãã®å‰ã«ã‚²ãƒ¼ãƒ ç”»é¢ä¸­å¤®ã«ãƒ‡ãƒãƒƒã‚°çš„ãªæ–‡å­—ãŒå‡ºã¦ã„ã‚‹å¿…è¦ãŒãªã„ã€‚
+    // ImGui‘¤‚ÌƒNƒŠƒA/ƒI[ƒo[ƒeƒLƒXƒgƒI[ƒo[ƒŒƒC‚Í”p~B
+    // ResultScene‚Ì‰æ‘œ(bg_clear.jpg/Death.png)‚ÅŒ‹‰Ê‚ğ•`‰æ‚·‚é‚Ì‚ÅA
+    // ‚»‚Ì‘O‚ÉƒQ[ƒ€‰æ–Ê’†‰›‚ÉƒfƒoƒbƒO“I‚È•¶š‚ªo‚Ä‚¢‚é•K—v‚ª‚È‚¢B
 }
 
 void GameSequence::Serialize(nlohmann::json& out) const

@@ -1,4 +1,4 @@
-﻿#include "RendererPanel.h"
+#include "RendererPanel.h"
 #include "../EditorContext.h"
 #include "../../../../Library/ImGui/imgui.h"
 #include "../../../Graphics/Device/GraphicsDevice.h"
@@ -7,10 +7,10 @@
 #ifdef _DEBUG
 namespace
 {
-    // D3D12デバイス(スワップチェーン、全メッシュ/テクスチャ/PSO、ImGui等)をライブ再作成して
-    // デバッグレイヤーの変更を再起動無しで反映するのは、得られるものの割に侵襲的で
-    // リスクの大きい作業。プロセスの新しいコピーを起動してこちらを終了する方が、
-    // そのリスク無しで同じ「ワンクリックで手動再起動不要」という体験を得られる。
+    // D3D12�f�o�C�X(�X���b�v�`�F�[���A�S���b�V��/�e�N�X�`��/PSO�AImGui��)�����C�u�č쐬����
+    // �f�o�b�O���C���[�̕ύX���ċN�������Ŕ��f����̂́A��������̂̊��ɐN�P�I��
+    // ���X�N�̑傫����ƁB�v���Z�X�̐V�����R�s�[���N�����Ă�������I����������A
+    // ���̃��X�N�����œ����u�����N���b�N�Ŏ蓮�ċN���s�v�v�Ƃ����̌��𓾂���B
     void RelaunchApplication()
     {
         wchar_t exePath[MAX_PATH];
@@ -19,10 +19,10 @@ namespace
             return;
         }
 
-        // lpCurrentDirectoryをnullのままにして継承に任せるのではなく、このプロセスの
-        // *現在の*作業ディレクトリを明示的に渡す。このプロセスはdxcompiler.dll等を
-        // CWD相対の検索で解決しているので、今動けているそのCWDは確実に正しい -
-        // 子プロセスも同じになると仮定するのではなく、それを捕まえて使い回す。
+        // lpCurrentDirectory��null�̂܂܂ɂ��Čp���ɔC����̂ł͂Ȃ��A���̃v���Z�X��
+        // *���݂�*��ƃf�B���N�g���𖾎��I�ɓn���B���̃v���Z�X��dxcompiler.dll����
+        // CWD���΂̌����ŉ������Ă���̂ŁA�������Ă��邻��CWD�͊m���ɐ����� -
+        // �q�v���Z�X�������ɂȂ�Ɖ��肷��̂ł͂Ȃ��A�����߂܂��Ďg���񂷁B
         wchar_t cwd[MAX_PATH];
         DWORD cwdLen = GetCurrentDirectoryW(MAX_PATH, cwd);
         const wchar_t* pCwd = (cwdLen > 0 && cwdLen < MAX_PATH) ? cwd : nullptr;
@@ -35,8 +35,8 @@ namespace
             CloseHandle(pi.hThread);
         }
 
-        // Win32メッセージループ(Window::ProcessMessage)と同じスレッドなので、次の
-        // PeekMessageで拾われて、通常のシャットダウン処理がきれいに走る。
+        // Win32���b�Z�[�W���[�v(Window::ProcessMessage)�Ɠ����X���b�h�Ȃ̂ŁA����
+        // PeekMessage�ŏE���āA�ʏ�̃V���b�g�_�E�����������ꂢ�ɑ���B
         PostQuitMessage(0);
     }
 }
@@ -67,7 +67,7 @@ void RendererPanel::Draw(EditorContext& ctx)
             }
             if (ImGui::IsItemHovered())
             {
-                ImGui::SetTooltip(u8"平面反射(専用の反射カメラ)が設定されていないガラス面のフォールバック。");
+                ImGui::SetTooltip(u8"���ʔ���(��p�̔��˃J����)���ݒ肳��Ă��Ȃ��K���X�ʂ̃t�H�[���o�b�N�B");
             }
             if (ImGui::SliderFloat("SSR Opaque Intensity", &ctx.Renderer->SSROpaqueIntensity, 0.0f, 2.0f, "%.2f"))
             {
@@ -75,7 +75,7 @@ void RendererPanel::Draw(EditorContext& ctx)
             }
             if (ImGui::IsItemHovered())
             {
-                ImGui::SetTooltip(u8"床・タイル等のOpaque材質向けSSR(NormalPrepassの法線+深度を再利用)。\n粗さ/金属度は考慮しない鏡面反射の近似(非金属F0=0.04固定)。0で無効。");
+                ImGui::SetTooltip(u8"���E�^�C������Opaque�ގ�����SSR(NormalPrepass�̖@��+�[�x���ė��p)�B\n�e��/�����x�͍l�����Ȃ����ʔ��˂̋ߎ�(�����F0=0.04�Œ�)�B0�Ŗ����B");
             }
 
             if (changed)
@@ -99,11 +99,11 @@ void RendererPanel::Draw(EditorContext& ctx)
 
 #ifdef _DEBUG
         ImGui::Separator();
-        // このセッションで実際に動いているものの実測値。GraphicsDevice::Init()で
-        // 一度だけ決まる - 下のチェックボックスとは独立しているので、fpsから
-        // 推測する必要が無い。これがチェックボックスと食い違っている場合、
-        // チェックボックスは*次回*起動時に何が起こるかを表している(ツールチップ参照) -
-        // ライブには決して反映されない。
+        // ���̃Z�b�V�����Ŏ��ۂɓ����Ă�����̂̎����l�BGraphicsDevice::Init()��
+        // ��x�������܂� - ���̃`�F�b�N�{�b�N�X�Ƃ͓Ɨ����Ă���̂ŁAfps����
+        // ��������K�v�������B���ꂪ�`�F�b�N�{�b�N�X�ƐH������Ă���ꍇ�A
+        // �`�F�b�N�{�b�N�X��*����*�N�����ɉ����N���邩��\���Ă���(�c�[���`�b�v�Q��) -
+        // ���C�u�ɂ͌����Ĕ��f����Ȃ��B
         ImGui::Text("Debug Layer Active This Session: %s", GraphicsDevice::IsDebugLayerActive() ? "ON" : "OFF");
 
         static bool s_debugLayerRequested = GraphicsDevice::IsDebugLayerRequested();

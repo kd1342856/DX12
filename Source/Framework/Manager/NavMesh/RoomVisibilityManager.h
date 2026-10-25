@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <vector>
 #include <unordered_map>
@@ -9,35 +9,35 @@ class RoomArea;
 class Mesh;
 using Entity = uint32_t;
 
-// ポータル/ルーム単位のオクルージョンカリング。フラスタムカリングだけだと、視錐台には
-// 入っているが壁に隠れて見えないはずの部屋まで描いてしまう（例: 家の外から見た時、
-// 反対側の部屋も視錐台上は「見えている」扱いになる）。これはその上にもう1段フィルタを
-// 重ねるもので、カメラが今いる部屋のメッシュ、または開いているドア経由で辿れる部屋の
-// メッシュだけを可視とする。
+// �|�[�^��/���[���P�ʂ̃I�N���[�W�����J�����O�B�t���X�^���J�����O�������ƁA������ɂ�
+// �����Ă��邪�ǂɉB��Č����Ȃ��͂��̕����܂ŕ`���Ă��܂��i��: �Ƃ̊O���猩�����A
+// ���Α��̕������������́u�����Ă���v�����ɂȂ�j�B����͂��̏�ɂ���1�i�t�B���^��
+// �d�˂���̂ŁA�J�����������镔���̃��b�V���A�܂��͊J���Ă���h�A�o�R�ŒH��镔����
+// ���b�V�����������Ƃ���B
 //
-// NavMesh用に既に配置されているRoomArea（GameSequence::GetRooms()）をそのまま流用する
-// ので、レベル側の追加作業は不要。部屋同士の隣接関係は、AABBが壁を共有できるくらい
-// 近いかどうかで一度だけ推定する。各隣接エッジは、位置ベースで"Door..."という名前の
-// アニメーションを持つドア（Playerの TryInteractDoor が使っているのと同じ検出方法）と
-// 突き合わせる。該当するドアが見つかればその開閉状態（RuntimeAnimationData::ProgressTime）
-// で可視性を制御し、ドアが見つからないエッジ（開いた通路など）は常に通行可能扱いにする。
+// NavMesh�p�Ɋ��ɔz�u����Ă���RoomArea�iGameSequence::GetRooms()�j�����̂܂ܗ��p����
+// �̂ŁA���x�����̒ǉ���Ƃ͕s�v�B�������m�̗אڊ֌W�́AAABB���ǂ����L�ł��邭�炢
+// �߂����ǂ����ň�x�������肷��B�e�אڃG�b�W�́A�ʒu�x�[�X��"Door..."�Ƃ������O��
+// �A�j���[�V���������h�A�iPlayer�� TryInteractDoor ���g���Ă���̂Ɠ������o���@�j��
+// �˂����킹��B�Y������h�A��������΂��̊J��ԁiRuntimeAnimationData::ProgressTime�j
+// �ŉ����𐧌䂵�A�h�A��������Ȃ��G�b�W�i�J�����ʘH�Ȃǁj�͏�ɒʍs�\�����ɂ���B
 class RoomVisibilityManager
 {
 public:
     static RoomVisibilityManager& Instance();
 
-    // RenderSceneごとに1回（メッシュごとではなく）カメラのワールド座標を渡して呼ぶ。
-    // カメラが今どの部屋にいるかを判定し、可視部屋の集合を更新する。
+    // RenderScene���Ƃ�1��i���b�V�����Ƃł͂Ȃ��j�J�����̃��[���h���W��n���ČĂԁB
+    // �J���������ǂ̕����ɂ��邩�𔻒肵�A�������̏W�����X�V����B
     void UpdateVisibleRooms(const Math::Vector3& viewerPos);
 
-    // pMesh（ノード/エンティティはmeshWorldTransformの位置）が、現在可視な部屋に属しているか。
-    // メッシュは、そのワールド空間AABBが重なっている部屋「すべて」に割り当てる（中心点を
-    // 含む部屋1つだけではない）。そうしないと、窓や壁のパネルのように2部屋にまたがる境界
-    // ジオメトリが、たまたま勝った方の部屋に固定されてしまい、すぐ隣に立っているのに
-    // 消えてしまうことがある。この判定は一度だけ行いキャッシュするので、静的なジオメトリ
-    // にのみ呼び出すこと（動くものについては ModelData::IsNodeAnimated を参照）。
-    // どの部屋にも重ならないメッシュ（部屋データが全く無い場合や、視点がどの部屋にも
-    // 入っていない場合も含む）はここではカリングされず、呼び出し側のフラスタム判定にのみ従う。
+    // pMesh�i�m�[�h/�G���e�B�e�B��meshWorldTransform�̈ʒu�j���A���݉��ȕ����ɑ����Ă��邩�B
+    // ���b�V���́A���̃��[���h���AABB���d�Ȃ��Ă��镔���u���ׂāv�Ɋ��蓖�Ă�i���S�_��
+    // �܂ޕ���1�����ł͂Ȃ��j�B�������Ȃ��ƁA����ǂ̃p�l���̂悤��2�����ɂ܂����鋫�E
+    // �W�I���g�����A���܂��܏��������̕����ɌŒ肳��Ă��܂��A�����ׂɗ����Ă���̂�
+    // �����Ă��܂����Ƃ�����B���̔���͈�x�����s���L���b�V������̂ŁA�ÓI�ȃW�I���g��
+    // �ɂ̂݌Ăяo�����Ɓi�������̂ɂ��Ă� ModelData::IsNodeAnimated ���Q�Ɓj�B
+    // �ǂ̕����ɂ��d�Ȃ�Ȃ����b�V���i�����f�[�^���S�������ꍇ��A���_���ǂ̕����ɂ�
+    // �����Ă��Ȃ��ꍇ���܂ށj�͂����ł̓J�����O���ꂸ�A�Ăяo�����̃t���X�^������ɂ̂ݏ]���B
     bool IsMeshInVisibleRoom(Mesh* pMesh, const Math::Matrix& meshWorldTransform);
 
 private:
@@ -55,11 +55,11 @@ private:
     static uint64_t EdgeKey(int a, int b);
 
     std::vector<RoomArea*> m_rooms;
-    std::vector<DirectX::BoundingBox> m_paddedRoomBoxes;           // 外側にパディングした部屋のAABB - 隣接判定/ドア突き合わせ/メッシュ割り当てで共有
-    std::vector<std::vector<int>> m_adjacency;                     // 部屋インデックス -> 隣接する部屋インデックスのリスト
-    std::unordered_map<uint64_t, DoorLink> m_edgeDoors;            // EdgeKey(i,j) -> ドア（該当するドアが見つかったエッジのみ）
-    std::unordered_map<Mesh*, std::vector<int>> m_meshRoomIndices; // 空 = どの部屋にも割り当てられなかった
+    std::vector<DirectX::BoundingBox> m_paddedRoomBoxes;           // �O���Ƀp�f�B���O����������AABB - �אڔ���/�h�A�˂����킹/���b�V�����蓖�Ăŋ��L
+    std::vector<std::vector<int>> m_adjacency;                     // �����C���f�b�N�X -> �אڂ��镔���C���f�b�N�X�̃��X�g
+    std::unordered_map<uint64_t, DoorLink> m_edgeDoors;            // EdgeKey(i,j) -> �h�A�i�Y������h�A�����������G�b�W�̂݁j
+    std::unordered_map<Mesh*, std::vector<int>> m_meshRoomIndices; // �� = �ǂ̕����ɂ����蓖�Ă��Ȃ�����
     std::unordered_set<int> m_visibleRoomIndices;
     bool m_graphBuilt = false;
-    bool m_allVisible = true; // UpdateVisibleRoomsがカメラを既知の部屋の中に見つけるまではtrue
+    bool m_allVisible = true; // UpdateVisibleRooms���J���������m�̕����̒��Ɍ�����܂ł�true
 };

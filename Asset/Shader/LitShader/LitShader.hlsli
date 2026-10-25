@@ -1,7 +1,7 @@
 #include "../Common/ShaderCore.hlsli"
 #include "../Common/inc_PBRCommon.hlsli"
 
-// 16ã‚µãƒ³ãƒ—ãƒ«ã® Poisson Disk
+// 16ƒTƒ“ƒvƒ‹‚Ì Poisson Disk
 static const float2 g_poissonDisk16[16] = {
     float2(-0.94201624, -0.39906216),
     float2(0.94558609, -0.76890725),
@@ -20,7 +20,7 @@ static const float2 g_poissonDisk16[16] = {
     float2(0.19984126, 0.78641367),
     float2(0.14383161, -0.14100790)};
 
-// ã‚¤ãƒ³ã‚¿ãƒ¼ãƒªãƒ¼ãƒ–ãƒ‰ãƒ»ã‚°ãƒ©ãƒ‡ã‚£ã‚¨ãƒ³ãƒˆãƒ»ãƒã‚¤ã‚º
+// ƒCƒ“ƒ^[ƒŠ[ƒuƒhEƒOƒ‰ƒfƒBƒGƒ“ƒgEƒmƒCƒY
 float InterleavedGradientNoise(float2 screenPos)
 {
     float3 magic = float3(0.06711056f, 0.00583715f, 52.9829189f);
@@ -29,7 +29,7 @@ float InterleavedGradientNoise(float2 screenPos)
 
 //================================
 //
-// ãƒãƒ†ãƒªã‚¢ãƒ«
+// ƒ}ƒeƒŠƒAƒ‹
 //
 //================================
 cbuffer cbPerMaterial : register(b2)
@@ -43,24 +43,24 @@ cbuffer cbPerMaterial : register(b2)
     float3 g_emissiveFactor;
     int g_alphaMode;        // 0:Opaque, 1:Mask, 2:Blend
     int g_proceduralType;   // 0:None, 1:Blood, 2:Cobweb, 3:Glass, 4:Dissolve
-    float g_dissolveAmount; // Dissolveç”¨: 0=é€šå¸¸è¡¨ç¤º, 1=å®Œå…¨ã«æ¶ˆæ»…
-    int g_reflectionSlot;   // ã“ã®ãƒ¡ãƒƒã‚·ãƒ¥ãŒä½¿ã†åå°„ã‚¹ãƒ­ãƒƒãƒˆ(0ã€œ2)ã€‚-1ãªã‚‰SSRãƒ•ã‚©ãƒ¼ãƒ«ãƒãƒƒã‚¯
+    float g_dissolveAmount; // Dissolve—p: 0=’Êí•\¦, 1=Š®‘S‚ÉÁ–Å
+    int g_reflectionSlot;   // ‚±‚ÌƒƒbƒVƒ…‚ªg‚¤”½ËƒXƒƒbƒg(0`2)B-1‚È‚çSSRƒtƒH[ƒ‹ƒoƒbƒN
 };
 
-// ãƒ†ã‚¯ã‚¹ãƒãƒ£
-Texture2D g_baseMap_white : register(t0);              // ãƒ™ãƒ¼ã‚¹ã‚«ãƒ©ãƒ¼ãƒ†ã‚¯ã‚¹ãƒãƒ£
-Texture2D g_normalMap_normal : register(t1);           // æ³•ç·šãƒãƒƒãƒ—
+// ƒeƒNƒXƒ`ƒƒ
+Texture2D g_baseMap_white : register(t0);              // ƒx[ƒXƒJƒ‰[ƒeƒNƒXƒ`ƒƒ
+Texture2D g_normalMap_normal : register(t1);           // –@üƒ}ƒbƒv
 Texture2D g_metallicRoughnessMap_white : register(t2); // GLTF: G=Roughness, B=Metallic
-Texture2D g_emissiveMap_white : register(t3);          // ç™ºå…‰ãƒãƒƒãƒ—
-Texture2D g_occlusionMap_white : register(t4);         // ã‚ªã‚¯ãƒ«ãƒ¼ã‚¸ãƒ§ãƒ³ãƒãƒƒãƒ— (GLTF: R=Occlusion)
+Texture2D g_emissiveMap_white : register(t3);          // ”­Œõƒ}ƒbƒv
+Texture2D g_occlusionMap_white : register(t4);         // ƒIƒNƒ‹[ƒWƒ‡ƒ“ƒ}ƒbƒv (GLTF: R=Occlusion)
 
-Texture2D g_opaqueDepth : register(t9);    // Opaqueãƒ‘ã‚¹ã§æ›¸ãè¾¼ã¾ã‚ŒãŸæ·±åº¦ãƒãƒƒãƒ•ã‚¡
-Texture2D g_refractionMap : register(t10); // Opaqueãƒ‘ã‚¹ã®ã‚«ãƒ©ãƒ¼çµæœï¼ˆå±ˆæŠ˜ç”¨ï¼‰
-// å¹³é¢åå°„ãƒ‘ã‚¹ã®ã‚«ãƒ©ãƒ¼çµæœã€‚æœ€å¤§3æš(3çª“)ã¾ã§åŒæ™‚ã«ã‚¢ã‚¯ãƒ†ã‚£ãƒ–ã«ã§ãã‚‹ - å„ãƒ¡ãƒƒã‚·ãƒ¥ãŒ
-// cbPerMaterial.g_reflectionSlotã§ã©ã‚Œã‚’ä½¿ã†ã‹æŒ‡å®šã™ã‚‹(-1ãªã‚‰ã©ã‚Œã‚‚ä½¿ã‚ãšSSRãƒ•ã‚©ãƒ¼ãƒ«ãƒãƒƒã‚¯)ã€‚
+Texture2D g_opaqueDepth : register(t9);    // OpaqueƒpƒX‚Å‘‚«‚Ü‚ê‚½[“xƒoƒbƒtƒ@
+Texture2D g_refractionMap : register(t10); // OpaqueƒpƒX‚ÌƒJƒ‰[Œ‹‰Êi‹üÜ—pj
+// •½–Ê”½ËƒpƒX‚ÌƒJƒ‰[Œ‹‰ÊBÅ‘å3–‡(3‘‹)‚Ü‚Å“¯‚ÉƒAƒNƒeƒBƒu‚É‚Å‚«‚é - ŠeƒƒbƒVƒ…‚ª
+// cbPerMaterial.g_reflectionSlot‚Å‚Ç‚ê‚ğg‚¤‚©w’è‚·‚é(-1‚È‚ç‚Ç‚ê‚àg‚í‚¸SSRƒtƒH[ƒ‹ƒoƒbƒN)B
 Texture2D g_planarReflectionMap0 : register(t11);
-Texture2D g_ssaoMap : register(t12); // SSAOçµæœ(ç”»é¢ç©ºé–“ã€ç’°å¢ƒå…‰ã«æ›ã‘ã‚‹)
-// æœ€ã‚‚è¿‘ã„ãƒã‚¤ãƒ³ãƒˆãƒ©ã‚¤ãƒˆã®6é¢ã‚­ãƒ¥ãƒ¼ãƒ–ã‚·ãƒ£ãƒ‰ã‚¦(TextureCubeã§ã¯ãªãTexture2DÃ—6ã®ç°¡æ˜“å®Ÿè£…)ã€‚
+Texture2D g_ssaoMap : register(t12); // SSAOŒ‹‰Ê(‰æ–Ê‹óŠÔAŠÂ‹«Œõ‚ÉŠ|‚¯‚é)
+// Å‚à‹ß‚¢ƒ|ƒCƒ“ƒgƒ‰ƒCƒg‚Ì6–ÊƒLƒ…[ƒuƒVƒƒƒhƒE(TextureCube‚Å‚Í‚È‚­Texture2D~6‚ÌŠÈˆÕÀ‘•)B
 // face: 0=+X,1=-X,2=+Y,3=-Y,4=+Z,5=-Z
 Texture2D g_pointLightShadowMapFace0 : register(t13);
 Texture2D g_pointLightShadowMapFace1 : register(t14);
@@ -72,34 +72,34 @@ Texture2D g_planarReflectionMap1 : register(t19);
 Texture2D g_planarReflectionMap2 : register(t20);
 
 //========================================================
-// é€šå¸¸æç”»ç”¨æ§‹é€ ä½“
+// ’Êí•`‰æ—p\‘¢‘Ì
 //========================================================
 
-// é ‚ç‚¹ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‹ã‚‰å‡ºåŠ›ã™ã‚‹ãƒ‡ãƒ¼ã‚¿
+// ’¸“_ƒVƒF[ƒ_[‚©‚ço—Í‚·‚éƒf[ƒ^
 struct VSOutput
 {
-    float4 Pos : SV_Position; // å°„å½±åº§æ¨™
-    float2 UV : TEXCOORD0;    // UVåº§æ¨™
-    float3 wT : TEXCOORD1;    // ãƒ¯ãƒ¼ãƒ«ãƒ‰æ¥ç·š
-    float3 wB : TEXCOORD2;    // ãƒ¯ãƒ¼ãƒ«ãƒ‰å¾“æ³•ç·š
-    float3 wN : TEXCOORD3;    // ãƒ¯ãƒ¼ãƒ«ãƒ‰æ³•ç·š
-    float3 wPos : TEXCOORD5;  // ãƒ¯ãƒ¼ãƒ«ãƒ‰åº§æ¨™
+    float4 Pos : SV_Position; // Ë‰eÀ•W
+    float2 UV : TEXCOORD0;    // UVÀ•W
+    float3 wT : TEXCOORD1;    // ƒ[ƒ‹ƒhÚü
+    float3 wB : TEXCOORD2;    // ƒ[ƒ‹ƒh]–@ü
+    float3 wN : TEXCOORD3;    // ƒ[ƒ‹ƒh–@ü
+    float3 wPos : TEXCOORD5;  // ƒ[ƒ‹ƒhÀ•W
 };
 
-// ãƒ”ã‚¯ã‚»ãƒ«ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‹ã‚‰å‡ºåŠ›ã™ã‚‹ãƒ‡ãƒ¼ã‚¿
+// ƒsƒNƒZƒ‹ƒVƒF[ƒ_[‚©‚ço—Í‚·‚éƒf[ƒ^
 struct PSOutput
 {
     float4 color : SV_Target0;
 };
 
 //========================================================
-// ã‚·ãƒ£ãƒ‰ã‚¦ãƒãƒƒãƒ—ç”Ÿæˆç”¨æ§‹é€ ä½“
+// ƒVƒƒƒhƒEƒ}ƒbƒv¶¬—p\‘¢‘Ì
 //========================================================
 
-// é ‚ç‚¹ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‹ã‚‰å‡ºåŠ›ã™ã‚‹ãƒ‡ãƒ¼ã‚¿
+// ’¸“_ƒVƒF[ƒ_[‚©‚ço—Í‚·‚éƒf[ƒ^
 struct ShadowCasterVSOutput
 {
-    float4 Pos : SV_Position; // å°„å½±åº§æ¨™
-    float2 UV : TEXCOORD0;    // UVåº§æ¨™
+    float4 Pos : SV_Position; // Ë‰eÀ•W
+    float2 UV : TEXCOORD0;    // UVÀ•W
     float4 wvpPos : TEXCOORD1;
 };

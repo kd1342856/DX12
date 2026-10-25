@@ -1,12 +1,12 @@
 #include "../Common/ShaderCore.hlsli"
 
-// 1ç²’ = ã‚«ãƒ¡ãƒ©ã‚’å‘ã„ãŸå››è§’å½¢(2ä¸‰è§’å½¢ãƒ»6é ‚ç‚¹)ã€‚é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã¯ä½¿ã‚ãšã€SV_VertexIDã‹ã‚‰
-// ä½•ç•ªç›®ã®ç²’ã®ã©ã®è§’ã‹ã‚’æ±‚ã‚ã‚‹ã€‚ç²’ã®ãƒ‡ãƒ¼ã‚¿ã¯C++å´(ParticleShader::Draw)ãŒå®šæ•°ãƒãƒƒãƒ•ã‚¡ã§é€ã‚‹ã€‚
+// 1—± = ƒJƒƒ‰‚ğŒü‚¢‚½lŠpŒ`(2OŠpŒ`E6’¸“_)B’¸“_ƒoƒbƒtƒ@‚Íg‚í‚¸ASV_VertexID‚©‚ç
+// ‰½”Ô–Ú‚Ì—±‚Ì‚Ç‚ÌŠp‚©‚ğ‹‚ß‚éB—±‚Ìƒf[ƒ^‚ÍC++‘¤(ParticleShader::Draw)‚ª’è”ƒoƒbƒtƒ@‚Å‘—‚éB
 struct ParticleInstance
 {
-    float3 Pos;   // ãƒ¯ãƒ¼ãƒ«ãƒ‰åº§æ¨™(ä¸­å¿ƒ)
-    float Size;   // åŠå¾„(m)
-    float4 Color; // rgb: HDRã®è‰²(Bloomã«ä¹—ã‚‹), a: ä¸é€æ˜åº¦
+    float3 Pos;   // ƒ[ƒ‹ƒhÀ•W(’†S)
+    float Size;   // ”¼Œa(m)
+    float4 Color; // rgb: HDR‚ÌF(Bloom‚Éæ‚é), a: •s“§–¾“x
 };
 
 cbuffer cbParticles : register(b2)
@@ -17,7 +17,7 @@ cbuffer cbParticles : register(b2)
 struct VSOutput
 {
     float4 Pos : SV_Position;
-    float2 UV : TEXCOORD0; // -1..1 (ä¸­å¿ƒãŒ0)
+    float2 UV : TEXCOORD0; // -1..1 (’†S‚ª0)
     float4 Color : COLOR0;
 };
 
@@ -36,7 +36,7 @@ VSOutput main(uint vI : SV_VertexID)
     ParticleInstance p = g_Particles[vI / 6];
     float2 corner = kCorners[vI % 6];
 
-    // ãƒ“ãƒ¥ãƒ¼ç©ºé–“ã§XYã«åºƒã’ã‚‹ã ã‘ã§å¸¸ã«ã‚«ãƒ¡ãƒ©ã®æ–¹ã‚’å‘ã
+    // ƒrƒ…[‹óŠÔ‚ÅXY‚ÉL‚°‚é‚¾‚¯‚Åí‚ÉƒJƒƒ‰‚Ì•û‚ğŒü‚­
     float4 viewPos = mul(float4(p.Pos, 1.0f), g_mV);
     viewPos.xy += corner * p.Size;
 

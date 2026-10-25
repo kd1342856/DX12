@@ -1,6 +1,6 @@
 #include "../Common/ShaderCore.hlsli"
 
-// SSAOå°‚ç”¨ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ (b0=ã‚«ãƒ¡ãƒ©, b1=PerDrawã¯ShaderCore.hlsliã§ä½¿ç”¨æ¸ˆã¿ã®ãŸã‚b2ã‚’ä½¿ã†)
+// SSAOê—pƒpƒ‰ƒ[ƒ^ (b0=ƒJƒƒ‰, b1=PerDraw‚ÍShaderCore.hlsli‚Åg—pÏ‚İ‚Ì‚½‚ßb2‚ğg‚¤)
 cbuffer cbSSAO : register(b2)
 {
     float g_SSAORadius;
@@ -9,9 +9,9 @@ cbuffer cbSSAO : register(b2)
     float g_SSAOIntensity;
 };
 
-Texture2D g_texNormal : register(t0); // NormalPrepassã®ãƒ“ãƒ¥ãƒ¼ç©ºé–“æ³•ç·š(0..1ã«ãƒ‘ãƒƒã‚¯æ¸ˆã¿)
-Texture2D g_texDepth : register(t1);  // NormalPrepassã®æ·±åº¦(ã“ã®RTè‡ªèº«ã®å°‚ç”¨DepthBuffer)
-// ã‚µãƒ³ãƒ—ãƒ©ãƒ¼ã¯ShaderCore.hlsliã®g_ss_point_clamp(s5)ã‚’å†åˆ©ç”¨ã™ã‚‹
+Texture2D g_texNormal : register(t0); // NormalPrepass‚Ìƒrƒ…[‹óŠÔ–@ü(0..1‚ÉƒpƒbƒNÏ‚İ)
+Texture2D g_texDepth : register(t1);  // NormalPrepass‚Ì[“x(‚±‚ÌRT©g‚Ìê—pDepthBuffer)
+// ƒTƒ“ƒvƒ‰[‚ÍShaderCore.hlsli‚Ìg_ss_point_clamp(s5)‚ğÄ—˜—p‚·‚é
 
 struct PSInput
 {
@@ -19,8 +19,8 @@ struct PSInput
     float2 UV : TEXCOORD0;
 };
 
-// 12æ–¹å‘ã®åŠçƒã‚µãƒ³ãƒ—ãƒ«ã‚«ãƒ¼ãƒãƒ«(ã‚ã‚‰ã‹ã˜ã‚æ­£è¦åŒ–ãƒ»ãƒ©ãƒ³ãƒ€ãƒ ãªé•·ã•ã§åˆ†å¸ƒã•ã›ãŸã‚‚ã®)ã€‚
-// ãƒ©ãƒ³ã‚¿ã‚¤ãƒ ã§ä¹±æ•°ç”Ÿæˆã™ã‚‹ä»£ã‚ã‚Šã«ã€æ±ºã‚æ‰“ã¡ã®æ–¹å‘ã‚»ãƒƒãƒˆã‚’ä½¿ã†è»½é‡ç‰ˆSSAOã€‚
+// 12•ûŒü‚Ì”¼‹…ƒTƒ“ƒvƒ‹ƒJ[ƒlƒ‹(‚ ‚ç‚©‚¶‚ß³‹K‰»Eƒ‰ƒ“ƒ_ƒ€‚È’·‚³‚Å•ª•z‚³‚¹‚½‚à‚Ì)B
+// ƒ‰ƒ“ƒ^ƒCƒ€‚Å—”¶¬‚·‚é‘ã‚í‚è‚ÉAŒˆ‚ß‘Å‚¿‚Ì•ûŒüƒZƒbƒg‚ğg‚¤Œy—Ê”ÅSSAOB
 static const float3 kKernel[12] =
     {
         float3(0.070, 0.045, 0.045),
@@ -45,7 +45,7 @@ float3 ViewPosFromDepth(float2 uv, float depth)
     return viewPos.xyz / viewPos.w;
 }
 
-// ãƒ”ã‚¯ã‚»ãƒ«ã”ã¨ã«å‘ãã‚’å¤‰ãˆã‚‹ãŸã‚ã®ç°¡æ˜“ãƒãƒƒã‚·ãƒ¥å›è»¢(ãƒã‚¤ã‚ºãƒ†ã‚¯ã‚¹ãƒãƒ£ä¸è¦ç‰ˆ)
+// ƒsƒNƒZƒ‹‚²‚Æ‚ÉŒü‚«‚ğ•Ï‚¦‚é‚½‚ß‚ÌŠÈˆÕƒnƒbƒVƒ…‰ñ“](ƒmƒCƒYƒeƒNƒXƒ`ƒƒ•s—v”Å)
 float3 RandomRotation(float2 screenPos)
 {
     float a = frac(sin(dot(screenPos, float2(12.9898, 78.233))) * 43758.5453) * 6.28318530718;
@@ -57,7 +57,7 @@ float4 main(PSInput In) : SV_Target0
     float depth = g_texDepth.Sample(g_ss_point_clamp, In.UV).r;
     if (depth >= 0.9999)
     {
-        return float4(1, 1, 1, 1); // farå¹³é¢(ä½•ã‚‚ç„¡ã„æ‰€)ã¯é®è”½ãªã—
+        return float4(1, 1, 1, 1); // far•½–Ê(‰½‚à–³‚¢Š)‚ÍÕ•Á‚È‚µ
     }
 
     float3 viewPos = ViewPosFromDepth(In.UV, depth);
@@ -87,9 +87,9 @@ float4 main(PSInput In) : SV_Target0
         float3 sampleViewPos = ViewPosFromDepth(sampleUV, sampleDepthNdc);
 
         float rangeCheck = saturate(g_SSAORadius / max(abs(viewPos.z - sampleViewPos.z), 0.0001));
-        // å·¦æ‰‹ç³»: è¦–ç‚¹ã‹ã‚‰ã®è·é›¢ã¯ZãŒå¤§ãã„ã»ã©é ã„ã€‚å®Ÿéš›ã®è¡¨é¢(sampleViewPos.z)ãŒ
-        // ç†è«–ä¸Šã®ã‚µãƒ³ãƒ—ãƒ«ç‚¹(samplePos.z)ã‚ˆã‚Šæ‰‹å‰(å€¤ãŒå°ã•ã„)ã«ã‚ã‚Œã°ã€ãã®é–“ã«
-        // é®è”½ç‰©ãŒã‚ã‚‹ã¨ã„ã†ã“ã¨ã€‚
+        // ¶èŒn: ‹“_‚©‚ç‚Ì‹——£‚ÍZ‚ª‘å‚«‚¢‚Ù‚Ç‰“‚¢BÀÛ‚Ì•\–Ê(sampleViewPos.z)‚ª
+        // —˜_ã‚ÌƒTƒ“ƒvƒ‹“_(samplePos.z)‚æ‚èè‘O(’l‚ª¬‚³‚¢)‚É‚ ‚ê‚ÎA‚»‚ÌŠÔ‚É
+        // Õ•Á•¨‚ª‚ ‚é‚Æ‚¢‚¤‚±‚ÆB
         occlusion += (sampleViewPos.z <= samplePos.z - g_SSAOBias ? 1.0 : 0.0) * rangeCheck;
     }
 

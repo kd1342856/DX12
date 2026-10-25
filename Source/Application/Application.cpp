@@ -1,4 +1,4 @@
-ï»¿#include "../Pch.h"
+#include "../Pch.h"
 
 #include "../Framework/DirectX/Utility/ClassAssembly.h"
 
@@ -13,7 +13,7 @@
 #include "../Framework/System/JobSystem/JobSystem.h"
 #include "../Framework/DirectX/Utility/Profiler.h"
 
-// ImGui ã® Win32 ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒãƒ³ãƒ‰ãƒ©ã¸è»¢é€ã™ã‚‹
+// ImGui ‚Ì Win32 ƒƒbƒZ[ƒWƒnƒ“ƒhƒ‰‚Ö“]‘—‚·‚é
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 #include "../Framework/DirectX/Utility/Thread.h"
 
@@ -23,7 +23,7 @@ void my_terminate_handler()
     ofs << "std::terminate was called! Unhandled exception!\n";
     try
     {
-        throw; // å†ã‚¹ãƒ­ãƒ¼ã—ã¦ä¾‹å¤–ã®å‹ã‚’ç‰¹å®šã™ã‚‹
+        throw; // ÄƒXƒ[‚µ‚Ä—áŠO‚ÌŒ^‚ğ“Á’è‚·‚é
     }
     catch (const std::exception& e)
     {
@@ -81,7 +81,7 @@ void Application::Execute()
 
     // AudioManager
     AudioManager::Instance().Init();
-    // æ›²ã”ã¨ã®éŸ³é‡ã‚’Sound Managerã«è¡¨ç¤ºã™ã‚‹ãŸã‚ã€èµ·å‹•ã‚·ãƒ¼ãƒ³ã«é–¢ä¿‚ãªãæœ€åˆã«ç™»éŒ²ã—ã¦ãŠã
+    // ‹È‚²‚Æ‚Ì‰¹—Ê‚ğSound Manager‚É•\¦‚·‚é‚½‚ßA‹N“®ƒV[ƒ“‚ÉŠÖŒW‚È‚­Å‰‚É“o˜^‚µ‚Ä‚¨‚­
     AudioManager::Instance().RegisterBGMTrack(TitleScene::kBGMPath, "TitleBGM", TitleScene::kBGMDefaultVolume);
 
     // GameManager
@@ -95,7 +95,7 @@ void Application::Execute()
         SceneManager::Instance().GetCurrentScene()->Init();
     }
 
-    // ã‚²ãƒ¼ãƒ ãƒ«ãƒ¼ãƒ—
+    // ƒQ[ƒ€ƒ‹[ƒv
     while (true)
     {
         if (!m_window.ProcessMessage())
@@ -124,9 +124,9 @@ void Application::Execute()
         }
 
         {
-            // SceneManager::Update()ã¯ç¾åœ¨ã®ã‚·ãƒ¼ãƒ³ã®Render()ã‚‚å®Ÿè¡Œã—ã¦ãŠã‚Šã€ãã¡ã‚‰ã¯
-            // æ—¢ã«ã‚‚ã£ã¨ç´°ã‹ã„ã‚¹ã‚³ãƒ¼ãƒ—(Shadow/Scene/PostProcessç­‰)ã‚’æŒã£ã¦ã„ã‚‹ - ã“ã‚Œã¯
-            // ãã®å¡Šå…¨ä½“(ã‚²ãƒ¼ãƒ å´ã®Update+Render)ãŒãƒ•ãƒ¬ãƒ¼ãƒ ã®ã©ã‚Œãã‚‰ã„ã‚’å ã‚ã‚‹ã‹ã‚’ç¤ºã™ã ã‘ã€‚
+            // SceneManager::Update()‚ÍŒ»İ‚ÌƒV[ƒ“‚ÌRender()‚àÀs‚µ‚Ä‚¨‚èA‚»‚¿‚ç‚Í
+            // Šù‚É‚à‚Á‚Æ×‚©‚¢ƒXƒR[ƒv(Shadow/Scene/PostProcess“™)‚ğ‚Á‚Ä‚¢‚é - ‚±‚ê‚Í
+            // ‚»‚Ì‰ò‘S‘Ì(ƒQ[ƒ€‘¤‚ÌUpdate+Render)‚ªƒtƒŒ[ƒ€‚Ì‚Ç‚ê‚­‚ç‚¢‚ğè‚ß‚é‚©‚ğ¦‚·‚¾‚¯B
             PROFILE_CPU_SCOPE("SceneManager::Update");
             SceneManager::Instance().Update();
         }

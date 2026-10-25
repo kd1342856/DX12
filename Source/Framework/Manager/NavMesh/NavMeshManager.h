@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 struct rcHeightfield;
 struct rcCompactHeightfield;
@@ -43,9 +43,9 @@ public:
 
     bool BuildManualNavMesh(const std::vector<RoomArea*>& rooms);
 
-    // 家のモデル("Stage"とその子)のメッシュが全部使える状態か。BuildManualNavMeshは、部屋同士の
-    // つながりを実際の開口部(ドア・通路)だけに絞るのにStageへのレイキャストとドアの位置を使うので、
-    // これがtrueになってから作るのが望ましい(falseの時は開口部の判定なしで壁の全長をつなぐ)。
+    // �Ƃ̃��f��("Stage"�Ƃ��̎q)�̃��b�V�����S���g�����Ԃ��BBuildManualNavMesh�́A�������m��
+    // �Ȃ�������ۂ̊J����(�h�A�E�ʘH)�����ɍi��̂�Stage�ւ̃��C�L���X�g�ƃh�A�̈ʒu���g���̂ŁA
+    // ���ꂪtrue�ɂȂ��Ă�����̂��]�܂���(false�̎��͊J�����̔���Ȃ��ŕǂ̑S�����Ȃ�)�B
     static bool IsStageCollisionReady();
 
     bool IsBuilt() const
@@ -114,10 +114,10 @@ public:
     // GetMoveDirection), for debug visualization. Returns nullptr if there's no cache entry yet.
     const std::vector<Math::Vector3>* GetCachedPath(int entityID) const;
 
-    // MoveTowardがバックグラウンドでの経路再計算(JobSystem)を何回開始したか、プロセス
-    // 生存期間中の合計。このNavMeshは小さいのでfindPathは1フレームより十分速く終わって
-    // しまい、Statisticsウィンドウの「Active Jobs」が1になる瞬間を目で追うのは難しい -
-    // このカウンタは非同期パスが実際に動いているかを確実に確認する手段。
+    // MoveToward���o�b�N�O���E���h�ł̌o�H�Čv�Z(JobSystem)������J�n�������A�v���Z�X
+    // �������Ԓ��̍��v�B����NavMesh�͏������̂�findPath��1�t���[�����\�������I�����
+    // ���܂��AStatistics�E�B���h�E�́uActive Jobs�v��1�ɂȂ�u�Ԃ�ڂŒǂ��͓̂�� -
+    // ���̃J�E���^�͔񓯊��p�X�����ۂɓ����Ă��邩���m���Ɋm�F�����i�B
     int GetAsyncRecomputeCount() const
     {
         return m_asyncRecomputeCount.load();
@@ -132,11 +132,11 @@ private:
     bool m_debugDrawEnabled = false;
     std::vector<std::vector<Math::Vector3>> m_manualPolygons;
 
-    // あるエンティティのバックグラウンド経路再計算(MoveToward参照)が実行中の間だけ使う
-    // 共有ステージング領域。PathCache/m_pathCache自体の寿命とは独立して、shared_ptrで
-    // 生かし続ける。そのため、ジョブがまだ実行中の間にそのエンティティのキャッシュ
-    // エントリが消えても(ClearPath、エンティティ破棄等)、JobSystemのワーカーは常に安全に
-    // 書き込める - 結果が誰にも回収されず捨てられるだけで、解放済みメモリに触れることはない。
+    // ����G���e�B�e�B�̃o�b�N�O���E���h�o�H�Čv�Z(MoveToward�Q��)�����s���̊Ԃ����g��
+    // ���L�X�e�[�W���O�̈�BPathCache/m_pathCache���̂̎����Ƃ͓Ɨ����āAshared_ptr��
+    // ������������B���̂��߁A�W���u���܂����s���̊Ԃɂ��̃G���e�B�e�B�̃L���b�V��
+    // �G���g���������Ă�(ClearPath�A�G���e�B�e�B�j����)�AJobSystem�̃��[�J�[�͏�Ɉ��S��
+    // �������߂� - ���ʂ��N�ɂ�������ꂸ�̂Ă��邾���ŁA����ς݃������ɐG��邱�Ƃ͂Ȃ��B
     struct AsyncPathResult
     {
         std::mutex mutex;
@@ -151,18 +151,18 @@ private:
         Math::Vector3 lastTarget = {0, 0, 0};
         bool hasTarget = false;
 
-        // 非同期再計算の状態 - MoveToward参照。初回使用時に遅延生成される。
+        // �񓯊��Čv�Z�̏�� - MoveToward�Q�ƁB����g�p���ɒx�����������B
         std::shared_ptr<std::atomic<bool>> computing;
         std::shared_ptr<AsyncPathResult> pending;
     };
     std::unordered_map<int, PathCache> m_pathCache;
 
-    // 全てのdtNavMeshQuery呼び出しを保護する(findNearestPoly/findPath/findStraightPathは
-    // どれもクエリオブジェクトの内部作業バッファを書き換えるため、同じdtNavMeshQueryに
-    // 複数スレッドから同時に呼び込むのは安全ではない)。FindPath()は今やJobSystemの
-    // ワーカースレッドで実行される(MoveToward参照)一方、IsReachable()等は引き続き
-    // メインスレッドから同時に呼ばれ得る - これによって、2つ目のクエリオブジェクトを
-    // 持たなくても安全にしている。
+    // �S�Ă�dtNavMeshQuery�Ăяo����ی삷��(findNearestPoly/findPath/findStraightPath��
+    // �ǂ���N�G���I�u�W�F�N�g�̓�����ƃo�b�t�@�����������邽�߁A����dtNavMeshQuery��
+    // �����X���b�h���瓯���ɌĂэ��ނ͈̂��S�ł͂Ȃ�)�BFindPath()�͍���JobSystem��
+    // ���[�J�[�X���b�h�Ŏ��s�����(MoveToward�Q��)����AIsReachable()���͈�������
+    // ���C���X���b�h���瓯���ɌĂ΂꓾�� - ����ɂ���āA2�ڂ̃N�G���I�u�W�F�N�g��
+    // �����Ȃ��Ă����S�ɂ��Ă���B
     std::mutex m_navQueryMutex;
 
     std::atomic<int> m_asyncRecomputeCount{0};
@@ -179,7 +179,7 @@ private:
 
     void CleanupRecast();
 
-    // 非同期で届いた経路の、既に通り過ぎた先頭ウェイポイントを捨てる(MoveToward参照)
+    // �񓯊��œ͂����o�H�́A���ɒʂ�߂����擪�E�F�C�|�C���g���̂Ă�(MoveToward�Q��)
     static void DropPassedWaypoints(std::vector<Math::Vector3>& waypoints, const Math::Vector3& current);
 
     Math::Vector3 AdvanceAlongPath(

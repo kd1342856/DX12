@@ -1,4 +1,4 @@
-ï»¿#include "../../../../Pch.h"
+#include "../../../../Pch.h"
 #include "ReflectionComponent.h"
 #include "../../../../Framework/ImGuiEditor/Editor/Editor.h"
 #include "../../../../Framework/Manager/GameManager.h"
@@ -113,18 +113,18 @@ void ReflectionComponent::ImGuiUpdate()
     if (ImGui::IsItemHovered())
     {
         ImGui::SetTooltip(
-            u8"ONã«ã™ã‚‹ã¨ã€ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼/ã‚¨ãƒ‡ã‚£ã‚¿ã‚«ãƒ¡ãƒ©ã‚’é¡é¢ã§è‡ªå‹•åå°„ã™ã‚‹ä»£ã‚ã‚Šã«ã€\n"
-            u8"ä¸‹ã§æ˜ç¤ºçš„ã«æŒ‡å®šã—ãŸã‚«ãƒ¡ãƒ©ã®æ˜ åƒã‚’ãã®ã¾ã¾ã“ã®é¡ã«æ˜ ã™\n"
-            u8"(ç›£è¦–ã‚«ãƒ¡ãƒ©/ãƒ¢ãƒ‹ã‚¿ãƒ¼ã®ã‚ˆã†ãªä½¿ã„æ–¹)ã€‚æŒ‡å®šã—ãŸã‚«ãƒ¡ãƒ©ãŒè¦‹ã¤ã‹ã‚‰ãªã„å ´åˆã¯\n"
-            u8"é€šå¸¸ã®è‡ªå‹•åå°„ã«ãƒ•ã‚©ãƒ¼ãƒ«ãƒãƒƒã‚¯ã™ã‚‹ã€‚");
+            u8"ON‚É‚·‚é‚ÆAƒvƒŒƒCƒ„[/ƒGƒfƒBƒ^ƒJƒƒ‰‚ğ‹¾–Ê‚Å©“®”½Ë‚·‚é‘ã‚í‚è‚ÉA\n"
+            u8"‰º‚Å–¾¦“I‚Éw’è‚µ‚½ƒJƒƒ‰‚Ì‰f‘œ‚ğ‚»‚Ì‚Ü‚Ü‚±‚Ì‹¾‚É‰f‚·\n"
+            u8"(ŠÄ‹ƒJƒƒ‰/ƒ‚ƒjƒ^[‚Ì‚æ‚¤‚Èg‚¢•û)Bw’è‚µ‚½ƒJƒƒ‰‚ªŒ©‚Â‚©‚ç‚È‚¢ê‡‚Í\n"
+            u8"’Êí‚Ì©“®”½Ë‚ÉƒtƒH[ƒ‹ƒoƒbƒN‚·‚éB");
     }
 
     if (m_useFixedCameraSource)
     {
-        // ãƒ‰ãƒ©ãƒƒã‚°&ãƒ‰ãƒ­ãƒƒãƒ—ã¯ç’°å¢ƒã«ã‚ˆã£ã¦é–‹å§‹ã•ã‚Œãªã„ã“ã¨ãŒã‚ã‚‹ãŸã‚ã€ç¢ºå®Ÿã«é¸ã¹ã‚‹
-        // ãƒ—ãƒ«ãƒ€ã‚¦ãƒ³ãƒªã‚¹ãƒˆæ–¹å¼ã«ã™ã‚‹ã€‚CameraDataã‚’æŒã¤å…¨GameObjectã‚’åˆ—æŒ™ã—ã¦é¸ã¶ã ã‘ã€‚
+        // ƒhƒ‰ƒbƒO&ƒhƒƒbƒv‚ÍŠÂ‹«‚É‚æ‚Á‚ÄŠJn‚³‚ê‚È‚¢‚±‚Æ‚ª‚ ‚é‚½‚ßAŠmÀ‚É‘I‚×‚é
+        // ƒvƒ‹ƒ_ƒEƒ“ƒŠƒXƒg•û®‚É‚·‚éBCameraData‚ğ‚Â‘SGameObject‚ğ—ñ‹“‚µ‚Ä‘I‚Ô‚¾‚¯B
         GameObject* pResolved = ResolveFixedCameraSource();
-        std::string currentLabel = pResolved ? pResolved->GetName() : u8"(æœªè¨­å®š)";
+        std::string currentLabel = pResolved ? pResolved->GetName() : u8"(–¢İ’è)";
 
         if (ImGui::BeginCombo("Fixed Camera", currentLabel.c_str()))
         {

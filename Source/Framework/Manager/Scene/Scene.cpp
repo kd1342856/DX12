@@ -1,4 +1,4 @@
-ï»¿#include "../../../Pch.h"
+#include "../../../Pch.h"
 #include "Scene.h"
 #include "../Collision/CollisionManager.h"
 #include "../Resource/PrefabManager.h"
@@ -121,8 +121,8 @@ void Scene::Init()
         }
     };
 
-    // Awake/Startå†…ã§CreateGameObjectã•ã‚Œã‚‹ã¨m_gameObjectsãŒå†ç¢ºä¿ã•ã‚Œã€ç›´æ¥å›ã—ã¦ã„ã‚‹ã¨
-    // ã‚¤ãƒ†ãƒ¬ãƒ¼ã‚¿ãŒç„¡åŠ¹ã«ãªã£ã¦è½ã¡ã‚‹ã®ã§ã€å‘¼ã³å‡ºã—å‰ã®ä¸€è¦§ã‚’ã‚³ãƒ”ãƒ¼ã—ã¦ã‹ã‚‰å›ã™
+    // Awake/Start“à‚ÅCreateGameObject‚³‚ê‚é‚Æm_gameObjects‚ªÄŠm•Û‚³‚êA’¼Ú‰ñ‚µ‚Ä‚¢‚é‚Æ
+    // ƒCƒeƒŒ[ƒ^‚ª–³Œø‚É‚È‚Á‚Ä—‚¿‚é‚Ì‚ÅAŒÄ‚Ño‚µ‘O‚Ìˆê——‚ğƒRƒs[‚µ‚Ä‚©‚ç‰ñ‚·
     const std::vector<std::shared_ptr<GameObject>> awakeTargets = m_gameObjects;
     for (auto& obj : awakeTargets)
     {
@@ -143,13 +143,13 @@ void Scene::Init()
 
 void Scene::Update(float deltaTime)
 {
-    // System ã® Update ã¯ GameManager::Update() ãŒè¡Œã†
+    // System ‚Ì Update ‚Í GameManager::Update() ‚ªs‚¤
 }
 
 void Scene::Draw()
 {
-    // Scene å›ºæœ‰ã®æç”»å‡¦ç†ãŒã‚ã‚Œã°æ´¾ç”Ÿã‚¯ãƒ©ã‚¹ã§ã‚ªãƒ¼ãƒãƒ¼ãƒ©ã‚¤ãƒ‰ã™ã‚‹
-    // RenderSystem / SpriteRenderSystem ã¯ GameManager::Update() ãŒæ‹…å½“
+    // Scene ŒÅ—L‚Ì•`‰æˆ—‚ª‚ ‚ê‚Î”h¶ƒNƒ‰ƒX‚ÅƒI[ƒo[ƒ‰ƒCƒh‚·‚é
+    // RenderSystem / SpriteRenderSystem ‚Í GameManager::Update() ‚ª’S“–
 }
 
 void Scene::ImGuiUpdate()
@@ -293,7 +293,7 @@ void Scene::DeserializeGameObject(const nlohmann::json& oj, std::shared_ptr<Game
 
 void Scene::Deserialize(const nlohmann::json& in)
 {
-    // GameObjectã‚’ã‚¯ãƒªã‚¢ã™ã‚‹ã¨ã€ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿ã§ECSã®Entityã‚‚ç ´æ£„ã•ã‚Œã‚‹
+    // GameObject‚ğƒNƒŠƒA‚·‚é‚ÆAƒfƒXƒgƒ‰ƒNƒ^‚ÅECS‚ÌEntity‚à”jŠü‚³‚ê‚é
     m_gameObjects.clear();
 
     if (in.contains("GameObjects"))

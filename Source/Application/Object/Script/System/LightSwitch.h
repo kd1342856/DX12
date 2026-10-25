@@ -1,11 +1,11 @@
-ï»¿#pragma once
+#pragma once
 
 class StimulusSource;
 
-// å£ã‚¹ã‚¤ãƒƒãƒã€‚ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒFã‚­ãƒ¼ã§æŠ¼ã™ã¨ã€åå‰ã§æŒ‡å®šã—ãŸç…§æ˜(StimulusSourceã‚’æŒã¤ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ)ã‚’
-// ã¾ã¨ã‚ã¦on/offã™ã‚‹(ä¾‹: å»Šä¸‹ã®å¤©äº•ç…§æ˜)ã€‚æŒ‡å®šã•ã‚ŒãŸç…§æ˜ã¯æœ¬ä½“ã‚’ç›´æ¥Fã‚­ãƒ¼ã§æ“ä½œã§ããªããªã‚Šã€
-// ã“ã®ã‚¹ã‚¤ãƒƒãƒçµŒç”±ã§ã®ã¿åˆ‡ã‚Šæ›¿ãˆã‚‰ã‚Œã‚‹(ã‚´ãƒ¼ã‚¹ãƒˆãŒå‹æ‰‹ã«ç‚¹ã‘ã‚‹ã®ã¯å¼•ãç¶šãå¯èƒ½)ã€‚
-// ç‚¹ç¯ä¸­ã¯ãƒ‘ã‚¤ãƒ­ãƒƒãƒˆãƒ©ãƒ³ãƒ—(m_pilotMaterial)ã‚’å…‰ã‚‰ã›ã‚‹ã€‚
+// •ÇƒXƒCƒbƒ`BƒvƒŒƒCƒ„[‚ªFƒL[‚Å‰Ÿ‚·‚ÆA–¼‘O‚Åw’è‚µ‚½Æ–¾(StimulusSource‚ğ‚ÂƒIƒuƒWƒFƒNƒg)‚ğ
+// ‚Ü‚Æ‚ß‚Äon/off‚·‚é(—á: ˜L‰º‚Ì“VˆäÆ–¾)Bw’è‚³‚ê‚½Æ–¾‚Í–{‘Ì‚ğ’¼ÚFƒL[‚Å‘€ì‚Å‚«‚È‚­‚È‚èA
+// ‚±‚ÌƒXƒCƒbƒ`Œo—R‚Å‚Ì‚İØ‚è‘Ö‚¦‚ç‚ê‚é(ƒS[ƒXƒg‚ªŸè‚É“_‚¯‚é‚Ì‚Íˆø‚«‘±‚«‰Â”\)B
+// “_“”’†‚ÍƒpƒCƒƒbƒgƒ‰ƒ“ƒv(m_pilotMaterial)‚ğŒõ‚ç‚¹‚éB
 class LightSwitch : public NativeScript
 {
 public:
@@ -17,24 +17,24 @@ public:
 
     void Toggle();
     bool IsOn() const;
-    // ã‚¹ã‚¤ãƒƒãƒéŸ³(kabe_switch)ã‚’ã‚¹ã‚¤ãƒƒãƒã®ä½ç½®ã‹ã‚‰é³´ã‚‰ã™
+    // ƒXƒCƒbƒ`‰¹(kabe_switch)‚ğƒXƒCƒbƒ`‚ÌˆÊ’u‚©‚ç–Â‚ç‚·
     void PlaySwitchSound() const;
 
     Math::Vector3 GetWorldPosition() const;
 
-    std::string m_targetNames;                  // æ“ä½œã™ã‚‹ç…§æ˜ã®GameObjectå(ã‚«ãƒ³ãƒåŒºåˆ‡ã‚Šã§è¤‡æ•°å¯)
-    std::string m_pilotMaterial = "Pilot_Lamp"; // ç‚¹ç¯ä¸­ã«å…‰ã‚‰ã›ã‚‹ãƒãƒ†ãƒªã‚¢ãƒ«å
+    std::string m_targetNames;                  // ‘€ì‚·‚éÆ–¾‚ÌGameObject–¼(ƒJƒ“ƒ}‹æØ‚è‚Å•¡”‰Â)
+    std::string m_pilotMaterial = "Pilot_Lamp"; // “_“”’†‚ÉŒõ‚ç‚¹‚éƒ}ƒeƒŠƒAƒ‹–¼
     bool m_interactable = true;
-    float m_soundVolume = 0.8f; // ã‚¹ã‚¤ãƒƒãƒéŸ³ã®éŸ³é‡
+    float m_soundVolume = 0.8f; // ƒXƒCƒbƒ`‰¹‚Ì‰¹—Ê
 
 private:
     void ResolveTargets();
     void UpdatePilotLamp();
-    // ãƒ¬ãƒãƒ¼(ãƒ­ãƒƒã‚«ãƒ¼)ã‚’ON/OFFã®ä½ç½®ã¸å‹•ã‹ã™ã€‚ãƒ¢ãƒ‡ãƒ«å´ã®Switch_OFF_to_ON / Switch_ON_to_OFFã‚’å†ç”Ÿã™ã‚‹ã€‚
-    // åˆå›(èª­ã¿è¾¼ã¿ç›´å¾Œ)ã¯å†ç”Ÿã›ãšçµ‚ç«¯ã®ãƒãƒ¼ã‚ºã¸ç›´æ¥åˆã‚ã›ã‚‹ã€‚
+    // ƒŒƒo[(ƒƒbƒJ[)‚ğON/OFF‚ÌˆÊ’u‚Ö“®‚©‚·Bƒ‚ƒfƒ‹‘¤‚ÌSwitch_OFF_to_ON / Switch_ON_to_OFF‚ğÄ¶‚·‚éB
+    // ‰‰ñ(“Ç‚İ‚İ’¼Œã)‚ÍÄ¶‚¹‚¸I’[‚Ìƒ|[ƒY‚Ö’¼Ú‡‚í‚¹‚éB
     void UpdateRocker();
 
     std::vector<StimulusSource*> m_targets;
     bool m_resolved = false;
-    int m_rockerState = -1; // -1=æœªåæ˜ , 0=OFF, 1=ON
+    int m_rockerState = -1; // -1=–¢”½‰f, 0=OFF, 1=ON
 };

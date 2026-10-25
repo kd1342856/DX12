@@ -1,4 +1,4 @@
-ï»¿#pragma once
+#pragma once
 #include "RenderContext.h"
 #include "../../Framework/ImGuiEditor/EditorContext.h"
 
@@ -18,7 +18,7 @@ public:
     // Post Process Render Targets
     static void InitializeRenderTargets(int width, int height);
 
-    // Reflection - æœ€å¤§3æš(3çª“)ã¾ã§åŒæ™‚ã«ã‚¢ã‚¯ãƒ†ã‚£ãƒ–ãªå¹³é¢åå°„ã‚’ã‚µãƒãƒ¼ãƒˆã™ã‚‹ã€‚
+    // Reflection - Å‘å3–‡(3‘‹)‚Ü‚Å“¯‚ÉƒAƒNƒeƒBƒu‚È•½–Ê”½Ë‚ğƒTƒ|[ƒg‚·‚éB
     static class RenderTarget* GetPlanarReflectionRenderTarget(int slot);
 
     static RenderTarget* GetSceneHDRRenderTarget();
@@ -30,6 +30,6 @@ public:
     static RenderTarget* GetNormalPrepassRenderTarget();
     static RenderTarget* GetSSAORenderTarget(int index);
 
-    // Debug Preview Camera - CameraData.m_isDebugPreviewã‚’ç«‹ã¦ãŸã‚«ãƒ¡ãƒ©ã®Transformã‹ã‚‰è¦‹ãŸçµµã€‚
+    // Debug Preview Camera - CameraData.m_isDebugPreview‚ğ—§‚Ä‚½ƒJƒƒ‰‚ÌTransform‚©‚çŒ©‚½ŠGB
     static RenderTarget* GetDebugPreviewRenderTarget();
 };

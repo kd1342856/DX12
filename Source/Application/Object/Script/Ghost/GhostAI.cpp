@@ -1,4 +1,4 @@
-п»ї#include "../../../../Pch.h"
+#include "../../../../Pch.h"
 #include "GhostAI.h"
 #include "../System/StimulusSource.h"
 #include "../System/DoorLock.h"
@@ -20,7 +20,7 @@
 
 REGISTER_COMPONENT(GhostAI);
 
-// Log WindowгЃЇгѓ­г‚°жњ¬ж–‡г‚’SJISгЃЁгЃ—гЃ¦е¤‰жЏ›гЃ—гЃ¦иЎЁз¤єгЃ™г‚‹гЃџг‚ЃгЂЃUTF-8гЃ®ж—Ґжњ¬иЄћгЃЇж–‡е­—еЊ–гЃ‘гЃ™г‚‹ - гѓ­гѓјгѓће­—гЃ§е‡єгЃ™
+// Log Window‚НѓЌѓO–{•¶‚рSJIS‚Ж‚µ‚Д•ПЉ·‚µ‚Д•\Ћ¦‚·‚й‚Ѕ‚ЯЃAUTF-8‚М“ъ–{Њк‚Н•¶Ћљ‰»‚Ї‚·‚й - ѓЌЃ[ѓ}Ћљ‚ЕЏo‚·
 static const char* GetGhostTypeName(GhostAI::GhostType type)
 {
     switch (type)
@@ -42,8 +42,8 @@ void GhostAI::Start()
 {
     m_changeDirTimer = 0.0f;
 
-    // AnimationDataComponentгЃЇи‡Єе€†и‡Єиє«гЃ§гЃЇгЃЄгЃЏе­ђгЃ®"Model"г‚Єгѓ–г‚ёг‚§г‚Їгѓ€гЃ«д»гЃ„гЃ¦гЃ„г‚‹гЃџг‚ЃгЂЃ
-    // е­ђйљЋе±¤г‚’жЋўгЃ—гЃ¦г‚­гѓЈгѓѓг‚·гѓҐгЃ—гЃ¦гЃЉгЃЏ(жЇЋгѓ•гѓ¬гѓјгѓ жЋўзґўгЃ—гЃЄгЃ„г‚€гЃ†)
+    // AnimationDataComponent‚НЋ©•ЄЋ©ђg‚Е‚Н‚И‚­Ћq‚М"Model"ѓIѓuѓWѓFѓNѓg‚Й•t‚ў‚Д‚ў‚й‚Ѕ‚ЯЃA
+    // ЋqЉK‘w‚р’T‚µ‚ДѓLѓѓѓbѓVѓ…‚µ‚Д‚Ё‚­(–€ѓtѓЊЃ[ѓЂ’TЌх‚µ‚И‚ў‚ж‚¤)
     auto& ecs = GameManager::Instance().GetECS();
     std::function<void(GameObject*)> findAnimEntity = [&](GameObject* obj)
     {
@@ -72,7 +72,7 @@ void GhostAI::Start()
 
     if (m_randomizeType)
     {
-        // е®¶йіґ(Yanari)гЃЇгЃѕгЃ жњЄе®џиЈ…гЃ®гЃџг‚ЃгЂЃзЏѕзЉ¶гЃЇењ°зё›йњЉгЃЁеЅ±еҐігЃ‹г‚‰жЉЅйЃёгЃ™г‚‹
+        // ‰Ж–В(Yanari)‚Н‚Ь‚ѕ–ўЋА‘•‚М‚Ѕ‚ЯЃAЊ»Џу‚Н’n”›—м‚Ж‰eЏ—‚©‚з’Љ‘I‚·‚й
         m_ghostType = (Random::Instance().Range(0, 1) == 0) ? GhostType::Jibakurei : GhostType::Kageonna;
     }
     Logger::Instance().AddLog(Logger::LogLevel::Info, "[GhostAI] Ghost type: %s", GetGhostTypeName(m_ghostType));
@@ -147,7 +147,7 @@ void GhostAI::EnsureHouseBounds()
         mx = Math::Vector3::Max(mx, room->m_max);
     }
 
-    // йѓЁе±‹еђЊеЈ«гЃ®еўѓз•Њ(е»Љдё‹гЃЄгЃ©)г‚‚еђ«гЃѕг‚Њг‚‹г‚€гЃ†гЃ«е°‘гЃ—дЅ™иЈ•г‚’жЊЃгЃџгЃ›гЃ¦гЃЉгЃЏ
+    // •”‰®“ЇЋm‚М‹«ЉE(L‰є‚И‚З)‚аЉЬ‚Ь‚к‚й‚ж‚¤‚ЙЏ­‚µ—]—T‚рЋќ‚Ѕ‚№‚Д‚Ё‚­
     mn.x -= m_houseBoundsMargin;
     mn.z -= m_houseBoundsMargin;
     mx.x += m_houseBoundsMargin;
@@ -316,9 +316,9 @@ Math::Vector3 GhostAI::GetEffectiveMoveTarget(const Math::Vector3& currentPos, c
     // landing's Y, so this would keep re-selecting the same already-reached point forever with
     // nothing to walk toward next, which looked like stopping dead in the middle of the stairs.
     // Aiming for the exit landing instead gives it a reason to walk the entire staircase in one go.
-    // жёЎг‚‹ж™‚гЃЇгЂЃгЃѕгЃљд»ЉгЃ„г‚‹йљЋгЃ®йљЋж®µгЃ®е…ҐеЏЈгЃѕгЃ§NavMeshгЃ§ж­©гЃ‹гЃ›г‚‹(ж‡г‚Љй™Ќг‚Љи‡ЄдЅ“гЃЇе…ҐеЏЈгЃ«зќЂгЃ„гЃ¦гЃ‹г‚‰
-    // StartStairsCrossing/GetStairsCrossingMoveгЃЊйљЋж®µгЃ«жІїгЃЈгЃ¦иЎЊгЃ†)гЂ‚д»Ґе‰ЌгЃЇйљЋж®µгЃ®дё­еїѓ(е‡єеЏЈгЃ®й«гЃ•)г‚’
-    // з›®жЊ‡гЃ•гЃ›гЃ¦гЃ„гЃџгЃџг‚ЃгЂЃйљЋж®µгЃ®е‘Ёг‚ЉгЃ®гЃ©гЃ“гЃ‹г‚‰гЃ§г‚‚ж‡г‚Љй™Ќг‚ЉгЃЊе§‹гЃѕг‚ЉгЂЃйљЋж®µгЃ®жЁЄгЃ‹г‚‰е¤©дє•г‚’гЃ™г‚ЉжЉњгЃ‘гЃ¦гЃ„гЃџгЂ‚
+    // “n‚йЋћ‚НЃA‚Ь‚ёЌЎ‚ў‚йЉK‚МЉK’i‚М“ьЊы‚Ь‚ЕNavMesh‚Е•а‚©‚№‚й(Џё‚иЌ~‚иЋ©‘М‚Н“ьЊы‚Й’…‚ў‚Д‚©‚з
+    // StartStairsCrossing/GetStairsCrossingMove‚ЄЉK’i‚Й‰€‚Б‚ДЌs‚¤)ЃB€И‘O‚НЉK’i‚М’†ђS(ЏoЊы‚МЌ‚‚і)‚р
+    // –ЪЋw‚і‚№‚Д‚ў‚Ѕ‚Ѕ‚ЯЃAЉK’i‚МЋь‚и‚М‚З‚±‚©‚з‚Е‚аЏё‚иЌ~‚и‚ЄЋn‚Ь‚иЃAЉK’i‚М‰Ў‚©‚з“V€д‚р‚·‚и”І‚Ї‚Д‚ў‚ЅЃB
     return GetStairsEntryPoint(exitLandingY);
 }
 
@@ -329,7 +329,7 @@ Math::Vector3 GhostAI::GetStairsEntryPoint(float exitLandingY) const
         return Math::Vector3::Zero;
     }
     float centerX = (m_stairsRoom->m_min.x + m_stairsRoom->m_max.x) * 0.5f;
-    // дё‹з«Ї(дЅЋгЃ„ж–№гЃ®еєЉ)гЃЇmin.zеЃґгЂЃдёЉз«Ї(й«гЃ„ж–№гЃ®еєЉ)гЃЇmax.zеЃґ
+    // ‰є’[(’б‚ў•ы‚МЏ°)‚Нmin.z‘¤ЃAЏг’[(Ќ‚‚ў•ы‚МЏ°)‚Нmax.z‘¤
     bool goingUp = fabsf(exitLandingY - m_stairsRoom->m_max.y) < fabsf(exitLandingY - m_stairsRoom->m_min.y);
     if (goingUp)
     {
@@ -360,18 +360,18 @@ void GhostAI::StartStairsCrossing(const Math::Vector3& currentPos, const Math::V
     }
 
     const float kOvershoot = m_stairsNavExitPadding + 0.1f; // must clear IsInStairsArea's nav-exit pad
-    // дёЉг‚ЉгЃ‹дё‹г‚ЉгЃ‹гЃЇгЂЃGetEffectiveMoveTargetгЃЊжёЎг‚‹гЃЁж±єг‚ЃгЃџж™‚гЃ«иЁйЊІгЃ—гЃџе‡єеЏЈгЃ®й«гЃ•(m_frozenExitLandingY)гЃ§
-    // ж±єг‚Ѓг‚‹гЂ‚д»Ґе‰ЌгЃЇгЃ“гЃ“гЃ§гЂЊд»ЉгЃ®гЂЌfinalTargetгЃ‹г‚‰ж±єг‚Ѓз›ґгЃ—гЃ¦гЃ„гЃџгЃџг‚ЃгЂЃгѓЏгѓігѓ€дё­гЃ«з›®зљ„ењ°(гѓ—гѓ¬г‚¤гѓ¤гѓјдЅЌзЅ®гѓ»
-    // и¦‹е¤±гЃЈгЃџењ°з‚№гЃЄгЃ©)гЃЊжёЎг‚‹гЃЁж±єг‚ЃгЃџеѕЊгЃ§еЏЌеЇѕгЃ®йљЋгЃ«е¤‰г‚Џг‚‹гЃЁгЂЃд»ЉгЃ„г‚‹йљЋгЃ®е‡єеЏЈгЃёеђ‘гЃ‹гЃЈгЃ¦гЃ—гЃѕгЃ„гЂЃ
-    // зќЂгЃ„гЃ¦г‚‚иЁйЊІгЃ—гЃџе‡єеЏЈгЃ®й«гЃ•гЃ«гЃЇе±ЉгЃ‹гЃЄгЃ„гЃ®гЃ§ж‡г‚Љй™Ќг‚Љдё­гЃ®зЉ¶ж…‹гЃЊи§Јй™¤гЃ•г‚ЊгЃљгЂЃе‡єеЏЈгЃ§гЃљгЃЈгЃЁж­ўгЃѕгЃЈгЃ¦гЃ„гЃџгЂ‚
+    // Џг‚и‚©‰є‚и‚©‚НЃAGetEffectiveMoveTarget‚Є“n‚й‚ЖЊ€‚Я‚ЅЋћ‚Й‹L^‚µ‚ЅЏoЊы‚МЌ‚‚і(m_frozenExitLandingY)‚Е
+    // Њ€‚Я‚йЃB€И‘O‚Н‚±‚±‚ЕЃuЌЎ‚МЃvfinalTarget‚©‚зЊ€‚Я’ј‚µ‚Д‚ў‚Ѕ‚Ѕ‚ЯЃAѓnѓ“ѓg’†‚Й–Ъ“I’n(ѓvѓЊѓCѓ„Ѓ[€К’uЃE
+    // Њ©Ћё‚Б‚Ѕ’n“_‚И‚З)‚Є“n‚й‚ЖЊ€‚Я‚ЅЊг‚Е”Ѕ‘О‚МЉK‚Й•П‚н‚й‚ЖЃAЌЎ‚ў‚йЉK‚МЏoЊы‚ЦЊь‚©‚Б‚Д‚µ‚Ь‚ўЃA
+    // ’…‚ў‚Д‚а‹L^‚µ‚ЅЏoЊы‚МЌ‚‚і‚Й‚Н“Н‚©‚И‚ў‚М‚ЕЏё‚иЌ~‚и’†‚МЏу‘Ф‚Є‰рЏњ‚і‚к‚ёЃAЏoЊы‚Е‚ё‚Б‚ЖЋ~‚Ь‚Б‚Д‚ў‚ЅЃB
     (void)finalTarget;
     bool towardBottom = fabsf(m_frozenExitLandingY - m_stairsRoom->m_min.y) <= fabsf(m_frozenExitLandingY - m_stairsRoom->m_max.y);
     float centerX = (m_stairsRoom->m_min.x + m_stairsRoom->m_max.x) * 0.5f;
     const float minY = m_stairsRoom->m_min.y, maxY = m_stairsRoom->m_max.y;
     const float minZ = m_stairsRoom->m_min.z, maxZ = m_stairsRoom->m_max.z;
 
-    // е…ҐеЏЈд»иї‘гЃ®д»ЉгЃ®дЅЌзЅ® -> д»ЉгЃ„г‚‹йљЋеЃґгЃ®йљЋж®µгЃ®з«Ї -> еЏЌеЇѕеЃґгЃ®з«Ї -> е‡єеЏЈ(гѓЉгѓ“з”ЁгЃ®дЅ™з™ЅгЃ®е¤–)гЂ‚
-    // жњЂе€ќгЃ®еЊєй–“гЃЇд»ЉгЃ„г‚‹йљЋгЃ®й«гЃ•гЃ®гЃѕгЃѕж°ґе№ігЃ«гЂЃйљЋж®µеЊєй–“гЃ гЃ‘гЃ§й«гЃ•гЃЊе¤‰г‚Џг‚‹гЂ‚
+    // “ьЊы•t‹Я‚МЌЎ‚М€К’u -> ЌЎ‚ў‚йЉK‘¤‚МЉK’i‚М’[ -> ”Ѕ‘О‘¤‚М’[ -> ЏoЊы(ѓiѓr—p‚М—]”’‚МЉO)ЃB
+    // ЌЕЏ‰‚М‹жЉФ‚НЌЎ‚ў‚йЉK‚МЌ‚‚і‚М‚Ь‚Ьђ…•Ѕ‚ЙЃAЉK’i‹жЉФ‚ѕ‚Ї‚ЕЌ‚‚і‚Є•П‚н‚йЃB
     m_stairsCrossPoints.clear();
     m_stairsCrossPoints.push_back(currentPos);
     if (towardBottom)
@@ -386,7 +386,7 @@ void GhostAI::StartStairsCrossing(const Math::Vector3& currentPos, const Math::V
         m_stairsCrossPoints.push_back(Math::Vector3(centerX, maxY, maxZ));
         m_stairsCrossPoints.push_back(Math::Vector3(centerX, maxY, maxZ + kOvershoot));
     }
-    m_stairsCrossPoints[1].y = currentPos.y; // жњЂе€ќгЃ®еЊєй–“гЃЇй«гЃ•г‚’е¤‰гЃ€гЃЄгЃ„(еєЉгЃ®дёЉг‚’ж­©гЃ„гЃ¦йљЋж®µгЃ®з«ЇгЃё)
+    m_stairsCrossPoints[1].y = currentPos.y; // ЌЕЏ‰‚М‹жЉФ‚НЌ‚‚і‚р•П‚¦‚И‚ў(Џ°‚МЏг‚р•а‚ў‚ДЉK’i‚М’[‚Ц)
 
     float length = 0.0f;
     for (size_t i = 1; i < m_stairsCrossPoints.size(); ++i)
@@ -424,7 +424,7 @@ Math::Vector3 GhostAI::GetStairsCrossingMove(float deltaTime)
         return Math::Vector3::Zero;
     }
 
-    // зµЊйЃЋж™‚й–“ x йЂџеє¦ гЃ гЃ‘жЉг‚Њз·љгЃ«жІїгЃЈгЃ¦йЂІг‚“гЃ дЅЌзЅ®(дЅЌзЅ®гЃ§гЃЇгЃЄгЃЏж™‚й–“гЃ гЃ‘гЃ§ж±єгЃѕг‚‹гЃ®гЃ§йЂ†ж€»г‚ЉгЃ—гЃЄгЃ„)
+    // Њo‰ЯЋћЉФ x ‘¬“x ‚ѕ‚ЇђЬ‚кђь‚Й‰€‚Б‚Дђi‚с‚ѕ€К’u(€К’u‚Е‚Н‚И‚­ЋћЉФ‚ѕ‚Ї‚ЕЊ€‚Ь‚й‚М‚Е‹t–Я‚и‚µ‚И‚ў)
     float distLeft = m_stairsCrossElapsed * m_stairsCrossSpeed;
     for (size_t i = 1; i < m_stairsCrossPoints.size(); ++i)
     {
@@ -480,12 +480,12 @@ void GhostAI::SetState(GhostAI::State state)
     else if (m_currentState == State::Hunt && state != State::Hunt)
     {
         ShaderManager::Instance().SetHuntActive(false);
-        // гѓЏгѓігѓ€зµ‚дє†: зЋ„й–ўгЃ®ж–ЅйЊ г‚’и§ЈгЃЌгЂЃе®¶дё­гЃ®й›»ж°—г‚’ж¶€гЃ™
+        // ѓnѓ“ѓgЏI—№: ЊєЉЦ‚МЋ{Џщ‚р‰р‚«ЃA‰Ж’†‚М“d‹C‚рЏБ‚·
         DoorLock::UnlockAll();
         TurnOffAllLights();
     }
 
-    // иЄе°Ћг‚’жЉњгЃ‘гЃџг‚‰з™єз”џжєђг‚’ж‰‹ж”ѕгЃ—гЂЃеђЊгЃз™єз”џжєђгЃёгЃ™гЃђж€»г‚‰гЃЄгЃ„г‚€гЃ†г‚Їгѓјгѓ«гѓЂг‚¦гѓіг‚’е§‹г‚Ѓг‚‹
+    // —U“±‚р”І‚Ї‚Ѕ‚з”­ђ¶Њ№‚рЋи•ъ‚µЃA“Ї‚¶”­ђ¶Њ№‚Ц‚·‚®–Я‚з‚И‚ў‚ж‚¤ѓNЃ[ѓ‹ѓ_ѓEѓ“‚рЋn‚Я‚й
     if (m_currentState == State::Lured && state != State::Lured)
     {
         m_lureCooldownTimer = m_lureCooldown;
@@ -498,8 +498,8 @@ void GhostAI::SetState(GhostAI::State state)
 
     m_currentState = state;
 
-    // еџєжњ¬зљ„гЃ«е§їгЃЇйќћиЎЁз¤єгЂ‚е®џдЅ“еЊ–гЃ™г‚‹гЃ®гЃЇгѓЏгѓігѓ€дё­(гЃЁгЃќгЃ“гЃ‹г‚‰гЃ®г‚№г‚їгѓігѓ»ж­»дєЎ)гЃ гЃ‘гЂ‚
-    // LuredгЃ§е…‰жєђгЃ«ејµг‚Љд»гЃ„гЃ¦гЃ„г‚‹й–“г‚‚е§їгЃЇи¦‹гЃ›гЃЄгЃ„(е®џдЅ“еЊ–гЃЇгѓЏгѓігѓ€гЃЁPlayerг‚’и„…гЃ‹гЃ™жј”е‡єгЃ«й™ђг‚‹ж–№й‡ќ)гЂ‚
+    // Љо–{“I‚ЙЋp‚Н”с•\Ћ¦ЃBЋА‘М‰»‚·‚й‚М‚Нѓnѓ“ѓg’†(‚Ж‚»‚±‚©‚з‚МѓXѓ^ѓ“ЃEЋЂ–S)‚ѕ‚ЇЃB
+    // Lured‚ЕЊхЊ№‚Й’Ј‚и•t‚ў‚Д‚ў‚йЉФ‚аЋp‚НЊ©‚№‚И‚ў(ЋА‘М‰»‚Нѓnѓ“ѓg‚ЖPlayer‚р‹є‚©‚·‰‰Џo‚ЙЊА‚й•ыђj)ЃB
     switch (state)
     {
     case GhostAI::State::Wander:
@@ -517,7 +517,7 @@ void GhostAI::SetState(GhostAI::State state)
 
     if (m_animEntity == INVALID_ENTITY)
     {
-        return; // г‚ўгѓ‹гѓЎгѓјг‚·гѓ§гѓіеЇѕи±ЎгЃЊи¦‹гЃ¤гЃ‹г‚‰гЃЄгЃ„е ґеђ€гЃЇдЅ•г‚‚гЃ—гЃЄгЃ„
+        return; // ѓAѓjѓЃЃ[ѓVѓ‡ѓ“‘ОЏЫ‚ЄЊ©‚В‚©‚з‚И‚ўЏкЌ‡‚Н‰Ѕ‚а‚µ‚И‚ў
     }
 
     switch (state)
@@ -549,7 +549,7 @@ void GhostAI::FacePosition(TransformData& cTrans, const Math::Vector3& dir, floa
 
     float targetAngle = atan2f(dir.x, dir.z);
 
-    // жњЂзџ­и§’еє¦гЃ§иЈњй–“ (LerpгЃ гЃЁ360еє¦г‚’гЃѕгЃџгЃ„гЃ§дёЌи‡Єз„¶гЃ«гЃЄг‚‹гЃ®гЃ§жіЁж„Џ)
+    // ЌЕ’ZЉp“x‚Е•вЉФ (Lerp‚ѕ‚Ж360“x‚р‚Ь‚Ѕ‚ў‚Е•sЋ©‘R‚Й‚И‚й‚М‚Е’Ќ€У)
     float diff = targetAngle - cTrans.m_rotation.y;
     while (diff < -DirectX::XM_PI)
     {
@@ -565,7 +565,7 @@ void GhostAI::FacePosition(TransformData& cTrans, const Math::Vector3& dir, floa
 
 void GhostAI::UpdateWander(float deltaTime, TransformData& cTrans)
 {
-    // Roomеѕ…ж©џ: г‚ґгѓјг‚№гѓ€гѓ«гѓјгѓ (m_targetRoom)гЃ®дё­г‚’гЃ†г‚ЌгЃ†г‚ЌгЃ™г‚‹
+    // Room‘Т‹@: ѓSЃ[ѓXѓgѓ‹Ѓ[ѓЂ(m_targetRoom)‚М’†‚р‚¤‚л‚¤‚л‚·‚й
     m_changeDirTimer -= deltaTime;
     if (m_changeDirTimer <= 0.0f)
     {
@@ -586,7 +586,7 @@ void GhostAI::UpdateWander(float deltaTime, TransformData& cTrans)
     }
     else
     {
-        // йѓЁе±‹гЃ®е¤–гЃ«е‡єгЃќгЃ†гЃ«гЃЄгЃЈгЃџг‚‰гЂЃйѓЁе±‹гЃ®дё­еїѓгЃёеђ‘гЃЌг‚’е¤‰гЃ€г‚‹
+        // •”‰®‚МЉO‚ЙЏo‚»‚¤‚Й‚И‚Б‚Ѕ‚зЃA•”‰®‚М’†ђS‚ЦЊь‚«‚р•П‚¦‚й
         Math::Vector3 roomCenter = (m_targetRoom->m_min + m_targetRoom->m_max) * 0.5f;
         m_moveDir = roomCenter - cTrans.m_position;
         m_moveDir.y = 0.0f;
@@ -596,19 +596,19 @@ void GhostAI::UpdateWander(float deltaTime, TransformData& cTrans)
         }
         else
         {
-            // дё­еїѓгЃ«гЃ„г‚‹е ґеђ€гЃЇгѓ©гѓігѓЂгѓ гЃЄж–№еђ‘гЃё
+            // ’†ђS‚Й‚ў‚йЏкЌ‡‚Нѓ‰ѓ“ѓ_ѓЂ‚И•ыЊь‚Ц
             m_moveDir = Math::Vector3(Random::Instance().Range(-1.0f, 1.0f), 0.0f, Random::Instance().Range(-1.0f, 1.0f));
             m_moveDir.Normalize();
         }
-        m_changeDirTimer = 1.0f; // гЃ—гЃ°г‚‰гЃЏгЃЇдё­еїѓгЃ«еђ‘гЃ‹гЃЈгЃ¦ж­©гЃЌз¶љгЃ‘г‚‹
+        m_changeDirTimer = 1.0f; // ‚µ‚О‚з‚­‚Н’†ђS‚ЙЊь‚©‚Б‚Д•а‚«‘±‚Ї‚й
     }
 
     FacePosition(cTrans, m_moveDir, deltaTime);
 }
 
-// m_targetRoomд»Ґе¤–гЃ®йѓЁе±‹гЃ‹г‚‰гЂЃзЏѕењЁдЅЌзЅ®гЃ‹г‚‰NavMeshдёЉгЃ§е®џйљ›гЃ«е€°йЃ”еЏЇиѓЅгЃЄг‚‚гЃ®гЃ гЃ‘г‚’й›†г‚Ѓг‚‹гЂ‚
-// (е®¶гЃЊи¤‡й›‘гЃЄеЅўгЃЄгЃ©гЃ®зђ†з”±гЃ§NavMeshгЃЊз№‹гЃЊгЃЈгЃ¦гЃ„гЃЄгЃ„йѓЁе±‹г‚’йЃёг‚“гЃ§гЃ—гЃѕгЃ†гЃЁгЂЃ
-//  гЃќгЃ“гЃёеђ‘гЃ‹гЃЈгЃџгЃѕгЃѕж°ёйЃ гЃ«з«‹гЃЎеѕЂз”џгЃ—гЃ¦гЃ—гЃѕгЃ†гЃџг‚Ѓ)
+// m_targetRoom€ИЉO‚М•”‰®‚©‚зЃAЊ»ЌЭ€К’u‚©‚зNavMeshЏг‚ЕЋАЌЫ‚Й“ћ’B‰В”\‚И‚а‚М‚ѕ‚Ї‚рЏW‚Я‚йЃB
+// (‰Ж‚Є•ЎЋG‚ИЊ`‚И‚З‚М—ќ—R‚ЕNavMesh‚ЄЊq‚Є‚Б‚Д‚ў‚И‚ў•”‰®‚р‘I‚с‚Е‚µ‚Ь‚¤‚ЖЃA
+//  ‚»‚±‚ЦЊь‚©‚Б‚Ѕ‚Ь‚Ь‰i‰“‚Й—§‚ї‰ќђ¶‚µ‚Д‚µ‚Ь‚¤‚Ѕ‚Я)
 std::vector<RoomArea*> GhostAI::CollectReachableCandidateRooms(const Math::Vector3& currentPos) const
 {
     std::vector<RoomArea*> candidates;
@@ -648,7 +648,7 @@ void GhostAI::StartHouseWander(const Math::Vector3& currentPos)
 
     if (candidates.empty())
     {
-        // иЎЊгЃЌе…€(е€°йЃ”еЏЇиѓЅгЃЄд»–гЃ®йѓЁе±‹)гЃЊгЃЄгЃ„е ґеђ€гЃЇRoomеѕ…ж©џг‚’з¶љгЃ‘г‚‹
+        // Ќs‚«ђж(“ћ’B‰В”\‚И‘ј‚М•”‰®)‚Є‚И‚ўЏкЌ‡‚НRoom‘Т‹@‚р‘±‚Ї‚й
         auto gs = GameSequence::GetInstance();
         Logger::Instance().AddLog(Logger::LogLevel::Warning,
                                   "[GhostAI] StartHouseWander: no reachable candidate room (GameSequence rooms=%d, NavMeshBuilt=%d). Staying in Room idle.",
@@ -685,8 +685,8 @@ void GhostAI::MoveTowardTarget(float deltaTime, TransformData& cTrans, const Mat
     // pushes it further past the real landing into the house's exterior void. Gate on height as well
     // so arrival cuts the straight-line walk short and hands off to normal NavMesh movement (which
     // already has a working connector into the adjacent room) the moment it's no longer needed.
-    // ж‡г‚Љй™Ќг‚ЉгЃЇгЂЃд»ЉгЃ„г‚‹йљЋгЃ®йљЋж®µгЃ®е…ҐеЏЈгЃ«зќЂгЃ„гЃ¦гЃ‹г‚‰е§‹г‚Ѓг‚‹(йљЋж®µгЃ®е‘Ёг‚ЉгЃ®гЃ©гЃ“гЃ‹г‚‰гЃ§г‚‚е§‹г‚Ѓг‚‹гЃЁгЂЃ
-    // йљЋж®µгЃ®жЁЄгЃ‹г‚‰еЈЃг‚„е¤©дє•г‚’гЃ™г‚ЉжЉњгЃ‘гЃ¦гЃ—гЃѕгЃ†)
+    // Џё‚иЌ~‚и‚НЃAЌЎ‚ў‚йЉK‚МЉK’i‚М“ьЊы‚Й’…‚ў‚Д‚©‚зЋn‚Я‚й(ЉK’i‚МЋь‚и‚М‚З‚±‚©‚з‚Е‚аЋn‚Я‚й‚ЖЃA
+    // ЉK’i‚М‰Ў‚©‚з•З‚в“V€д‚р‚·‚и”І‚Ї‚Д‚µ‚Ь‚¤)
     bool atStairsEntry = false;
     if (m_isCrossingFloors && m_stairsRoom)
     {
@@ -709,8 +709,8 @@ void GhostAI::MoveTowardTarget(float deltaTime, TransformData& cTrans, const Mat
         {
             m_stairsCrossingLatched = false; // height has arrived - release the latch
         }
-        // дїќй™є: иЈњй–“гЃЊзµ‚г‚ЏгЃЈгЃ¦(е°‘гЃ—еѕ…гЃЈгЃ¦г‚‚)гЃѕгЃ жёЎг‚Ље€‡гЃЈгЃџе€¤е®љгЃ«гЃЄг‚‰гЃЄгЃ„ж™‚гЃЇгЂЃж‡г‚Љй™Ќг‚Љдё­гЃ®зЉ¶ж…‹г‚’
-        // еј·е€¶зљ„гЃ«и§Јй™¤гЃ™г‚‹гЂ‚и§Јй™¤гЃ—гЃЄгЃ„гЃЁGetStairsCrossingMoveгЃЊзµ‚з‚№г‚’иї”гЃ—з¶љгЃ‘гЂЃгЃќгЃ®е ґгЃ‹г‚‰дёЂз”џе‹•гЃ‘гЃЄгЃ„гЂ‚
+        // •ЫЊЇ: •вЉФ‚ЄЏI‚н‚Б‚Д(Џ­‚µ‘Т‚Б‚Д‚а)‚Ь‚ѕ“n‚иђШ‚Б‚Ѕ”»’и‚Й‚И‚з‚И‚ўЋћ‚НЃAЏё‚иЌ~‚и’†‚МЏу‘Ф‚р
+        // ‹­ђ§“I‚Й‰рЏњ‚·‚йЃB‰рЏњ‚µ‚И‚ў‚ЖGetStairsCrossingMove‚ЄЏI“_‚р•Ф‚µ‘±‚ЇЃA‚»‚МЏк‚©‚з€кђ¶“®‚Ї‚И‚ўЃB
         const float kCrossReleaseGrace = 0.5f;
         if (m_stairsCrossingLatched && m_stairsCrossElapsed >= m_stairsCrossDuration + kCrossReleaseGrace)
         {
@@ -719,8 +719,8 @@ void GhostAI::MoveTowardTarget(float deltaTime, TransformData& cTrans, const Mat
             m_stairsCrossingLatched = false;
             m_isCrossingFloors = false;
             m_recentlyExitedStairs = true;
-            // з›ґеѕЊгЃ®й«гЃ•е›єе®љ(holdAtExitLanding)гЃЊгЂЃе®џйљ›гЃ«гЃЇзќЂгЃ„гЃ¦гЃ„гЃЄгЃ„е‡єеЏЈгЃ®й«гЃ•гЃёеђёгЃ„еЇ„гЃ›гЃЄгЃ„г‚€гЃ†гЂЃ
-            // д»ЉгЃ„г‚‹й«гЃ•г‚’е‡єеЏЈгЃЁгЃ—гЃ¦ж‰±гЃ†
+            // ’јЊг‚МЌ‚‚іЊЕ’и(holdAtExitLanding)‚ЄЃAЋАЌЫ‚Й‚Н’…‚ў‚Д‚ў‚И‚ўЏoЊы‚МЌ‚‚і‚Ц‹z‚ўЉс‚№‚И‚ў‚ж‚¤ЃA
+            // ЌЎ‚ў‚йЌ‚‚і‚рЏoЊы‚Ж‚µ‚Д€µ‚¤
             m_frozenExitLandingY = nextPos.y;
         }
         // Keep the cached NavMesh path cleared for the whole crossing so the moment it steps back
@@ -736,7 +736,7 @@ void GhostAI::MoveTowardTarget(float deltaTime, TransformData& cTrans, const Mat
     }
     else
     {
-        // NavMeshжњЄж§‹зЇ‰ж™‚гЃЇз›ґз·љз§»е‹•гЃ«гѓ•г‚©гѓјгѓ«гѓђгѓѓг‚Ї
+        // NavMesh–ўЌ\’zЋћ‚Н’јђь€Ъ“®‚ЙѓtѓHЃ[ѓ‹ѓoѓbѓN
         Math::Vector3 toTarget = finalTarget - cTrans.m_position;
         toTarget.y = 0.0f;
         if (toTarget.LengthSquared() > 0.0001f)
@@ -761,9 +761,9 @@ void GhostAI::MoveTowardTarget(float deltaTime, TransformData& cTrans, const Mat
         m_skipGravityThisFrame = true;
     }
 
-    // еђ‘гЃЌж›ґж–°гЃ®й–ѕеЂ¤гЃЇ1гѓ•гѓ¬гѓјгѓ гЃ®жѓіе®љз§»е‹•й‡ЏгЃ«еЇѕгЃ™г‚‹е‰Іеђ€гЃ§е€¤е®љгЃ™г‚‹гЂ‚е›єе®љеЂ¤(0.01m/гѓ•гѓ¬гѓјгѓ )гЃ гЃЁ
-    // й«FPSж™‚(гѓЏгѓігѓ€йЂџеє¦1.8m/sгЃЄг‚‰180fpsи¶…)гЃ«жЇЋгѓ•гѓ¬гѓјгѓ гЃ®з§»е‹•й‡ЏгЃЊй–ѕеЂ¤г‚’дё‹е›ћг‚ЉгЂЃm_moveDirгЃЊ
-    // ж›ґж–°гЃ•г‚ЊгЃљеђ‘гЃЌгЃЊе›єе®љгЃ•г‚ЊгЃџгЃѕгЃѕеѕЊг‚Ќж­©гЃЌгЃ§иїЅгЃЈгЃ¦гЃЏг‚‹дёЌе…·еђ€гЃ«гЃЄгЃЈгЃ¦гЃ„гЃџгЂ‚
+    // Њь‚«ЌXђV‚Ми‡’l‚Н1ѓtѓЊЃ[ѓЂ‚М‘z’и€Ъ“®—К‚Й‘О‚·‚йЉ„Ќ‡‚Е”»’и‚·‚йЃBЊЕ’и’l(0.01m/ѓtѓЊЃ[ѓЂ)‚ѕ‚Ж
+    // Ќ‚FPSЋћ(ѓnѓ“ѓg‘¬“x1.8m/s‚И‚з180fps’ґ)‚Й–€ѓtѓЊЃ[ѓЂ‚М€Ъ“®—К‚Єи‡’l‚р‰є‰с‚иЃAm_moveDir‚Є
+    // ЌXђV‚і‚к‚ёЊь‚«‚ЄЊЕ’и‚і‚к‚Ѕ‚Ь‚ЬЊг‚л•а‚«‚Е’З‚Б‚Д‚­‚й•s‹пЌ‡‚Й‚И‚Б‚Д‚ў‚ЅЃB
     const float minStep = speed * deltaTime * 0.1f;
     if (moveDelta.LengthSquared() > minStep * minStep && moveDelta.LengthSquared() > 1e-10f)
     {
@@ -775,7 +775,7 @@ void GhostAI::MoveTowardTarget(float deltaTime, TransformData& cTrans, const Mat
 
 void GhostAI::UpdateHouseWander(float deltaTime, TransformData& cTrans)
 {
-    // еѕеѕЉ: г‚ґгѓјг‚№гѓ€гѓ«гѓјгѓ гЃ®е¤–еЃґгЂЃе®¶гЃ®зЇ„е›Іе†…гЃ«й™ђе®љгЃ—гЃ¦NavMeshзµЊз”±гЃ§ж­©гЃЌе›ћг‚‹
+    // њpњj: ѓSЃ[ѓXѓgѓ‹Ѓ[ѓЂ‚МЉO‘¤ЃA‰Ж‚М”Н€Н“а‚ЙЊА’и‚µ‚ДNavMeshЊo—R‚Е•а‚«‰с‚й
     EnsureHouseBounds();
     TryOpenNearbyDoor(cTrans.m_position, deltaTime);
 
@@ -787,12 +787,12 @@ void GhostAI::UpdateHouseWander(float deltaTime, TransformData& cTrans)
         m_houseWanderDurationTimer -= deltaTime;
     }
 
-    // з«‹гЃЎеѕЂз”џж¤њзџҐ: зµЊи·ЇгЃЊз№‹гЃЊгЃЈгЃ¦гЃ„гЃЄгЃ„гЂЃгЃ‚г‚‹гЃ„гЃЇдЅ•г‚‰гЃ‹гЃ®зђ†з”±гЃ§гЃ—гЃ°г‚‰гЃЏйЂІг‚ЃгЃ¦гЃ„гЃЄгЃ„е ґеђ€гЃЇ
-    // гЃќгЃ®з›®зљ„ењ°г‚’и«¦г‚Ѓг‚‹(IsReachableг‚’гЃ™г‚ЉжЉњгЃ‘гЃџжѓіе®ље¤–гЃ®г‚±гѓјг‚№гЃ®дїќй™є)
-    // жЇЋгѓ•гѓ¬гѓјгѓ гЃ§гЃЇгЃЄгЃЏдёЂе®љж™‚й–“гЃ”гЃЁгЃ«еЊєй–“гЃ®з§»е‹•й‡Џг‚’гѓЃг‚§гѓѓг‚ЇгЃ™г‚‹(жЇЋгѓ•гѓ¬гѓјгѓ жЇ”ијѓгЃ гЃЁ
-    // еѕ®е°ЏгЃЄеѕЂеѕ©(еЈЃгЃ®и§’гЃЄгЃ©гЃ§2зµЊи·ЇгЃ®й–“г‚’иЎЊгЃЈгЃџг‚ЉжќҐгЃџг‚ЉгЃ—гЃ¦гЃ„г‚‹е ґеђ€)гЃ§г‚‚
-    // жЇЋгѓ•гѓ¬гѓјгѓ жЇ”ијѓгЃ§"10cmд»ҐдёЉе‹•гЃ„гЃџ"гЃЁе€¤е®љгЃ•г‚ЊгЃ¦гЃ—гЃѕгЃ„гЂЃй–ѕеЂ¤дѕќе­гЃ®ж¤њзџҐгЃЄгЃ®гЃ§гЂЃ
-    // еЃњж»ћг‚’ж¤њзџҐгЃ§гЃЌгЃЄгЃ„)
+    // —§‚ї‰ќђ¶Њџ’m: ЊoH‚ЄЊq‚Є‚Б‚Д‚ў‚И‚ўЃA‚ ‚й‚ў‚Н‰Ѕ‚з‚©‚М—ќ—R‚Е‚µ‚О‚з‚­ђi‚Я‚Д‚ў‚И‚ўЏкЌ‡‚Н
+    // ‚»‚М–Ъ“I’n‚р’ъ‚Я‚й(IsReachable‚р‚·‚и”І‚Ї‚Ѕ‘z’иЉO‚МѓPЃ[ѓX‚М•ЫЊЇ)
+    // –€ѓtѓЊЃ[ѓЂ‚Е‚Н‚И‚­€к’иЋћЉФ‚І‚Ж‚Й‹жЉФ‚М€Ъ“®—К‚рѓ`ѓFѓbѓN‚·‚й(–€ѓtѓЊЃ[ѓЂ”дЉr‚ѕ‚Ж
+    // ”чЏ¬‚И‰ќ•њ(•З‚МЉp‚И‚З‚Е2ЊoH‚МЉФ‚рЌs‚Б‚Ѕ‚и—€‚Ѕ‚и‚µ‚Д‚ў‚йЏкЌ‡)‚Е‚а
+    // –€ѓtѓЊЃ[ѓЂ”дЉr‚Е"10cm€ИЏг“®‚ў‚Ѕ"‚Ж”»’и‚і‚к‚Д‚µ‚Ь‚ўЃAи‡’l€Л‘¶‚МЊџ’m‚И‚М‚ЕЃA
+    // ’в‘Ш‚рЊџ’m‚Е‚«‚И‚ў)
     m_houseWanderStuckCheckTimer += deltaTime;
     if (m_houseWanderStuckCheckTimer >= m_stuckCheckWindow)
     {
@@ -829,7 +829,7 @@ void GhostAI::UpdateHouseWander(float deltaTime, TransformData& cTrans)
 
         if (m_houseWanderReturning)
         {
-            // её°г‚ЉйЃ“гЃ§г‚‚з«‹гЃЎеѕЂз”џгЃ—гЃџе ґеђ€гЃЇгЂЃгЃќгЃ®е ґгЃ§г‚ґгѓјг‚№гѓ€гѓ«гѓјгѓ г‚’з›®жЁ™гЃ«гЃ—гЃ¦д»•е€‡г‚Љз›ґгЃ™
+            // ‹A‚и“№‚Е‚а—§‚ї‰ќђ¶‚µ‚ЅЏкЌ‡‚НЃA‚»‚МЏк‚ЕѓSЃ[ѓXѓgѓ‹Ѓ[ѓЂ‚р–Ъ•W‚Й‚µ‚ДЋdђШ‚и’ј‚·
             m_houseWanderTimer = Random::Instance().Range(m_houseWanderIntervalMin, m_houseWanderIntervalMax);
             SetState(GhostAI::State::Wander);
             return;
@@ -854,12 +854,12 @@ void GhostAI::UpdateHouseWander(float deltaTime, TransformData& cTrans)
     float distToTarget = Math::Vector3::Distance(cTrans.m_position, m_houseWanderTargetPos);
     if (distToTarget > m_roomArriveThreshold)
     {
-        return; // гЃѕгЃ е€°зќЂгЃ—гЃ¦гЃ„гЃЄгЃ„
+        return; // ‚Ь‚ѕ“ћ’…‚µ‚Д‚ў‚И‚ў
     }
 
     if (m_houseWanderReturning)
     {
-        // г‚ґгѓјг‚№гѓ€гѓ«гѓјгѓ гЃёгЃ®её°й‚„е®Њдє† -> Roomеѕ…ж©џгЃё
+        // ѓSЃ[ѓXѓgѓ‹Ѓ[ѓЂ‚Ц‚М‹AЉТЉ®—№ -> Room‘Т‹@‚Ц
         m_houseWanderTimer = Random::Instance().Range(m_houseWanderIntervalMin, m_houseWanderIntervalMax);
         SetState(GhostAI::State::Wander);
         return;
@@ -867,7 +867,7 @@ void GhostAI::UpdateHouseWander(float deltaTime, TransformData& cTrans)
 
     if (m_houseWanderDurationTimer <= 0.0f)
     {
-        // еѕеѕЉж™‚й–“е€‡г‚Њ -> г‚ґгѓјг‚№гѓ€гѓ«гѓјгѓ гЃёж€»г‚‹
+        // њpњjЋћЉФђШ‚к -> ѓSЃ[ѓXѓgѓ‹Ѓ[ѓЂ‚Ц–Я‚й
         if (m_targetRoom)
         {
             m_houseWanderTargetPos = m_targetRoom->GetCenter();
@@ -877,7 +877,7 @@ void GhostAI::UpdateHouseWander(float deltaTime, TransformData& cTrans)
         return;
     }
 
-    // гЃѕгЃ еѕеѕЉг‚’з¶љгЃ‘г‚‹: е€°йЃ”еЏЇиѓЅгЃЄе€ҐгЃ®йѓЁе±‹г‚’з›®жЊ‡гЃ™
+    // ‚Ь‚ѕњpњj‚р‘±‚Ї‚й: “ћ’B‰В”\‚И•К‚М•”‰®‚р–ЪЋw‚·
     std::vector<RoomArea*> candidates = CollectReachableCandidateRooms(cTrans.m_position);
     if (!candidates.empty())
     {
@@ -886,7 +886,7 @@ void GhostAI::UpdateHouseWander(float deltaTime, TransformData& cTrans)
     }
     else if (m_targetRoom)
     {
-        // д»–гЃ«иЎЊгЃ‘г‚‹йѓЁе±‹гЃЊгЃЄгЃ‘г‚ЊгЃ°её°й‚„гЃ™г‚‹
+        // ‘ј‚ЙЌs‚Ї‚й•”‰®‚Є‚И‚Ї‚к‚О‹AЉТ‚·‚й
         m_houseWanderTargetPos = m_targetRoom->GetCenter();
         m_houseWanderReturning = true;
     }
@@ -913,7 +913,7 @@ bool GhostAI::CanSeePlayer(const TransformData& cTrans, Math::Vector3& outPlayer
 
     outPlayerPos = pPlayerTrans->m_position;
 
-    // и¦–з‚№дЅЌзЅ®гЃЁгЂЃз‹™гЃ†з›®жЁ™дЅЌзЅ®(и¶іе…ѓгЃ гЃЁдёЌи‡Єз„¶гЃЄгЃ®гЃ§гЂЃе°‘гЃ—дёЉг‚’з‹™гЃ†)
+    // Ћ‹“_€К’u‚ЖЃA‘_‚¤–Ъ•W€К’u(‘«Њі‚ѕ‚Ж•sЋ©‘R‚И‚М‚ЕЃAЏ­‚µЏг‚р‘_‚¤)
     Math::Vector3 eyePos = cTrans.m_position + Math::Vector3(0.0f, m_eyeHeight, 0.0f);
     Math::Vector3 targetPos = outPlayerPos + Math::Vector3(0.0f, 1.0f, 0.0f);
 
@@ -923,8 +923,8 @@ bool GhostAI::CanSeePlayer(const TransformData& cTrans, Math::Vector3& outPlayer
     {
         return false;
     }
-    // и·ќй›ўгЃЊиї‘гЃ™гЃЋг‚‹гЃЁгЃќгЃ®еѕЊгЃ®гѓ¬г‚¤г‚­гѓЈг‚№гѓ€гЃЊдёЌе®‰е®љ(жњЂе¤§и·ќй›ўгЃЊгЃ»гЃј0гЃ«гЃЄг‚‹)гЃ«гЃЄг‚‹гЃџг‚ЃгЂЃ
-    // гЃќгЃ®е ґеђ€гЃЇз„ЎжќЎд»¶гЃ§и¦–иЄЌгЃ—гЃџгЃ“гЃЁгЃ«гЃ™г‚‹
+    // ‹——Ј‚Є‹Я‚·‚¬‚й‚Ж‚»‚МЊг‚МѓЊѓCѓLѓѓѓXѓg‚Є•s€А’и(ЌЕ‘е‹——Ј‚Є‚Щ‚Ъ0‚Й‚И‚й)‚Й‚И‚й‚Ѕ‚ЯЃA
+    // ‚»‚МЏкЌ‡‚Н–іЏрЊЏ‚ЕЋ‹”F‚µ‚Ѕ‚±‚Ж‚Й‚·‚й
     if (distance <= 0.3f)
     {
         return true;
@@ -933,10 +933,10 @@ bool GhostAI::CanSeePlayer(const TransformData& cTrans, Math::Vector3& outPlayer
     Math::Vector3 dir = toPlayer;
     dir /= distance;
 
-    // и¦–й‡Ћи§’гѓЃг‚§гѓѓг‚Ї(ж°ґе№іж–№еђ‘гЃ®гЃїгЂ‚GhostгЃ®еђ‘гЃЌ=rotation.yг‚’еџєжє–гЃ«гЃ™г‚‹)
+    // Ћ‹–мЉpѓ`ѓFѓbѓN(ђ…•Ѕ•ыЊь‚М‚ЭЃBGhost‚МЊь‚«=rotation.y‚рЉоЏЂ‚Й‚·‚й)
     Math::Vector3 forward(sinf(cTrans.m_rotation.y), 0.0f, cosf(cTrans.m_rotation.y));
     Math::Vector3 flatDir(dir.x, 0.0f, dir.z);
-    // иї‘и·ќй›ў(m_proximitySenseDistanceд»Ґе†…)гЃЇиѓЊеѕЊгЃ§г‚‚ж°—д»гЃЏгЂ‚йЃ®и”ЅгѓЃг‚§гѓѓг‚ЇгЃЇдё‹гЃ§иЎЊгЃ†гЃ®гЃ§еЈЃи¶ЉгЃ—гЃЇдёЌеЏЇ
+    // ‹Я‹——Ј(m_proximitySenseDistance€И“а)‚Н”wЊг‚Е‚а‹C•t‚­ЃBЋХ•Бѓ`ѓFѓbѓN‚Н‰є‚ЕЌs‚¤‚М‚Е•З‰z‚µ‚Н•s‰В
     float flatDist = flatDir.Length() * distance;
     if (flatDist > m_proximitySenseDistance && flatDir.LengthSquared() > 0.0001f)
     {
@@ -948,7 +948,7 @@ bool GhostAI::CanSeePlayer(const TransformData& cTrans, Math::Vector3& outPlayer
         }
     }
 
-    // йЃ®и”ЅгѓЃг‚§гѓѓг‚Ї: PlayerгЃѕгЃ§гЃ®й–“гЃ«гЃ‚г‚‹StageгѓЎгѓѓг‚·гѓҐ(еЈЃгЃЄгЃ©)гЃ«еЅ“гЃџгЃЈгЃџг‚‰и¦‹гЃ€гЃ¦гЃ„гЃЄгЃ„
+    // ЋХ•Бѓ`ѓFѓbѓN: Player‚Ь‚Е‚МЉФ‚Й‚ ‚йStageѓЃѓbѓVѓ…(•З‚И‚З)‚Й“–‚Ѕ‚Б‚Ѕ‚зЊ©‚¦‚Д‚ў‚И‚ў
     RaycastHit hit = CollisionManager::Instance().RaycastAgainstMesh(eyePos, dir, distance - 0.2f, "Stage");
     if (hit.hit)
     {
@@ -958,9 +958,9 @@ bool GhostAI::CanSeePlayer(const TransformData& cTrans, Math::Vector3& outPlayer
     return true;
 }
 
-// HouseWander/HuntгЃ§з§»е‹•дё­гЃ«гЂЃиї‘гЃЏгЃ«гЃ‚г‚‹й–‰гЃѕгЃЈгЃ¦гЃ„г‚‹гѓ‰г‚ўг‚’и‡Єе‹•зљ„гЃ«й–‹гЃ‘г‚‹гЂ‚
-// жЇЋгѓ•гѓ¬гѓјгѓ е…Ёг‚Ёгѓігѓ†г‚Јгѓ†г‚Јг‚’иµ°жџ»гЃ™г‚‹гЃ®гЃЇй‡ЌгЃ„гЃ®гЃ§гЂЃm_doorCheckIntervalгЃ§й–“еј•гЃЏгЂ‚
-// PlayerгЃ®ж‰‹е‹•гѓ‰г‚ўж“ЌдЅњ(Player::TryInteractDoor)гЃЁеђЊгЃд»•зµ„гЃїг‚’дЅїгЃ†гЃЊгЂЃGhostгЃЇй–‹гЃ‘г‚‹гЃ гЃ‘гЃ§й–‰г‚ЃгЃЄгЃ„гЂ‚
+// HouseWander/Hunt‚Е€Ъ“®’†‚ЙЃA‹Я‚­‚Й‚ ‚й•В‚Ь‚Б‚Д‚ў‚йѓhѓA‚рЋ©“®“I‚ЙЉJ‚Ї‚йЃB
+// –€ѓtѓЊЃ[ѓЂ‘SѓGѓ“ѓeѓBѓeѓB‚р‘–Ќё‚·‚й‚М‚НЏd‚ў‚М‚ЕЃAm_doorCheckInterval‚ЕЉФ€ш‚­ЃB
+// Player‚МЋи“®ѓhѓA‘ЂЌм(Player::TryInteractDoor)‚Ж“Ї‚¶Ћd‘g‚Э‚рЋg‚¤‚ЄЃAGhost‚НЉJ‚Ї‚й‚ѕ‚Ї‚Е•В‚Я‚И‚ўЃB
 void GhostAI::TryOpenNearbyDoor(const Math::Vector3& ghostPos, float deltaTime)
 {
     m_doorCheckTimer -= deltaTime;
@@ -999,7 +999,7 @@ void GhostAI::TryOpenNearbyDoor(const Math::Vector3& ghostPos, float deltaTime)
         Math::Vector3 entityPos = pTransform->m_position;
         if ((ghostPos - entityPos).Length() > 50.0f)
         {
-            continue; // и·ќй›ўгЃ§е¤§гЃѕгЃ‹гЃ«и¶іе€‡г‚Љ
+            continue; // ‹——Ј‚Е‘е‚Ь‚©‚Й‘«ђШ‚и
         }
 
         auto* pAnim = ecs.TryGetComponent<AnimationDataComponent>(entity);
@@ -1040,7 +1040,7 @@ void GhostAI::TryOpenNearbyDoor(const Math::Vector3& ghostPos, float deltaTime)
                 }
             }
 
-            // ж—ўгЃ«й–‹гЃ„гЃ¦гЃ„г‚‹(гЃѕгЃџгЃЇй–‹гЃ„гЃ¦гЃ„г‚‹жњЂдё­гЃ®)гѓ‰г‚ўгЃЇеЇѕи±Ўе¤– - й–‰гЃгЃ¦гЃ„г‚‹г‚‚гЃ®гЃ гЃ‘й–‹гЃ‘г‚‹
+            // Љщ‚ЙЉJ‚ў‚Д‚ў‚й(‚Ь‚Ѕ‚НЉJ‚ў‚Д‚ў‚йЌЕ’†‚М)ѓhѓA‚Н‘ОЏЫЉO - •В‚¶‚Д‚ў‚й‚а‚М‚ѕ‚ЇЉJ‚Ї‚й
             const auto& state = pAnim->multiAnims[i];
             if (state.IsPlaying || state.ProgressTime > 0.0f)
             {
@@ -1048,7 +1048,7 @@ void GhostAI::TryOpenNearbyDoor(const Math::Vector3& ghostPos, float deltaTime)
             }
             if (DoorLock::IsLocked(entity, i))
             {
-                continue; // ж–ЅйЊ дё­(гѓЏгѓігѓ€дё­гЃ®зЋ„й–ў)гЃЇй–‹гЃ‘гЃЄгЃ„
+                continue; // Ћ{Џщ’†(ѓnѓ“ѓg’†‚МЊєЉЦ)‚НЉJ‚Ї‚И‚ў
             }
 
             float dist = (ghostPos - doorPos).Length();
@@ -1067,7 +1067,7 @@ void GhostAI::TryOpenNearbyDoor(const Math::Vector3& ghostPos, float deltaTime)
     }
 
     animMgr.PlayMultiAnimation(bestEntity, bestAnimIdx, false, 1.0f);
-    // иЄ°г‚‚гЃ„гЃЄгЃ„гЃ®гЃ«гѓ‰г‚ўгЃЊи»‹г‚ЂйџігЃЊгЃ™г‚‹ -> иї‘гЃЏгЃ«гЃ„г‚ЊгЃ°гѓ—гѓ¬г‚¤гѓ¤гѓјгЃ«г‚‚иЃћгЃ“гЃ€г‚‹
+    // ’N‚а‚ў‚И‚ў‚М‚ЙѓhѓA‚Єзa‚Ю‰№‚Є‚·‚й -> ‹Я‚­‚Й‚ў‚к‚ОѓvѓЊѓCѓ„Ѓ[‚Й‚а•·‚±‚¦‚й
     AudioManager::Instance().PlaySEAt("Asset/Sound/SE/door_open.wav", ghostPos, m_doorSoundVolume, 15.0f);
 
     // While the door swings open, its collider is briefly non-static and can physically shove the
@@ -1077,8 +1077,8 @@ void GhostAI::TryOpenNearbyDoor(const Math::Vector3& ghostPos, float deltaTime)
     m_doorPassThroughTimer = m_doorPassThroughDuration;
     SetDoorPassThrough(true);
 
-    //гѓ‰г‚ўг‚ўгѓ‹гѓЎгѓјг‚·гѓ§гѓідё­гЃЇг‚ігѓ©г‚¤гѓЂгѓјг‚’е‹•зљ„ж‰±гЃ„гЃ«гЃ—гЃ¦жЇЋгѓ•гѓ¬гѓјгѓ AABBгЃЊж›ґж–°гЃ•г‚Њг‚‹г‚€гЃ†гЃ«гЃ™г‚‹
-    // (Player::TryInteractDoorгЃЁеђЊгЃд»•зµ„гЃї)
+    //ѓhѓAѓAѓjѓЃЃ[ѓVѓ‡ѓ“’†‚НѓRѓ‰ѓCѓ_Ѓ[‚р“®“I€µ‚ў‚Й‚µ‚Д–€ѓtѓЊЃ[ѓЂAABB‚ЄЌXђV‚і‚к‚й‚ж‚¤‚Й‚·‚й
+    // (Player::TryInteractDoor‚Ж“Ї‚¶Ћd‘g‚Э)
     auto* pCollider = ecs.TryGetComponent<ColliderData>(bestEntity);
     if (pCollider && pCollider->m_isStatic)
     {
@@ -1088,8 +1088,8 @@ void GhostAI::TryOpenNearbyDoor(const Math::Vector3& ghostPos, float deltaTime)
 
 void GhostAI::UpdateHunt(float deltaTime, TransformData& cTrans)
 {
-    // гѓЏгѓігѓ€: и¦–иЄЌгЃ§гЃЌгЃ¦гЃ„г‚‹й–“гЃЇPlayerгЃ®зЏѕењЁдЅЌзЅ®г‚’иїЅи·ЎгЃ™г‚‹гЂ‚и¦‹е¤±гЃЈгЃџг‚‰жњЂзµ‚з›®ж’ѓењ°з‚№гЃёеђ‘гЃ‹гЃ„гЂЃ
-    // гЃќгЃ“гЃ§г‚‚и¦‹гЃ¤гЃ‹г‚‰гЃЄгЃ‘г‚ЊгЃ°е€°йЃ”еЏЇиѓЅгЃЄйѓЁе±‹г‚’е·Ўе›ћгЃ—гЃ¦жЌњзґўгЃ™г‚‹(гѓЏгѓігѓ€ж™‚й–“гЃЊе€‡г‚Њг‚‹гЃѕгЃ§)гЂ‚
+    // ѓnѓ“ѓg: Ћ‹”F‚Е‚«‚Д‚ў‚йЉФ‚НPlayer‚МЊ»ЌЭ€К’u‚р’ЗђХ‚·‚йЃBЊ©Ћё‚Б‚Ѕ‚зЌЕЏI–ЪЊ‚’n“_‚ЦЊь‚©‚ўЃA
+    // ‚»‚±‚Е‚аЊ©‚В‚©‚з‚И‚Ї‚к‚О“ћ’B‰В”\‚И•”‰®‚рЏ„‰с‚µ‚Д‘{Ќх‚·‚й(ѓnѓ“ѓgЋћЉФ‚ЄђШ‚к‚й‚Ь‚Е)ЃB
     if (m_playerEntity == INVALID_ENTITY)
     {
         m_playerEntity = FindPlayerEntity();
@@ -1097,9 +1097,9 @@ void GhostAI::UpdateHunt(float deltaTime, TransformData& cTrans)
 
     Math::Vector3 seenPos;
     m_isSeeingPlayer = CanSeePlayer(cTrans, seenPos);
-    // з‚№зЃЇгЃ—гЃџгѓ•гѓ©гѓѓг‚·гѓҐгѓ©г‚¤гѓ€г‚’ж‰‹гЃ«жЊЃгЃЈгЃ¦гЃ„г‚‹й–“гЃЇгЂЃеЈЃи¶ЉгЃ—гѓ»и¦–й‡Ће¤–гЃ§г‚‚е±…е ґж‰ЂгЃЊе€†гЃ‹г‚‹
+    // “_“”‚µ‚Ѕѓtѓ‰ѓbѓVѓ…ѓ‰ѓCѓg‚рЋи‚ЙЋќ‚Б‚Д‚ў‚йЉФ‚НЃA•З‰z‚µЃEЋ‹–мЉO‚Е‚а‹ЏЏкЏЉ‚Є•Є‚©‚й
     m_isSensingLight = IsPlayerHoldingLitFlashLight();
-    // и¦–иЄЌеЉ йЂџ: е…Ёиє«гЃЊи¦‹гЃ€гЃ¦гЃ„г‚‹й–“гЃЇжєњгЃѕг‚ЉгЂЃи¦‹е¤±гЃ†гЃЁm_losDecayTimeз§’гЃ‹гЃ‘гЃ¦ж€»г‚‹
+    // Ћ‹”F‰Б‘¬: ‘Sђg‚ЄЊ©‚¦‚Д‚ў‚йЉФ‚Н—­‚Ь‚иЃAЊ©Ћё‚¤‚Жm_losDecayTime•b‚©‚Ї‚Д–Я‚й
     m_isSeeingFullBody = m_isSeeingPlayer && CanSeePlayerFullBody(cTrans);
     if (m_isSeeingFullBody)
     {
@@ -1110,11 +1110,11 @@ void GhostAI::UpdateHunt(float deltaTime, TransformData& cTrans)
         float decayPerSec = (m_losDecayTime > 0.0001f) ? (m_losTimeToMax / m_losDecayTime) : FLT_MAX;
         m_losTimer = (std::max)(0.0f, m_losTimer - decayPerSec * deltaTime);
     }
-    // з…§жЋгЃ«г‚€г‚‹жё›йЂџ: дЅ“(иѓґгЃ®й«гЃ•)гЃЊз‚№гЃ„гЃ¦гЃ„г‚‹з…§жЋгЃ«з…§г‚‰гЃ•г‚ЊгЃ¦гЃ„г‚‹гЃ‹
+    // ЏЖ–ѕ‚Й‚ж‚йЊё‘¬: ‘М(“·‚МЌ‚‚і)‚Є“_‚ў‚Д‚ў‚йЏЖ–ѕ‚ЙЏЖ‚з‚і‚к‚Д‚ў‚й‚©
     m_isInLight = IsPositionLit(cTrans.m_position + Math::Vector3(0.0f, 1.0f, 0.0f));
 
-    // иїЅи·Ў: дёЂеє¦и¦–иЄЌгЃ—гЃџг‚‰гЂЃеЈЃгЃ«йљ г‚ЊгЃ¦г‚‚зЏѕењЁдЅЌзЅ®г‚’иїЅгЃ„з¶љгЃ‘г‚‹гЂ‚и¦–иЄЌеЉ йЂџгЃЊжєњгЃѕг‚‰гЃЄгЃ„(е…Ёиє«гЃЊи¦‹гЃ€гЃ¦гЃ„гЃЄгЃ„)
-    // зЉ¶ж…‹гЃЊm_trackGiveUpTimeз§’з¶љгЃ„гЃџг‚‰иїЅи·Ўг‚’г‚„г‚ЃгЂЃжњЂеѕЊгЃ«е€†гЃ‹гЃЈгЃ¦гЃ„гЃџдЅЌзЅ®гЃ‹г‚‰гЃ®жЌњзґўгЃ«з§»г‚‹гЂ‚
+    // ’ЗђХ: €к“xЋ‹”F‚µ‚Ѕ‚зЃA•З‚Й‰B‚к‚Д‚аЊ»ЌЭ€К’u‚р’З‚ў‘±‚Ї‚йЃBЋ‹”F‰Б‘¬‚Є—­‚Ь‚з‚И‚ў(‘Sђg‚ЄЊ©‚¦‚Д‚ў‚И‚ў)
+    // Џу‘Ф‚Єm_trackGiveUpTime•b‘±‚ў‚Ѕ‚з’ЗђХ‚р‚в‚ЯЃAЌЕЊг‚Й•Є‚©‚Б‚Д‚ў‚Ѕ€К’u‚©‚з‚М‘{Ќх‚Й€Ъ‚йЃB
     if (m_isSeeingPlayer)
     {
         m_isTrackingPlayer = true;
@@ -1154,7 +1154,7 @@ void GhostAI::UpdateHunt(float deltaTime, TransformData& cTrans)
         target = m_lastKnownPlayerPos;
         if (!knowsPlayerPos)
         {
-            // жњЂзµ‚з›®ж’ѓењ°з‚№гЃ«зќЂгЃ„гЃ¦г‚‚и¦‹гЃ¤гЃ‹г‚‰гЃЄгЃ‘г‚ЊгЃ°жЌњзґўгЃ«е€‡г‚Љж›їгЃ€г‚‹(е€ҐгЃ®йљЋгЃЇзќЂгЃ„гЃџгЃЁгЃїгЃЄгЃ•гЃЄгЃ„)
+            // ЌЕЏI–ЪЊ‚’n“_‚Й’…‚ў‚Д‚аЊ©‚В‚©‚з‚И‚Ї‚к‚О‘{Ќх‚ЙђШ‚и‘Ц‚¦‚й(•К‚МЉK‚Н’…‚ў‚Ѕ‚Ж‚Э‚И‚і‚И‚ў)
             Math::Vector3 toLast = m_lastKnownPlayerPos - cTrans.m_position;
             float dy = fabsf(toLast.y);
             toLast.y = 0.0f;
@@ -1180,7 +1180,7 @@ void GhostAI::UpdateHunt(float deltaTime, TransformData& cTrans)
     EnsureHouseBounds();
     TryOpenNearbyDoor(cTrans.m_position, deltaTime);
 
-    // NavMeshгЃЊж§‹зЇ‰жё€гЃїгЃЄг‚‰гЃќгЃЎг‚‰гЃ®зµЊи·ЇгЃ§з§»е‹•гЃ™г‚‹(еЈЃг‚’зЄЃгЃЌжЉњгЃ‘гЃљзўєе®џгЃ«гѓ‰г‚ўг‚„йЂљи·Їг‚’зµЊз”±гЃ§гЃЌг‚‹)
+    // NavMesh‚ЄЌ\’zЌП‚Э‚И‚з‚»‚ї‚з‚МЊoH‚Е€Ъ“®‚·‚й(•З‚р“Л‚«”І‚Ї‚ёЉmЋА‚ЙѓhѓA‚в’КH‚рЊo—R‚Е‚«‚й)
     MoveTowardTarget(deltaTime, cTrans, target, GetHuntSpeed());
 
     // Hunt previously had no stuck-detection at all (unlike UpdateHouseWander), so once physically
@@ -1233,8 +1233,8 @@ bool GhostAI::CanSeePlayerFullBody(const TransformData& cTrans)
         return false;
     }
 
-    // и¦–й‡Ћи§’гѓ»и·ќй›ўгЃЇCanSeePlayer(иѓґгЃ®й«гЃ•)гЃ§зўєиЄЌжё€гЃїгЃ®е‰ЌжЏђгЂ‚гЃ“гЃ“гЃ§гЃЇи¶іе…ѓгѓ»иѓґгѓ»й ­гЃ®3з‚№гЃ™гЃ№гЃ¦гЃ«
-    // йЃ®и”Ѕз‰©гЃЊз„ЎгЃ„гЃ‹гЃ гЃ‘г‚’и¦‹г‚‹(е®¶е…·гЃ®й™°гЃ§дё‹еЌЉиє«гЃЊйљ г‚ЊгЃ¦гЃ„г‚‹з­‰гЃЇгЂЊе…Ёиє«гЃЇи¦‹гЃ€гЃ¦гЃ„гЃЄгЃ„гЂЌж‰±гЃ„)гЂ‚
+    // Ћ‹–мЉpЃE‹——Ј‚НCanSeePlayer(“·‚МЌ‚‚і)‚ЕЉm”FЌП‚Э‚М‘O’сЃB‚±‚±‚Е‚Н‘«ЊіЃE“·ЃE“Є‚М3“_‚·‚Ч‚Д‚Й
+    // ЋХ•Б•Ё‚Є–і‚ў‚©‚ѕ‚Ї‚рЊ©‚й(‰Ж‹п‚М‰A‚Е‰є”јђg‚Є‰B‚к‚Д‚ў‚й“™‚НЃu‘Sђg‚НЊ©‚¦‚Д‚ў‚И‚ўЃv€µ‚ў)ЃB
     Math::Vector3 eyePos = cTrans.m_position + Math::Vector3(0.0f, m_eyeHeight, 0.0f);
     const float kBodyHeights[] = {0.2f, 1.0f, 1.6f};
     for (float h : kBodyHeights)
@@ -1287,7 +1287,7 @@ bool GhostAI::IsPositionLit(const Math::Vector3& pos) const
         return pTrans && Math::Vector3::Distance(pTrans->m_worldMatrix.Translation(), pos) <= light.m_range;
     };
 
-    // з…§жЋ(StimulusSource)й…Ќдё‹гЃ®гѓ©г‚¤гѓ€: з‚№ж»…(Flicker)гЃ§дёЂзћ¬ж¶€гЃ€гЃ¦гЃ„гЃ¦г‚‚гЂЃз…§жЋгЃЊз‚№гЃ„гЃ¦гЃ„г‚ЊгЃ°з‚№зЃЇж‰±гЃ„
+    // ЏЖ–ѕ(StimulusSource)”z‰є‚Мѓ‰ѓCѓg: “_–Е(Flicker)‚Е€кЏuЏБ‚¦‚Д‚ў‚Д‚аЃAЏЖ–ѕ‚Є“_‚ў‚Д‚ў‚к‚О“_“”€µ‚ў
     std::unordered_set<Entity> managed;
     for (auto& scriptData : ecs.GetComponentArray<NativeScriptData>())
     {
@@ -1327,8 +1327,8 @@ bool GhostAI::IsPositionLit(const Math::Vector3& pos) const
         }
     }
 
-    // гЃќг‚Њд»Ґе¤–гЃ®г‚№гѓќгѓѓгѓ€гѓ©г‚¤гѓ€(жЊЃгЃЈгЃ¦гЃ„г‚‹/иђЅгЃЎгЃ¦гЃ„г‚‹гѓ•гѓ©гѓѓг‚·гѓҐгѓ©г‚¤гѓ€з­‰)гЃЇе®џйљ›гЃ®з‚№зЃЇзЉ¶ж…‹гЃ§е€¤е®љгЃ™г‚‹гЂ‚
-    // з…§жЋгЃ«е±ћгЃ•гЃЄгЃ„гѓќг‚¤гѓігѓ€гѓ©г‚¤гѓ€(гѓ­г‚¦г‚Ѕг‚Їз­‰гЃ®жј”е‡є)гЃЇгЂЊй›»ж°—гЂЌгЃ§гЃЇгЃЄгЃ„гЃ®гЃ§еЇѕи±Ўе¤–гЂ‚
+    // ‚»‚к€ИЉO‚МѓXѓ|ѓbѓgѓ‰ѓCѓg(Ћќ‚Б‚Д‚ў‚й/—Ћ‚ї‚Д‚ў‚йѓtѓ‰ѓbѓVѓ…ѓ‰ѓCѓg“™)‚НЋАЌЫ‚М“_“”Џу‘Ф‚Е”»’и‚·‚йЃB
+    // ЏЖ–ѕ‚Й‘®‚і‚И‚ўѓ|ѓCѓ“ѓgѓ‰ѓCѓg(ѓЌѓEѓ\ѓN“™‚М‰‰Џo)‚НЃu“d‹CЃv‚Е‚Н‚И‚ў‚М‚Е‘ОЏЫЉOЃB
     auto& spots = ecs.GetComponentArray<SpotLightData>();
     for (size_t i = 0; i < spots.GetSize(); ++i)
     {
@@ -1352,7 +1352,7 @@ bool GhostAI::IsPlayerHoldingLitFlashLight()
     {
         return false;
     }
-    // PlayerгЃЇECSгЃ®Componentећ‹гЃЁгЃ—гЃ¦з™»йЊІгЃ•г‚ЊгЃ¦гЃ„гЃЄгЃ„гЃ®гЃ§гЂЃNativeScriptDataзµЊз”±гЃ§dynamic_castгЃ™г‚‹
+    // Player‚НECS‚МComponentЊ^‚Ж‚µ‚Д“o^‚і‚к‚Д‚ў‚И‚ў‚М‚ЕЃANativeScriptDataЊo—R‚Еdynamic_cast‚·‚й
     auto& ecs = GameManager::Instance().GetECS();
     if (auto* pScriptData = ecs.TryGetComponent<NativeScriptData>(m_playerEntity))
     {
@@ -1403,7 +1403,7 @@ void GhostAI::LockEntranceDoor()
                 }
             }
 
-            // й–‹гЃ„гЃ¦гЃ„г‚‹/й–‹гЃ„гЃ¦гЃ„г‚‹жњЂдё­гЃЄг‚‰йЂ†е†Ќз”џгЃ§й–‰г‚Ѓг‚‹(Player::TryInteractDoorгЃ®й–‰г‚Ѓг‚‹е‡¦зђ†гЃЁеђЊгЃ)
+            // ЉJ‚ў‚Д‚ў‚й/ЉJ‚ў‚Д‚ў‚йЌЕ’†‚И‚з‹tЌДђ¶‚Е•В‚Я‚й(Player::TryInteractDoor‚М•В‚Я‚йЏ€—ќ‚Ж“Ї‚¶)
             auto& state = pAnim->multiAnims[i];
             bool isClosingOrClosed = (state.IsPlaying && state.Speed < 0.0f) || (!state.IsPlaying && state.ProgressTime <= 0.0f);
             if (!isClosingOrClosed)
@@ -1424,7 +1424,7 @@ void GhostAI::LockEntranceDoor()
 
 void GhostAI::UpdateLightFlicker(float deltaTime, const Math::Vector3& ghostPos)
 {
-    // жЇЋгѓ•гѓ¬гѓјгѓ е…Ёг‚№г‚ЇгѓЄгѓ—гѓ€г‚’иµ°жџ»гЃ—гЃЄгЃ„г‚€гЃ†й–“еј•гЃЏ(з‚№ж»…ж™‚й–“г‚’й–“йљ”г‚€г‚Љй•·гЃЏгЃ—гЃ¦йЂ”е€‡г‚ЊгЃЄгЃ„г‚€гЃ†гЃ«гЃ™г‚‹)
+    // –€ѓtѓЊЃ[ѓЂ‘SѓXѓNѓЉѓvѓg‚р‘–Ќё‚µ‚И‚ў‚ж‚¤ЉФ€ш‚­(“_–ЕЋћЉФ‚рЉФЉu‚ж‚и’·‚­‚µ‚Д“rђШ‚к‚И‚ў‚ж‚¤‚Й‚·‚й)
     const float kCheckInterval = 0.2f;
     m_lightFlickerCheckTimer -= deltaTime;
     if (m_lightFlickerCheckTimer > 0.0f)
@@ -1444,8 +1444,8 @@ void GhostAI::UpdateLightFlicker(float deltaTime, const Math::Vector3& ghostPos)
         }
 
         Math::Vector3 lightPos = src->GetWorldPosition();
-        // Y+ж–№еђ‘(и¶іе…ѓг‚€г‚ЉдёЉ)гЃ®з…§жЋгЃ гЃ‘г‚’еЇѕи±ЎгЃ«гЃ™г‚‹гЂ‚2йљЋгЃ«гЃ„г‚‹ж™‚гЂЃ1йљЋгЃ®е¤©дє•з…§жЋгЃЇи¶іе…ѓг‚€г‚Љ
-        // г‚ЏгЃљгЃ‹гЃ«дё‹гЃ«гЃ‚г‚‹гЃ®гЃ§й™¤е¤–гЃ•г‚ЊгЂЃдёЉгЃ®йљЋгЃ®з…§жЋгЃЇm_lightFlickerVerticalRangeгЃ§й™¤е¤–гЃ•г‚Њг‚‹
+        // Y+•ыЊь(‘«Њі‚ж‚иЏг)‚МЏЖ–ѕ‚ѕ‚Ї‚р‘ОЏЫ‚Й‚·‚йЃB2ЉK‚Й‚ў‚йЋћЃA1ЉK‚М“V€дЏЖ–ѕ‚Н‘«Њі‚ж‚и
+        // ‚н‚ё‚©‚Й‰є‚Й‚ ‚й‚М‚ЕЏњЉO‚і‚кЃAЏг‚МЉK‚МЏЖ–ѕ‚Нm_lightFlickerVerticalRange‚ЕЏњЉO‚і‚к‚й
         float dy = lightPos.y - ghostPos.y;
         if (dy <= 0.0f || dy > m_lightFlickerVerticalRange)
         {
@@ -1460,19 +1460,19 @@ void GhostAI::UpdateLightFlicker(float deltaTime, const Math::Vector3& ghostPos)
 
         if (hunting)
         {
-            // гѓЏгѓігѓ€дё­гЃЇиї‘гЃЏгЃ«гЃ„г‚‹й–“гЃљгЃЈгЃЁз‚№ж»…гЃ•гЃ›г‚‹
+            // ѓnѓ“ѓg’†‚Н‹Я‚­‚Й‚ў‚йЉФ‚ё‚Б‚Ж“_–Е‚і‚№‚й
             src->Flicker(kCheckInterval * 2.5f);
         }
         else if (!src->IsFlickering() &&
                  Random::Instance().Range(0.0f, 1.0f) < m_wanderFlickerChance * kCheckInterval)
         {
-            // гѓЏгѓігѓ€д»Ґе¤–гЃЇж™‚гЂ…гЂЃзџ­гЃЏз‚№ж»…гЃ•гЃ›г‚‹
+            // ѓnѓ“ѓg€ИЉO‚НЋћЃXЃA’Z‚­“_–Е‚і‚№‚й
             src->Flicker(Random::Instance().Range(0.3f, 1.0f));
         }
     }
 
-    // гѓ•гѓ©гѓѓг‚·гѓҐгѓ©г‚¤гѓ€(ж‰‹жЊЃгЃЎгѓ»еєЉгЃ«иђЅгЃЎгЃ¦гЃ„г‚‹з‰©)гЃ«г‚‚е№Іжё‰гЃ™г‚‹гЂ‚ж¶€гЃ—гЃЇгЃ›гЃљгЂЃи¦‹гЃџз›®гЃ гЃ‘з‚№ж»…гЃ•гЃ›г‚‹гЂ‚
-    // еђЊгЃйљЋ(й«гЃ•гЃ®е·®гЃЊm_floorHeightThresholdд»Ґе†…)гЃ§гЂЃm_flashLightFlickerRangeд»Ґе†…гЃ«гЃ‚г‚‹ж™‚гЃ гЃ‘гЂ‚
+    // ѓtѓ‰ѓbѓVѓ…ѓ‰ѓCѓg(ЋиЋќ‚їЃEЏ°‚Й—Ћ‚ї‚Д‚ў‚й•Ё)‚Й‚аЉ±ЏВ‚·‚йЃBЏБ‚µ‚Н‚№‚ёЃAЊ©‚Ѕ–Ъ‚ѕ‚Ї“_–Е‚і‚№‚йЃB
+    // “Ї‚¶ЉK(Ќ‚‚і‚МЌ·‚Єm_floorHeightThreshold€И“а)‚ЕЃAm_flashLightFlickerRange€И“а‚Й‚ ‚йЋћ‚ѕ‚ЇЃB
     auto nearFlashLight = [&](const Math::Vector3& pos)
     {
         if (fabsf(pos.y - ghostPos.y) > m_floorHeightThreshold)
@@ -1481,7 +1481,7 @@ void GhostAI::UpdateLightFlicker(float deltaTime, const Math::Vector3& ghostPos)
         }
         return Math::Vector3::Distance(pos, ghostPos) <= m_flashLightFlickerRange;
     };
-    // гѓЏгѓігѓ€дё­гЃЇиї‘гЃЏгЃ«гЃ„г‚‹й–“гЃљгЃЈгЃЁгЂЃгЃќг‚Њд»Ґе¤–гЃЇж™‚гЂ…гЂЊгЃ—гЃ°г‚‰гЃЏгЂЌ(1гЂњ3з§’)з‚№ж»…гЃ•гЃ›г‚‹
+    // ѓnѓ“ѓg’†‚Н‹Я‚­‚Й‚ў‚йЉФ‚ё‚Б‚ЖЃA‚»‚к€ИЉO‚НЋћЃXЃu‚µ‚О‚з‚­Ѓv(1Ѓ`3•b)“_–Е‚і‚№‚й
     auto flickerDuration = [&](bool alreadyFlickering) -> float
     {
         if (hunting)
@@ -1554,7 +1554,7 @@ void GhostAI::TurnOffAllLights()
     }
 }
 
-// гѓЏгѓігѓ€дё­гЃ«и¦‹е¤±гЃЈгЃџеѕЊгЃ®жЌњзґўе…€гЃЁгЃ—гЃ¦гЂЃе€°йЃ”еЏЇиѓЅгЃЄйѓЁе±‹г‚’гѓ©гѓігѓЂгѓ гЃ«йЃёгЃ¶(д»ЉгЃ„г‚‹йѓЁе±‹гЃЇй™¤гЃЏ)
+// ѓnѓ“ѓg’†‚ЙЊ©Ћё‚Б‚ЅЊг‚М‘{Ќхђж‚Ж‚µ‚ДЃA“ћ’B‰В”\‚И•”‰®‚рѓ‰ѓ“ѓ_ѓЂ‚Й‘I‚Ф(ЌЎ‚ў‚й•”‰®‚НЏњ‚­)
 void GhostAI::PickHuntSearchRoom(const Math::Vector3& currentPos)
 {
     std::vector<RoomArea*> candidates = CollectReachableCandidateRooms(currentPos);
@@ -1566,7 +1566,7 @@ void GhostAI::PickHuntSearchRoom(const Math::Vector3& currentPos)
                                           : candidates[Random::Instance().Range(0, (int)candidates.size() - 1)];
 }
 
-// зЁ®йЎћгЃ”гЃЁгЃ«ж„џзџҐгЃ™г‚‹е€єжїЂгЂ‚ж„џзџҐгЃ—гЃЄгЃ„зЁ®йЎћ(ењ°зё›йњЉгЂЃжњЄе®џиЈ…гЃ®е®¶йіґ)гЃЇfalseг‚’иї”гЃ™гЂ‚
+// Ћн—Ю‚І‚Ж‚ЙЉґ’m‚·‚йЋhЊѓЃBЉґ’m‚µ‚И‚ўЋн—Ю(’n”›—мЃA–ўЋА‘•‚М‰Ж–В)‚Нfalse‚р•Ф‚·ЃB
 static bool GetSensedStimulusType(GhostAI::GhostType type, StimulusType& outType)
 {
     switch (type)
@@ -1581,7 +1581,7 @@ static bool GetSensedStimulusType(GhostAI::GhostType type, StimulusType& outType
 
 void GhostAI::ReturnToGhostRoom(const Math::Vector3& currentPos)
 {
-    // гѓ†гѓ¬гѓќгѓјгѓ€гЃ›гЃљгЂЃг‚ґгѓјг‚№гѓ€гѓ«гѓјгѓ гЃѕгЃ§NavMeshзµЊз”±гЃ§еѕ’ж­©гЃ§её°г‚‹
+    // ѓeѓЊѓ|Ѓ[ѓg‚№‚ёЃAѓSЃ[ѓXѓgѓ‹Ѓ[ѓЂ‚Ь‚ЕNavMeshЊo—R‚Е“k•а‚Е‹A‚й
     if (m_targetRoom && NavMeshManager::Instance().IsBuilt())
     {
         m_houseWanderTargetPos = m_targetRoom->GetCenter();
@@ -1593,7 +1593,7 @@ void GhostAI::ReturnToGhostRoom(const Math::Vector3& currentPos)
     }
     else
     {
-        // з›®жЁ™гЃ®йѓЁе±‹гЃЊгЃЄгЃ„гЂЃгЃѕгЃџгЃЇNavMeshжњЄж§‹зЇ‰гЃЄг‚‰гЃќгЃ®е ґгЃ§Roomеѕ…ж©џж‰±гЃ„гЃ«гЃ™г‚‹
+        // –Ъ•W‚М•”‰®‚Є‚И‚ўЃA‚Ь‚Ѕ‚НNavMesh–ўЌ\’z‚И‚з‚»‚МЏк‚ЕRoom‘Т‹@€µ‚ў‚Й‚·‚й
         m_houseWanderTimer = Random::Instance().Range(m_houseWanderIntervalMin, m_houseWanderIntervalMax);
         SetState(GhostAI::State::Wander);
     }
@@ -1613,7 +1613,7 @@ void GhostAI::CheckStimulus(float deltaTime, const Math::Vector3& currentPos)
         return;
     }
 
-    // жЇЋгѓ•гѓ¬гѓјгѓ е…Ёг‚№г‚ЇгѓЄгѓ—гѓ€г‚’иµ°жџ»гЃ—гЃЄгЃ„г‚€гЃ†й–“еј•гЃЏ
+    // –€ѓtѓЊЃ[ѓЂ‘SѓXѓNѓЉѓvѓg‚р‘–Ќё‚µ‚И‚ў‚ж‚¤ЉФ€ш‚­
     m_lureCheckTimer -= deltaTime;
     if (m_lureCheckTimer > 0.0f)
     {
@@ -1627,7 +1627,7 @@ void GhostAI::CheckStimulus(float deltaTime, const Math::Vector3& currentPos)
         return;
     }
 
-    // NavMeshгЃ§з№‹гЃЊгЃЈгЃ¦гЃ„гЃЄгЃ„е ґж‰ЂгЃ®з™єз”џжєђгЃёеђ‘гЃ‹гЃ†гЃЁз«‹гЃЎеѕЂз”џгЃ™г‚‹гЃ®гЃ§з„Ўи¦–гЃ™г‚‹
+    // NavMesh‚ЕЊq‚Є‚Б‚Д‚ў‚И‚ўЏкЏЉ‚М”­ђ¶Њ№‚ЦЊь‚©‚¤‚Ж—§‚ї‰ќђ¶‚·‚й‚М‚Е–іЋ‹‚·‚й
     Math::Vector3 srcPos = src->GetWorldPosition();
     if (NavMeshManager::Instance().IsBuilt() && !NavMeshManager::Instance().IsReachable(currentPos, srcPos))
     {
@@ -1646,7 +1646,7 @@ void GhostAI::CheckStimulus(float deltaTime, const Math::Vector3& currentPos)
 
 void GhostAI::UpdateLured(float deltaTime, TransformData& cTrans)
 {
-    // з™єз”џжєђгЃЊж¶€гЃ•г‚ЊгЃџ(гѓ—гѓ¬г‚¤гѓ¤гѓјгЃЊж¶€зЃЇгЃ—гЃџз­‰)г‚‰иЄе°Ћзµ‚дє†
+    // ”­ђ¶Њ№‚ЄЏБ‚і‚к‚Ѕ(ѓvѓЊѓCѓ„Ѓ[‚ЄЏБ“”‚µ‚Ѕ“™)‚з—U“±ЏI—№
     if (!m_lureSource || !m_lureSource->IsActive())
     {
         ReturnToGhostRoom(cTrans.m_position);
@@ -1657,7 +1657,7 @@ void GhostAI::UpdateLured(float deltaTime, TransformData& cTrans)
 
     if (m_lureArrived)
     {
-        // е€°зќЂеѕЊ: з™єз”џжєђгЃ®ж–№г‚’еђ‘гЃ„гЃ¦гЃќгЃ®е ґгЃ«з•™гЃѕг‚‹(е§їгЃЇи¦‹гЃ›гЃЄгЃ„)
+        // “ћ’…Њг: ”­ђ¶Њ№‚М•ы‚рЊь‚ў‚Д‚»‚МЏк‚Й—Ї‚Ь‚й(Ћp‚НЊ©‚№‚И‚ў)
         Math::Vector3 toSrc = srcPos - cTrans.m_position;
         toSrc.y = 0.0f;
         FacePosition(cTrans, toSrc, deltaTime);
@@ -1684,7 +1684,7 @@ void GhostAI::UpdateLured(float deltaTime, TransformData& cTrans)
         return;
     }
 
-    // з«‹гЃЎеѕЂз”џж¤њзџҐ(UpdateHouseWanderгЃЁеђЊгЃеЊєй–“гЃ”гЃЁгЃ®е€¤е®љ)гЂ‚йЂІг‚ЃгЃЄгЃ‘г‚ЊгЃ°иЄе°Ћг‚’и«¦г‚ЃгЃ¦её°г‚‹гЂ‚
+    // —§‚ї‰ќђ¶Њџ’m(UpdateHouseWander‚Ж“Ї‚¶‹жЉФ‚І‚Ж‚М”»’и)ЃBђi‚Я‚И‚Ї‚к‚О—U“±‚р’ъ‚Я‚Д‹A‚йЃB
     m_houseWanderStuckCheckTimer += deltaTime;
     if (m_houseWanderStuckCheckTimer >= m_stuckCheckWindow)
     {
@@ -1720,9 +1720,9 @@ void GhostAI::UpdateTell(float deltaTime, const Math::Vector3& currentPos)
     }
     m_tellTimer = Random::Instance().Range(m_tellIntervalMin, m_tellIntervalMax);
 
-    // з…§жЋгЃ®гЃ„гЃџгЃљг‚‰(е…ЁзЁ®йЎћ)гЂ‚еЅ±еҐігЃЇз‚№гЃ„гЃ¦гЃ„г‚‹з…§жЋг‚’ж¶€гЃ™гЃ гЃ‘гЃ§гЂЃз‚№гЃ‘г‚‹гЃ“гЃЁгЃЇгЃ—гЃЄгЃ„гЂ‚
-    // гЃќг‚Њд»Ґе¤–гЃ®г‚ґгѓјг‚№гѓ€гЃЇгЂЃиї‘гЃЏгЃ®з…§жЋг‚’гѓ©гѓігѓЂгѓ гЃ«йЃёг‚“гЃ§з‚№гЃ‘гЃџг‚Љж¶€гЃ—гЃџг‚ЉгЃ™г‚‹гЂ‚
-    // гѓ—гѓ¬г‚¤гѓ¤гѓјгЃЊе…ѓгЃ«ж€»гЃ›г‚‹г‚€гЃ†гЂЃFг‚­гѓјгЃ‹еЈЃг‚№г‚¤гѓѓгѓЃгЃ§ж“ЌдЅњгЃ§гЃЌг‚‹з…§жЋгЃ гЃ‘г‚’еЇѕи±ЎгЃ«гЃ™г‚‹гЂ‚
+    // ЏЖ–ѕ‚М‚ў‚Ѕ‚ё‚з(‘SЋн—Ю)ЃB‰eЏ—‚Н“_‚ў‚Д‚ў‚йЏЖ–ѕ‚рЏБ‚·‚ѕ‚Ї‚ЕЃA“_‚Ї‚й‚±‚Ж‚Н‚µ‚И‚ўЃB
+    // ‚»‚к€ИЉO‚МѓSЃ[ѓXѓg‚НЃA‹Я‚­‚МЏЖ–ѕ‚рѓ‰ѓ“ѓ_ѓЂ‚Й‘I‚с‚Е“_‚Ї‚Ѕ‚иЏБ‚µ‚Ѕ‚и‚·‚йЃB
+    // ѓvѓЊѓCѓ„Ѓ[‚ЄЊі‚Й–Я‚№‚й‚ж‚¤ЃAFѓLЃ[‚©•ЗѓXѓCѓbѓ`‚Е‘ЂЌм‚Е‚«‚йЏЖ–ѕ‚ѕ‚Ї‚р‘ОЏЫ‚Й‚·‚йЃB
     const bool onlyTurnOff = (m_ghostType == GhostType::Kageonna);
     auto& ecs = GameManager::Instance().GetECS();
     std::vector<StimulusSource*> candidates;
@@ -1755,7 +1755,7 @@ void GhostAI::UpdateTell(float deltaTime, const Math::Vector3& currentPos)
     StimulusSource* target = candidates[Random::Instance().Range(0, (int)candidates.size() - 1)];
     bool turnOn = !target->IsActive();
     target->SetActive(turnOn);
-    target->PlayToggleSound(); // еЈЃг‚№г‚¤гѓѓгѓЃејЏгЃЄг‚‰г‚№г‚¤гѓѓгѓЃйџігЂЃзґђг‚№г‚¤гѓѓгѓЃејЏгЃЄг‚‰з‚№зЃЇ/ж¶€зЃЇйџі
+    target->PlayToggleSound(); // •ЗѓXѓCѓbѓ`Ћ®‚И‚зѓXѓCѓbѓ`‰№ЃA•RѓXѓCѓbѓ`Ћ®‚И‚з“_“”/ЏБ“”‰№
     Logger::Instance().AddLog(Logger::LogLevel::Info, "[GhostAI] Tell: turned %s a light by itself.", turnOn ? "on" : "off");
 }
 
@@ -1764,9 +1764,9 @@ bool GhostAI::IsAnyLightLitNear(const Math::Vector3& ghostPos) const
     auto& ecs = GameManager::Instance().GetECS();
     const float radiusSq = m_kageonnaLightRadius * m_kageonnaLightRadius;
 
-    // ж•°гЃ€г‚‹гЃ®гЃЇгЂЊйѓЁе±‹гЃ®й›»ж°—гЂЌ= Room LightгЃ®з…§жЋ(StimulusSource: е¤©дє•з…§жЋз­‰)гЃ гЃ‘гЂ‚гѓ©гѓігѓ—з­‰гЃ®е°ЏгЃ•гЃЄ
-    // жЋгЃ‹г‚Љ(m_isRoomLight=false)гЃЁгѓ•гѓ©гѓѓг‚·гѓҐгѓ©г‚¤гѓ€(ж‰‹жЊЃгЃЎгѓ»еєЉ)гЃЇж•°гЃ€гЃЄгЃ„(йѓЁе±‹гЃ®й›»ж°—г‚’з‚№гЃ‘гЃЄгЃ„гЃЁеЂ’гЃ›гЃЄгЃ„)гЂ‚жј”е‡єз”ЁгЃ«зЅ®гЃ„гЃџгЃ гЃ‘гЃ®ж¶€гЃ›гЃЄгЃ„
-    // гѓќг‚¤гѓігѓ€гѓ©г‚¤гѓ€(гѓ­г‚¦г‚Ѕг‚Їз­‰)г‚‚еЇѕи±Ўе¤–гЂ‚з‚№ж»…дё­г‚‚з‚№зЃЇж‰±гЃ„(IsActive)гЃ§е€¤е®љгЃ™г‚‹гЂ‚
+    // ђ”‚¦‚й‚М‚НЃu•”‰®‚М“d‹CЃv= Room Light‚МЏЖ–ѕ(StimulusSource: “V€дЏЖ–ѕ“™)‚ѕ‚ЇЃBѓ‰ѓ“ѓv“™‚МЏ¬‚і‚И
+    // –ѕ‚©‚и(m_isRoomLight=false)‚Жѓtѓ‰ѓbѓVѓ…ѓ‰ѓCѓg(ЋиЋќ‚їЃEЏ°)‚Нђ”‚¦‚И‚ў(•”‰®‚М“d‹C‚р“_‚Ї‚И‚ў‚Ж“|‚№‚И‚ў)ЃB‰‰Џo—p‚Й’u‚ў‚Ѕ‚ѕ‚Ї‚МЏБ‚№‚И‚ў
+    // ѓ|ѓCѓ“ѓgѓ‰ѓCѓg(ѓЌѓEѓ\ѓN“™)‚а‘ОЏЫЉOЃB“_–Е’†‚а“_“”€µ‚ў(IsActive)‚Е”»’и‚·‚йЃB
     for (auto& scriptData : ecs.GetComponentArray<NativeScriptData>())
     {
         auto* src = dynamic_cast<StimulusSource*>(scriptData.Instance.get());
@@ -1789,7 +1789,7 @@ bool GhostAI::TryIncenseStun(float stunTime)
         return false;
     }
 
-    // йЂЂжІ»(й¦™гЃ§гЃ®г‚№г‚їгѓі)гЃЇгѓЏгѓігѓ€дё­гЃ гЃ‘гЂ‚гЃќг‚Њд»Ґе¤–гЃ®ж™‚гЃ«еЅ“гЃ¦гЃ¦г‚‚дЅ•г‚‚иµ·гЃЌгЃЄгЃ„гЂ‚
+    // ‘ЮЋЎ(ЌЃ‚Е‚МѓXѓ^ѓ“)‚Нѓnѓ“ѓg’†‚ѕ‚ЇЃB‚»‚к€ИЉO‚МЋћ‚Й“–‚Д‚Д‚а‰Ѕ‚а‹N‚«‚И‚ўЃB
     if (m_currentState != State::Hunt)
     {
         return false;
@@ -1800,7 +1800,7 @@ bool GhostAI::TryIncenseStun(float stunTime)
     {
     case GhostType::Kageonna:
     {
-        // еЅ±еҐігЃЇе‘Ёг‚ЉгЃ§йѓЁе±‹гЃ®й›»ж°—(е¤©дє•з…§жЋз­‰гЂ‚гѓ©гѓігѓ—гѓ»гѓ•гѓ©гѓѓг‚·гѓҐгѓ©г‚¤гѓ€гЃЇй™¤гЃЏ)гЃЊз‚№гЃ„гЃ¦гЃ„г‚‹ж™‚гЃ гЃ‘еЉ№гЃЏ(еЅ±гЃЇе…‰гЃ®дё­гЃ«гЃ—гЃ‹ж г‚‰гЃЄгЃ„)
+        // ‰eЏ—‚НЋь‚и‚Е•”‰®‚М“d‹C(“V€дЏЖ–ѕ“™ЃBѓ‰ѓ“ѓvЃEѓtѓ‰ѓbѓVѓ…ѓ‰ѓCѓg‚НЏњ‚­)‚Є“_‚ў‚Д‚ў‚йЋћ‚ѕ‚ЇЊш‚­(‰e‚НЊх‚М’†‚Й‚µ‚©‰f‚з‚И‚ў)
         auto& ecs = GameManager::Instance().GetECS();
         auto* pTrans = ecs.TryGetComponent<TransformData>(GetGameObject()->GetEntityID());
         canStun = pTrans && IsAnyLightLitNear(pTrans->m_position);
@@ -1816,7 +1816,7 @@ bool GhostAI::TryIncenseStun(float stunTime)
         return true;
     }
 
-    // е¤±ж•—: Huntдё­гЃЄг‚‰HuntгЃЊз¶љгЃ„гЃџгЃѕгЃѕж™‚й–“гЃЊе»¶й•·гЃ•г‚Њг‚‹
+    // Ћё”s: Hunt’†‚И‚зHunt‚Є‘±‚ў‚Ѕ‚Ь‚ЬЋћЉФ‚Є‰„’·‚і‚к‚й
     if (m_currentState == State::Hunt)
     {
         m_huntTimer += m_failHuntExtension;
@@ -1848,7 +1848,7 @@ void GhostAI::Update(float deltaTime)
         return;
     }
 
-    // гѓЏгѓігѓ€гЃЇдЅЌзЅ®г‚„и¦–иЄЌгЃ«й–ўдї‚гЃЄгЃЏгЂЃе®љжњџзљ„гЃ«з„ЎжќЎд»¶гЃ§й–‹е§‹гЃ™г‚‹(Roomеѕ…ж©џгѓ»еѕеѕЉгѓ»иЄе°Ћдё­)
+    // ѓnѓ“ѓg‚Н€К’u‚вЋ‹”F‚ЙЉЦЊW‚И‚­ЃA’иЉъ“I‚Й–іЏрЊЏ‚ЕЉJЋn‚·‚й(Room‘Т‹@ЃEњpњjЃE—U“±’†)
     if (m_currentState == GhostAI::State::Wander || m_currentState == GhostAI::State::HouseWander ||
         m_currentState == GhostAI::State::Lured)
     {
@@ -1863,7 +1863,7 @@ void GhostAI::Update(float deltaTime)
             m_huntTriggerTimer = Random::Instance().Range(m_huntTriggerIntervalMin, m_huntTriggerIntervalMax);
             m_huntStuckTimer = 0.0f;
             m_huntStuckLastPos = cTrans.m_position;
-            // й–‹е§‹ж™‚з‚№гЃ®PlayerдЅЌзЅ®гЃ гЃ‘гЃЇжЉЉжЏЎгЃ—гЃ¦гЃ„г‚‹(гЃќгЃ“гЃёеђ‘гЃ‹гЃ†й–“гЃ«и¦–иЄЌгЃ§гЃЌгЃЄгЃ‘г‚ЊгЃ°жЌњзґўгЃ«гЃЄг‚‹)
+            // ЉJЋnЋћ“_‚МPlayer€К’u‚ѕ‚Ї‚Н”c€¬‚µ‚Д‚ў‚й(‚»‚±‚ЦЊь‚©‚¤ЉФ‚ЙЋ‹”F‚Е‚«‚И‚Ї‚к‚О‘{Ќх‚Й‚И‚й)
             m_huntSearchRoom = nullptr;
             m_hasLastKnownPlayerPos = false;
             m_isTrackingPlayer = false;
@@ -1923,12 +1923,12 @@ void GhostAI::Update(float deltaTime)
         m_huntTimer -= deltaTime;
         if (m_huntTimer <= 0.0f)
         {
-            // гѓЏгѓігѓ€гЃЊж™‚й–“е€‡г‚ЊгЃ§зµ‚г‚ЏгЃЈгЃџ = гѓ—гѓ¬г‚¤гѓ¤гѓјгЃЊз”џгЃЌе»¶гЃігЃџ(гѓЄг‚¶гѓ«гѓ€гЃ®иЎЁз¤єз”ЁгЃ«ж•°гЃ€г‚‹)
+            // ѓnѓ“ѓg‚ЄЋћЉФђШ‚к‚ЕЏI‚н‚Б‚Ѕ = ѓvѓЊѓCѓ„Ѓ[‚Єђ¶‚«‰„‚С‚Ѕ(ѓЉѓUѓ‹ѓg‚М•\Ћ¦—p‚Йђ”‚¦‚й)
             if (auto gs = GameSequence::GetInstance())
             {
                 gs->NotifyHuntSurvived();
             }
-            // гѓЏгѓігѓ€зµ‚дє†: гѓ†гѓ¬гѓќгѓјгѓ€гЃ›гЃљгЂЃг‚ґгѓјг‚№гѓ€гѓ«гѓјгѓ гЃѕгЃ§NavMeshзµЊз”±гЃ§еѕ’ж­©гЃ§её°г‚‹
+            // ѓnѓ“ѓgЏI—№: ѓeѓЊѓ|Ѓ[ѓg‚№‚ёЃAѓSЃ[ѓXѓgѓ‹Ѓ[ѓЂ‚Ь‚ЕNavMeshЊo—R‚Е“k•а‚Е‹A‚й
             m_hasLastKnownPlayerPos = false;
             m_isSeeingPlayer = false;
             m_isSensingLight = false;
@@ -1955,8 +1955,8 @@ void GhostAI::Update(float deltaTime)
         m_doorPassThroughTimer -= deltaTime;
     }
 
-    // йљЋж®µгЃ®ж®µе·®(и№ґдёЉгЃ’)гЃ«еЅ“гЃџг‚‰гЃЄгЃ„г‚€гЃ†гЂЃеЈЃжЉњгЃ‘гЃЇе®џйљ›гЃ«ж‡г‚Љй™Ќг‚ЉгЃ—гЃ¦гЃ„г‚‹й–“гЃ гЃ‘иЁ±еЏЇгЃ™г‚‹
-    // (д»Ґе‰ЌгЃЇйљЋж®µгЃ®е‘Ёг‚Љ1.5mгЃ«е…ҐгЃЈгЃџгЃ гЃ‘гЃ§иЁ±еЏЇгЃ—гЃ¦гЃ„гЃџгЃџг‚ЃгЂЃйљЋж®µгЃ®жЁЄгЃ®еЈЃг‚’гЃ™г‚ЉжЉњгЃ‘гЃ¦гЃ„гЃџ)
+    // ЉK’i‚М’iЌ·(ЏRЏг‚°)‚Й“–‚Ѕ‚з‚И‚ў‚ж‚¤ЃA•З”І‚Ї‚НЋАЌЫ‚ЙЏё‚иЌ~‚и‚µ‚Д‚ў‚йЉФ‚ѕ‚Ї‹–‰В‚·‚й
+    // (€И‘O‚НЉK’i‚МЋь‚и1.5m‚Й“ь‚Б‚Ѕ‚ѕ‚Ї‚Е‹–‰В‚µ‚Д‚ў‚Ѕ‚Ѕ‚ЯЃAЉK’i‚М‰Ў‚М•З‚р‚·‚и”І‚Ї‚Д‚ў‚Ѕ)
     bool wantPassThrough = (m_doorPassThroughTimer > 0.0f) || m_stairsCrossingLatched;
     if (wantPassThrough != m_wasPassThroughActive)
     {
@@ -1964,7 +1964,7 @@ void GhostAI::Update(float deltaTime)
         m_wasPassThroughActive = wantPassThrough;
     }
 
-    //---й‡ЌеЉ›(гЃ©гЃ®г‚№гѓ†гѓјгѓ€гЃ§г‚‚еёёгЃ«йЃ©з”Ё) ---
+    //---Џd—Н(‚З‚МѓXѓeЃ[ѓg‚Е‚аЏн‚Й“K—p) ---
     // Skipped while GetStairsCrossingMove just set height directly from Z-progress along the stairs
     // (see its own comment) - letting gravity/the ground raycast run afterward would immediately
     // override that with a raycast against individual step treads again, which is what caused the
@@ -1985,14 +1985,14 @@ void GhostAI::Update(float deltaTime)
         m_velocityY -= m_gravityStrength * deltaTime;
         cTrans.m_position.y += m_velocityY * deltaTime;
 
-        // --- ењ°йќўгѓЃг‚§гѓѓг‚Ї (гѓ¬г‚¤г‚­гѓЈг‚№гѓ€) ---
-        // origin гЃЇеёёгЃ« position + 0.5 (е›єе®љ)
-        // groundOffset = гѓўгѓ‡гѓ«еЋџз‚№гЃ‹г‚‰дЅ•mдёЉгЃ«гЃ‚г‚‹гЃ‹(гѓ—гѓ©г‚№еЂ¤)
+        // --- ’n–Кѓ`ѓFѓbѓN (ѓЊѓCѓLѓѓѓXѓg) ---
+        // origin ‚НЏн‚Й position + 0.5 (ЊЕ’и)
+        // groundOffset = ѓ‚ѓfѓ‹Њґ“_‚©‚з‰ЅmЏг‚Й‚ ‚й‚©(ѓvѓ‰ѓX’l)
         Math::Vector3 origin = cTrans.m_position + Math::Vector3(0, 0.5f, 0);
         Math::Vector3 rayDir(0, -1, 0);
         RaycastHit hit = CollisionManager::Instance().RaycastAgainstMesh(origin, rayDir, 1000.0f, "Stage");
 
-        // й–ѕеЂ¤ = groundOffset(еЋџз‚№гЃ‹г‚‰и¶іе…ѓгЃѕгЃ§гЃ®и·ќй›ў) + 0.5(origin offset) + 0.1(дЅ™иЈ•)
+        // и‡’l = groundOffset(Њґ“_‚©‚з‘«Њі‚Ь‚Е‚М‹——Ј) + 0.5(origin offset) + 0.1(—]—T)
         float snapThreshold = m_groundOffset + 0.5f + 0.1f;
 
         if (hit.hit && hit.distance <= snapThreshold)
@@ -2001,8 +2001,8 @@ void GhostAI::Update(float deltaTime)
             if (m_velocityY < 0.0f)
             {
                 m_velocityY = 0.0f;
-                // жЋҐењ°дЅЌзЅ®гЃ«еђ€г‚ЏгЃ›г‚‹: ж–°гЃ—гЃ„Y = origin.y - distance
-                // еЋџз‚№г‚’и¶іе…ѓгЃЁгЃ—гЃ¦ groundOffset е€†дёЉгЃ«зЅ®гЃЏ
+                // ђЪ’n€К’u‚ЙЌ‡‚н‚№‚й: ђV‚µ‚ўY = origin.y - distance
+                // Њґ“_‚р‘«Њі‚Ж‚µ‚Д groundOffset •ЄЏг‚Й’u‚­
                 cTrans.m_position.y = (origin.y - hit.distance) + m_groundOffset;
             }
         }
@@ -2040,7 +2040,7 @@ void GhostAI::OnDestroy()
         ShaderManager::Instance().SetHuntActive(false);
     }
     DoorLock::UnlockAll();
-    // г‚·гѓјгѓіг‚’жЉњгЃ‘гЃџеѕЊгЃ«еЏ¤гЃ„г‚ґгѓјг‚№гѓ€г‚їг‚¤гѓ—гЃЊиЎЁз¤єгЃ•г‚Њз¶љгЃ‘гЃЄгЃ„г‚€гЃ†гЃ«гЃ™г‚‹
+    // ѓVЃ[ѓ“‚р”І‚Ї‚ЅЊг‚ЙЊГ‚ўѓSЃ[ѓXѓgѓ^ѓCѓv‚Є•\Ћ¦‚і‚к‘±‚Ї‚И‚ў‚ж‚¤‚Й‚·‚й
     Logger::Instance().RemovePinnedLine("Ghost Type");
 }
 
@@ -2158,7 +2158,7 @@ void GhostAI::Serialize(nlohmann::json& out) const
 
 void GhostAI::Deserialize(const nlohmann::json& in)
 {
-    // ж—§еЅўејЏ(m/sгѓ»гѓЏгѓігѓ€еЂЌзЋ‡)гЃ§дїќе­гЃ•г‚ЊгЃџг‚·гѓјгѓігЃЇkm/hгЃ«жЏ›з®—гЃ—гЃ¦иЄ­г‚Ђ
+    // ‹ЊЊ`Ћ®(m/sЃEѓnѓ“ѓg”{—¦)‚Е•Ы‘¶‚і‚к‚ЅѓVЃ[ѓ“‚Нkm/h‚ЙЉ·ЋZ‚µ‚Д“З‚Ю
     float legacyMoveSpeedMs = 1.0f;
     if (in.contains("moveSpeed"))
     {
@@ -2385,7 +2385,7 @@ void GhostAI::Deserialize(const nlohmann::json& in)
     {
         m_flashLightFlickerRange = in["flashLightFlickerRange"];
     }
-    // ж—§еђЌ(й¬јзЃ«гЃ гЃЈгЃџй ѓ)гЃ®г‚­гѓјг‚‚иЄ­г‚Ђ
+    // ‹Њ–ј(‹S‰О‚ѕ‚Б‚ЅЌ )‚МѓLЃ[‚а“З‚Ю
     if (in.contains("onibiDarknessRadius"))
     {
         m_kageonnaLightRadius = in["onibiDarknessRadius"];
@@ -2446,7 +2446,7 @@ void GhostAI::ImGuiUpdate()
     ImGui::DragFloat("FlashLight Flicker Range", &m_flashLightFlickerRange, 0.1f, 0.0f, 30.0f, "%.1f m");
     if (ImGui::IsItemHovered())
     {
-        ImGui::SetTooltip(u8"гЃ“гЃ®и·ќй›ўд»Ґе†…гЃ®з‚№гЃ„гЃџгѓ•гѓ©гѓѓг‚·гѓҐгѓ©г‚¤гѓ€(ж‰‹жЊЃгЃЎгѓ»еєЉ)г‚’з‚№ж»…гЃ•гЃ›г‚‹(ж¶€гЃ—гЃЇгЃ—гЃЄгЃ„)");
+        ImGui::SetTooltip(u8"‚±‚М‹——Ј€И“а‚М“_‚ў‚Ѕѓtѓ‰ѓbѓVѓ…ѓ‰ѓCѓg(ЋиЋќ‚їЃEЏ°)‚р“_–Е‚і‚№‚й(ЏБ‚µ‚Н‚µ‚И‚ў)");
     }
     ImGui::DragFloat("Kageonna Light Radius", &m_kageonnaLightRadius, 0.5f, 0.0f, 50.0f);
     ImGui::DragFloat("Tell Interval Min", &m_tellIntervalMin, 0.5f, 1.0f, 300.0f);
@@ -2485,14 +2485,14 @@ void GhostAI::ImGuiUpdate()
     ImGui::DragFloat("Hunt Max Speed (LoS, km/h)", &m_huntMaxSpeedKmh, 0.1f, 0.1f, 40.0f, "%.1f km/h");
     if (ImGui::IsItemHovered())
     {
-        ImGui::SetTooltip(u8"PlayerгЃ®е…Ёиє«г‚’и¦‹з¶љгЃ‘гЃџж™‚гЃ«е€°йЃ”гЃ™г‚‹жњЂй«йЂџеє¦(и¦–иЄЌеЉ йЂџ)");
+        ImGui::SetTooltip(u8"Player‚М‘Sђg‚рЊ©‘±‚Ї‚ЅЋћ‚Й“ћ’B‚·‚йЌЕЌ‚‘¬“x(Ћ‹”F‰Б‘¬)");
     }
     ImGui::DragFloat("LoS Time To Max (s)", &m_losTimeToMax, 0.1f, 0.1f, 30.0f, "%.1f s");
     ImGui::DragFloat("LoS Decay Time (s)", &m_losDecayTime, 0.1f, 0.0f, 30.0f, "%.1f s");
     ImGui::DragFloat("Lit Speed Multiplier", &m_litSpeedMultiplier, 0.01f, 0.0f, 1.0f, "x%.2f");
     if (ImGui::IsItemHovered())
     {
-        ImGui::SetTooltip(u8"гѓЏгѓігѓ€дё­гЂЃз…§жЋгЃ«з…§г‚‰гЃ•г‚ЊгЃ¦гЃ„г‚‹й–“гЃ®йЂџеє¦еЂЌзЋ‡");
+        ImGui::SetTooltip(u8"ѓnѓ“ѓg’†ЃAЏЖ–ѕ‚ЙЏЖ‚з‚і‚к‚Д‚ў‚йЉФ‚М‘¬“x”{—¦");
     }
     if (m_currentState == State::Hunt)
     {
@@ -2523,7 +2523,7 @@ void GhostAI::ImGuiUpdate()
     ImGui::SliderFloat("Wander Flicker Chance (/sec)", &m_wanderFlickerChance, 0.0f, 1.0f);
     if (ImGui::IsItemHovered())
     {
-        ImGui::SetTooltip(u8"гѓЏгѓігѓ€д»Ґе¤–гЃ§иї‘гЃЏгЃ®з…§жЋгЃЊз‚№ж»…гЃ—е§‹г‚Ѓг‚‹1з§’гЃ‚гЃџг‚ЉгЃ®зўєзЋ‡гЂ‚гѓЏгѓігѓ€дё­гЃЇеёёгЃ«з‚№ж»…");
+        ImGui::SetTooltip(u8"ѓnѓ“ѓg€ИЉO‚Е‹Я‚­‚МЏЖ–ѕ‚Є“_–Е‚µЋn‚Я‚й1•b‚ ‚Ѕ‚и‚МЉm—¦ЃBѓnѓ“ѓg’†‚НЏн‚Й“_–Е");
     }
     ImGui::Separator();
     ImGui::Text("Vision (Hunt tracking)");
@@ -2533,7 +2533,7 @@ void GhostAI::ImGuiUpdate()
     ImGui::DragFloat("Track Give Up Time (s)", &m_trackGiveUpTime, 0.1f, 0.0f, 60.0f, "%.1f s");
     if (ImGui::IsItemHovered())
     {
-        ImGui::SetTooltip(u8"дёЂеє¦и¦–иЄЌгЃ—гЃџг‚‰иїЅгЃ„з¶љгЃ‘г‚‹гЂ‚и¦–иЄЌеЉ йЂџгЃЊе…Ґг‚‰гЃЄгЃ„(е…Ёиє«гЃЊи¦‹гЃ€гЃ¦гЃ„гЃЄгЃ„)зЉ¶ж…‹гЃЊгЃ“гЃ®з§’ж•°з¶љгЃ„гЃџг‚‰иїЅи·Ўг‚’г‚„г‚Ѓг‚‹");
+        ImGui::SetTooltip(u8"€к“xЋ‹”F‚µ‚Ѕ‚з’З‚ў‘±‚Ї‚йЃBЋ‹”F‰Б‘¬‚Є“ь‚з‚И‚ў(‘Sђg‚ЄЊ©‚¦‚Д‚ў‚И‚ў)Џу‘Ф‚Є‚±‚М•bђ”‘±‚ў‚Ѕ‚з’ЗђХ‚р‚в‚Я‚й");
     }
     ImGui::DragFloat("Eye Height", &m_eyeHeight, 0.05f, 0.0f, 3.0f);
     ImGui::DragFloat("Search GiveUp Dist", &m_searchGiveUpDistance, 0.1f, 0.1f, 10.0f);
@@ -2579,9 +2579,9 @@ void GhostAI::OnCollisionEnter(GameObject* other)
         return;
     }
 
-    // PlayerгЃЇECSгЃ®з‹¬з«‹гЃ—гЃџComponentећ‹гЃЁгЃ—гЃ¦гЃЇз™»йЊІгЃ•г‚ЊгЃ¦гЃ„гЃЄгЃ„гЃџг‚ЃгЂЃ
-    // TryGetComponent<Player>()гЃЇдЅїгЃ€гЃЄгЃ„(жњЄз™»йЊІгЃ®г‚ігѓігѓќгѓјгѓЌгѓігѓ€ећ‹гЃЇassertгЃ§иђЅгЃЎг‚‹)гЂ‚
-    // NativeScriptDataзµЊз”±гЃ§dynamic_castгЃ™г‚‹гЃ‹гЂЃеђЌе‰ЌгЃ§е€¤е®љгЃ™г‚‹гЂ‚
+    // Player‚НECS‚М“Ж—§‚µ‚ЅComponentЊ^‚Ж‚µ‚Д‚Н“o^‚і‚к‚Д‚ў‚И‚ў‚Ѕ‚ЯЃA
+    // TryGetComponent<Player>()‚НЋg‚¦‚И‚ў(–ў“o^‚МѓRѓ“ѓ|Ѓ[ѓlѓ“ѓgЊ^‚Нassert‚Е—Ћ‚ї‚й)ЃB
+    // NativeScriptDataЊo—R‚Еdynamic_cast‚·‚й‚©ЃA–ј‘O‚Е”»’и‚·‚йЃB
     auto& ecs = GameManager::Instance().GetECS();
     bool isPlayer = (other->GetName() == "Player");
     if (!isPlayer)
@@ -2615,14 +2615,14 @@ void GhostAI::Exorcise()
     m_isExorcised = true;
     SetState(GhostAI::State::Dead);
 
-    // й™¤йњЉжј”е‡єгЃ®й–‹е§‹гЂ‚г‚ЇгѓЄг‚ўйЂљзџҐгЃЇжј”е‡єгЃЊзµ‚г‚ЏгЃЈгЃ¦гЃ‹г‚‰(UpdateExorciseEffect)
+    // Џњ—м‰‰Џo‚МЉJЋnЃBѓNѓЉѓA’К’m‚Н‰‰Џo‚ЄЏI‚н‚Б‚Д‚©‚з(UpdateExorciseEffect)
     auto& ecs = GameManager::Instance().GetECS();
     auto& cTrans = ecs.GetComponent<TransformData>(GetGameObject()->GetEntityID());
     m_exorciseTimer = 0.0f;
     m_exorciseNotified = false;
     m_exorciseStartPos = cTrans.m_position;
     m_exorciseCutY = cTrans.m_position.y;
-    // жњ­гЃ®гЂЊгѓ‘г‚·гѓѓгЂЌ+г‚Љг‚“гЃ®гЂЊгѓЃгѓјгѓігЂЌ+ж¶€гЃ€гЃ¦гЃ„гЃЏй–“гЃ®гЃЌг‚‰г‚ЃгЃЌ(жј”е‡єгЃ®й•·гЃ•гЃ«еђ€г‚ЏгЃ›гЃџ1жњ¬гЃ®SE)
+    // ЋD‚МЃuѓpѓVѓbЃv+‚и‚с‚МЃuѓ`Ѓ[ѓ“Ѓv+ЏБ‚¦‚Д‚ў‚­ЉФ‚М‚«‚з‚Я‚«(‰‰Џo‚М’·‚і‚ЙЌ‡‚н‚№‚Ѕ1–{‚МSE)
     AudioManager::Instance().PlaySE("Asset/Sound/SE/exorcise.wav", m_exorciseSoundVolume);
     m_exorciseParticleAccum = 0.0f;
     for (int i = 0; i < m_exorciseParticleBurst; ++i)
@@ -2630,7 +2630,7 @@ void GhostAI::Exorcise()
         EmitExorciseParticle(true);
     }
 
-    // й–ѓе…‰з”ЁгЃ®з‚№е…‰жєђ(е®џиЎЊдё­гЃ гЃ‘гЃ®дёЂж™‚г‚Єгѓ–г‚ёг‚§г‚Їгѓ€)
+    // ‘MЊх—p‚М“_ЊхЊ№(ЋАЌs’†‚ѕ‚Ї‚М€кЋћѓIѓuѓWѓFѓNѓg)
     if (auto* scene = GetGameObject()->GetScene())
     {
         m_exorciseLightObj = scene->CreateGameObject("ExorciseLight");
@@ -2654,28 +2654,28 @@ void GhostAI::UpdateExorciseEffect(float deltaTime, TransformData& cTrans)
     m_exorciseTimer += deltaTime;
     float t = (m_exorciseDuration > 0.0f) ? std::clamp(m_exorciseTimer / m_exorciseDuration, 0.0f, 1.0f) : 1.0f;
 
-    // жњ­г‚’иІјгЃЈгЃџзћ¬й–“(жњЂе€ќгЃ®15%)гЃ«дёЂж°—гЃ«еј·гЃЏе…‰г‚‹гЂ‚гЃќгЃ®еѕЊгЃЇдЅ“гЃ®е…‰г‚’е°‘гЃ—иђЅгЃЁгЃ—гЃ¦гЂЃ
-    // и¶іе…ѓгЃ‹г‚‰ж¶€гЃ€гЃ¦гЃ„гЃЏеўѓз•ЊгЃ®е…‰гЃЊз›®з«‹гЃ¤г‚€гЃ†гЃ«гЃ™г‚‹
+    // ЋD‚р“\‚Б‚ЅЏuЉФ(ЌЕЏ‰‚М15%)‚Й€к‹C‚Й‹­‚­Њх‚йЃB‚»‚МЊг‚Н‘М‚МЊх‚рЏ­‚µ—Ћ‚Ж‚µ‚ДЃA
+    // ‘«Њі‚©‚зЏБ‚¦‚Д‚ў‚­‹«ЉE‚МЊх‚Є–Ъ—§‚В‚ж‚¤‚Й‚·‚й
     constexpr float kFlashEnd = 0.15f;
     float flash = (t < kFlashEnd) ? (t / kFlashEnd) : 1.0f;
-    // й–ѓе…‰гЃ®з›ґеѕЊгЃ«дёЂзћ¬гЃ гЃ‘и·ігЃ­дёЉгЃЊг‚‹гѓ”гѓјг‚Ї(sinгЃ®е±±)
+    // ‘MЊх‚М’јЊг‚Й€кЏu‚ѕ‚Ї’µ‚ЛЏг‚Є‚йѓsЃ[ѓN(sin‚МЋR)
     float burst = (t < kFlashEnd * 2.0f) ? sinf(t / (kFlashEnd * 2.0f) * DirectX::XM_PI) : 0.0f;
-    // жµ„еЊ–гЃ®е…‰гЃЊжЏєг‚‰г‚ЃгЃЏж„џгЃ
+    // Џт‰»‚МЊх‚Є—h‚з‚Я‚­Љґ‚¶
     float shimmer = 0.85f + 0.15f * sinf(m_exorciseTimer * 25.0f);
 
-    // и¶іе…ѓгЃ‹г‚‰ж¶€гЃ€гЃ¦гЃ„гЃЏ: й–ѓе…‰гЃ®еѕЊ(15%гЂњ90%)гЃ§еўѓз•Њг‚’и¶іе…ѓгЃ‹г‚‰й ­гЃ®дёЉгЃѕгЃ§дёЉгЃ’г‚‹гЂ‚
-    // гЃќгЃ®е ґгЃ‹г‚‰е‹•гЃ‹гЃ•гЃЄгЃ„(дЅЌзЅ®гѓ»еђ‘гЃЌгѓ»е¤§гЃЌгЃ•гЃЇгЃќгЃ®гЃѕгЃѕ)гЂ‚
+    // ‘«Њі‚©‚зЏБ‚¦‚Д‚ў‚­: ‘MЊх‚МЊг(15%Ѓ`90%)‚Е‹«ЉE‚р‘«Њі‚©‚з“Є‚МЏг‚Ь‚ЕЏг‚°‚йЃB
+    // ‚»‚МЏк‚©‚з“®‚©‚і‚И‚ў(€К’uЃEЊь‚«ЃE‘е‚«‚і‚Н‚»‚М‚Ь‚Ь)ЃB
     constexpr float kDissolveStart = 0.15f;
     constexpr float kDissolveEnd = 0.9f;
     float d = std::clamp((t - kDissolveStart) / (kDissolveEnd - kDissolveStart), 0.0f, 1.0f);
-    d = d * d * (3.0f - 2.0f * d); // г‚†гЃЈгЃЏг‚Ље§‹гЃѕг‚Љг‚†гЃЈгЃЏг‚Љзµ‚г‚Џг‚‹
+    d = d * d * (3.0f - 2.0f * d); // ‚д‚Б‚­‚иЋn‚Ь‚и‚д‚Б‚­‚иЏI‚н‚й
     float bottomY = m_exorciseStartPos.y - m_exorciseEdgeWidth;
     float topY = m_exorciseStartPos.y + m_exorciseModelHeight + m_exorciseEdgeWidth;
     m_exorciseCutY = bottomY + (topY - bottomY) * d;
     cTrans.m_position = m_exorciseStartPos;
-    float remain = 1.0f - d; // ж®‹гЃЈгЃ¦гЃ„г‚‹дЅ“гЃ®е‰Іеђ€(е…‰гЃ®еј·гЃ•г‚’еђ€г‚ЏгЃ›гЃ¦иђЅгЃЁгЃ™)
+    float remain = 1.0f - d; // Ћc‚Б‚Д‚ў‚й‘М‚МЉ„Ќ‡(Њх‚М‹­‚і‚рЌ‡‚н‚№‚Д—Ћ‚Ж‚·)
 
-    // ж¶€гЃ€гЃ¦гЃ„г‚‹еўѓз•ЊгЃ‹г‚‰е…‰гЃ®зІ’г‚’ж№§гЃ‹гЃ›г‚‹(ж¶€гЃ€гЃ¦гЃ„г‚‹й–“гЃ гЃ‘)
+    // ЏБ‚¦‚Д‚ў‚й‹«ЉE‚©‚зЊх‚М—±‚р—N‚©‚№‚й(ЏБ‚¦‚Д‚ў‚йЉФ‚ѕ‚Ї)
     if (t >= kDissolveStart && t < kDissolveEnd)
     {
         m_exorciseParticleAccum += m_exorciseParticleRate * deltaTime;
@@ -2686,7 +2686,7 @@ void GhostAI::UpdateExorciseEffect(float deltaTime, TransformData& cTrans)
         }
     }
 
-    // г‚ґгѓјг‚№гѓ€и‡ЄдЅ“гЃ®з™єе…‰(Bloom)
+    // ѓSЃ[ѓXѓgЋ©‘М‚М”­Њх(Bloom)
     if (m_animEntity != INVALID_ENTITY)
     {
         auto& ecs = GameManager::Instance().GetECS();
@@ -2702,13 +2702,13 @@ void GhostAI::UpdateExorciseEffect(float deltaTime, TransformData& cTrans)
         }
     }
 
-    // е‘Ёе›Іг‚’з…§г‚‰гЃ™й–ѓе…‰
+    // Ћь€Н‚рЏЖ‚з‚·‘MЊх
     if (m_exorciseLightObj)
     {
         auto& ecs = GameManager::Instance().GetECS();
         if (auto* pLight = ecs.TryGetComponent<PointLightData>(m_exorciseLightObj->GetEntityID()))
         {
-            // й–ѓе…‰гЃ®гѓ”гѓјг‚ЇгЃЇжњЂе¤§еј·еє¦гЂЃгЃќгЃ®еѕЊгЃЇ4е‰ІзЁ‹еє¦гЃ®е…‰г‚’дїќгЃЎгЂЃжњЂеѕЊгЃ«ж¶€гЃ€г‚‹
+            // ‘MЊх‚МѓsЃ[ѓN‚НЌЕ‘е‹­“xЃA‚»‚МЊг‚Н4Љ„’ц“x‚МЊх‚р•Ы‚їЃAЌЕЊг‚ЙЏБ‚¦‚й
             pLight->m_intensity = m_exorciseLightIntensity * (0.4f * flash * remain + 0.6f * burst) * shimmer;
         }
     }
@@ -2733,7 +2733,7 @@ void GhostAI::EmitExorciseParticle(bool burst)
 {
     auto& rnd = Random::Instance();
 
-    // и¶іе…ѓгЃ®е††е†…гЃ®гѓ©гѓігѓЂгѓ гЃЄдЅЌзЅ®(дё­еїѓеЇ„г‚ЉгЃ«еЃЏг‚‰гЃЄгЃ„г‚€гЃ†sqrtгЃ§еЌЉеѕ„г‚’еЏ–г‚‹)
+    // ‘«Њі‚М‰~“а‚Мѓ‰ѓ“ѓ_ѓЂ‚И€К’u(’†ђSЉс‚и‚Й•О‚з‚И‚ў‚ж‚¤sqrt‚Е”јЊa‚рЋж‚й)
     float angle = rnd.Range(0.0f, DirectX::XM_2PI);
     float radius = m_exorciseParticleRadius * sqrtf(rnd.Range(0.0f, 1.0f));
     Math::Vector3 offset(cosf(angle) * radius, 0.05f, sinf(angle) * radius);
@@ -2742,11 +2742,11 @@ void GhostAI::EmitExorciseParticle(bool burst)
     p.m_position = m_exorciseStartPos + offset;
     if (!burst)
     {
-        p.m_position.y = m_exorciseCutY; // ж¶€гЃ€гЃ¦гЃ„г‚‹еўѓз•ЊгЃ‹г‚‰е‡єгЃ™
+        p.m_position.y = m_exorciseCutY; // ЏБ‚¦‚Д‚ў‚й‹«ЉE‚©‚зЏo‚·
     }
     if (burst)
     {
-        // жњ­г‚’иІјгЃЈгЃџзћ¬й–“: дЅ“гЃ®й«гЃ•гЃ‚гЃџг‚ЉгЃ‹г‚‰е¤–гЃёејѕгЃ‘гЃ¦гЂЃгЃµг‚ЏгЃЈгЃЁдёЉгЃё
+        // ЋD‚р“\‚Б‚ЅЏuЉФ: ‘М‚МЌ‚‚і‚ ‚Ѕ‚и‚©‚зЉO‚Ц’e‚Ї‚ДЃA‚У‚н‚Б‚ЖЏг‚Ц
         p.m_position.y += rnd.Range(0.3f, m_eyeHeight);
         Math::Vector3 outward(cosf(angle), 0.0f, sinf(angle));
         p.m_velocity = outward * rnd.Range(1.0f, 2.5f) + Math::Vector3(0, rnd.Range(0.8f, 2.0f), 0);
@@ -2756,8 +2756,8 @@ void GhostAI::EmitExorciseParticle(bool burst)
     }
     else
     {
-        // ж¶€гЃ€гЃ¦гЃ„г‚‹еўѓз•ЊгЃ‹г‚‰ж№§гЃЌдёЉгЃЊгЃЈгЃ¦гЂЃж‡г‚ЉгЃЄгЃЊг‚‰е°ЏгЃ•гЃЏгЃЄгЃЈгЃ¦ж¶€гЃ€гЃ¦гЃ„гЃЏ
-        p.m_velocity = Math::Vector3(0, rnd.Range(0.8f, 1.8f), 0) - offset * 0.3f; // е°‘гЃ—гЃ гЃ‘дё­еїѓгЃёеЇ„г‚‹
+        // ЏБ‚¦‚Д‚ў‚й‹«ЉE‚©‚з—N‚«Џг‚Є‚Б‚ДЃAЏё‚и‚И‚Є‚зЏ¬‚і‚­‚И‚Б‚ДЏБ‚¦‚Д‚ў‚­
+        p.m_velocity = Math::Vector3(0, rnd.Range(0.8f, 1.8f), 0) - offset * 0.3f; // Џ­‚µ‚ѕ‚Ї’†ђS‚ЦЉс‚й
         p.m_drag = 0.3f;
         p.m_life = rnd.Range(1.0f, 1.8f);
         p.m_sizeStart = rnd.Range(0.02f, 0.05f);
@@ -2766,7 +2766,7 @@ void GhostAI::EmitExorciseParticle(bool burst)
         p.m_swayPhase = rnd.Range(0.0f, DirectX::XM_2PI);
     }
     p.m_sizeEnd = 0.0f;
-    // й‡‘и‰ІгЃЁз™ЅгЃ®й–“гЃ§гЃ°г‚‰гЃ¤гЃ‹гЃ›г‚‹(HDRгЃЄгЃ®гЃ§BloomгЃ§е…‰г‚‹)
+    // ‹ађF‚Ж”’‚МЉФ‚Е‚О‚з‚В‚©‚№‚й(HDR‚И‚М‚ЕBloom‚ЕЊх‚й)
     float whiteness = rnd.Range(0.0f, 1.0f);
     Math::Vector3 color = m_exorciseColor + (Math::Vector3(1, 1, 1) - m_exorciseColor) * whiteness;
     p.m_color = color * rnd.Range(4.0f, 8.0f);

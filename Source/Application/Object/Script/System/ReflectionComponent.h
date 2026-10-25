@@ -1,4 +1,4 @@
-ï»¿#pragma once
+#pragma once
 
 #include "../../../../Framework/ECS/Components/Data/NativeScript.h"
 
@@ -23,11 +23,11 @@ public:
     Math::Vector3 m_worldPlaneNormal = {0.0f, 0.0f, 1.0f};
     Math::Vector3 m_worldPlanePoint = {0.0f, 0.0f, 0.0f};
 
-    // ã‚¨ãƒ‡ã‚£ã‚¿ä¸Šã§çƒã®ç¯„å›²ã‚’ç¤ºã™ãƒ‡ãƒãƒƒã‚°æç”»ç”¨
+    // ƒGƒfƒBƒ^ã‚Å‹…‚Ì”ÍˆÍ‚ðŽ¦‚·ƒfƒoƒbƒO•`‰æ—p
     float m_debugSize = 2.0f;
 
-    // å¯¾å¿œã™ã‚‹RoomArea(GameObjectå)ã€‚ç©ºãªã‚‰å¸¸ã«ã‚¢ã‚¯ãƒ†ã‚£ãƒ–(å¾“æ¥é€šã‚Šã®æŒ™å‹•)ã€‚
-    // è¨­å®šã™ã‚‹ã¨ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒãã®RoomAreaå†…ã«ã„ã‚‹æ™‚ã ã‘åå°„ã‚’æœ‰åŠ¹åŒ–ã™ã‚‹ã€‚
+    // ‘Î‰ž‚·‚éRoomArea(GameObject–¼)B‹ó‚È‚çí‚ÉƒAƒNƒeƒBƒu(]—ˆ’Ê‚è‚Ì‹““®)B
+    // Ý’è‚·‚é‚ÆƒvƒŒƒCƒ„[‚ª‚»‚ÌRoomArea“à‚É‚¢‚éŽž‚¾‚¯”½ŽË‚ð—LŒø‰»‚·‚éB
     std::string m_roomName; // unused (kept for old scene data load compatibility)
 
     // Reflection is active whenever the player is within this distance of the mirror plane,
@@ -36,19 +36,19 @@ public:
     // so the reflection never activated at realistic viewing distance.
     float m_activationDistance = 4.0f;
 
-    // trueãªã‚‰ã€åå°„ã‚«ãƒ¡ãƒ©ã‚’è‡ªå‹•è¨ˆç®—(ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼/ã‚¨ãƒ‡ã‚£ã‚¿ã‚«ãƒ¡ãƒ©ã‚’é¡é¢ã§åå°„)ã™ã‚‹ä»£ã‚ã‚Šã«ã€
-    // m_fixedCameraSourceUUIDã§æ˜Žç¤ºçš„ã«æŒ‡å®šã—ãŸã‚«ãƒ¡ãƒ©ã®æ˜ åƒã‚’ãã®ã¾ã¾ã“ã®é¡ã«æ˜ ã™
-    // (ç›£è¦–ã‚«ãƒ¡ãƒ©/ãƒ¢ãƒ‹ã‚¿ãƒ¼ã®ã‚ˆã†ãªä½¿ã„æ–¹)ã€‚
+    // true‚È‚çA”½ŽËƒJƒƒ‰‚ðŽ©“®ŒvŽZ(ƒvƒŒƒCƒ„[/ƒGƒfƒBƒ^ƒJƒƒ‰‚ð‹¾–Ê‚Å”½ŽË)‚·‚é‘ã‚í‚è‚ÉA
+    // m_fixedCameraSourceUUID‚Å–¾Ž¦“I‚ÉŽw’è‚µ‚½ƒJƒƒ‰‚Ì‰f‘œ‚ð‚»‚Ì‚Ü‚Ü‚±‚Ì‹¾‚É‰f‚·
+    // (ŠÄŽ‹ƒJƒƒ‰/ƒ‚ƒjƒ^[‚Ì‚æ‚¤‚ÈŽg‚¢•û)B
     bool m_useFixedCameraSource = false;
 
-    // åå°„ã‚½ãƒ¼ã‚¹ã¨ã—ã¦ä½¿ã†ã‚«ãƒ¡ãƒ©ã®GameObjectã‚’ã€Hierarchyã‹ã‚‰ãƒ‰ãƒ©ãƒƒã‚°&ãƒ‰ãƒ­ãƒƒãƒ—ã§æ˜Žç¤ºçš„ã«
-    // æŒ‡å®šã™ã‚‹(ä»¥å‰ã®ã‚ˆã†ãªã€ŒCameraData.m_isDebugPreviewãŒç«‹ã£ã¦ã„ã‚‹ã‚‚ã®ã‚’æ¤œç´¢ã—ã¦ä½¿ã†ã€
-    // æ›–æ˜§ãªæ–¹å¼ã ã¨ã€å‰Šé™¤ã—æã­ãŸå­¤å…ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆãŒèª¤ã£ã¦å„ªå…ˆã•ã‚Œã‚‹äº‹æ•…ãŒèµ·ããŸãŸã‚)ã€‚
-    // UUIDã ã‘ãŒã‚·ãƒªã‚¢ãƒ©ã‚¤ã‚ºå¯¾è±¡ã§ã€å®Ÿä½“ã¸ã®ãƒã‚¤ãƒ³ã‚¿ã¯æ¯Žãƒ•ãƒ¬ãƒ¼ãƒ ResolveFixedCameraSource()ã§
-    // éƒ½åº¦è§£æ±ºã™ã‚‹(GameObjectã®ç”Ÿå­˜ã‚’è·¨ã„ã å¤ã„ãƒã‚¤ãƒ³ã‚¿ã‚’æŒã¡ç¶šã‘ãªã„ãŸã‚)ã€‚
+    // ”½ŽËƒ\[ƒX‚Æ‚µ‚ÄŽg‚¤ƒJƒƒ‰‚ÌGameObject‚ðAHierarchy‚©‚çƒhƒ‰ƒbƒO&ƒhƒƒbƒv‚Å–¾Ž¦“I‚É
+    // Žw’è‚·‚é(ˆÈ‘O‚Ì‚æ‚¤‚ÈuCameraData.m_isDebugPreview‚ª—§‚Á‚Ä‚¢‚é‚à‚Ì‚ðŒŸõ‚µ‚ÄŽg‚¤v
+    // žB–†‚È•ûŽ®‚¾‚ÆAíœ‚µ‘¹‚Ë‚½ŒÇŽ™ƒRƒ“ƒ|[ƒlƒ“ƒg‚ªŒë‚Á‚Ä—Dæ‚³‚ê‚éŽ–ŒÌ‚ª‹N‚«‚½‚½‚ß)B
+    // UUID‚¾‚¯‚ªƒVƒŠƒAƒ‰ƒCƒY‘ÎÛ‚ÅAŽÀ‘Ì‚Ö‚Ìƒ|ƒCƒ“ƒ^‚Í–ˆƒtƒŒ[ƒ€ResolveFixedCameraSource()‚Å
+    // “s“x‰ðŒˆ‚·‚é(GameObject‚Ì¶‘¶‚ðŒ×‚¢‚¾ŒÃ‚¢ƒ|ƒCƒ“ƒ^‚ðŽ‚¿‘±‚¯‚È‚¢‚½‚ß)B
     uint64_t m_fixedCameraSourceUUID = 0;
 
-    // m_fixedCameraSourceUUIDã‹ã‚‰å®Ÿéš›ã®GameObjectã‚’è§£æ±ºã™ã‚‹ã€‚è¦‹ã¤ã‹ã‚‰ãªã‘ã‚Œã°nullptrã€‚
+    // m_fixedCameraSourceUUID‚©‚çŽÀÛ‚ÌGameObject‚ð‰ðŒˆ‚·‚éBŒ©‚Â‚©‚ç‚È‚¯‚ê‚ÎnullptrB
     class GameObject* ResolveFixedCameraSource() const;
 
 private:

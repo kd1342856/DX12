@@ -1,19 +1,19 @@
-ï»¿#pragma once
+#pragma once
 #include "../GraphicsShader/GraphicsShader.h"
 
-// åŠ ç®—åˆæˆã®ãƒ“ãƒ«ãƒœãƒ¼ãƒ‰ãƒ‘ãƒ¼ãƒ†ã‚£ã‚¯ãƒ«ã€‚ParticleManagerãŒæ¯ãƒ•ãƒ¬ãƒ¼ãƒ é›†ã‚ãŸç²’ã‚’ã¾ã¨ã‚ã¦æãã€‚
-// ã‚·ãƒ¼ãƒ³ã®HDRã‚¿ãƒ¼ã‚²ãƒƒãƒˆ(R16G16B16A16_FLOAT)ã¸æãã®ã§ã€æ˜ã‚‹ã„è‰²ã¯ãã®ã¾ã¾Bloomã«ä¹—ã‚‹ã€‚
+// ‰ÁZ‡¬‚Ìƒrƒ‹ƒ{[ƒhƒp[ƒeƒBƒNƒ‹BParticleManager‚ª–ˆƒtƒŒ[ƒ€W‚ß‚½—±‚ğ‚Ü‚Æ‚ß‚Ä•`‚­B
+// ƒV[ƒ“‚ÌHDRƒ^[ƒQƒbƒg(R16G16B16A16_FLOAT)‚Ö•`‚­‚Ì‚ÅA–¾‚é‚¢F‚Í‚»‚Ì‚Ü‚ÜBloom‚Éæ‚éB
 class ParticleShader : public GraphicsShader
 {
 public:
-    // HLSLå´(ParticleShader_VS.hlslã®ParticleInstance)ã¨åŒã˜ä¸¦ã³(32byte)
+    // HLSL‘¤(ParticleShader_VS.hlsl‚ÌParticleInstance)‚Æ“¯‚¶•À‚Ñ(32byte)
     struct Instance
     {
         Math::Vector3 Pos;
         float Size;
-        Math::Vector4 Color; // rgb: HDRã®è‰², a: ä¸é€æ˜åº¦
+        Math::Vector4 Color; // rgb: HDR‚ÌF, a: •s“§–¾“x
     };
-    static constexpr int kMaxPerBatch = 256; // HLSLã®g_Particles[256]ã¨åˆã‚ã›ã‚‹
+    static constexpr int kMaxPerBatch = 256; // HLSL‚Ìg_Particles[256]‚Æ‡‚í‚¹‚é
 
     void Create(GraphicsDevice* pGraphicsDevice) override;
     void Draw(RenderContext& context, const std::vector<Instance>& instances);

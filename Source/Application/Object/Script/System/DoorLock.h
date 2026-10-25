@@ -2,9 +2,9 @@
 #include <set>
 #include <utility>
 
-// 施錠中のドア(家モデル内のドアアニメーション = エンティティ + アニメーション番号)の一覧。
-// ハント中に玄関ドアを閉めて開けられなくするのに使う(GhostAIが施錠・解錠し、
-// Player::TryInteractDoor / GhostAI::TryOpenNearbyDoor は施錠中のドアを開けない)。
+// �{�����̃h�A(�ƃ��f�����̃h�A�A�j���[�V���� = �G���e�B�e�B + �A�j���[�V�����ԍ�)�̈ꗗ�B
+// �n���g���Ɍ��փh�A��߂ĊJ�����Ȃ�����̂Ɏg��(GhostAI���{���E�������A
+// Player::TryInteractDoor / GhostAI::TryOpenNearbyDoor �͎{�����̃h�A���J���Ȃ�)�B
 namespace DoorLock
 {
     inline std::set<std::pair<Entity, int>>& LockedSet()
