@@ -65,11 +65,11 @@ void GPUUploadQueue::Process()
                     try {
                         data();
                     } catch (const std::exception& e) {
-                        std::ofstream ofs("exception.log", std::ios::app);
+                        std::ofstream ofs(AppPaths::GetSavedFilePath(L"exception.log"), std::ios::app);
                         ofs << "Exception in GPUUploadQueue::Process: " << e.what() << "\n";
                         ofs.close();
                     } catch (...) {
-                        std::ofstream ofs("exception.log", std::ios::app);
+                        std::ofstream ofs(AppPaths::GetSavedFilePath(L"exception.log"), std::ios::app);
                         ofs << "Unknown exception in GPUUploadQueue::Process\n";
                         ofs.close();
                     }

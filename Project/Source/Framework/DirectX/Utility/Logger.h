@@ -135,7 +135,11 @@ public:
 	}
 
 private:
-	Logger() { fopen_s(&m_logFile, "debug_log.txt", "a"); }
+	// 出力先は<root>/Saved/debug_log.txt(起動方法によらず同じ場所)
+	Logger()
+	{
+		_wfopen_s(&m_logFile, AppPaths::GetSavedFilePath(L"debug_log.txt").c_str(), L"a");
+	}
 	~Logger() { if (m_logFile) { fclose(m_logFile); m_logFile = nullptr; } }
 	Logger(const Logger&) = delete;
 	Logger& operator=(const Logger&) = delete;

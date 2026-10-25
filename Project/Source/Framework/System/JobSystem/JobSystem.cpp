@@ -83,11 +83,11 @@ void JobSystem::WorkerThread(uint32_t workerIndex) {
         try {
             job();
         } catch (const std::exception& e) {
-            std::ofstream ofs("exception.log", std::ios::app);
+            std::ofstream ofs(AppPaths::GetSavedFilePath(L"exception.log"), std::ios::app);
             ofs << "Exception in WorkerThread: " << e.what() << "\n";
             ofs.close();
         } catch (...) {
-            std::ofstream ofs("exception.log", std::ios::app);
+            std::ofstream ofs(AppPaths::GetSavedFilePath(L"exception.log"), std::ios::app);
             ofs << "Unknown exception in WorkerThread\n";
             ofs.close();
         }

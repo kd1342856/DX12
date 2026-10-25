@@ -14,7 +14,7 @@
 #define assert(condition) \
     do { \
         if (!(condition)) { \
-            std::ofstream ofs("crash.log", std::ios::app); \
+            std::ofstream ofs(AppPaths::GetSavedFilePath(L"crash.log"), std::ios::app); \
             ofs << "Assertion failed: " << #condition << "\nFile: " << __FILE__ << "\nLine: " << __LINE__ << "\n\n"; \
             ofs.close(); \
             std::abort(); \
@@ -46,6 +46,9 @@
 #include<mutex>
 #include<future>
 #include<filesystem>
+
+// ログ等の出力先(Saved)を解決する。上のassertマクロからも使う
+#include "Framework/System/AppPaths/AppPaths.h"
 #include<chrono>
 #include<bitset>
 #include<set>

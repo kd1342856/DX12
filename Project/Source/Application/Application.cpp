@@ -19,7 +19,7 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 #include "../Framework/DirectX/Utility/Thread.h"
 
 void my_terminate_handler() {
-    std::ofstream ofs("crash.log", std::ios::app);
+    std::ofstream ofs(AppPaths::GetSavedFilePath(L"crash.log"), std::ios::app);
     ofs << "std::terminate was called! Unhandled exception!\n";
     try {
         throw; // 再スローして例外の型を特定する

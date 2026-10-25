@@ -579,6 +579,9 @@ bool GraphicsDevice::InitImGui()
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
+	// レイアウトの保存先を<root>/Saved/imgui.iniにする(IniFilenameは文字列を保持しないので静的に持つ)
+	static const std::string s_imGuiIniPath = AppPaths::ToUtf8(AppPaths::GetSavedFilePath(L"imgui.ini"));
+	io.IniFilename = s_imGuiIniPath.c_str();
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;	// ドッキング機能を有効化
 	// スタイル設定

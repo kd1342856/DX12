@@ -5,7 +5,7 @@
 // チェックボックスで切り替えられるようにはできる - 値はディスクに保存され、*次回*起動時に
 // 反映される。
 //
-// ファイル形式はあえて単純にしていて、exeと同じフォルダのEngineSettings.iniに設定ごとに
+// ファイル形式はあえて単純にしていて、<root>/Saved/EngineSettings.iniに設定ごとに
 // "Key=0"/"Key=1" の行が1つ。今後起動時専用のトグルを増やす場合は、下のEnableD3D12DebugLayer
 // と同じやり方でキーを追加すること。
 class EngineSettings
@@ -34,27 +34,13 @@ private:
     EngineSettings() { Load(); }
 
     // 単純な相対パス "EngineSettings.ini" ではなく、一度だけ解決して使い回す - 相対パスだと、
-    // プロセスのカレントディレクトリが毎回同じ場合しか同じファイルを見つけられない。
-    // Visual Studioからの起動(CWD=プロジェクトルート)、exeを直接ダブルクリック
-    // (CWD=exe自身のフォルダ)、「Apply & Restart」ボタン、それぞれで別々のファイルを
-    // 読み書きしてしまい、最後にどれを使ったかによって設定が黙って既定値に戻ってしまう
-    // （まさにD3D12デバッグレイヤーのチェックボックスが反映されていないように見えた原因）。
-    // exe自身のフォルダは、どの起動方法でも共通する唯一の場所。
-    static std::string GetSettingsFilePath()
+    // プロセスのカレントディレクトリが毎回同じ場合しか同じファイルを見つけられない
+    // （D3D12デバッグレイヤーのチェックボックスが反映されていないように見えた原因）。
+    // AppPathsはexeの場所から<root>を見つけるので、Visual Studioからの起動、exeの直接起動、
+    // 「Apply & Restart」のどれでも<root>/Saved/EngineSettings.iniを指す。
+    static std::filesystem::path GetSettingsFilePath()
     {
-        wchar_t exePath[MAX_PATH];
-        DWORD len = GetModuleFileNameW(nullptr, exePath, MAX_PATH);
-        if (len == 0 || len >= MAX_PATH) return "EngineSettings.ini"; // フォールバック: CWD相対
-
-        std::wstring path(exePath, len);
-        size_t slash = path.find_last_of(L"\\/");
-        std::wstring dir = (slash == std::wstring::npos) ? L"" : path.substr(0, slash + 1);
-        std::wstring fullW = dir + L"EngineSettings.ini";
-
-        int utf8Len = WideCharToMultiByte(CP_UTF8, 0, fullW.c_str(), -1, nullptr, 0, nullptr, nullptr);
-        std::string full(utf8Len > 0 ? utf8Len - 1 : 0, '\0');
-        if (utf8Len > 0) WideCharToMultiByte(CP_UTF8, 0, fullW.c_str(), -1, full.data(), utf8Len, nullptr, nullptr);
-        return full;
+        return AppPaths::GetSavedFilePath(L"EngineSettings.ini");
     }
 
     void Load()
