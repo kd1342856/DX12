@@ -23,7 +23,20 @@ class Mesh;
 // ============================================================
 struct TextureUploadData
 {
+    // ミップ1段分の、pixelsの中での位置と大きさ
+    struct MipLevel
+    {
+        size_t offset     = 0;
+        UINT   width      = 0;
+        UINT   height     = 0;
+        UINT   rowPitch   = 0;
+        UINT   slicePitch = 0;
+    };
+
+    // 全ミップの画素を0段目から順に詰めたもの
     std::vector<uint8_t> pixels;
+    std::vector<MipLevel> mipLevels;
+    // 0段目の大きさ
     UINT        width     = 0;
     UINT        height    = 0;
     UINT        rowPitch  = 0;

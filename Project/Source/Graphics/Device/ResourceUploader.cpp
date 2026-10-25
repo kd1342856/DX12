@@ -5,6 +5,7 @@
 #include "../GPUResource/Buffer/IndexBuffer.h"
 #include "../../Framework/DirectX/Utility/Thread.h"
 #include "../GPUResource/Texture/Texture.h"
+#include "../GPUUploadQueue/GPUUploadQueue.h"
 
 void ResourceUploader::Init(GraphicsDevice* pDevice)
 {
@@ -258,6 +259,74 @@ void ResourceUploader::UploadTexture(Texture* pTexture, const void* pData, UINT 
     D3D12_RESOURCE_BARRIER barrier = {};
     barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
     barrier.Transition.pResource = pTexture->GetResource();
+    barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
+    barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+    barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+    m_uploadContext.value()->AddPendingBarrier(barrier);
+}
+
+void ResourceUploader::UploadTexture(Texture* pTexture, const TextureUploadData& data)
+{
+    ID3D12Resource* pResource = pTexture->GetResource();
+    const D3D12_RESOURCE_DESC desc = pResource->GetDesc();
+    const UINT mipCount = desc.MipLevels;
+    if (data.mipLevels.size() < mipCount)
+    {
+        OutputDebugStringA("UploadTexture: ミップの段数がリソースより少ないため、アップロードを中止します\n");
+        return;
+    }
+
+    // 全ミップを1つのアップロードバッファに置く。各段の配置(256バイト境界の行ピッチなど)はドライバーに求めさせる
+    std::vector<D3D12_PLACED_SUBRESOURCE_FOOTPRINT> footprints(mipCount);
+    std::vector<UINT> rowCounts(mipCount);
+    std::vector<UINT64> rowSizes(mipCount);
+    UINT64 uploadBufferSize = 0;
+    m_pDevice->GetDevice()->GetCopyableFootprints(&desc, 0, mipCount, 0, footprints.data(), rowCounts.data(), rowSizes.data(), &uploadBufferSize);
+
+    auto uploadBuffer = CreateUploadBuffer(uploadBufferSize);
+    if (!uploadBuffer)
+    {
+        OutputDebugStringA("UploadTexture: CreateUploadBuffer failed, skipping.\n");
+        return;
+    }
+
+    uint8_t* pMappedData = nullptr;
+    uploadBuffer->Map(0, nullptr, reinterpret_cast<void**>(&pMappedData));
+    for (UINT mipIndex = 0; mipIndex < mipCount; ++mipIndex)
+    {
+        const TextureUploadData::MipLevel& level = data.mipLevels[mipIndex];
+        const D3D12_PLACED_SUBRESOURCE_FOOTPRINT& footprint = footprints[mipIndex];
+        const size_t copySize = (std::min)(static_cast<size_t>(rowSizes[mipIndex]), static_cast<size_t>(level.rowPitch));
+        for (UINT rowIndex = 0; rowIndex < rowCounts[mipIndex]; ++rowIndex)
+        {
+            memcpy(
+                pMappedData + footprint.Offset + static_cast<UINT64>(rowIndex) * footprint.Footprint.RowPitch,
+                data.pixels.data() + level.offset + static_cast<size_t>(rowIndex) * level.rowPitch,
+                copySize);
+        }
+    }
+    uploadBuffer->Unmap(0, nullptr);
+
+    // Copy staging buffer -> GPU texture on Copy Queue
+    for (UINT mipIndex = 0; mipIndex < mipCount; ++mipIndex)
+    {
+        D3D12_TEXTURE_COPY_LOCATION srcLocation = {};
+        srcLocation.pResource = uploadBuffer.Get();
+        srcLocation.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+        srcLocation.PlacedFootprint = footprints[mipIndex];
+
+        D3D12_TEXTURE_COPY_LOCATION dstLocation = {};
+        dstLocation.pResource = pResource;
+        dstLocation.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+        dstLocation.SubresourceIndex = mipIndex;
+
+        m_uploadContext.value()->GetCmdList()->CopyTextureRegion(&dstLocation, 0, 0, 0, &srcLocation, nullptr);
+    }
+
+    // Queue up the TRANSITION barrier (cannot issue on Copy Queue)
+    D3D12_RESOURCE_BARRIER barrier = {};
+    barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+    barrier.Transition.pResource = pResource;
     barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
     barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
     barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;

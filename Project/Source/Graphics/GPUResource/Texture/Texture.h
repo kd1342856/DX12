@@ -6,6 +6,15 @@
 // 前方宣言
 struct TextureUploadData;
 
+// テクスチャの値の色空間。ファイルに付いているsRGBの情報ではなく、使い道(マテリアルのスロット)で決める
+enum class TextureColorSpace
+{
+    // 色(BaseColor・Emissive)。_SRGBフォーマットにして、サンプル時にハードウェアでリニアへ変換させる
+    Srgb,
+    // データ(法線・メタリック・ラフネス・AO)や、ガンマ空間のまま描くUI(スプライト)。値をそのまま使う
+    Linear,
+};
+
 // ============================================================
 // Texture
 // CPU ロードと GPU アップロードを完全分離した設計
@@ -16,7 +25,7 @@ struct TextureUploadData;
 // 将来的には CreateGPU() をさらに
 //   CreateResource()        : GPU バッファ生成
 //   RecordUploadCommands()  : コマンド記録
-// に分割することも可能
+// に分割することも可能。
 // ============================================================
 class Texture : public GPUResource
 {
@@ -25,8 +34,9 @@ public:
     // ワーカースレッド対応：ファイルI/O + WIC/DirectXTex デコードのみ
     // GPU には一切触らない
     // ----------------------------------------------------------
-    bool LoadCPU(const std::string& filePath, TextureUploadData& outData);
-    bool LoadCPUFromMemory(const void* pData, size_t size, TextureUploadData& outData);
+    // isMipmapped=trueならミップを全段生成する(呼んだスレッドで行うので、ワーカースレッドから呼ぶこと)
+    bool LoadCPU(const std::string& filePath, TextureUploadData& outData, TextureColorSpace colorSpace = TextureColorSpace::Linear, bool isMipmapped = false);
+    bool LoadCPUFromMemory(const void* pData, size_t size, TextureUploadData& outData, TextureColorSpace colorSpace = TextureColorSpace::Linear, bool isMipmapped = false);
 
     // ----------------------------------------------------------
     // メインスレッド専用：CPUデータ → GPU リソース生成＋コマンド記録

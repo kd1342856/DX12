@@ -6,6 +6,7 @@
 
 class GraphicsDevice;
 class Texture;
+struct TextureUploadData;
 class VertexBuffer;
 class IndexBuffer;
 
@@ -25,6 +26,8 @@ public:
     void End();
 
     void UploadTexture(Texture* pTexture, const void* pData, UINT width, UINT height, UINT rowPitch, UINT slicePitch, DXGI_FORMAT format);
+    // ミップを含め、dataの全段をpTextureの対応するサブリソースへアップロードする
+    void UploadTexture(Texture* pTexture, const TextureUploadData& data);
     void UploadVertexBuffer(VertexBuffer* pBuffer, const void* pData, UINT dataSize);
     void UploadIndexBuffer(IndexBuffer* pBuffer, const void* pData, UINT dataSize);
 

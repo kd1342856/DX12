@@ -322,7 +322,8 @@ static AssetHandle<Mesh> ParseMesh(const aiScene* pScene, const aiMesh* pMesh, c
 
 #include "TextureManager.h"
 
-static void LoadTextureIfPresent(const aiMaterial* pMaterial, aiTextureType type, AssetImportContext& context, MaterialTexture& outTex)
+// colorSpaceはスロットで決める。BaseColor・EmissiveはSrgb、法線・メタリック/ラフネス・AOはLinear
+static void LoadTextureIfPresent(const aiMaterial* pMaterial, aiTextureType type, AssetImportContext& context, MaterialTexture& outTex, TextureColorSpace colorSpace)
 {
 	aiString path;
 	if (pMaterial->GetTexture(type, 0, &path) == AI_SUCCESS)
@@ -339,7 +340,7 @@ static void LoadTextureIfPresent(const aiMaterial* pMaterial, aiTextureType type
 					if (pAiTex->mHeight == 0) // Compressed data (PNG/JPG)
 					{
 						std::string key = context.modelPath.string() + "_embedded_" + std::to_string(textureIndex);
-						outTex.handle = TextureManager::Instance().LoadTextureFromMemory(key, pAiTex->pcData, pAiTex->mWidth);
+						outTex.handle = TextureManager::Instance().LoadTextureFromMemory(key, pAiTex->pcData, pAiTex->mWidth, colorSpace);
 						outTex.valid = outTex.handle.IsValid();
 						return;
 					}
@@ -348,7 +349,7 @@ static void LoadTextureIfPresent(const aiMaterial* pMaterial, aiTextureType type
 		}
 
 		std::filesystem::path texPath = context.rootDirectory / path.C_Str();
-		outTex.handle = TextureManager::Instance().LoadTexture(texPath.string());
+		outTex.handle = TextureManager::Instance().LoadTexture(texPath.string(), colorSpace);
 		outTex.valid = outTex.handle.IsValid();
 	}
 }
@@ -362,19 +363,19 @@ static AssetHandle<Material> ParseMaterial(const aiMaterial* pMaterial, const As
 	}
 
 	// Textures
-	LoadTextureIfPresent(pMaterial, aiTextureType_BASE_COLOR, const_cast<AssetImportContext&>(context), matData.baseColor);
-	if (!matData.baseColor.valid) LoadTextureIfPresent(pMaterial, aiTextureType_DIFFUSE, const_cast<AssetImportContext&>(context), matData.baseColor);
+	LoadTextureIfPresent(pMaterial, aiTextureType_BASE_COLOR, const_cast<AssetImportContext&>(context), matData.baseColor, TextureColorSpace::Srgb);
+	if (!matData.baseColor.valid) LoadTextureIfPresent(pMaterial, aiTextureType_DIFFUSE, const_cast<AssetImportContext&>(context), matData.baseColor, TextureColorSpace::Srgb);
 	
-	LoadTextureIfPresent(pMaterial, aiTextureType_NORMALS, const_cast<AssetImportContext&>(context), matData.normal);
+	LoadTextureIfPresent(pMaterial, aiTextureType_NORMALS, const_cast<AssetImportContext&>(context), matData.normal, TextureColorSpace::Linear);
 	
-	LoadTextureIfPresent(pMaterial, aiTextureType_METALNESS, const_cast<AssetImportContext&>(context), matData.metallicRoughness);
-	if (!matData.metallicRoughness.valid) LoadTextureIfPresent(pMaterial, aiTextureType_DIFFUSE_ROUGHNESS, const_cast<AssetImportContext&>(context), matData.metallicRoughness);
-	if (!matData.metallicRoughness.valid) LoadTextureIfPresent(pMaterial, aiTextureType_UNKNOWN, const_cast<AssetImportContext&>(context), matData.metallicRoughness);
+	LoadTextureIfPresent(pMaterial, aiTextureType_METALNESS, const_cast<AssetImportContext&>(context), matData.metallicRoughness, TextureColorSpace::Linear);
+	if (!matData.metallicRoughness.valid) LoadTextureIfPresent(pMaterial, aiTextureType_DIFFUSE_ROUGHNESS, const_cast<AssetImportContext&>(context), matData.metallicRoughness, TextureColorSpace::Linear);
+	if (!matData.metallicRoughness.valid) LoadTextureIfPresent(pMaterial, aiTextureType_UNKNOWN, const_cast<AssetImportContext&>(context), matData.metallicRoughness, TextureColorSpace::Linear);
 
-	LoadTextureIfPresent(pMaterial, aiTextureType_LIGHTMAP, const_cast<AssetImportContext&>(context), matData.occlusion); // gltf occlusion is often mapped to lightmap or ambient in assimp
-	if (!matData.occlusion.valid) LoadTextureIfPresent(pMaterial, aiTextureType_AMBIENT, const_cast<AssetImportContext&>(context), matData.occlusion);
+	LoadTextureIfPresent(pMaterial, aiTextureType_LIGHTMAP, const_cast<AssetImportContext&>(context), matData.occlusion, TextureColorSpace::Linear); // gltf occlusion is often mapped to lightmap or ambient in assimp
+	if (!matData.occlusion.valid) LoadTextureIfPresent(pMaterial, aiTextureType_AMBIENT, const_cast<AssetImportContext&>(context), matData.occlusion, TextureColorSpace::Linear);
 	
-	LoadTextureIfPresent(pMaterial, aiTextureType_EMISSIVE, const_cast<AssetImportContext&>(context), matData.emissive);
+	LoadTextureIfPresent(pMaterial, aiTextureType_EMISSIVE, const_cast<AssetImportContext&>(context), matData.emissive, TextureColorSpace::Srgb);
 
 	// Factors
 	aiColor4D color;
