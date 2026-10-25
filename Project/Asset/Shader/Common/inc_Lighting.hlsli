@@ -39,6 +39,36 @@ float3 EvaluateDirectLight(SurfaceData surface, float3 lightDir, float3 illumina
     return NdotL * illuminance * (diffuse + specular);
 }
 
+// 大きさのある球の光源からの直接光(拡散+鏡面)。toLightは表面から光源の中心への(正規化していない)ベクトル。
+// 鏡面は代表点法(Karis 2013): 反射ベクトルに最も近い光源の球の上の点へ向けて評価し、ハイライトを光源の大きさに広げる。
+// 広げた分だけ明るくなりすぎないよう、光源の見込み角の分だけ広げたαとの比(α/α')^2で正規化する
+float3 EvaluateSphereLight(SurfaceData surface, float3 toLight, float sourceRadius, float3 illuminance)
+{
+    const float distanceToLight = max(length(toLight), 0.0001);
+    const float3 L = toLight / distanceToLight;
+
+    // 拡散は光源の中心の向きで評価する
+    const float NdotL = saturate(dot(surface.normal, L));
+    const float3 H = normalize(L + surface.viewDir);
+    const float LdotH = saturate(dot(L, H));
+    const float3 diffuse = Diffuse_Burley(surface.diffuseColor, NdotL, surface.NdotV, LdotH, surface.roughness);
+
+    // 鏡面は代表点の向きで評価する
+    const float3 R = reflect(-surface.viewDir, surface.normal);
+    const float3 centerToRay = dot(toLight, R) * R - toLight;
+    const float3 closestPoint = toLight + centerToRay * saturate(sourceRadius / max(length(centerToRay), 0.0001));
+    const float3 specularL = normalize(closestPoint);
+    const float specularNdotL = saturate(dot(surface.normal, specularL));
+    const float3 specularH = normalize(specularL + surface.viewDir);
+    const float specularLdotH = saturate(dot(specularL, specularH));
+    const float specularNdotH = saturate(dot(surface.normal, specularH));
+    const float widenedAlpha = saturate(surface.alpha + sourceRadius / (2.0 * distanceToLight));
+    const float normalization = (surface.alpha * surface.alpha) / max(widenedAlpha * widenedAlpha, 1e-6);
+    const float3 specular = Specular_BRDF(surface.alpha, surface.specularColor, surface.NdotV, specularNdotL, specularLdotH, specularNdotH) * normalization;
+
+    return illuminance * (NdotL * diffuse + specularNdotL * specular);
+}
+
 // スポットライト(影は含まない。EvaluateSpotLightShadowを掛ける)。light.Colorは光度(cd)×露出
 float3 EvaluateSpotLight(SurfaceData surface, SpotLight light)
 {
@@ -48,7 +78,7 @@ float3 EvaluateSpotLight(SurfaceData surface, SpotLight light)
     const float attenuation = DistanceAttenuation(distanceToLight, light.Range);
     const float cosAngle = dot(-L, normalize(light.Dir));
     const float coneAttenuation = saturate((cosAngle - light.OuterCorn) / (light.InnerCorn - light.OuterCorn));
-    return EvaluateDirectLight(surface, L, light.Color * (attenuation * coneAttenuation));
+    return EvaluateSphereLight(surface, light.Pos - surface.position, light.SourceRadius, light.Color * (attenuation * coneAttenuation));
 }
 
 // 点光源(影は含まない。EvaluatePointLightShadowを掛ける)。light.Colorは光束(lm)を光度(cd)に直したもの×露出
@@ -58,7 +88,7 @@ float3 EvaluatePointLight(SurfaceData surface, PointLight light)
     const float distanceToLight = length(L);
     L = L / max(distanceToLight, 0.0001);
     const float attenuation = DistanceAttenuation(distanceToLight, light.Range);
-    return EvaluateDirectLight(surface, L, light.Color * attenuation);
+    return EvaluateSphereLight(surface, light.Pos - surface.position, light.SourceRadius, light.Color * attenuation);
 }
 
 // ダミーIBL(空と地面の2色)の拡散と鏡面。Step 5の反射プローブとGIで置き換えるまでの仮のもの。
