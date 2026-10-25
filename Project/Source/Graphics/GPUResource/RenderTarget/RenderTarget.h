@@ -7,6 +7,8 @@ public:
 	~RenderTarget() {}
 
 	bool Create(int width, int height, DXGI_FORMAT format = DXGI_FORMAT_R8G8B8A8_UNORM);
+	// 大きさだけを変えて作り直す。ディスクリプタの番号は変わらない。GPUの処理が終わってから呼ぶこと
+	bool Resize(int width, int height);
 
 	int GetWidth() const { return m_width; }
 	int GetHeight() const { return m_height; }
@@ -24,6 +26,10 @@ public:
 	void Clear(float r = 0.0f, float g = 0.0f, float b = 1.0f, float a = 1.0f);
 
 private:
+	bool CreateResources(int width, int height);
+	void WriteDescriptors();
+
+	DXGI_FORMAT m_format = DXGI_FORMAT_UNKNOWN;
 	int m_width = 0;
 	int m_height = 0;
 

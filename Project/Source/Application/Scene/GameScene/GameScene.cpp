@@ -614,15 +614,7 @@ void GameScene::RenderDebugPreviewCamera()
     // ImGui描画がそのオフスクリーンRTに描かれてしまい、画面(バックバッファ)からImGuiパネルが
     // 全て消えたように見える(ゲーム自体は別経路で既にバックバッファへ合成済みなので普通に動き続ける)。
     GraphicsDevice::Instance().SetBackBuffer();
-    D3D12_VIEWPORT viewport = {};
-    viewport.Width = 1280.0f;
-    viewport.Height = 720.0f;
-    viewport.MinDepth = 0.0f;
-    viewport.MaxDepth = 1.0f;
-    D3D12_RECT scissorRect = { 0, 0, 1280, 720 };
-    auto* pCmdList = GraphicsDevice::Instance().GetCmdList();
-    pCmdList->RSSetViewports(1, &viewport);
-    pCmdList->RSSetScissorRects(1, &scissorRect);
+    Renderer::BindDefaultViewport();
 }
 
 void GameScene::RenderGame()
@@ -664,12 +656,6 @@ void GameScene::RenderGame()
             PROFILE_GPU_SCOPE(pCmdList, "Scene");
             renderSystem->RenderScene(m_gameCameraEntity, pSceneHDR);
         }
-        {
-            PROFILE_CPU_SCOPE("Sprite");
-            PROFILE_GPU_SCOPE(pCmdList, "Sprite");
-            spriteRenderSystem->Render();
-        }
-
         // Script Draw (Player UI, GameClear/Over 表示など)
         // ※ DebugWireはゲームモードでは非表示
         auto scriptSystem = GameManager::Instance().GetScriptSystem();
@@ -681,6 +667,14 @@ void GameScene::RenderGame()
 
         // Phase 4: PostProcess (Bloom, DOF, ToneMapping, Vignette, Grain, Chromatic Aberration...)
         DoPostProcess(m_gameCameraEntity, 0.0f, 0.0f, 0.0f);
+
+        // UI(スプライト)はウィンドウ解像度のバックバッファに、ポストの後で合成する。
+        // HDRのシーンに描くと、トーンマップやsRGBのエンコードがUIの色にも掛かってしまうため
+        {
+            PROFILE_CPU_SCOPE("Sprite");
+            PROFILE_GPU_SCOPE(pCmdList, "Sprite");
+            spriteRenderSystem->Render();
+        }
     }
     else
     {
@@ -964,12 +958,6 @@ void GameScene::RenderEditor()
             PROFILE_GPU_SCOPE(pCmdList, "Scene");
             renderSystem->RenderScene(m_editorCameraEntity, pSceneHDR);
         }
-        {
-            PROFILE_CPU_SCOPE("Sprite");
-            PROFILE_GPU_SCOPE(pCmdList, "Sprite");
-            spriteRenderSystem->Render();
-        }
-
         // Script Draw (デバッグワイヤー等表示)
         if (scriptSystem) {
             PROFILE_CPU_SCOPE("ScriptDraw");
@@ -980,12 +968,20 @@ void GameScene::RenderEditor()
             PROFILE_CPU_SCOPE("DebugDraw");
             PROFILE_GPU_SCOPE(pCmdList, "DebugDraw");
             NavMeshManager::Instance().DrawDebugMesh();
-            CollisionManager::Instance().DrawDebugWires(0, 0, 1280.0f, 720.0f, m_editorCameraEntity);
+            CollisionManager::Instance().DrawDebugWires(0, 0, static_cast<float>(Renderer::GetRenderWidth()), static_cast<float>(Renderer::GetRenderHeight()), m_editorCameraEntity);
         }
     }
 
     // Post Process to Back Buffer
     DoPostProcess(m_editorCameraEntity, 0.1f, 0.1f, 0.2f);
+
+    // UI(スプライト)はポストの後でバックバッファに合成する(RenderGameと同じ)
+    {
+        auto* pCmdList = GraphicsDevice::Instance().GetCmdList();
+        PROFILE_CPU_SCOPE("Sprite");
+        PROFILE_GPU_SCOPE(pCmdList, "Sprite");
+        spriteRenderSystem->Render();
+    }
 
     Editor::Draw();
 }

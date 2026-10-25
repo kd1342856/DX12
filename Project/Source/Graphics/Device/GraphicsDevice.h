@@ -160,6 +160,16 @@ public:
 	static constexpr UINT kMaxFrameLatency = 2;
 
 	std::array<Microsoft::WRL::ComPtr<ID3D12Resource>, kSwapChainBufferCount>	m_pSwapchainBuffers;
+	std::array<int, kSwapChainBufferCount> m_swapchainRtvIndices = {};
+
+	// ウィンドウの大きさが変わったとき(WM_SIZE)に呼ぶ。実際の作り直しは次のフレームの先頭で行う
+	void RequestResize(UINT width, UINT height);
+	// 大きさの変更が要求されていれば、GPUの処理を待ってスワップチェーンとメインの深度を作り直す。
+	// 作り直したらtrue(呼び出し側で画面サイズのRTも作り直す)。フレームの先頭(コマンドを記録する前)で呼ぶ
+	bool ApplyPendingResize();
+	// バックバッファ(ウィンドウのクライアント領域)の大きさ
+	UINT GetBackBufferWidth() const { return m_backBufferWidth; }
+	UINT GetBackBufferHeight() const { return m_backBufferHeight; }
 
 
 	
@@ -193,6 +203,11 @@ private:
 	// 次のフレームを始めてよい時まで待つ(fpsの上限と、表示待ちのフレーム数の上限)。
 	// 入力を読む前に待つことで、待った時間が入力の遅延にならないようにする
 	void WaitForNextFrame();
+
+	UINT m_backBufferWidth = 0;
+	UINT m_backBufferHeight = 0;
+	UINT m_pendingWidth = 0;
+	UINT m_pendingHeight = 0;
 
 	FrameRateMode m_frameRateMode = FrameRateMode::Unlimited;
 	int m_frameRateLimit = 144;

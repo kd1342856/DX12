@@ -38,16 +38,18 @@ void Renderer::BindViewport(RenderTarget* pRT)
 
 void Renderer::BindDefaultViewport()
 {
-	auto* cmd = GraphicsDevice::Instance().GetCmdList();
+	// バックバッファ(ウィンドウ解像度)の全体
+	auto& device = GraphicsDevice::Instance();
+	auto* cmd = device.GetCmdList();
 	D3D12_VIEWPORT viewport = {};
-	viewport.Width = 1280.0f;
-	viewport.Height = 720.0f;
+	viewport.Width = static_cast<float>(device.GetBackBufferWidth());
+	viewport.Height = static_cast<float>(device.GetBackBufferHeight());
 	viewport.MinDepth = 0.0f;
 	viewport.MaxDepth = 1.0f;
 
 	D3D12_RECT rect = {};
-	rect.right = 1280;
-	rect.bottom = 720;
+	rect.right = static_cast<LONG>(device.GetBackBufferWidth());
+	rect.bottom = static_cast<LONG>(device.GetBackBufferHeight());
 
 	cmd->RSSetViewports(1, &viewport);
 	cmd->RSSetScissorRects(1, &rect);
@@ -71,9 +73,38 @@ static std::unique_ptr<RenderTarget> s_normalPrepass;
 static std::unique_ptr<RenderTarget> s_ssao;
 static std::unique_ptr<RenderTarget> s_ssaoBlur;
 static std::unique_ptr<RenderTarget> s_debugPreview;
+static int s_renderWidth = 0;
+static int s_renderHeight = 0;
+
+int Renderer::GetRenderWidth() { return s_renderWidth; }
+int Renderer::GetRenderHeight() { return s_renderHeight; }
+
+void Renderer::ResizeRenderTargets(int width, int height)
+{
+	// 画面の大きさに比例するRTだけを作り直す(平面反射とデバッグ用のプレビューは固定の大きさ)。
+	// 比率は InitializeRenderTargets と合わせる
+	s_renderWidth = width;
+	s_renderHeight = height;
+	ShaderManager::Instance().SetScreenSize(width, height);
+	s_sceneHDR->Resize(width, height);
+	s_sceneOpaqueCopy->Resize(width, height);
+	s_bloomExtract->Resize(width / 4, height / 4);
+	s_bloomBlur[0]->Resize(width / 4, height / 4);
+	s_bloomBlur[1]->Resize(width / 4, height / 4);
+	s_dofBlur[0]->Resize(width / 4, height / 4);
+	s_dofBlur[1]->Resize(width / 4, height / 4);
+	s_godRays->Resize(width / 4, height / 4);
+	s_normalPrepass->Resize(width, height);
+	s_ssao->Resize(width / 2, height / 2);
+	s_ssaoBlur->Resize(width / 2, height / 2);
+}
 
 void Renderer::InitializeRenderTargets(int width, int height)
 {
+	s_renderWidth = width;
+	s_renderHeight = height;
+	ShaderManager::Instance().SetScreenSize(width, height);
+
 	// HDR (16-bit Float for bright values > 1.0)
 	s_sceneHDR = std::make_unique<RenderTarget>();
 	s_sceneHDR->Create(width, height, DXGI_FORMAT_R16G16B16A16_FLOAT);

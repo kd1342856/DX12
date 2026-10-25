@@ -272,8 +272,6 @@ void ShaderManager::UpdatePostProcessCB()
 	{
 		m_SystemData.EnableHDR = m_PostProcessSettings.EnableHDR ? 1 : 0;
 		m_SystemData.Gamma = m_PostProcessSettings.Gamma;
-		m_SystemData.ScreenWidth = 1280.0f;
-		m_SystemData.ScreenHeight = 720.0f;
 
 		m_PostProcessData.EnableHDR = m_PostProcessSettings.EnableHDR ? 1 : 0;
 		// 露出はライトの値に前もって掛けてある(前露出)ので、ポストでは掛けない

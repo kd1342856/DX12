@@ -15,7 +15,13 @@ public:
 	static RenderContext& GetContext();
 
 	// Post Process Render Targets
+	// width/heightは描画解像度(ウィンドウ解像度×レンダースケール)
 	static void InitializeRenderTargets(int width, int height);
+	// 描画解像度が変わったときに、画面の大きさに比例するRTを作り直す。GPUの処理が終わってから呼ぶこと
+	static void ResizeRenderTargets(int width, int height);
+	// 描画解像度(シーンを描くRTの大きさ)。UIとバックバッファはウィンドウ解像度(GraphicsDevice::GetBackBufferWidth)
+	static int GetRenderWidth();
+	static int GetRenderHeight();
 
 	// Reflection - 最大3枚(3窓)まで同時にアクティブな平面反射をサポートする。
 	static class RenderTarget* GetPlanarReflectionRenderTarget(int slot);

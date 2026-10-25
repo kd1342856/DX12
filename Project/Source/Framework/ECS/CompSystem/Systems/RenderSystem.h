@@ -606,15 +606,7 @@ public:
 		else
 		{
 			pGraphicsDevice->SetBackBuffer();
-			// Bind default viewport
-			D3D12_VIEWPORT viewport = {};
-			viewport.Width = 1280.0f;
-			viewport.Height = 720.0f;
-			viewport.MinDepth = 0.0f;
-			viewport.MaxDepth = 1.0f;
-			D3D12_RECT scissorRect = { 0, 0, 1280, 720 };
-			pCmdList->RSSetViewports(1, &viewport);
-			pCmdList->RSSetScissorRects(1, &scissorRect);
+			Renderer::BindDefaultViewport();
 		}
 
 		auto& cCamera = m_pCoordinator->GetComponent<CameraData>(cameraEntity);

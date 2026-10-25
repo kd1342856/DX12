@@ -9,7 +9,7 @@ public:
 	HWND GetWndHandle() const { return m_hWnd; }
 
 	// ボーダーレス全画面の切り替え(F11 / Alt+Enter)。
-	// 描画解像度(スワップチェーン)は変えず、DXGIがウィンドウ全体へ拡大して表示する。
+	// ウィンドウがモニター全体の大きさになり、WM_SIZEでスワップチェーンと描画解像度もそれに合わせて作り直される。
 	void SetFullscreen(bool fullscreen);
 	void ToggleFullscreen() { SetFullscreen(!m_isFullscreen); }
 	bool IsFullscreen() const { return m_isFullscreen; }

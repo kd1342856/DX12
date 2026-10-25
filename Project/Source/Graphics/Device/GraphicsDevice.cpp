@@ -69,6 +69,8 @@ bool GraphicsDevice::Init(HWND  hWnd, int w, int h)
 	m_upResourceLifetimeManager = std::make_unique<ResourceLifetimeManager>();
 
 	if (!CreateSwapChain(hWnd, w, h)) return false;
+	m_backBufferWidth = static_cast<UINT>(w);
+	m_backBufferHeight = static_cast<UINT>(h);
 
 	// fpsの上限で使う高精度タイマー(Windows 10 1803以降)。作れない環境では通常の精度のタイマーで代用する
 	m_frameLimiterTimer = CreateWaitableTimerExW(nullptr, nullptr, CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, TIMER_ALL_ACCESS);
@@ -182,7 +184,7 @@ void GraphicsDevice::BeginFrame()
 	auto bbIdx = m_pSwapChain->GetCurrentBackBufferIndex();
 	m_upContextManager->GetGraphicsContext()->TransitionResource(m_pSwapchainBuffers[bbIdx].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET);
 	m_upContextManager->GetGraphicsContext()->FlushResourceBarriers();
-	auto rtvH = m_upDescriptorHeapManager->GetRTVAllocator()->GetCPUHandle(bbIdx);
+	auto rtvH = m_upDescriptorHeapManager->GetRTVAllocator()->GetCPUHandle(m_swapchainRtvIndices[bbIdx]);
 	auto dsvH = m_upDescriptorHeapManager->GetDSVAllocator()->GetCPUHandle(m_upDepthStencil->GetDSVNumber());
 	cmdList->OMSetRenderTargets(1, &rtvH, false, &dsvH);
 	float clearColor[] = { 0.0f,0.0f,1.0f,1.0f };
@@ -333,6 +335,64 @@ bool GraphicsDevice::CreateSwapChain(HWND hWnd, int width, int height)
 	return true;
 }
 
+void GraphicsDevice::RequestResize(UINT width, UINT height)
+{
+	// 最小化(0x0)は無視する。大きさ0のスワップチェーンは作れない
+	if (width == 0 || height == 0)
+	{
+		return;
+	}
+	m_pendingWidth = width;
+	m_pendingHeight = height;
+}
+
+bool GraphicsDevice::ApplyPendingResize()
+{
+	if (m_pendingWidth == 0 || (m_pendingWidth == m_backBufferWidth && m_pendingHeight == m_backBufferHeight))
+	{
+		m_pendingWidth = 0;
+		m_pendingHeight = 0;
+		return false;
+	}
+	const UINT width = m_pendingWidth;
+	const UINT height = m_pendingHeight;
+	m_pendingWidth = 0;
+	m_pendingHeight = 0;
+
+	// GPUが古いバックバッファや画面サイズのRTを使い終わるまで待つ
+	m_upQueueManager->GetGraphicsQueue()->Flush();
+
+	for (auto& cpBuffer : m_pSwapchainBuffers)
+	{
+		m_upResourceStateTracker->RemoveResourceState(cpBuffer.Get());
+		cpBuffer.Reset();
+	}
+
+	// フラグ(ティアリング・待機オブジェクト)は作成時と同じものを渡す必要がある
+	DXGI_SWAP_CHAIN_DESC1 desc = {};
+	m_pSwapChain->GetDesc1(&desc);
+	HRESULT hr = m_pSwapChain->ResizeBuffers(kSwapChainBufferCount, width, height, DXGI_FORMAT_UNKNOWN, desc.Flags);
+	if (FAILED(hr))
+	{
+		Logger::Instance().AddLog(Logger::LogLevel::Error, u8"スワップチェーンの大きさを変えられませんでした (hr=0x%08X)", static_cast<unsigned int>(hr));
+		return false;
+	}
+
+	// バックバッファのRTVは同じ番号に作り直す
+	for (UINT bufferIndex = 0; bufferIndex < kSwapChainBufferCount; ++bufferIndex)
+	{
+		m_pSwapChain->GetBuffer(bufferIndex, IID_PPV_ARGS(&m_pSwapchainBuffers[bufferIndex]));
+		m_upResourceStateTracker->AddResourceState(m_pSwapchainBuffers[bufferIndex].Get(), D3D12_RESOURCE_STATE_PRESENT);
+		m_pDevice->CreateRenderTargetView(m_pSwapchainBuffers[bufferIndex].Get(), nullptr,
+			m_upDescriptorHeapManager->GetRTVAllocator()->GetCPUHandle(m_swapchainRtvIndices[bufferIndex]));
+	}
+	m_upDepthStencil->Resize(Math::Vector2(static_cast<float>(width), static_cast<float>(height)));
+
+	m_backBufferWidth = width;
+	m_backBufferHeight = height;
+	return true;
+}
+
 void GraphicsDevice::WaitForNextFrame()
 {
 	using Clock = std::chrono::steady_clock;
@@ -390,7 +450,7 @@ bool GraphicsDevice::CreateSwapChainRTV()
 		{
 			return false;
 		}
-		CreateRTV(m_pSwapchainBuffers[i].Get());
+		m_swapchainRtvIndices[i] = CreateRTV(m_pSwapchainBuffers[i].Get());
 	}
 	return true;
 }
@@ -774,14 +834,14 @@ void GraphicsDevice::TransitionDepthToWrite(RenderTarget* pRT)
 void GraphicsDevice::SetBackBuffer()
 {
 	auto bbIdx = m_pSwapChain->GetCurrentBackBufferIndex();
-	auto rtvH = m_upDescriptorHeapManager->GetRTVAllocator()->GetCPUHandle(bbIdx);
+	auto rtvH = m_upDescriptorHeapManager->GetRTVAllocator()->GetCPUHandle(m_swapchainRtvIndices[bbIdx]);
 	auto dsvH = m_upDescriptorHeapManager->GetDSVAllocator()->GetCPUHandle(m_upDepthStencil->GetDSVNumber());
 	m_upContextManager->GetGraphicsContext()->GetCmdList()->OMSetRenderTargets(1, &rtvH, false, &dsvH);
 }
 void GraphicsDevice::ClearBackBuffer(float r, float g, float b, float a)
 {
 	auto bbIdx = m_pSwapChain->GetCurrentBackBufferIndex();
-	auto rtvH = m_upDescriptorHeapManager->GetRTVAllocator()->GetCPUHandle(bbIdx);
+	auto rtvH = m_upDescriptorHeapManager->GetRTVAllocator()->GetCPUHandle(m_swapchainRtvIndices[bbIdx]);
 	float clearColor[] = { r, g, b, a };
 	m_upContextManager->GetGraphicsContext()->GetCmdList()->ClearRenderTargetView(rtvH, clearColor, 0, nullptr);
 	

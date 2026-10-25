@@ -36,6 +36,13 @@ LRESULT WindowProcedure(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		break;
+	case WM_SIZE:
+		// スワップチェーンと画面の大きさのRTは、次のフレームの先頭で作り直す(最小化は無視される)
+		if (wParam != SIZE_MINIMIZED)
+		{
+			GraphicsDevice::Instance().RequestResize(LOWORD(lParam), HIWORD(lParam));
+		}
+		break;
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
 		break;
@@ -61,7 +68,8 @@ bool Window::Create(int clientWidth, int clientHeight, const std::wstring& title
 		return false;
 	}
 
-	DWORD style = WS_OVERLAPPEDWINDOW - WS_THICKFRAME;
+	// 枠をドラッグして大きさを変えられる(描画解像度もウィンドウに合わせて変わる)
+	DWORD style = WS_OVERLAPPEDWINDOW;
 	RECT rect = { 0, 0, clientWidth, clientHeight };
 	AdjustWindowRect(&rect, style, FALSE);
 

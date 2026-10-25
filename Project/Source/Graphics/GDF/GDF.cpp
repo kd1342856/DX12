@@ -1,6 +1,7 @@
 #include "../../Pch.h"
 #include "../GPUUploadQueue/GPUUploadQueue.h"
 #include "../../Framework/DirectX/Utility/Profiler.h"
+#include "../Renderer/Renderer.h"
 
 // デバイス初期化
 bool GDF::Init(HWND hwnd, int width, int height)
@@ -12,6 +13,16 @@ bool GDF::Init(HWND hwnd, int width, int height)
 void GDF::BeginFrame()
 {
 	Profiler::Instance().BeginCPUFrame();
+
+	// ウィンドウの大きさが変わっていれば、このフレームのコマンドを記録する前にスワップチェーンと
+	// 画面の大きさのRTを作り直す(ApplyPendingResizeの中でGPUの処理を待つ)
+	{
+		auto& device = GraphicsDevice::Instance();
+		if (device.ApplyPendingResize())
+		{
+			Renderer::ResizeRenderTargets(static_cast<int>(device.GetBackBufferWidth()), static_cast<int>(device.GetBackBufferHeight()));
+		}
+	}
 
 	{
 		// Process pending GPU uploads from worker threads (main thread only)

@@ -2,6 +2,7 @@
 #include "ResultScene.h"
 #include "../TitleScene/TitleScene.h"
 #include "../../../Graphics/Shader/ShaderLibrary.h"
+#include "../../../Graphics/Renderer/Renderer.h"
 #include "../../../Graphics/Shader/FogShader/FogShader.h"
 #include "../../../Graphics/Shader/MistShader/MistShader.h"
 #include "../../../Framework/Manager/Scene/SceneManager.h"
@@ -98,18 +99,8 @@ void ResultScene::Update(float deltaTime)
     // 背景: ゲームオーバーは赤い霧(FogShader)、クリアは青白い霧(MistShader)
     auto* pCmdList = GraphicsDevice::Instance().GetCmdList();
 
-    D3D12_VIEWPORT viewport = {};
-    viewport.Width = 1280.0f;
-    viewport.Height = 720.0f;
-    viewport.MinDepth = 0.0f;
-    viewport.MaxDepth = 1.0f;
-
-    D3D12_RECT scissorRect = {};
-    scissorRect.right = 1280;
-    scissorRect.bottom = 720;
-
-    pCmdList->RSSetViewports(1, &viewport);
-    pCmdList->RSSetScissorRects(1, &scissorRect);
+    // バックバッファ(ウィンドウ解像度)の全体
+    Renderer::BindDefaultViewport();
 
     GraphicsDevice::Instance().ClearBackBuffer(0.0f, 0.0f, 0.0f, 1.0f);
     if (m_isClear) {

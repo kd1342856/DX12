@@ -1,6 +1,7 @@
 #include "../../../../Pch.h"
 #include <SpriteBatch.h>
 #include "SpriteRenderSystem.h"
+#include "../../../../Graphics/Renderer/Renderer.h"
 #include <SpriteBatch.h>
 
 void SpriteRenderSystem::Update(float deltaTime) {
@@ -13,6 +14,9 @@ void SpriteRenderSystem::Render() {
     auto pSpriteBatch = pGraphicsDevice->GetSpriteBatch();
     if (!pSpriteBatch) return;
 
+    // スプライトは1280x720の仮想座標で置く。描画先はバックバッファ全体(ウィンドウ解像度)で、
+    // SpriteBatchに仮想座標の大きさを渡すと、ウィンドウの大きさに合わせて拡大して描かれる
+    Renderer::BindDefaultViewport();
     D3D12_VIEWPORT viewport = {};
     viewport.Width = 1280.0f;
     viewport.Height = 720.0f;

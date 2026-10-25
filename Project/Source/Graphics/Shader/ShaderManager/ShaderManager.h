@@ -45,6 +45,13 @@ public:
 	// 露出(EV100から求める)。ライトの値はこれを掛けてからシェーダーへ送る(前露出)
 	float GetExposure() const;
 
+	// 描画解像度(シーンを描くRTの大きさ)。シェーダーが画面のUVを求めるのに使う。Rendererが作り直すたびに呼ぶ
+	void SetScreenSize(int width, int height)
+	{
+		m_SystemData.ScreenWidth = static_cast<float>(width);
+		m_SystemData.ScreenHeight = static_cast<float>(height);
+	}
+
 	const CBufferData::System& GetSystemData() const { return m_SystemData; }
 	const CBufferData::PostProcess& GetPostProcessData() const { return m_PostProcessData; }
 	const CBufferData::Light& GetLightData() const { return m_LightData; }
