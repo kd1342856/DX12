@@ -45,8 +45,11 @@ void PickupItem::SyncLight(float deltaTime)
     if (!pLight) {
         // Added lazily so every FlashLight pickup (placed or thrown) has a light that follows its Transform.
         SpotLightData light;
-        light.m_color = { 1.0f, 0.97f, 0.9f };
-        light.m_intensity = 6.0f;
+        // プレイヤーが持つ懐中電灯(Player::CreateFlashLightBeam)と同じ、1000cd・5000K
+        light.m_color = { 1.0f, 1.0f, 1.0f };
+        light.m_temperature = 5000.0f;
+        light.m_intensity = 1000.0f;
+        light.m_modelGlow = 3000.0f; // レンズの発光の輝度(nit)
         light.m_range = 15.0f;
         light.m_innerAngle = 12.0f;
         light.m_outerAngle = 22.0f;

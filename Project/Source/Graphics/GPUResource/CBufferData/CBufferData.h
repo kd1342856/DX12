@@ -69,7 +69,10 @@ namespace CBufferData
 	struct Light
 	{
 		int SL_Count;
-		Math::Vector3 dummy1;
+		// ダミーIBLと空の明るさ(nitの値に露出を掛けたもの)
+		float IBLLuminance;
+		float SkyLuminance;
+		float dummy1;
 		Math::Vector3 AmbientLight;
 		float IndirectShadowFloor; // 影が落ちる場所に残す間接光(Ambient/IBL)の下限 0..1
 		Math::Vector3 DL_Dir;

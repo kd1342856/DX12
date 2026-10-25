@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <vector>
 #include "../../../../Graphics/Shader/ShaderManager/ShaderManager.h"
+#include "../../../../Graphics/Shader/PhotometricUnits.h"
 #include "../../../Manager/Collision/CollisionManager.h"
 
 // PointLightDataを持つエンティティを毎フレーム集めてShaderManagerへ送るシステム。
@@ -18,6 +19,8 @@ public:
 
         struct Candidate { Math::Vector3 pos; float rangeSq; CBufferData::PointLight data; };
         std::vector<Candidate> candidates;
+        // 前露出: 物理単位の値に露出を掛けてから送る
+        const float exposure = ShaderManager::Instance().GetExposure();
         candidates.reserve(m_entities.size());
 
         for (auto const& entity : m_entities)
@@ -42,9 +45,9 @@ public:
             CBufferData::PointLight pl;
             pl.Pos = pos;
             pl.Range = light.m_range;
-            pl.Color = { light.m_color.x * light.m_intensity * intensityMul,
-                         light.m_color.y * light.m_intensity * intensityMul,
-                         light.m_color.z * light.m_intensity * intensityMul };
+            // 光束(lm)を光度(cd)に直す。シェーダーで逆二乗を掛けると照度(lx)になる
+            const float candela = PhotometricUnits::LumensToCandela(light.m_intensity);
+            pl.Color = PhotometricUnits::MakeLightColor(light.m_color, light.m_temperature) * (candela * intensityMul * exposure);
 
             float distSq = Math::Vector3::DistanceSquared(pos, viewerPos);
             candidates.push_back({ pos, distSq, pl });
@@ -106,6 +109,8 @@ public:
     {
         struct Candidate { float distSq; CBufferData::SpotLight data; };
         std::vector<Candidate> candidates;
+        // 前露出: 物理単位の値に露出を掛けてから送る
+        const float exposure = ShaderManager::Instance().GetExposure();
         candidates.reserve(m_entities.size());
 
         for (auto const& entity : m_entities)
@@ -116,7 +121,10 @@ public:
             // 同じエンティティにモデルがあれば、点灯中だけモデル自体を発光させる(Bloomで光って見える)
             if (auto* pModel = m_pCoordinator->TryGetComponent<ModelRenderData>(entity))
             {
-                pModel->m_glowColor = (light.m_enabled && !light.m_flickerOff) ? light.m_color * light.m_modelGlow : Math::Vector3::Zero;
+                // 発光の輝度(nit)。露出はシェーダーで掛ける
+                pModel->m_glowColor = (light.m_enabled && !light.m_flickerOff)
+                    ? PhotometricUnits::MakeLightColor(light.m_color, light.m_temperature) * light.m_modelGlow
+                    : Math::Vector3::Zero;
                 pModel->m_glowMaterial = light.m_glowMaterial;
                 pModel->m_glowReflectMaterial = light.m_glowReflectMaterial;
                 pModel->m_glowReflectScale = light.m_glowReflectScale;
@@ -138,7 +146,8 @@ public:
             sl.Pos = pos;
             sl.Dir = dir;
             sl.Range = light.m_range;
-            sl.Color = light.m_color * light.m_intensity;
+            // 光度(cd)。シェーダーで逆二乗を掛けると照度(lx)になる
+            sl.Color = PhotometricUnits::MakeLightColor(light.m_color, light.m_temperature) * (light.m_intensity * exposure);
             sl.InnerCorn = cosf(innerDeg * kDegToRad);
             sl.OuterCorn = cosf(outerDeg * kDegToRad);
             sl.EnableShadow = 0.0f;

@@ -1,6 +1,7 @@
 ﻿#include "PostProcessPanel.h"
 #include "../EditorContext.h"
 #include "ImGui/imgui.h"
+#include "../../../Graphics/Shader/PhotometricUnits.h"
 
 void PostProcessPanel::Draw(EditorContext& ctx)
 {
@@ -11,7 +12,23 @@ void PostProcessPanel::Draw(EditorContext& ctx)
             bool changed = false;
 
             if (ImGui::Checkbox("Enable HDR (ACES Filmic ToneMapping)", &ctx.PostProcess->EnableHDR)) changed = true;
-            if (ImGui::SliderFloat("Exposure", &ctx.PostProcess->Exposure, 0.1f, 10.0f, "%.2f")) changed = true;
+            // 露出は前露出としてライトに掛けるので、IsDirtyを待たずに毎フレーム反映される
+            ImGui::Checkbox("Use Camera Settings", &ctx.PostProcess->UseCameraSettings);
+            if (ctx.PostProcess->UseCameraSettings)
+            {
+                ImGui::SliderFloat("Aperture (f)", &ctx.PostProcess->Aperture, 1.0f, 22.0f, "f/%.1f");
+                float shutterDenominator = 1.0f / (std::max)(ctx.PostProcess->ShutterSpeed, 1e-4f);
+                if (ImGui::SliderFloat("Shutter (1/x s)", &shutterDenominator, 1.0f, 4000.0f, "1/%.0f", ImGuiSliderFlags_Logarithmic))
+                {
+                    ctx.PostProcess->ShutterSpeed = 1.0f / shutterDenominator;
+                }
+                ImGui::SliderFloat("ISO", &ctx.PostProcess->ISO, 50.0f, 102400.0f, "%.0f", ImGuiSliderFlags_Logarithmic);
+                ImGui::Text("EV100 = %.2f", PhotometricUnits::ComputeEV100(ctx.PostProcess->Aperture, ctx.PostProcess->ShutterSpeed, ctx.PostProcess->ISO));
+            }
+            else
+            {
+                ImGui::SliderFloat("EV100", &ctx.PostProcess->EV100, -6.0f, 16.0f, "%.2f");
+            }
             if (ImGui::SliderFloat("Gamma", &ctx.PostProcess->Gamma, 1.0f, 3.0f, "%.2f")) changed = true;
 
             ImGui::Separator();

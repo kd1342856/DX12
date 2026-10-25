@@ -92,7 +92,10 @@ cbuffer cbLight : register(b3)
 {
     // スポット光の使用数
     int g_SL_Count;
-    float3 g_dummy;
+    // ダミーIBLと空の明るさ(nitの値に露出を掛けたもの)
+    float g_IBLLuminance;
+    float g_SkyLuminance;
+    float g_dummy;
     
     //-------------------------
     // 環境光
@@ -192,3 +195,17 @@ cbuffer cbSystem : register(b4)
     row_major float4x4 g_mReflectionVP[3];
     int4 g_HasReflectionPacked; // x,y,z = スロット0/1/2が今フレーム有効か(0/1)。wは未使用
 };
+
+//----------------------------------------
+// ライトの距離減衰
+//----------------------------------------
+// 逆二乗の法則(1/d^2)。光度(cd)に掛けると、その距離での照度(lx)になる。
+// rangeは打ち切りにだけ使い、端で途切れないよう窓関数(1-(d/r)^4)^2で滑らかに0にする(Karis 2013)
+float DistanceAttenuation(float distanceToLight, float range)
+{
+    float distanceSq = distanceToLight * distanceToLight;
+    float ratio = distanceSq / max(range * range, 0.0001);
+    float window = saturate(1.0 - ratio * ratio);
+    // 光源に1cmより近づいても明るさが発散しないようにする
+    return window * window / max(distanceSq, 0.0001);
+}

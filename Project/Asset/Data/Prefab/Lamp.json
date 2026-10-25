@@ -37,8 +37,9 @@
                 {
                     "Type": "SpotLightData",
                     "Enabled": false,
-                    "Color": [1.0, 0.85, 0.6],
-                    "Intensity": 2.0,
+                    "Color": [1.0, 1.0, 1.0],
+                    "Intensity": 86.667,
+                    "Temperature": 2400.0,
                     "Range": 4.0,
                     "InnerAngle": 30.0,
                     "OuterAngle": 55.0,

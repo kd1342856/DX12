@@ -382,6 +382,10 @@ static AssetHandle<Material> ParseMaterial(const aiMaterial* pMaterial, const As
 	if (pMaterial->Get(AI_MATKEY_BASE_COLOR, color) == AI_SUCCESS) matData.baseColorFactor = { color.r, color.g, color.b, color.a };
 	else if (pMaterial->Get(AI_MATKEY_COLOR_DIFFUSE, color) == AI_SUCCESS) matData.baseColorFactor = { color.r, color.g, color.b, color.a };
 
+	// 発光は輝度(nit)で扱う。glTFの発光には単位が無いので、値1.0を一般的なディスプレイの白(100 nit)とみなす
+	constexpr float kGltfEmissiveLuminance = 100.0f;
+	matData.emissiveStrength = kGltfEmissiveLuminance;
+
 	aiColor3D emissive;
 	if (pMaterial->Get(AI_MATKEY_COLOR_EMISSIVE, emissive) == AI_SUCCESS) {
 		matData.emissiveFactorX = emissive.r;

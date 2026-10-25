@@ -40,9 +40,14 @@ struct LightingSettings
 {
     bool IsDirty = true;
     DirectX::XMFLOAT3 DirectionalLightDir = { 0.5f, -1.0f, 0.3f };
+    // 平行光(月)。色は色温度(K。0以下なら使わない)×色味を輝度1に正規化したもので、明るさは照度(lx)で持つ
     DirectX::XMFLOAT3 DirectionalLightColor = { 1.0f, 1.0f, 1.0f };
-    float DirectionalLightIntensity = 1.0f;
-    DirectX::XMFLOAT3 AmbientLight = { 0.35f, 0.35f, 0.35f };
+    float DirectionalLightTemperature = 4100.0f;
+    float DirectionalLightIntensity = 0.1f; // 照度 lx(満月の夜で0.1～0.3)
+    // 環境光の輝度 nit(cd/m2)。Step 5のGIで置き換えるまでの仮の値
+    DirectX::XMFLOAT3 AmbientLight = { 0.02f, 0.02f, 0.02f };
+    // 空(スカイスフィアのテクスチャ)の明るさ。テクスチャの値1.0が何nitになるか
+    float SkyLuminance = 0.05f;
 
     // 平行光(月明かり等)のシャドウマップで遮られている場所に残す間接光の下限。
     // 0 = 完全に光源が届かない場所は真っ黒、1 = 影の有無で環境光が変化しない(従来通り)。
@@ -67,7 +72,8 @@ struct IBLSettings
 {
     bool IsDirty = true;
     bool EnableIBL = true;
-    float IBLIntensity = 1.0f;
+    // ダミーIBL(空と地面の2色)の明るさ。2色の値1.0が何nitになるか
+    float IBLIntensity = 0.02f;
 };
 
 struct PostProcessSettings
@@ -75,8 +81,15 @@ struct PostProcessSettings
     bool IsDirty = true;
     bool EnableHDR = true;
     float Gamma = 1.00f;
-    float Exposure = 0.30f;
     float BrightnessGamma = 1.00f;
+
+    // 露出。EV100で持ち、ライトの値に前もって掛けてからシェーダーへ送る(前露出)。
+    // UseCameraSettingsがtrueなら、絞り・シャッター速度・ISO感度からEV100を求める
+    float EV100 = 6.0f;
+    bool  UseCameraSettings = false;
+    float Aperture = 2.8f;            // F値
+    float ShutterSpeed = 1.0f / 30.0f; // 秒
+    float ISO = 800.0f;
 
     // Bloom - 半径・反復回数を上げてはじめて「ふわっと広がる」見た目になる。
     // 閾値/強度だけいじっても変化が薄いのはこのため。

@@ -11,5 +11,7 @@ float4 main(VSOutput In) : SV_Target
     float d = length(In.UV);
     float falloff = saturate(1.0f - d);
     falloff *= falloff;
-    return float4(In.Color.rgb, In.Color.a * falloff);
+    // 演出の光で物理単位を持たないため、物理単位にする前の露出(0.3)を固定で掛け、画面上の明るさを保つ
+    const float kUnlitExposure = 0.3;
+    return float4(In.Color.rgb * kUnlitExposure, In.Color.a * falloff);
 }

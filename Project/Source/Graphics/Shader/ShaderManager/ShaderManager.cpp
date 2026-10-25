@@ -1,6 +1,7 @@
 #include "../../../Pch.h"
 #include "ShaderManager.h"
 #include "../ShaderCompiler/ShaderCompiler.h"
+#include "../PhotometricUnits.h"
 #include <algorithm>
 
 namespace
@@ -231,11 +232,10 @@ void ShaderManager::UpdateLightingCB()
 		}
 		m_LightData.DL_Dir = { dx, dy, dz };
 
-		m_baseDLColor = {
-			m_LightingSettings.DirectionalLightColor.x * m_LightingSettings.DirectionalLightIntensity,
-			m_LightingSettings.DirectionalLightColor.y * m_LightingSettings.DirectionalLightIntensity,
-			m_LightingSettings.DirectionalLightColor.z * m_LightingSettings.DirectionalLightIntensity
-		};
+		// 照度(lx)。露出はUpdateFogCBで毎フレーム掛ける
+		const Math::Vector3 dlTint(m_LightingSettings.DirectionalLightColor.x, m_LightingSettings.DirectionalLightColor.y, m_LightingSettings.DirectionalLightColor.z);
+		const Math::Vector3 dlColor = PhotometricUnits::MakeLightColor(dlTint, m_LightingSettings.DirectionalLightTemperature) * m_LightingSettings.DirectionalLightIntensity;
+		m_baseDLColor = { dlColor.x, dlColor.y, dlColor.z };
 
 		m_LightingSettings.IsDirty = false;
 	}
@@ -271,13 +271,13 @@ void ShaderManager::UpdatePostProcessCB()
 	if (m_PostProcessSettings.IsDirty)
 	{
 		m_SystemData.EnableHDR = m_PostProcessSettings.EnableHDR ? 1 : 0;
-		m_SystemData.Exposure = m_PostProcessSettings.Exposure;
 		m_SystemData.Gamma = m_PostProcessSettings.Gamma;
 		m_SystemData.ScreenWidth = 1280.0f;
 		m_SystemData.ScreenHeight = 720.0f;
 
 		m_PostProcessData.EnableHDR = m_PostProcessSettings.EnableHDR ? 1 : 0;
-		m_PostProcessData.Exposure = m_PostProcessSettings.Exposure;
+		// 露出はライトの値に前もって掛けてある(前露出)ので、ポストでは掛けない
+		m_PostProcessData.Exposure = 1.0f;
 		m_PostProcessData.Gamma = m_PostProcessSettings.Gamma;
 		m_PostProcessData.BrightnessGamma = m_PostProcessSettings.BrightnessGamma;
 		m_PostProcessData.BloomThreshold = m_PostProcessSettings.BloomThreshold;
@@ -325,7 +325,6 @@ void ShaderManager::UpdateFogCB()
 {
 	if (m_FogSettings.IsDirty)
 	{
-		m_LightData.DistanceFogColor = { m_FogSettings.FogColor.x, m_FogSettings.FogColor.y, m_FogSettings.FogColor.z };
 		m_FogSettings.IsDirty = false;
 	}
 
@@ -358,8 +357,25 @@ void ShaderManager::UpdateFogCB()
 	// Screen darkening: scales ambient + directional light down toward black as the hunt blend
 	// rises, layered on top of whatever LightingSettings/UpdateLightingCB last computed.
 	float darken = m_FogSettings.EnableHuntDarken ? (1.0f - m_FogSettings.HuntDarkenAmount * m_huntBlend) : 1.0f;
-	m_LightData.AmbientLight = { m_baseAmbientLight.x * darken, m_baseAmbientLight.y * darken, m_baseAmbientLight.z * darken };
-	m_LightData.DL_Color = { m_baseDLColor.x * darken, m_baseDLColor.y * darken, m_baseDLColor.z * darken };
+	// 前露出: 物理単位(lx・nit)の値に露出を掛けてから送る。EV100はいつでも変えられるので毎フレーム掛け直す
+	const float exposure = GetExposure();
+	m_SystemData.Exposure = exposure;
+	const float lightScale = darken * exposure;
+	m_LightData.AmbientLight = { m_baseAmbientLight.x * lightScale, m_baseAmbientLight.y * lightScale, m_baseAmbientLight.z * lightScale };
+	m_LightData.DL_Color = { m_baseDLColor.x * lightScale, m_baseDLColor.y * lightScale, m_baseDLColor.z * lightScale };
+	// 霧の色は、霧が散乱して返す光の輝度(nit)として扱う
+	m_LightData.DistanceFogColor = { m_FogSettings.FogColor.x * exposure, m_FogSettings.FogColor.y * exposure, m_FogSettings.FogColor.z * exposure };
+	m_LightData.IBLLuminance = m_IBLSettings.EnableIBL ? m_IBLSettings.IBLIntensity * lightScale : 0.0f;
+	m_LightData.SkyLuminance = m_LightingSettings.SkyLuminance * exposure;
+}
+
+float ShaderManager::GetExposure() const
+{
+	const PostProcessSettings& settings = m_PostProcessSettings;
+	const float ev100 = settings.UseCameraSettings
+		? PhotometricUnits::ComputeEV100(settings.Aperture, settings.ShutterSpeed, settings.ISO)
+		: settings.EV100;
+	return PhotometricUnits::ExposureFromEV100(ev100);
 }
 
 ShaderProgram* ShaderManager::LoadShader(const std::wstring& vsPath, const std::wstring& psPath)

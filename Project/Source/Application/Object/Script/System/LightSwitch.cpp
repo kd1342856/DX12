@@ -4,6 +4,7 @@
 #include "../../../../Framework/Object/GameObject.h"
 #include "../../../../Framework/Manager/Scene/Scene.h"
 #include "../../../../Framework/Manager/Audio/AudioManager.h"
+#include "../../../../Graphics/Shader/PhotometricUnits.h"
 #include <functional>
 #include <sstream>
 
@@ -132,7 +133,11 @@ void LightSwitch::UpdatePilotLamp()
 {
     if (!m_pGameObject) return;
     auto& ecs = GameManager::Instance().GetECS();
-    const Math::Vector3 glow = IsOn() ? Math::Vector3(1.0f, 0.45f, 0.15f) * 6.0f : Math::Vector3::Zero;
+    // 橙色のパイロットランプ(ネオン管程度)の輝度(nit)
+    constexpr float kPilotLuminance = 100.0f;
+    const Math::Vector3 glow = IsOn()
+        ? PhotometricUnits::MakeLightColor(Math::Vector3(1.0f, 0.45f, 0.15f), 0.0f) * kPilotLuminance
+        : Math::Vector3::Zero;
     std::function<void(GameObject*)> apply = [&](GameObject* obj) {
         if (auto* model = ecs.TryGetComponent<ModelRenderData>(obj->GetEntityID())) {
             model->m_glowColor = glow;

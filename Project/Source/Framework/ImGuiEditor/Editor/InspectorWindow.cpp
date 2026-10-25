@@ -248,8 +248,11 @@ void Editor::DrawInspector() {
                 if (ImGui::CollapsingHeader(u8"点光源", ImGuiTreeNodeFlags_DefaultOpen)) {
                     auto& l = *pLight;
                     ImGui::Checkbox(u8"有効", &l.m_enabled);
-                    ImGui::ColorEdit3(u8"色", &l.m_color.x);
-                    ImGui::DragFloat(u8"明るさ", &l.m_intensity, 0.05f, 0.0f, 50.0f);
+                    ImGui::ColorEdit3(u8"色味", &l.m_color.x);
+                    ImGui::DragFloat(u8"色温度 (K)", &l.m_temperature, 10.0f, 0.0f, 12000.0f, "%.0f");
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"0なら色温度を使わず色味だけで決める。ろうそく約1800K、白熱電球約2700K");
+                    ImGui::DragFloat(u8"光束 (lm)", &l.m_intensity, 1.0f, 0.0f, 100000.0f, "%.1f");
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"ろうそく約12 lm、60W相当の電球約800 lm");
                     ImGui::DragFloat(u8"届く距離", &l.m_range, 0.1f, 0.1f, 100.0f);
                     ImGui::Separator();
                     ImGui::Text(u8"明滅");
@@ -265,8 +268,11 @@ void Editor::DrawInspector() {
                     auto& l = *pSpot;
                     ImGui::PushID("SpotLightData");
                     ImGui::Checkbox(u8"有効", &l.m_enabled);
-                    ImGui::ColorEdit3(u8"色", &l.m_color.x);
-                    ImGui::DragFloat(u8"明るさ", &l.m_intensity, 0.05f, 0.0f, 50.0f);
+                    ImGui::ColorEdit3(u8"色味", &l.m_color.x);
+                    ImGui::DragFloat(u8"色温度 (K)", &l.m_temperature, 10.0f, 0.0f, 12000.0f, "%.0f");
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"0なら色温度を使わず色味だけで決める。白熱電球約2700K、LEDライト約5000K");
+                    ImGui::DragFloat(u8"光度 (cd)", &l.m_intensity, 1.0f, 0.0f, 100000.0f, "%.1f");
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"中心方向の明るさ。小型のLEDライト約1000 cd、60W相当の電球を下向きに約130 cd");
                     ImGui::DragFloat(u8"届く距離", &l.m_range, 0.1f, 0.1f, 100.0f);
                     ImGui::DragFloat(u8"内側の角度", &l.m_innerAngle, 0.5f, 0.0f, 89.0f);
                     ImGui::DragFloat(u8"外側の角度", &l.m_outerAngle, 0.5f, 0.1f, 89.0f);
@@ -274,8 +280,8 @@ void Editor::DrawInspector() {
                     if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"光源位置(このオブジェクトのローカル空間。Scaleも掛かる)");
                     ImGui::DragFloat3(u8"照らす向き", &l.m_localDirection.x, 0.01f, -1.0f, 1.0f);
                     if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"照らす向き(このオブジェクトのローカル空間)");
-                    ImGui::DragFloat(u8"モデルの発光", &l.m_modelGlow, 0.1f, 0.0f, 100.0f);
-                    if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"点灯中にモデル自体を光らせる強さ(Color×この値のEmissive。Bloomで光って見える)");
+                    ImGui::DragFloat(u8"モデルの発光 (nit)", &l.m_modelGlow, 10.0f, 0.0f, 1000000.0f, "%.0f");
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"点灯中にモデル自体を光らせる輝度(cd/m2)。電球のかさや蛍光灯の表面は数千nit程度");
                     char glowMatBuf[64] = {};
                     strncpy_s(glowMatBuf, l.m_glowMaterial.c_str(), _TRUNCATE);
                     if (ImGui::InputText(u8"発光させるマテリアル", glowMatBuf, sizeof(glowMatBuf))) l.m_glowMaterial = glowMatBuf;

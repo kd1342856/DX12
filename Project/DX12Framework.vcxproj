@@ -263,6 +263,7 @@
     <ClInclude Include="Source\Graphics\Shader\LitShader\LitShader.h" />
     <ClInclude Include="Source\Graphics\Shader\SkyShader\SkyShader.h" />
     <ClInclude Include="Source\Graphics\Shader\ShaderSettings.h" />
+    <ClInclude Include="Source\Graphics\Shader\PhotometricUnits.h" />
     <ClInclude Include="Source\Graphics\Shader\ShadowShader\ShadowShader.h" />
     <ClInclude Include="Source\Graphics\Shader\SkinningShader\SkinningShader.h" />
     <ClInclude Include="Source\Graphics\Shader\Pipeline\Pipeline.h" />

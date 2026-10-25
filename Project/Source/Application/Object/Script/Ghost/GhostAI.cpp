@@ -2560,7 +2560,7 @@ void GhostAI::ImGuiUpdate()
     ImGui::DragFloat(u8"退治: 境目の光", &m_exorciseEdgeGlow, 0.1f, 0.0f, 50.0f);
     ImGui::SliderFloat(u8"退治: 音量", &m_exorciseSoundVolume, 0.0f, 1.0f);
     ImGui::DragFloat(u8"退治: 発光の強さ", &m_exorciseGlowStrength, 0.1f, 0.0f, 50.0f);
-    ImGui::DragFloat(u8"退治: ライトの明るさ", &m_exorciseLightIntensity, 0.1f, 0.0f, 50.0f);
+    ImGui::DragFloat(u8"退治: ライトの光束 (lm)", &m_exorciseLightIntensity, 10.0f, 0.0f, 100000.0f, "%.0f");
     ImGui::DragFloat(u8"退治: 粒子の量", &m_exorciseParticleRate, 1.0f, 0.0f, 500.0f, "%.0f /s");
     ImGui::DragFloat(u8"退治: 粒子の広がり", &m_exorciseParticleRadius, 0.05f, 0.0f, 5.0f, "%.2f m");
     ImGui::DragInt(u8"退治: 最初に出す粒子の数", &m_exorciseParticleBurst, 1.0f, 0, 300);
@@ -2873,6 +2873,7 @@ void GhostAI::Exorcise()
         lTrans.m_position = cTrans.m_position + Math::Vector3(0, m_eyeHeight * 0.8f, 0);
         PointLightData light;
         light.m_color = m_exorciseColor;
+        light.m_temperature = 0.0f; // 色温度は使わず、浄化の光の色をそのまま使う
         light.m_intensity = 0.0f;
         light.m_range = m_exorciseLightRange;
         m_exorciseLightObj->AddComponent<PointLightData>(light);

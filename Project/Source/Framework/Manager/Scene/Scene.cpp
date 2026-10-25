@@ -165,6 +165,8 @@ void Scene::Serialize(nlohmann::json& out) const {
     lj["DirectionalLightDir"] = { lit.DirectionalLightDir.x, lit.DirectionalLightDir.y, lit.DirectionalLightDir.z };
     lj["DirectionalLightColor"] = { lit.DirectionalLightColor.x, lit.DirectionalLightColor.y, lit.DirectionalLightColor.z };
     lj["DirectionalLightIntensity"] = lit.DirectionalLightIntensity;
+    lj["DirectionalLightTemperature"] = lit.DirectionalLightTemperature;
+    lj["SkyLuminance"] = lit.SkyLuminance;
     lj["AmbientLight"] = { lit.AmbientLight.x, lit.AmbientLight.y, lit.AmbientLight.z };
     lj["IndirectShadowFloor"] = lit.IndirectShadowFloor;
     lj["EnableIndoorMask"] = lit.EnableIndoorMask;
@@ -260,6 +262,8 @@ void Scene::Deserialize(const nlohmann::json& in) {
         if (lj.contains("DirectionalLightDir")) readFloat3(lj["DirectionalLightDir"], lit.DirectionalLightDir);
         if (lj.contains("DirectionalLightColor")) readFloat3(lj["DirectionalLightColor"], lit.DirectionalLightColor);
         if (lj.contains("DirectionalLightIntensity")) lit.DirectionalLightIntensity = lj["DirectionalLightIntensity"];
+        if (lj.contains("DirectionalLightTemperature")) lit.DirectionalLightTemperature = lj["DirectionalLightTemperature"];
+        if (lj.contains("SkyLuminance")) lit.SkyLuminance = lj["SkyLuminance"];
         if (lj.contains("AmbientLight")) readFloat3(lj["AmbientLight"], lit.AmbientLight);
         if (lj.contains("IndirectShadowFloor")) lit.IndirectShadowFloor = lj["IndirectShadowFloor"];
         if (lj.contains("EnableIndoorMask")) lit.EnableIndoorMask = lj["EnableIndoorMask"];

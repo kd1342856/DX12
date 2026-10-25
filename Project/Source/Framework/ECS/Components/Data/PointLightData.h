@@ -7,9 +7,11 @@
 // =============================================
 struct PointLightData
 {
-    Math::Vector3 m_color = { 1.0f, 0.8f, 0.5f }; // ろうそく寄りの暖色をデフォルトに
-    float m_intensity = 1.0f;
-    float m_range = 5.0f;
+    // 色は色温度(K。0以下なら使わない)×色味を輝度1に正規化したもの。明るさはm_intensityだけで決まる
+    Math::Vector3 m_color = { 1.0f, 1.0f, 1.0f };
+    float m_temperature = 1800.0f; // ろうそくの色温度をデフォルトに
+    float m_intensity = 12.0f;     // 光束 lm(ろうそく1本で約12 lm)
+    float m_range = 5.0f;          // 光の届く範囲。減衰は逆二乗で、ここで滑らかに0にする
     bool  m_enabled = true;
 
     // フリッカー(明滅) - 電球の揺らぎ/ろうそくの炎等

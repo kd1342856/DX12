@@ -12,9 +12,9 @@ void IBLPanel::Draw(EditorContext& ctx)
         bool lChanged = false;
 
         iChanged |= ImGui::Checkbox("Enable IBL", &ctx.IBL->EnableIBL);
-        iChanged |= ImGui::DragFloat("IBL Intensity", &ctx.IBL->IBLIntensity, 0.01f, 0.0f, 10.0f);
+        iChanged |= ImGui::DragFloat("IBL Luminance (nit)", &ctx.IBL->IBLIntensity, 0.001f, 0.0f, 1000.0f, "%.3f");
         
-        lChanged |= ImGui::ColorEdit3("Ambient Light", &ctx.Lighting->AmbientLight.x);
+        lChanged |= ImGui::DragFloat3("Ambient Luminance (nit)", &ctx.Lighting->AmbientLight.x, 0.001f, 0.0f, 1000.0f, "%.3f");
         lChanged |= ImGui::SliderFloat("Indirect Shadow Floor", &ctx.Lighting->IndirectShadowFloor, 0.0f, 1.0f,
             "%.2f");
         if (ImGui::IsItemHovered())

@@ -28,8 +28,10 @@ void LightingPanel::Draw(EditorContext& ctx)
             }
         }
 
-        changed |= ImGui::ColorEdit3("Color", &ctx.Lighting->DirectionalLightColor.x);
-        changed |= ImGui::DragFloat("Intensity", &ctx.Lighting->DirectionalLightIntensity, 0.01f, 0.0f, 100.0f);
+        changed |= ImGui::ColorEdit3("Tint", &ctx.Lighting->DirectionalLightColor.x);
+        changed |= ImGui::DragFloat("Temperature (K)", &ctx.Lighting->DirectionalLightTemperature, 10.0f, 0.0f, 12000.0f, "%.0f");
+        changed |= ImGui::DragFloat("Illuminance (lx)", &ctx.Lighting->DirectionalLightIntensity, 0.001f, 0.0f, 120000.0f, "%.3f");
+        changed |= ImGui::DragFloat("Sky Luminance (nit)", &ctx.Lighting->SkyLuminance, 0.001f, 0.0f, 10000.0f, "%.3f");
 
         if (changed)
         {

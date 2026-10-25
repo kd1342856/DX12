@@ -162,7 +162,7 @@ private:
     float m_exorciseEdgeWidth   = 0.15f;  // 消える境界の光る帯の幅(m)
     float m_exorciseEdgeGlow    = 12.0f;  // 消える境界の光の強さ(HDR)
     float m_exorciseGlowStrength = 6.0f;  // 発光(Bloomに乗るHDRの強さ)
-    float m_exorciseLightIntensity = 8.0f;// 閃光の点光源の最大強度
+    float m_exorciseLightIntensity = 2000.0f;// 閃光の点光源の最大の光束(lm)
     float m_exorciseLightRange  = 8.0f;   // 閃光の点光源の届く距離(m)
     float m_exorciseSoundVolume = 0.9f;   // 除霊SE(札の音+りん+消えていく音)の音量
     Math::Vector3 m_exorciseColor = { 1.0f, 0.85f, 0.55f }; // 浄化の光の色(淡い金色)

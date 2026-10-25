@@ -42,6 +42,9 @@ public:
 	DebugSettings& GetDebugSettings() { return m_DebugSettings; }
 	FogSettings& GetFogSettings() { return m_FogSettings; }
 
+	// 露出(EV100から求める)。ライトの値はこれを掛けてからシェーダーへ送る(前露出)
+	float GetExposure() const;
+
 	const CBufferData::System& GetSystemData() const { return m_SystemData; }
 	const CBufferData::PostProcess& GetPostProcessData() const { return m_PostProcessData; }
 	const CBufferData::Light& GetLightData() const { return m_LightData; }

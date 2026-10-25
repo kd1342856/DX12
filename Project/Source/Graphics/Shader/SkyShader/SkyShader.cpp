@@ -31,6 +31,13 @@ void SkyShader::Begin(RenderContext& context)
     // Bind PerCamera
     int b0 = GetRootParameterIndex(ShaderBindingType::CBV, 0);
     if (b0 != -1) context.BindCamera(b0);
+
+    // 空の明るさ(g_SkyLuminance)はライトの定数バッファにある
+    int b3 = GetRootParameterIndex(ShaderBindingType::CBV, 3);
+    if (b3 != -1)
+    {
+        context.BindLight(b3);
+    }
 }
 
 void SkyShader::BeginNode(const ModelData::Node& node, const Math::Matrix& nodeWorld)

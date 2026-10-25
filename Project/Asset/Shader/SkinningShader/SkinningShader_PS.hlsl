@@ -54,7 +54,10 @@ PSOutput main(VSOutput In)
         color.rgb += g_dissolveEdgeColor * edge * edge;
     }
 
-    Out.color = color;
+    // ライティングをしない描画で物理単位を持たないため、物理単位にする前の露出(0.3)を固定で掛け、
+    // 画面上の明るさを今までと同じに保つ(シーンの露出は前もってライトに掛けてある)
+    const float kUnlitExposure = 0.3;
+    Out.color = float4(color.rgb * kUnlitExposure, color.a);
     
     return Out;
 }

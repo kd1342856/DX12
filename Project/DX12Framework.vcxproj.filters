@@ -1007,6 +1007,9 @@
     <ClInclude Include="Source\Graphics\Shader\ShaderSettings.h">
       <Filter>Source\Graphics\Shader</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Graphics\Shader\PhotometricUnits.h">
+      <Filter>Source\Graphics\Shader</Filter>
+    </ClInclude>
     <ClInclude Include="Source\Graphics\Shader\ShadowShader\ShadowShader.h">
       <Filter>Source\Graphics\Shader\ShadowShader</Filter>
     </ClInclude>

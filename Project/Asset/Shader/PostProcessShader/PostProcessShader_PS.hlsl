@@ -99,7 +99,8 @@ float4 main(PSInput In) : SV_Target0
     //------------------------------------------
     if (g_EnableHDR != 0)
     {
-        sceneColor = ACESFilmicToneMapping(sceneColor * g_Exposure);
+        // 露出はライトの値に前もって掛けてある(前露出)ので、ここでは掛けない
+        sceneColor = ACESFilmicToneMapping(sceneColor);
     }
 
     // ここまではリニア。ここから先(ビネット・グレイン・明るさ)は表示用のsRGBの値で扱う

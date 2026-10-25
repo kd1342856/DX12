@@ -10,9 +10,11 @@
 // =============================================
 struct SpotLightData
 {
-    Math::Vector3 m_color = { 1.0f, 0.95f, 0.85f };
-    float m_intensity = 3.0f;
-    float m_range = 10.0f;
+    // 色は色温度(K。0以下なら使わない)×色味を輝度1に正規化したもの。明るさはm_intensityだけで決まる
+    Math::Vector3 m_color = { 1.0f, 1.0f, 1.0f };
+    float m_temperature = 2700.0f; // 白熱電球の色温度をデフォルトに
+    float m_intensity = 100.0f;    // 中心方向の光度 cd(コーンの角度を変えても中心の明るさは変わらない)
+    float m_range = 10.0f;         // 光の届く範囲。減衰は逆二乗で、ここで滑らかに0にする
     float m_innerAngle = 20.0f; // 中心からこの角度(度)までは最大の明るさ
     float m_outerAngle = 30.0f; // この角度(度)で0まで減衰する
     bool  m_enabled = true;
@@ -20,12 +22,12 @@ struct SpotLightData
     Math::Vector3 m_localOffset = { 0.0f, 0.0f, 0.0f };    // 光源位置(ローカル空間。エンティティのスケールも掛かる)
     Math::Vector3 m_localDirection = { 0.0f, 0.0f, 1.0f }; // 照らす向き(ローカル空間)
 
-    // 同じエンティティのモデル自体の発光(Emissive)。点灯中だけ m_color * m_modelGlow で光らせ、
-    // Bloomの閾値を超えさせて「光っている」見た目にする。0なら発光しない。
-    float m_modelGlow = 8.0f;
+    // 同じエンティティのモデル自体の発光(Emissive)の輝度 nit(cd/m2)。点灯中だけライトの色で光らせる。
+    // 0なら発光しない。電球のかさや蛍光灯の表面は数千nit程度
+    float m_modelGlow = 2000.0f;
     std::string m_glowMaterial; // 空なら全メッシュ。指定時はこの名前のマテリアルのメッシュだけ光らせる
     // 光源の光を受けて明るく見える面(吊り下げ照明のかさの内側など)。このマテリアルの裏面(内側)だけを
-    // m_color * m_modelGlow * m_glowReflectScale で光らせる。空なら無し。
+    // m_modelGlow * m_glowReflectScale の輝度で光らせる。空なら無し。
     std::string m_glowReflectMaterial;
     float m_glowReflectScale = 0.3f;
 

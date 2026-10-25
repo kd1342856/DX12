@@ -388,8 +388,8 @@ PSOutput main(VSOutput In) : SV_Target0
         float d = length(L);
         L = L / d;
         
-        float attenuation = saturate(1.0 - (d / g_SL[i].Range));
-        attenuation *= attenuation;
+        // g_SL[i].Colorは光度(cd)×露出。逆二乗で照度にする
+        float attenuation = DistanceAttenuation(d, g_SL[i].Range);
         
         // Spotlight cone
         float cosAngle = dot(-L, normalize(g_SL[i].Dir));
@@ -417,8 +417,8 @@ PSOutput main(VSOutput In) : SV_Target0
         float d_PL = length(L_PL);
         L_PL = L_PL / max(d_PL, 0.0001);
 
-        float attenuation_PL = saturate(1.0 - (d_PL / max(g_PL[j].Range, 0.0001)));
-        attenuation_PL *= attenuation_PL; // Phase3でシャドウを追加する余地を残し、シンプルな二乗減衰のみ
+        // g_PL[j].Colorは光束(lm)を光度(cd)に直したもの×露出。逆二乗で照度にする
+        float attenuation_PL = DistanceAttenuation(d_PL, g_PL[j].Range);
 
         float NdotL_PL = saturate(dot(wN, L_PL));
         float3 H_PL = normalize(L_PL + vCam);
@@ -497,13 +497,16 @@ PSOutput main(VSOutput In) : SV_Target0
     float3 emissiveColor = g_emissiveMap_white.Sample(g_ss_aniso_wrap, In.UV).rgb * g_emissiveFactor;
     // 表裏で倍率を変える(両面表示のかさの内側だけを光らせる等)。頂点法線がカメラと反対を向いていれば裏面
     emissiveColor *= (dot(normalize(In.wN), vCam) >= 0.0) ? g_emissiveFrontScale : g_emissiveBackScale;
-    color += emissiveColor * g_emissiveStrength;
+    // 発光は輝度(nit)。ライトと同じく露出を掛ける
+    color += emissiveColor * g_emissiveStrength * g_Exposure;
 
-    // Dissolveの縁の発光(影の中でも見えるように、ライティング計算とは独立に加算)
+    // Dissolveの縁の発光(影の中でも見えるように、ライティング計算とは独立に加算)。
+    // 演出の光で物理単位を持たないため、物理単位にする前の露出(0.3)を固定で掛け、画面上の明るさを保つ
     if (dissolveEdgeGlow > 0)
     {
         const float3 kDissolveEdgeColor = float3(1.0, 0.45, 0.08); // 焼け焦げるようなオレンジ
-        color += kDissolveEdgeColor * dissolveEdgeGlow * 4.0;
+        const float kUnlitExposure = 0.3;
+        color += kDissolveEdgeColor * dissolveEdgeGlow * 4.0 * kUnlitExposure;
     }
     
     //------------------
@@ -514,14 +517,15 @@ PSOutput main(VSOutput In) : SV_Target0
     
     // 拡散
     float envWeight = wN.y * 0.5 + 0.5;
-    float3 envDiff = lerp(groundColor, skyColor, envWeight) * 1.5;
+    // 2色の値1.0がg_IBLLuminance(nit×露出)になる
+    float3 envDiff = lerp(groundColor, skyColor, envWeight) * 1.5 * g_IBLLuminance;
     color += envDiff * baseDiffuse.rgb / 3.141592 * moonVisibility;
 
     // 鏡面
     float3 vRef = reflect(-vCam, wN);
     // 粗い面ほど反射像がぼやけるので、反射方向のグラデーションを法線方向(拡散と同じ)へ寄せる
     float specWeight = lerp(vRef.y * 0.5 + 0.5, envWeight, roughness);
-    float3 envSpec = lerp(groundColor, skyColor, specWeight) * 2.0;
+    float3 envSpec = lerp(groundColor, skyColor, specWeight) * 2.0 * g_IBLLuminance;
 
     // 環境BRDF近似(Karis, UE4 Mobile)。粗さとフレネルで反射量を決める
     // (粗いほど正面の反射が弱まり、浅い角度ほど強まる)
@@ -659,7 +663,9 @@ PSOutput main(VSOutput In) : SV_Target0
         float3 glassColor = lerp(baseColor.rgb, float3(0.9, 0.92, 0.95), crackMask * 0.6);
         
         // 透過色: 背景にガラス色を掛けたものと、ガラス自体のDiffuse色をブレンド
-        float3 transColor = lerp(refractColor * glassColor, glassColor, glassOpacity);
+        // (以前は濁った部分にglassColorをそのまま輝度として足していたが、物理単位では照明と無関係に光って
+        // 見えてしまうため、ガラス自体を照らした結果(color)を使う)
+        float3 transColor = lerp(refractColor * glassColor, color, glassOpacity);
         
         // 平面反射色の取得(最大3枚=3窓まで同時アクティブ対応)
         // メインカメラのスクリーンUV(sampleUV)は別カメラ(反射カメラ)で描いた
@@ -706,7 +712,7 @@ PSOutput main(VSOutput In) : SV_Target0
         // 透過色と反射色をフレネルでブレンド
         color = lerp(transColor, finalReflection, fresnel);
         // 上の計算で色を丸ごと置き換えるので、発光(点灯中の懐中電灯のレンズなど)はここで足し直す
-        color += emissiveColor * g_emissiveStrength;
+        color += emissiveColor * g_emissiveStrength * g_Exposure;
         baseColor.a = 1.0;
     }
 

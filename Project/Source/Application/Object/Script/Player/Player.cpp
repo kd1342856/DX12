@@ -17,6 +17,7 @@
 #include "../../../../Framework/Manager/Asset/MeshManager.h"
 #include "../../../../Framework/Manager/Animation/OpenableAnim.h"
 #include "../../../../Framework/DirectX/Utility/Profiler.h"
+#include "../../../../Graphics/Shader/PhotometricUnits.h"
 #include <functional>
 
 REGISTER_COMPONENT(Player);
@@ -258,7 +259,11 @@ void Player::UpdateHeldItem()
     {
         bool visible = m_hasFlashLight && m_currentEquipped == Item::FlashLight;
         // 点灯中はレンズ("Glass"マテリアル)を発光させ、Bloomで光って見えるようにする
-        const Math::Vector3 glow = IsHoldingLitFlashLight() ? Math::Vector3(1.0f, 0.97f, 0.9f) * 8.0f : Math::Vector3::Zero;
+        // 発光の輝度(nit)。光っているレンズを横から見た明るさ
+        constexpr float kLensLuminance = 3000.0f;
+        const Math::Vector3 glow = IsHoldingLitFlashLight()
+            ? PhotometricUnits::MakeLightColor(Math::Vector3(1.0f, 1.0f, 1.0f), 5000.0f) * kLensLuminance
+            : Math::Vector3::Zero;
         std::function<void(GameObject*)> apply = [&](GameObject* obj) {
             setVisible(obj->GetEntityID(), visible);
             if (auto* model = ecs.TryGetComponent<ModelRenderData>(obj->GetEntityID())) {
@@ -298,8 +303,10 @@ void Player::CreateFlashLightBeam()
     beam->SetDynamic(true);
     SpotLightData light;
     light.m_enabled = false;
-    light.m_color = { 1.0f, 0.97f, 0.9f };
-    light.m_intensity = 6.0f;
+    // 小型のLEDライト程度(中心の光度1000cd、5000K)。2m先の壁で250lxになる
+    light.m_color = { 1.0f, 1.0f, 1.0f };
+    light.m_temperature = 5000.0f;
+    light.m_intensity = 1000.0f;
     light.m_range = 15.0f;
     light.m_innerAngle = 12.0f;
     light.m_outerAngle = 22.0f;
