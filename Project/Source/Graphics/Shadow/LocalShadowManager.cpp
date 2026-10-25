@@ -26,6 +26,18 @@ LocalShadowManager::LocalShadowManager()
     m_cubeSlots.resize(kCubeShadowCount);
 }
 
+void LocalShadowManager::InvalidateAll()
+{
+    for (Slot& slot : m_spotSlots)
+    {
+        slot.isValid = false;
+    }
+    for (Slot& slot : m_cubeSlots)
+    {
+        slot.isValid = false;
+    }
+}
+
 void LocalShadowManager::BeginFrame()
 {
     ++m_frame;

@@ -17,8 +17,9 @@ class LocalShadowManager
 {
 public:
     static constexpr UINT kSpotShadowCount = 4;
-    static constexpr UINT kSpotShadowResolution = 1024;
     static constexpr UINT kCubeShadowCount = 4;
+    // 起動時の解像度(画質設定の「高」と同じ)。画質設定で変わる(QualitySettings)
+    static constexpr UINT kSpotShadowResolution = 1024;
     static constexpr UINT kCubeShadowResolution = 512;
     // 影の投影の手前の面(m)。シェーダー(inc_Lighting.hlsliのkShadowNear)と合わせる
     static constexpr float kShadowNear = 0.05f;
@@ -45,6 +46,9 @@ public:
 
     // 毎フレーム、ライトのシステムが影を要求する前に呼ぶ
     void BeginFrame();
+
+    // すべての枠の中身を古いものとして扱い、次に使うときに描き直させる(影の解像度を変えたときなど)
+    void InvalidateAll();
 
     // スポットライトの影を要求する。戻り値は2D配列の枚の番号(-1なら影なし)。outViewProjに影の行列を返す
     int RequestSpotShadow(uint32_t lightKey, const Math::Vector3& position, const Math::Vector3& direction,

@@ -3,6 +3,7 @@
 #include "../../Framework/Manager/Audio/AudioManager.h"
 #include "../../Graphics/Shader/ShaderManager/ShaderManager.h"
 #include "../../Framework/System/AppPaths/AppPaths.h"
+#include "../../Graphics/Renderer/QualitySettings.h"
 #include <imgui.h>
 #include <algorithm>
 
@@ -35,6 +36,9 @@ namespace
             return "unlimited";
         }
     }
+
+    // OptionSettings.jsonでの画質の名前
+    const char* kQualityNames[] = { "low", "medium", "high", "ultra" };
 
     GraphicsDevice::FrameRateMode FromSettingName(const std::string& name)
     {
@@ -86,6 +90,17 @@ void OptionMenu::LoadSettings()
         {
             device.SetFrameRateLimit(std::clamp(j["frameRateLimit"].get<int>(), kMinFrameRateLimit, kMaxFrameRateLimit));
         }
+        if (j.contains("qualityLevel"))
+        {
+            const std::string name = j["qualityLevel"].get<std::string>();
+            for (int levelIndex = 0; levelIndex < 4; ++levelIndex)
+            {
+                if (name == kQualityNames[levelIndex])
+                {
+                    QualitySettings::Request(static_cast<QualityLevel>(levelIndex));
+                }
+            }
+        }
     }
     catch (const std::exception& e) {
         Logger::Instance().AddLog(Logger::LogLevel::Warning, "OptionMenu: Failed to load %s (%s)", AppPaths::ToUtf8(settingsPath).c_str(), e.what());
@@ -98,6 +113,7 @@ void OptionMenu::SaveSettings()
     j["brightnessGamma"] = ShaderManager::Instance().GetPostProcessSettings().BrightnessGamma;
     j["frameRateMode"] = ToSettingName(GraphicsDevice::Instance().GetFrameRateMode());
     j["frameRateLimit"] = GraphicsDevice::Instance().GetFrameRateLimit();
+    j["qualityLevel"] = kQualityNames[static_cast<int>(QualitySettings::GetLevel())];
     std::filesystem::path settingsPath = AppPaths::GetSavedFilePath(kSettingsFileName);
     std::ofstream o(settingsPath);
     if (o.is_open()) {
@@ -239,6 +255,16 @@ void OptionMenu::DrawBrightnessTab()
 void OptionMenu::DrawDisplayTab()
 {
     auto& device = GraphicsDevice::Instance();
+    ImGui::Spacing();
+
+    // 画質(影の解像度・SSAO・SSR・平面反射・描画解像度などをまとめて切り替える)
+    const char* kQualityLabels[] = { u8"低", u8"中", u8"高(標準)", u8"最高" };
+    int quality = static_cast<int>(QualitySettings::GetLevel());
+    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.5f);
+    if (ImGui::Combo(u8"画質", &quality, kQualityLabels, IM_ARRAYSIZE(kQualityLabels)))
+    {
+        QualitySettings::Request(static_cast<QualityLevel>(quality));
+    }
     ImGui::Spacing();
     ImGui::TextUnformatted(u8"フレームレートの上限");
 

@@ -516,6 +516,9 @@
     <ClCompile Include="Source\Graphics\Renderer\Renderer.cpp">
       <Filter>Source\Graphics\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Graphics\Renderer\QualitySettings.cpp">
+      <Filter>Source\Graphics\Renderer</Filter>
+    </ClCompile>
     <ClCompile Include="Source\Graphics\Renderer\ModelRenderer.cpp">
       <Filter>Source\Graphics\Renderer</Filter>
     </ClCompile>
@@ -960,6 +963,9 @@
       <Filter>Source\Graphics\Device</Filter>
     </ClInclude>
     <ClInclude Include="Source\Graphics\Renderer\Renderer.h">
+      <Filter>Source\Graphics\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Graphics\Renderer\QualitySettings.h">
       <Filter>Source\Graphics\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="Source\Graphics\Renderer\ModelRenderer.h">

@@ -12,6 +12,7 @@
 #include "../../../../Graphics/Shader/ShaderManager/ShaderManager.h"
 #include "../../../../Graphics/Shader/ShaderCompiler/ShaderCompiler.h"
 #include "../../../../Graphics/Shadow/LocalShadowManager.h"
+#include "../../../../Graphics/Renderer/QualitySettings.h"
 #include "../../../../Graphics/Descriptor/DescriptorHeapManager.h"
 #include "../../../Manager/Asset/MeshManager.h"
 #include "../../../DirectX/Utility/Logger.h"
@@ -125,7 +126,8 @@ public:
 				}
 			}
 
-			float texelSize = 100.0f / 4096.0f;
+			// テクセル単位でカメラの位置を丸めて、カメラが動いても影の縁がちらつかないようにする(解像度は画質設定で変わる)
+			float texelSize = 100.0f / static_cast<float>(desc.Width);
 			Math::Vector3 snappedCamPos = camPos;
 			snappedCamPos.x = std::floor(camPos.x / texelSize) * texelSize;
 			snappedCamPos.y = std::floor(camPos.y / texelSize) * texelSize;
@@ -301,7 +303,8 @@ public:
 		for (auto& scriptData : ecs.GetComponentArray<NativeScriptData>()) {
 			if (auto* ref = dynamic_cast<class ReflectionComponent*>(scriptData.Instance.get())) {
 				if (!ref->IsActive()) continue;
-				if (activeCount >= kMaxReflections) break;
+				// 同時に描く数は画質設定で決める(描かない窓はSSRで代用される)
+				if (activeCount >= (std::min)(kMaxReflections, QualitySettings::GetCurrent().maxPlanarReflections)) break;
 				activeP[activeCount] = ref->m_worldPlanePoint;
 				activeN[activeCount] = ref->m_worldPlaneNormal;
 				activeComps[activeCount] = ref;

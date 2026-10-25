@@ -244,6 +244,7 @@
     <ClInclude Include="Source\Framework\System.h" />
     <ClInclude Include="Source\Graphics\Device\GraphicsDevice.h" />
     <ClInclude Include="Source\Graphics\Renderer\Renderer.h" />
+    <ClInclude Include="Source\Graphics\Renderer\QualitySettings.h" />
     <ClInclude Include="Source\Graphics\Renderer\ModelRenderer.h" />
     <ClInclude Include="Source\Graphics\Renderer\RenderContext.h" />
     <ClInclude Include="Source\Graphics\Renderer\DrawContext.h" />
@@ -398,6 +399,7 @@
     <ClCompile Include="Source\Framework\Object\GameObject.cpp" />
     <ClCompile Include="Source\Graphics\Device\GraphicsDevice.cpp" />
     <ClCompile Include="Source\Graphics\Renderer\Renderer.cpp" />
+    <ClCompile Include="Source\Graphics\Renderer\QualitySettings.cpp" />
     <ClCompile Include="Source\Graphics\Renderer\ModelRenderer.cpp" />
     <ClCompile Include="Source\Graphics\Renderer\RenderContext.cpp" />
     <ClCompile Include="Source\Graphics\Geometry\Mesh\Mesh.cpp" />

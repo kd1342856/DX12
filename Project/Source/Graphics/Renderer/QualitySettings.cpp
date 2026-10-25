@@ -1,0 +1,66 @@
+#include "../../Pch.h"
+#include "QualitySettings.h"
+#include "Renderer.h"
+#include "../GPUResource/RenderTarget/RenderTarget.h"
+#include "../Shader/ShaderManager/ShaderManager.h"
+#include "../Shadow/LocalShadowManager.h"
+
+const QualityPreset& QualitySettings::GetPreset(QualityLevel level)
+{
+    // 「高」は物理単位・影・プリパスを入れた時点の既定値と同じ
+    static const QualityPreset kPresets[] = {
+        // renderScale, 平行光の影, スポットの影, キューブの影, SSAO, SSR, 平面反射の数, 平面反射の解像度, ブルームの回数
+        { 0.75f, 1024, 512, 256, false, false, 0, 512, 2 },   // 低
+        { 1.0f, 2048, 1024, 512, true, false, 1, 512, 3 },    // 中
+        { 1.0f, 2048, 1024, 512, true, true, 3, 1024, 3 },    // 高
+        { 1.0f, 4096, 2048, 1024, true, true, 3, 1024, 4 },   // 最高
+    };
+    return kPresets[static_cast<int>(level)];
+}
+
+void QualitySettings::Request(QualityLevel level)
+{
+    s_requestedLevel = level;
+    s_isRequested = true;
+}
+
+int QualitySettings::ToRenderSize(UINT windowSize)
+{
+    return (std::max)(1, static_cast<int>(static_cast<float>(windowSize) * GetCurrent().renderScale + 0.5f));
+}
+
+bool QualitySettings::ApplyPending()
+{
+    if (!s_isRequested)
+    {
+        return false;
+    }
+    s_isRequested = false;
+    s_level = s_requestedLevel;
+    const QualityPreset& preset = GetCurrent();
+
+    // GPUが古いテクスチャを使い終わるまで待ってから作り直す
+    auto& device = GraphicsDevice::Instance();
+    device.GetQueueManager()->GetGraphicsQueue()->Flush();
+
+    const float directionalResolution = static_cast<float>(preset.directionalShadowResolution);
+    device.GetShadowMap()->Resize(Math::Vector2(directionalResolution, directionalResolution));
+    device.GetSpotShadowMaps()->Resize(preset.spotShadowResolution);
+    device.GetCubeShadowMaps()->Resize(preset.cubeShadowResolution);
+    LocalShadowManager::Instance().InvalidateAll();
+
+    for (int slot = 0; slot < 3; ++slot)
+    {
+        Renderer::GetPlanarReflectionRenderTarget(slot)->Resize(static_cast<int>(preset.planarReflectionResolution), static_cast<int>(preset.planarReflectionResolution));
+    }
+
+    auto& ssao = ShaderManager::Instance().GetSSAOSettings();
+    ssao.EnableSSAO = preset.enableSSAO;
+    auto& renderer = ShaderManager::Instance().GetRendererSettings();
+    renderer.EnableSSR = preset.enableSSR;
+    renderer.IsDirty = true;
+    auto& postProcess = ShaderManager::Instance().GetPostProcessSettings();
+    postProcess.BloomIterations = preset.bloomIterations;
+    postProcess.IsDirty = true;
+    return true;
+}

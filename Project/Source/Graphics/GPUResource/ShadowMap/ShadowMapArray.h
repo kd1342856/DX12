@@ -16,6 +16,8 @@ class ShadowMapArray : public GPUResource
 public:
     // layerCount: 2Dなら枚数、キューブなら個数(面の数はその6倍)
     bool Create(GraphicsDevice* pGraphicsDevice, UINT resolution, UINT layerCount, bool isCube);
+    // 解像度だけを変えて作り直す(中身は消える)。ディスクリプタの番号は変わらない。GPUの処理が終わってから呼ぶこと
+    bool Resize(UINT resolution);
 
     UINT GetResolution() const { return m_resolution; }
     UINT GetLayerCount() const { return m_layerCount; }
@@ -27,6 +29,10 @@ public:
     void ClearFace(UINT faceIndex);
 
 private:
+    UINT GetFaceCount() const { return m_layerCount * (m_isCube ? 6 : 1); }
+    bool CreateResource(UINT resolution);
+    void WriteDescriptors();
+
     UINT m_resolution = 0;
     UINT m_layerCount = 0;
     bool m_isCube = false;

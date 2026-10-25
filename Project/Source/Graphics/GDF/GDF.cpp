@@ -2,6 +2,7 @@
 #include "../GPUUploadQueue/GPUUploadQueue.h"
 #include "../../Framework/DirectX/Utility/Profiler.h"
 #include "../Renderer/Renderer.h"
+#include "../Renderer/QualitySettings.h"
 
 // デバイス初期化
 bool GDF::Init(HWND hwnd, int width, int height)
@@ -14,13 +15,16 @@ void GDF::BeginFrame()
 {
 	Profiler::Instance().BeginCPUFrame();
 
-	// ウィンドウの大きさが変わっていれば、このフレームのコマンドを記録する前にスワップチェーンと
-	// 画面の大きさのRTを作り直す(ApplyPendingResizeの中でGPUの処理を待つ)
+	// ウィンドウの大きさや画質設定が変わっていれば、このフレームのコマンドを記録する前に
+	// スワップチェーンと画面の大きさのRTを作り直す(それぞれの中でGPUの処理を待つ)
 	{
 		auto& device = GraphicsDevice::Instance();
-		if (device.ApplyPendingResize())
+		const bool isResized = device.ApplyPendingResize();
+		const bool isQualityChanged = QualitySettings::ApplyPending();
+		if (isResized || isQualityChanged)
 		{
-			Renderer::ResizeRenderTargets(static_cast<int>(device.GetBackBufferWidth()), static_cast<int>(device.GetBackBufferHeight()));
+			// 描画解像度 = ウィンドウ解像度 × レンダースケール
+			Renderer::ResizeRenderTargets(QualitySettings::ToRenderSize(device.GetBackBufferWidth()), QualitySettings::ToRenderSize(device.GetBackBufferHeight()));
 		}
 	}
 
