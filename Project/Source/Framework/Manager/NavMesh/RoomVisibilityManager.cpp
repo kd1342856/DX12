@@ -9,6 +9,7 @@
 #include "../../ECS/Components/Data/ModelRenderData.h"
 #include "../../ECS/Components/Data/TransformData.h"
 #include "../GameManager.h"
+#include "../Animation/OpenableAnim.h"
 
 RoomVisibilityManager& RoomVisibilityManager::Instance()
 {
@@ -82,8 +83,8 @@ void RoomVisibilityManager::RebuildRoomGraphIfNeeded()
 
 void RoomVisibilityManager::DiscoverDoorLinks()
 {
-    // Player::TryInteractDoor が使っているのと同じ検出方法: Modelを持ち、名前に
-    // "Door"/"door" を含むアニメーションを持つエンティティを探す。ドアがどの2部屋の
+    // Modelを持ち、部屋の出入口(ドア・襖。OpenableAnim::IsPassage)のアニメーションを
+    // 持つエンティティを探す(家具の扉は部屋同士をつながないので対象外)。ドアがどの2部屋の
     // 間にあるかを判定するにはワールド座標（最初のチャンネルのノードから取得）だけ
     // あればよい - 実際の開閉判定は後で毎フレーム IsDoorOpen() 側で行う。
     auto& ecs = GameManager::Instance().GetECS();
@@ -101,7 +102,7 @@ void RoomVisibilityManager::DiscoverDoorLinks()
         for (int animIdx = 0; animIdx < static_cast<int>(anims.size()); ++animIdx)
         {
             const std::string& animName = anims[animIdx].name;
-            if (animName.find("Door") == std::string::npos && animName.find("door") == std::string::npos)
+            if (!OpenableAnim::IsPassage(animName))
                 continue;
             if (anims[animIdx].channels.empty()) continue;
 
@@ -139,7 +140,7 @@ void RoomVisibilityManager::DiscoverDoorLinks()
                 DoorLink link;
                 link.entity = entity;
                 link.animIndex = animIdx;
-                m_edgeDoors[EdgeKey(roomsFound[0], roomsFound[1])] = link;
+                m_edgeDoors[EdgeKey(roomsFound[0], roomsFound[1])].push_back(link);
             }
         }
     }
@@ -160,9 +161,9 @@ bool RoomVisibilityManager::IsDoorOpen(const DoorLink& link) const
     const auto& anims = pModel->m_spModelData->GetAnimations();
     if (link.animIndex < 0 || link.animIndex >= static_cast<int>(anims.size())) return true;
 
-    // AnimationSystem自身の「全開」の定義（duration * 0.5、AnimationSystem.h参照）に
+    // AnimationSystem自身の「全開」の定義（OpenableAnim::FullOpenTime、AnimationSystem.h参照）に
     // 合わせている - 半分以上開いていればドアは通行可能とみなす。
-    float targetTime = anims[link.animIndex].duration * 0.5f;
+    float targetTime = OpenableAnim::FullOpenTime(anims[link.animIndex].name, anims[link.animIndex].duration);
     if (targetTime <= 0.0f) return true;
 
     constexpr float kOpenFraction = 0.5f;
@@ -197,7 +198,12 @@ void RoomVisibilityManager::UpdateVisibleRooms(const Math::Vector3& viewerPos)
     for (int adj : m_adjacency[currentRoom])
     {
         auto it = m_edgeDoors.find(EdgeKey(currentRoom, adj));
-        bool passable = (it == m_edgeDoors.end()) || IsDoorOpen(it->second);
+        bool passable = (it == m_edgeDoors.end());
+        if (!passable) {
+            for (const DoorLink& link : it->second) {
+                if (IsDoorOpen(link)) { passable = true; break; }
+            }
+        }
         if (passable) m_visibleRoomIndices.insert(adj);
     }
 }

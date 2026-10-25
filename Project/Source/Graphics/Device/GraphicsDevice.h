@@ -47,6 +47,9 @@ public:
 
 	// ImGui描画(EndFrame前に呼ぶ)
 	void RenderImGui();
+	// ImGui_ImplWin32_NewFrame()の直後に呼ぶ。全画面でクライアント領域とバックバッファの
+	// 大きさが異なる時、マウス座標(クライアント座標)のまま正しくバックバッファへ描けるようにする。
+	void ApplyImGuiFramebufferScale();
 
 	// Getter
 	ID3D12Device8* GetDevice()const						{ return m_pDevice.Get(); }

@@ -1,5 +1,6 @@
 ﻿#include "../../../Pch.h"
 #include "GameScene.h"
+#include "PropLayout.h"
 #include "../../../Framework/Manager/GameManager.h"
 #include "../../../Framework/ECS/CompSystem/SpriteRenderSystem/SpriteRenderSystem.h"
 #include "../../../Framework/ECS/CompSystem/Systems/TransformSystem.h"
@@ -9,6 +10,7 @@
 #include "../../../Framework/Manager/Collision/CollisionManager.h"
 #include "../../../Framework/Manager/NavMesh/NavMeshManager.h"
 #include "../../Object/Script/System/GameSequence.h"
+#include "../../Object/Script/Ghost/GhostAI.h"
 #include "../../Object/Script/System/RoomArea.h"
 #include "../../../Framework/System/JobSystem/JobSystem.h"
 #include "../../../Framework/ImGuiEditor/Editor/Editor.h"
@@ -24,6 +26,8 @@
 #include "../../../Framework/DirectX/Utility/Profiler.h"
 #include "../../../Framework/ECS/CompSystem/Systems/LightSystem.h"
 #include "../../../Framework/Manager/Particle/ParticleManager.h"
+#include "../../../Framework/Manager/Audio/AudioManager.h"
+#include "../../UI/OptionMenu.h"
 #include <algorithm>
 
 void GameScene::Init()
@@ -76,8 +80,34 @@ void GameScene::Init()
         }
     }
 
+    // 家の小物(layout.json)をランタイム生成する。シーンJSONには含めない(layout.jsonが配置の正)
+    const auto props = PropLayout::Spawn(*Editor::GetScene());
+
     Editor::GetScene()->Init(); // シーンをロードした後、全スクリプトのAwake/Startを呼ぶ
     JobSystem::Instance().Wait();
+
+    // モデルの読み込み(JobSystem)が終わってからでないとアニメーション一覧が無いので、ここで反映する
+    PropLayout::ApplyInitialOpen(props);
+
+    // 小物をヒエラルキー上で置いてある部屋(RoomArea)ごとのフォルダに分ける。どの部屋にも無い物はOutside
+    {
+        auto& ecs = GameManager::Instance().GetECS();
+        std::vector<std::pair<std::string, RoomArea*>> rooms;
+        for (auto& obj : Editor::GetScene()->GetGameObjects()) {
+            if (auto* pScriptData = ecs.TryGetComponent<NativeScriptData>(obj->GetEntityID())) {
+                if (auto* room = dynamic_cast<RoomArea*>(pScriptData->Instance.get())) rooms.emplace_back(obj->GetName(), room);
+            }
+        }
+        for (const auto& prop : props) {
+            if (!prop.obj) continue;
+            const Math::Vector3 pos = prop.obj->GetComponent<TransformData>().m_position;
+            std::string roomName = "Outside";
+            for (const auto& [name, room] : rooms) {
+                if (room->IsInside(pos)) { roomName = name; break; }
+            }
+            Editor::SetObjectFolder(prop.obj.get(), "World/Props/" + roomName);
+        }
+    }
 
     // m_fullscreenGameがtrueでゲームを開始した場合、HandleModeSwitch()のF5トリガを通らないため
     // マウスモードがAbsoluteのままになる。PlayerはFPS視点で操作を開始するため、
@@ -102,6 +132,14 @@ void GameScene::HandleModeSwitch()
 
 void GameScene::Update(float deltaTime)
 {
+    // オプション画面を開いている間はゲームを止め、描画だけ続ける(背景のゲーム画面で明るさを確認できるように)
+    if (UpdateOptionMenu())
+    {
+        TryBuildNavMesh();
+        Render();
+        return;
+    }
+
     HandleModeSwitch();
 
     if (!Editor::GetEditorMode() || m_fullscreenGame)
@@ -119,6 +157,48 @@ void GameScene::Update(float deltaTime)
     TryBuildNavMesh();
 
     Render();
+}
+
+void GameScene::Unload()
+{
+    // オプション画面を開いたままシーンが切り替わった時(フェード中に開いた等)に、音が止まったままにならないようにする
+    if (OptionMenu::IsOpen())
+    {
+        OptionMenu::Close();
+        AudioManager::Instance().SetPaused(false);
+    }
+}
+
+bool GameScene::UpdateOptionMenu()
+{
+    const bool wasOpen = OptionMenu::IsOpen();
+
+    // ESCはプレイヤー視点(ゲーム画面)の時だけ受け付ける。F5のデバッグ用フリーカメラ中はエディタ操作を優先する
+    if (m_fullscreenGame && Input::Instance().IsKeyTrigger(DirectX::Keyboard::Keys::Escape))
+    {
+        if (wasOpen) OptionMenu::Close();
+        else         OptionMenu::Open();
+    }
+
+    OptionMenu::Draw(); // 「閉じる」ボタンでもここで閉じる
+
+    const bool isOpen = OptionMenu::IsOpen();
+    if (isOpen != wasOpen) SetPaused(isOpen);
+    return isOpen;
+}
+
+void GameScene::SetPaused(bool paused)
+{
+    // ループ再生中の足音やゴーストの音も含めて全て止める
+    AudioManager::Instance().SetPaused(paused);
+
+    if (paused) {
+        Input::Instance().SetMouseModeAbsolute(); // カーソルを出してスライダーを操作できるようにする
+        m_isCameraDragging = false;
+    }
+    else if (m_fullscreenGame) {
+        Input::Instance().SetMouseModeRelative();
+    }
 }
 
 void GameScene::UpdateInput()
@@ -259,7 +339,27 @@ void GameScene::UpdateCamera()
                 auto& cData = *pCData;
                 auto& camData = *pCamData;
 
-                if (m_isCameraDragging || m_fullscreenGame) {
+                GameSequence* gs = GameSequence::GetInstance();
+                GhostAI* catcher = gs ? gs->GetCatcher() : nullptr;
+                if (catcher) {
+                    // 捕まった: マウス操作を無視して、視点を捕まえたゴーストの顔へ向けて固定する
+                    // カメラがPlayerの子の場合m_positionはローカル座標なので、ワールド行列(前フレーム)から目の位置を取る
+                    Math::Vector3 toFace = catcher->GetFacePosition() - cData.m_worldMatrix.Translation();
+                    float horiz = sqrtf(toFace.x * toFace.x + toFace.z * toFace.z);
+                    if (horiz > 0.001f || fabsf(toFace.y) > 0.001f) {
+                        float targetYaw = atan2f(toFace.x, toFace.z);
+                        float targetPitch = -atan2f(toFace.y, horiz); // pitchは正で下を向く
+                        float yawDiff = targetYaw - pData.m_rotation.y;
+                        while (yawDiff < -DirectX::XM_PI) yawDiff += DirectX::XM_2PI;
+                        while (yawDiff >  DirectX::XM_PI) yawDiff -= DirectX::XM_2PI;
+                        // 振り向かされる速さ(大きいほど速い)
+                        const float kCaughtTurnSpeed = 8.0f;
+                        float t = (std::min)(1.0f, kCaughtTurnSpeed * GameTimer::Instance().DeltaTime());
+                        pData.m_rotation.y += yawDiff * t;
+                        cData.m_rotation.x += (targetPitch - cData.m_rotation.x) * t;
+                    }
+                }
+                else if (m_isCameraDragging || m_fullscreenGame) {
                     float rotSpeed = 0.002f;
                     pData.m_rotation.y += Input::Instance().GetMouseDeltaX() * rotSpeed;
                     cData.m_rotation.x += Input::Instance().GetMouseDeltaY() * rotSpeed;
@@ -274,15 +374,18 @@ void GameScene::UpdateCamera()
                 Math::Vector3 right = Math::Vector3::TransformNormal(Math::Vector3(1, 0, 0), playerRot);
 
                 bool isChild = (pGameCamObj->GetParent() != nullptr);
-                Math::Vector3 pivotOffset(0, 1.0f, 0); // プレイヤーの身体の中心
+                // プレイヤーの身体の中心。家を実寸にした時にプレイヤーも1.3倍から等倍(身長1.6m)にしたので、1.0m/1.3
+                Math::Vector3 pivotOffset(0, 0.77f, 0);
 
                 // しゃがみ量に応じてカメラを下げる
                 // (PlayerはNativeScriptでありECSに独立したComponent型として登録されていないため、
                 //  TryGetComponent<Player>()は使えない。NativeScriptData経由でdynamic_castする)
                 if (auto* pScriptData = ecs.TryGetComponent<NativeScriptData>(pPlayerObj->GetEntityID())) {
                     if (auto* pPlayerScript = dynamic_cast<Player*>(pScriptData->Instance.get())) {
-                        const float kCrouchCameraLower = 0.5f; // 完全にしゃがんだ時にカメラを下げる量
-                        pivotOffset.y -= pPlayerScript->GetCrouchAmount() * kCrouchCameraLower;
+                        // 完全にしゃがんだ時に目線がPlayerの「しゃがみ目線の高さ」になるだけ下げる
+                        const float standEye = camData.m_fpsOffset.y + pivotOffset.y;
+                        const float crouchLower = (std::max)(0.0f, standEye - pPlayerScript->GetCrouchEyeHeight());
+                        pivotOffset.y -= pPlayerScript->GetCrouchAmount() * crouchLower;
                     }
                 }
 

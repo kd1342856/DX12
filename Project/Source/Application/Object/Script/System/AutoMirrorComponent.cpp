@@ -191,21 +191,21 @@ void AutoMirrorComponent::GenerateMirrors()
 
 void AutoMirrorComponent::ImGuiUpdate()
 {
-    ImGui::Text("Auto Mirror Manager");
-    ImGui::Text("Generates ReflectionComponent on button click");
+    ImGui::Text(u8"鏡の自動生成");
+    ImGui::Text(u8"ボタンを押すと ReflectionComponent を作る");
     
-    if (ImGui::Button("Generate Mirrors Now!")) {
+    if (ImGui::Button(u8"今すぐ鏡を作る")) {
         GenerateMirrors();
     }
     ImGui::Separator();
     
     char buffer[256];
     strncpy_s(buffer, m_targetKeywords.c_str(), sizeof(buffer));
-    if (ImGui::InputText("Target Keywords", buffer, sizeof(buffer))) {
+    if (ImGui::InputText(u8"対象の名前に含む文字", buffer, sizeof(buffer))) {
         m_targetKeywords = buffer;
     }
-    ImGui::DragFloat3("Local Normal", &m_localNormal.x, 0.01f, -1.0f, 1.0f);
-    if (ImGui::Button("Normalize")) {
+    ImGui::DragFloat3(u8"面の向き (ローカル)", &m_localNormal.x, 0.01f, -1.0f, 1.0f);
+    if (ImGui::Button(u8"正規化")) {
         m_localNormal.Normalize();
     }
 }

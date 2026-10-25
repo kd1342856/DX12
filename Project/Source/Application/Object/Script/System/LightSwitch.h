@@ -15,6 +15,8 @@ public:
     void ImGuiUpdate() override;
 
     void Toggle();
+    // 接続している照明を全部点ける/消す(スイッチ音・パイロットランプ・レバーも合わせる)
+    void SetOn(bool on);
     bool IsOn() const;
     // スイッチ音(kabe_switch)をスイッチの位置から鳴らす
     void PlaySwitchSound() const;

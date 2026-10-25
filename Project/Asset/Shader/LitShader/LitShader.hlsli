@@ -46,6 +46,12 @@ cbuffer cbPerMaterial : register(b2)
     int g_proceduralType; // 0:None, 1:Blood, 2:Cobweb, 3:Glass, 4:Dissolve
     float g_dissolveAmount; // Dissolve用: 0=通常表示, 1=完全に消滅
     int g_reflectionSlot; // このメッシュが使う反射スロット(0〜2)。-1ならSSRフォールバック
+    // 以下はC++のMaterialConstantsと並びを合わせるためのもの(ディゾルブはSkinningShaderだけが使う)
+    float3 g_dissolveEdgeColor_unused;
+    float g_dissolveHeight_unused;
+    float g_dissolveEdgeWidth_unused;
+    float g_emissiveFrontScale; // 発光の倍率: 表面(頂点法線がカメラ側を向く面)
+    float g_emissiveBackScale;  // 発光の倍率: 裏面(かさの内側など)
 };
 
 // テクスチャ

@@ -16,13 +16,21 @@ public:
     void PlaySE(const std::string& filepath, float vol = 1.0f, float pitch = 0.0f, float pan = 0.0f);
 
     // ワールド座標で鳴らすSE。リスナー(SetListener)からの距離で減衰し、左右にパンする。maxDist以上離れていれば鳴らさない
-    void PlaySEAt(const std::string& filepath, const Math::Vector3& pos, float vol = 1.0f, float maxDist = 15.0f);
+    void PlaySEAt(const std::string& filepath, const Math::Vector3& pos, float vol = 1.0f, float maxDist = 15.0f, float pitch = 0.0f);
+
+    // posで鳴っている音の距離減衰(0~1)とパン(-1~1)を求める。ループ再生中のインスタンスを毎フレーム追従させる用。
+    // maxDist以上離れていればoutAtten=0
+    void ComputeSpatial(const Math::Vector3& pos, float maxDist, float& outAtten, float& outPan) const;
 
     // 聞き手(プレイヤー)の位置と向き。PlaySEAtの減衰・パンに使う
     void SetListener(const Math::Vector3& pos, const Math::Vector3& forward) { m_listenerPos = pos; m_listenerForward = forward; }
+    const Math::Vector3& GetListenerPos() const { return m_listenerPos; }
 
     // ループ再生や途中停止が必要なSE用のインスタンスを作る(足音など)。呼び出し側が所有し、Shutdownより前に破棄すること
     std::unique_ptr<DirectX::SoundEffectInstance> CreateSEInstance(const std::string& filepath);
+
+    // サウンドの長さ(秒)。読み込めなければ0
+    float GetSoundDuration(const std::string& filepath);
 
     // BGMの再生。vol=音量(0.0~1.0)
     void PlayBGM(const std::string& filepath, float vol = 1.0f);
@@ -43,6 +51,9 @@ public:
     void SetBGMBusVolume(float vol);
     void SetSEVolume(float vol) { m_seBusVolume = vol; }
     void SetMuted(bool muted);
+
+    // ポーズ中(ゲーム内のオプション画面)に全ての音(スクリプトが持つループSEも含む)を一時停止する
+    void SetPaused(bool paused);
 
     // --- 曲ごとの音量(Sound Managerで調整・保存)。BGMの最終音量 = PlayBGMのvol × 曲の音量 × BGMバス ---
     // 曲を使う側(TitleScene等)が表示名と初期音量を登録する。保存済みの値があればそちらを優先する

@@ -22,7 +22,7 @@ std::shared_ptr<GameObject> Editor::s_selectedObject = nullptr;
 std::string Editor::s_selectedAssetPath = "";
 std::string Editor::s_currentAssetDir = "Asset";
 bool Editor::s_editorMode = true;
-bool Editor::s_showEditor = true;
+bool Editor::s_showEditor = false; // 起動時はImGuiのデバッグ表示を出さない(F1で表示)
 bool Editor::s_showProfilerOverlay = false;
 
 std::shared_ptr<Scene> Editor::s_scene = nullptr;

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Asset">
@@ -96,6 +96,9 @@
     </Filter>
     <Filter Include="Source\Application\Scene\TitleScene">
       <UniqueIdentifier>{9B8933D7-D682-4075-B60B-6483C7342EFD}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Application\UI">
+      <UniqueIdentifier>{ef673517-f918-4dbb-b607-c752c3445f75}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Framework">
       <UniqueIdentifier>{47202139-D20F-4C59-894F-1A2D521D00C1}</UniqueIdentifier>
@@ -354,11 +357,17 @@
     <ClCompile Include="Source\Application\Scene\GameScene\GameScene.cpp">
       <Filter>Source\Application\Scene\GameScene</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Application\Scene\GameScene\PropLayout.cpp">
+      <Filter>Source\Application\Scene\GameScene</Filter>
+    </ClCompile>
     <ClCompile Include="Source\Application\Scene\ResultScene\ResultScene.cpp">
       <Filter>Source\Application\Scene\ResultScene</Filter>
     </ClCompile>
     <ClCompile Include="Source\Application\Scene\TitleScene\TitleScene.cpp">
       <Filter>Source\Application\Scene\TitleScene</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Application\UI\OptionMenu.cpp">
+      <Filter>Source\Application\UI</Filter>
     </ClCompile>
     <ClCompile Include="Source\Framework\DirectX\Utility\ClassAssembly.cpp">
       <Filter>Source\Framework\DirectX\Utility</Filter>
@@ -707,6 +716,9 @@
     <ClInclude Include="Source\Application\Object\Script\System\DoorLock.h">
       <Filter>Source\Application\Object\Script\System</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Application\Object\Script\System\HidingSpot.h">
+      <Filter>Source\Application\Object\Script\System</Filter>
+    </ClInclude>
     <ClInclude Include="Source\Application\Object\Script\System\LightSwitch.h">
       <Filter>Source\Application\Object\Script\System</Filter>
     </ClInclude>
@@ -716,11 +728,17 @@
     <ClInclude Include="Source\Application\Scene\GameScene\GameScene.h">
       <Filter>Source\Application\Scene\GameScene</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Application\Scene\GameScene\PropLayout.h">
+      <Filter>Source\Application\Scene\GameScene</Filter>
+    </ClInclude>
     <ClInclude Include="Source\Application\Scene\ResultScene\ResultScene.h">
       <Filter>Source\Application\Scene\ResultScene</Filter>
     </ClInclude>
     <ClInclude Include="Source\Application\Scene\TitleScene\TitleScene.h">
       <Filter>Source\Application\Scene\TitleScene</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Application\UI\OptionMenu.h">
+      <Filter>Source\Application\UI</Filter>
     </ClInclude>
     <ClInclude Include="Source\Application\Scene\SceneBase.h">
       <Filter>Source\Application\Scene</Filter>
@@ -861,6 +879,9 @@
       <Filter>Source\Framework\ImGuiEditor\ShaderEditor</Filter>
     </ClInclude>
     <ClInclude Include="Source\Framework\Manager\Animation\AnimationManager.h">
+      <Filter>Source\Framework\Manager\Animation</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\Manager\Animation\OpenableAnim.h">
       <Filter>Source\Framework\Manager\Animation</Filter>
     </ClInclude>
     <ClInclude Include="Source\Framework\Manager\Audio\AudioManager.h">

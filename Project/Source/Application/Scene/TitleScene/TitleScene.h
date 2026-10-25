@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "../SceneBase.h"
 #include "../../../Framework/ECS/Entity/Entity.h"
@@ -20,5 +20,7 @@ private:
     Entity m_titleEntity = INVALID_ENTITY;
     Entity m_startEntity = INVALID_ENTITY;
     Entity m_exitEntity = INVALID_ENTITY;
+    // 0: スタート, 1: 終了, 2: オプション(右下の歯車)
     int m_cursorIndex = 0;
+    float m_gearAngle = 0.0f;
 };

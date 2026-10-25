@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include <unordered_set>
 #include "../Item/ItemTypes.h"
 #include "../../../../Framework/Manager/Audio/AudioManager.h"
 #include "../System/RoomArea.h"
@@ -39,10 +40,14 @@ public:
     // カメラの高さもこれに合わせるとアニメーションとズレない。
     float GetCrouchAmount() const { return m_crouchBlend; }
     bool IsCrouching() const { return m_isCrouching; }
+    // 完全にしゃがんだ時の目線の高さ(足元から, m)。GameSceneがカメラを下げる量の計算に使う
+    float GetCrouchEyeHeight() const { return m_crouchEyeHeight; }
+    // 目の位置(ゲームカメラのワールド座標)。押入れで見つかった時にゴーストが顔を近づける先に使う
+    Math::Vector3 GetEyePosition();
 
 private:
     // Fキーでドアを開閉する処理
-    void TryInteractDoor(const Math::Vector3& playerPos);
+    void TryInteractDoor();
 
     // --- Sound ---
     // 足音は歩いている間ループ再生し、止まったら停止する。床の種類(FloorType)ごとに音を切り替える:
@@ -60,6 +65,14 @@ private:
     std::unique_ptr<DirectX::SoundEffectInstance> m_smudgeSound;
     float m_smudgeSoundTimer = 0.0f;
     float m_smudgeSoundDuration = 6.0f;
+    // 香(スマッジスティック)は使い捨て: 一度燃やしたら燃え尽きて、以後は右クリックしても使えない。
+    // 香は1本だけなので、落として拾い直しても燃え尽きたまま(Playerが持つ)。
+    bool m_incenseBurnedOut = false;
+
+    // 発表用デバッグモード(0キーで切り替え): ゴーストを影女にし、香を何度でも使えるようにして、無敵にする
+    bool m_presentationMode = false;
+    int  m_ghostTypeBeforePresentation = -1; // OFFにした時に戻す種類(GhostType)
+    void TogglePresentationMode(class GhostAI* ghost);
     void SetFlashLightOnWithSound(bool on);
     void UpdateSounds(bool isMoving, float deltaTime);
     float m_moveSpeedKmh = 10.8f; // 移動速度(km/h)。移動計算では/3.6してm/sにする
@@ -70,11 +83,23 @@ private:
 
     Item m_currentEquipped = Item::Incense;
 
-    // --- Item possession state ---
-    // Whether each item has been picked up yet. Cannot equip an item that isn't owned (guarded in Update()).
+    // --- Item possession state (runtime) ---
+    // Whether each item is currently held. Cannot equip an item that isn't owned (guarded in Update()).
+    // Not saved: it starts from the start inventory below every time the scene starts.
     bool m_hasIncense = false;
     bool m_hasAmulet = false;
     bool m_hasFlashLight = false;
+
+    // --- 初期所持品(シーンに保存する設定) ---
+    // プレイ中の所持状態(m_has*/m_itemOrder)とは分けて持ち、Start()でプレイ中の状態へコピーする。
+    // シーンに保存するのはこちらだけなので、プレイ中に拾ったり落としたりした後に保存しても初期所持品は変わらない。
+    // (以前は所持状態をそのまま保存していたため、香を落とした状態で保存すると香が消えていた)
+    bool m_startWithIncense = false;
+    bool m_startWithAmulet = false;
+    bool m_startWithFlashLight = false;
+    std::vector<Item> m_startItemOrder; // 開始時のスロットの並び
+    void ApplyStartInventory();
+    bool StartsWith(Item item) const;
 
     // --- FlashLight ---
     // Toggled with T at any time while owned, or right-click while it's the equipped item. The beam
@@ -87,6 +112,9 @@ private:
     Entity m_cameraEntity = INVALID_ENTITY;
     void CreateFlashLightBeam();
     void UpdateFlashLightBeam(const Math::Vector3& playerPos, float playerYaw);
+    // 手に持ったフラッシュライトのレンズのワールド位置(heldPos/heldRotRadは今フレームの持ち手の位置・向き)
+    bool ComputeFlashLightLensWorld(const Math::Vector3& heldPos, const Math::Vector3& heldRotRad, Math::Vector3& outLens) const;
+    float m_flashLightLensOffset = 0.02f; // 光を出す位置: レンズからこの距離だけ前(m)
     Entity FindGameCameraEntity() const;
 
     // HUD item slot bar (bottom center). Icon Sprite entities are expected in GameScene.json named
@@ -115,6 +143,10 @@ private:
     // the model's own scale/orientation fix), so visibility is applied to the whole subtree.
     Entity m_heldFlashLightEntity = INVALID_ENTITY;
     void UpdateHeldItem();
+    // 燃え尽きた香の見た目を保つ。ポーズは同じモデルを使う全員で共有され(ModelData)、再生中にしか更新されない上、
+    // 香を捨てた時にprefabの読み込みでResetAnimation()されて燃える前に戻ってしまうため、毎フレーム燃焼アニメの
+    // 最後のポーズを書き直す。共有なので手持ちの香にも床に落ちた香にも効く。
+    void KeepIncenseBurnedPose();
 
     // Held items are top-level entities (not children of Player) so their Position/Rotation can be
     // driven directly here each frame: a fixed local offset from the player's own body
@@ -168,26 +200,26 @@ private:
     Entity m_interactPromptEntity = INVALID_ENTITY;
     // 画面中央の点クロスヘア(GameScene.jsonの"Crosshair")。Fプロンプトと同じく操作対象を捉えている間だけ表示
     Entity m_crosshairEntity = INVALID_ENTITY;
-    void UpdateInteractionTarget(const Math::Vector3& playerPos, const Math::Vector3& forward);
+    // クロスヘア(カメラ中央の視線)が重なっている、一番手前の操作できる物を m_interactKind/m_interactEntity
+    // (扉なら m_doorTargetEntity/m_doorTargetAnimIdx)に入れる。家の壁・床・天井の奥にある物は対象外
+    void UpdateInteractionTarget(const Math::Vector3& playerPos);
+    // ゴーストがハント中か。ハント中は照明のスイッチ(壁スイッチ・紐スイッチ・ランプ)を操作できない
+    bool IsGhostHunting() const;
     void UpdateInteractPrompt();
-    // Lightweight, non-logging re-scan of TryInteractDoor's door search, plus a facing-cone check,
-    // used only to decide whether a door is in view (the actual open/close scan+action still happens
-    // in TryInteractDoor() on F press).
-    bool FindNearestDoor(const Math::Vector3& playerPos, const Math::Vector3& forward, float maxRange, float& outDist) const;
-    Entity FindNearestPickup(const Math::Vector3& playerPos, const Math::Vector3& forward, float maxRange, float& outDist) const;
-    // Fキーでon/offできるStimulusSource(ランプ/ラジカセ)のうち、範囲内・正面にある最も近いもの
-    Entity FindNearestStimulus(const Math::Vector3& playerPos, const Math::Vector3& forward, float maxRange, float& outDist) const;
+    bool GetCrosshairRay(Math::Vector3& outOrigin, Math::Vector3& outDir);
 
-    // FindNearestDoorは以前、「近くにドアがあるか」に答えるためだけに、毎フレーム全
-    // エンティティの全アニメーションを再スキャンし(ドアだった場合はさらにモデルの
-    // ノードリスト全体を辿ってDecomposeまでして)いた - Debugで計測すると約5ms。
-    // ドアの蝶番は開閉時に平行移動せず(回転するだけ)、そのワールド位置は不変なので
-    // 一度計算すれば十分 - 遅延キャッシュしておき、毎フレームは距離+向きの安い判定
-    // だけを行うようにする。
-    struct DoorCandidate { Entity entity; int animIndex; Math::Vector3 worldPos; };
+    // 開け閉めできる物(ドア・襖・戸棚など)の一覧。毎フレーム全エンティティの全アニメーションを
+    // 走査すると重いので遅延キャッシュする。視線との当たり判定は、アニメーションが動かすノード(扉の板)の
+    // メッシュを、その時の(開いていれば開いた)位置の箱として行う。
+    struct DoorCandidate { Entity entity; int animIndex; std::vector<int> nodeIndices; };
     mutable std::vector<DoorCandidate> m_doorCandidateCache;
     mutable bool m_doorCandidateCacheBuilt = false;
+    // 扉の板のノード名。壁・天井で遮られているかのレイでは、扉そのものは無視する
+    mutable std::unordered_set<std::string> m_openableNodeNames;
     void RebuildDoorCandidateCache() const;
+    // クロスヘアで捉えている開け閉めできる物。F押下時はこれだけを開け閉めする
+    mutable Entity m_doorTargetEntity = INVALID_ENTITY;
+    mutable int m_doorTargetAnimIdx = -1;
 
     // --- アニメーション ---
     // AnimationDataComponentは自分自身ではなく子の"Model"オブジェクトに付いているため、
@@ -203,10 +235,25 @@ private:
     float m_crouchCameraDelay = 0.1f;
     float m_crouchCameraDelayTimer = 0.0f;
 
+    // --- しゃがみの体の大きさ(押し入れなど低い所に入るため) ---
+    // しゃがむと当たり判定(子の"Collider"のカプセル)の上端をm_crouchColliderTopまで下げ、目線をm_crouchEyeHeightにする。
+    // 頭の上に何かある所(押し入れの中段の下など)では立ち上がれない(Ctrlを押してもしゃがんだまま)。
+    float m_crouchColliderTop = 1.0f;  // しゃがんだ時の当たり判定の上端(足元から, m)
+    float m_crouchEyeHeight = 0.9f;    // しゃがんだ時の目線(足元から, m)
+    Entity m_colliderEntity = INVALID_ENTITY;
+    // 立っている時のカプセル(シーンに保存されている値)。実行中はここから毎フレームしゃがみ具合に合わせて作り直す
+    bool m_standCapsuleValid = false;
+    Math::Vector3 m_standCapsuleOffset;
+    float m_standCapsuleHeight = 0.0f;
+    float m_standCapsuleRadius = 0.0f;
+    void CacheStandCapsule();
+    void UpdateCrouchCollider();
+    bool CanStandUp(const Math::Vector3& playerPos) const;
+
     // Walk/CrouchWalk系のアニメーション再生速度倍率。1.0で等倍。
     float m_animWalkSpeed = 1.0f;
 
-    // Animation state machine: picks one of Idle/Walk/Crouch/CrouchWalk (or its UseItem_* variant
+    // Animation state machine: picks one of Idle/Walk/Crouch/CrouchWalk (or its FlashLight_*/UseItem_* variant
     // when a possessed item is currently equipped/displayed) and plays it by name via
     // AnimationManager::PlayAnimationByName - it only actually restarts the clip when the resolved
     // name changes, so calling this every frame is cheap.

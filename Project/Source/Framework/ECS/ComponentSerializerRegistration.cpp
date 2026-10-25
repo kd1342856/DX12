@@ -279,6 +279,8 @@ void RegisterComponentSerializers() {
             if (cj.contains("LocalDirection")) { d.m_localDirection = {cj["LocalDirection"][0], cj["LocalDirection"][1], cj["LocalDirection"][2]}; }
             if (cj.contains("ModelGlow")) d.m_modelGlow = cj["ModelGlow"];
             if (cj.contains("GlowMaterial")) d.m_glowMaterial = cj["GlowMaterial"].get<std::string>();
+            if (cj.contains("GlowReflectMaterial")) d.m_glowReflectMaterial = cj["GlowReflectMaterial"].get<std::string>();
+            if (cj.contains("GlowReflectScale")) d.m_glowReflectScale = cj["GlowReflectScale"];
             ecs.AddComponent(e, d);
         },
         [](ECSCoordinator& ecs, Entity e, nlohmann::json& cj, GameObject* obj) -> bool {
@@ -293,6 +295,8 @@ void RegisterComponentSerializers() {
                 cj["LocalDirection"] = {p_d->m_localDirection.x, p_d->m_localDirection.y, p_d->m_localDirection.z};
                 cj["ModelGlow"] = p_d->m_modelGlow;
                 cj["GlowMaterial"] = p_d->m_glowMaterial;
+                cj["GlowReflectMaterial"] = p_d->m_glowReflectMaterial;
+                cj["GlowReflectScale"] = p_d->m_glowReflectScale;
                 return true;
             }
             return false;

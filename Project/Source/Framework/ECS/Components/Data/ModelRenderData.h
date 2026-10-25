@@ -26,6 +26,10 @@ struct ModelRenderData
 	// otherwise only meshes whose material name matches exactly (e.g. "Glass" for the flashlight lens).
 	Math::Vector3 m_glowColor = { 0.0f, 0.0f, 0.0f };
 	std::string m_glowMaterial;
+	// Optional second glowing material lit "by reflection" (e.g. the inside of a pendant lamp's shade):
+	// it glows at m_glowColor * m_glowReflectScale on its back faces only. Empty/0 = none.
+	std::string m_glowReflectMaterial;
+	float m_glowReflectScale = 0.0f;
 
 	// Runtime-only (not saved) bottom-up dissolve, e.g. an exorcised ghost vanishing from its feet.
 	// While enabled, pixels whose world Y is below m_dissolveHeight are clipped and a glowing band

@@ -7,6 +7,7 @@
 #include "../Collision/CollisionManager.h"
 #include "../Scene/Scene.h"
 #include "../../ImGuiEditor/Editor/Editor.h"
+#include "../Animation/OpenableAnim.h"
 #include <functional>
 #include "Recast/Recast.h"
 #include "Detour/DetourNavMesh.h"
@@ -70,7 +71,7 @@ bool NavMeshManager::BuildNavMesh(std::shared_ptr<ModelData> stageModel, const M
     std::set<std::string> doorNodeNames;
     for (const auto& anim : stageModel->GetAnimations())
     {
-        if (anim.name.find("Door") == std::string::npos && anim.name.find("door") == std::string::npos)
+        if (!OpenableAnim::IsPassage(anim.name))
             continue;
         for (const auto& channel : anim.channels)
         {
@@ -413,7 +414,7 @@ bool NavMeshManager::IsStageCollisionReady()
     return foundAny && allReady;
 }
 
-// 家のモデル内のドア(名前に"Door"を含むアニメーション)が動かすノード名を集める。
+// 家のモデル内の出入口(ドア・襖。OpenableAnim::IsPassage)のアニメーションが動かすノード名を集める。
 // 開口部を探すレイキャストではこれらのノード(ドアの板)を無視して、閉まっているドアでも
 // ドア枠の内側(実際の出入口)を通れる場所として拾えるようにする。
 static std::unordered_set<std::string> CollectDoorNodeNames()
@@ -426,7 +427,7 @@ static std::unordered_set<std::string> CollectDoorNodeNames()
         if (!pModel || !pModel->m_spModelData || !pModel->m_spModelData->IsLoaded()) continue;
         for (const auto& anim : pModel->m_spModelData->GetAnimations())
         {
-            if (anim.name.find("Door") == std::string::npos && anim.name.find("door") == std::string::npos) continue;
+            if (!OpenableAnim::IsPassage(anim.name)) continue;
             for (const auto& channel : anim.channels) names.insert(channel.nodeName);
         }
     }
@@ -440,7 +441,9 @@ bool NavMeshManager::BuildManualNavMesh(const std::vector<RoomArea*>& rooms)
     m_manualPolygons.clear();
 
     // Inset from each room's own bounds so the polygon stays clear of its walls.
-    const float kMargin = 0.5f;
+    // 家を実寸(以前の2/3)にした時に0.5mから縮めた。幅1.0mしかない階段は0.5mずつ寄せると幅が無くなり、
+    // 階段がナビメッシュから丸ごと抜けて1階と2階がつながらなくなっていた。狭い部屋は幅の1/4までにする。
+    const float kMargin = 0.35f;
     // How close two rooms' *raw* (pre-margin) bounds need to be (gap, accounting for wall
     // thickness / doorway) to be considered adjacent, and how much they need to overlap on the
     // shared side to bother connecting them (guards against rooms that only touch at a corner).
@@ -463,10 +466,12 @@ bool NavMeshManager::BuildManualNavMesh(const std::vector<RoomArea*>& rooms)
     for (RoomArea* room : rooms)
     {
         if (!room) continue;
-        float minX = room->m_min.x + kMargin;
-        float maxX = room->m_max.x - kMargin;
-        float minZ = room->m_min.z + kMargin;
-        float maxZ = room->m_max.z - kMargin;
+        const float marginX = (std::min)(kMargin, (room->m_max.x - room->m_min.x) * 0.25f);
+        const float marginZ = (std::min)(kMargin, (room->m_max.z - room->m_min.z) * 0.25f);
+        float minX = room->m_min.x + marginX;
+        float maxX = room->m_max.x - marginX;
+        float minZ = room->m_min.z + marginZ;
+        float maxZ = room->m_max.z - marginZ;
         if (minX >= maxX || minZ >= maxZ) continue; // room too small for this margin, skip it
 
         auto pObj = room->GetGameObject();
@@ -546,6 +551,7 @@ bool NavMeshManager::BuildManualNavMesh(const std::vector<RoomArea*>& rooms)
         // RaycastAgainstMeshはCollisionManagerの対象シーンが未設定だと何にも当たらない(=全部開いている扱い)
         CollisionManager::Instance().SetScene(Editor::GetScene().get());
         doorNodeNames = CollectDoorNodeNames();
+        m_doorNodeNames = doorNodeNames;
         Logger::Instance().AddLog(Logger::LogLevel::Info,
             "NavMesh (manual): detecting openings from Stage collision (%d door nodes ignored).", (int)doorNodeNames.size());
     } else {
@@ -559,7 +565,7 @@ bool NavMeshManager::BuildManualNavMesh(const std::vector<RoomArea*>& rooms)
         const float kStep = 0.1f;
         const float kRayHeight = 1.0f;   // 腰の高さ(テーブル等の家具より上、ドア枠の上端より下)
         const float kMinWidth = 0.5f;    // これより狭い隙間は通れない
-        const float kAgentRadius = 0.45f; // ゴーストの当たり判定の半径(0.44m)。両端からこの分だけ内側へ寄せる
+        const float kAgentRadius = 0.3f;  // ゴーストの体の半径より少し大きめ(実寸の家に合わせて0.45mから縮めた)。両端からこの分だけ内側へ寄せる
         float bestLo = 0.0f, bestHi = -1.0f, runLo = 0.0f, lastOpen = 0.0f;
         bool inRun = false;
         int count = (int)ceilf((hi - lo) / kStep);
@@ -981,7 +987,7 @@ bool NavMeshManager::BuildManualNavMesh(const std::vector<RoomArea*>& rooms)
             if (fabsf(rects[i].floorY - rects[j].floorY) > kSameFloorTolerance) continue;
 
             // 重なりは壁から内側へ寄せる前の実際の範囲(raw)で判定する。寄せた後の範囲だと、幅1.5mしかない
-            // 階段は0.5mしか残らず、壁際に接している部屋(1階のLivingRoom)との重なりが0.4mになって
+            // 階段は0.5mしか残らず、壁際に接している部屋(1階のHallway1F)との重なりが0.4mになって
             // kMinOverlapに届かず、1階からは階段へ経路がつながっていなかった。
             float ox0 = (rects[i].rawMinX > rects[j].rawMinX) ? rects[i].rawMinX : rects[j].rawMinX;
             float ox1 = (rects[i].rawMaxX < rects[j].rawMaxX) ? rects[i].rawMaxX : rects[j].rawMaxX;
@@ -1443,7 +1449,7 @@ void NavMeshManager::ClearAllPaths()
 // 既にwp0より先なら捨てる。2点目以降(階段の入口やドアなど、これから通る曲がり角)は絶対に捨てない:
 // 以前は近い点を続けて何個でも捨てていたため、階段の入口まで捨てて上の階の地点の真下へ向かい、
 // そこで「到着」扱いになって経路が空になり、階段前で止まってしまっていた。
-void NavMeshManager::DropPassedWaypoints(std::vector<Math::Vector3>& waypoints, const Math::Vector3& current)
+void NavMeshManager::DropPassedWaypoints(std::vector<Math::Vector3>& waypoints, const Math::Vector3& current) const
 {
     const float kNearDist = 1.5f;
     if (waypoints.size() < 2) return;
@@ -1453,10 +1459,26 @@ void NavMeshManager::DropPassedWaypoints(std::vector<Math::Vector3>& waypoints, 
     seg.y = 0.0f;
     toCur.y = 0.0f;
     if (toCur.LengthSquared() > kNearDist * kNearDist) return;
+    // 次の地点まで壁が無い時だけ捨てる。ドアの横(壁沿い)にいる時にドアの地点を捨てると、隣の部屋の
+    // 次の地点へ壁越しに一直線に向かってしまう(AdvanceAlongPathの曲がり角の近道と同じ)
+    if (!IsLineClear(current, waypoints[1])) return;
     if (seg.LengthSquared() < 1e-6f || toCur.Dot(seg) >= 0.0f)
     {
         waypoints.erase(waypoints.begin());
     }
+}
+
+bool NavMeshManager::IsLineClear(const Math::Vector3& a, const Math::Vector3& b) const
+{
+    const Math::Vector3 from = a + Math::Vector3(0.0f, 1.0f, 0.0f);
+    const Math::Vector3 to   = b + Math::Vector3(0.0f, 1.0f, 0.0f);
+    Math::Vector3 dir = to - from;
+    const float len = dir.Length();
+    if (len < 0.01f) return true;
+    dir /= len;
+    RaycastHit hit = CollisionManager::Instance().RaycastAgainstMesh(from, dir, len, "Stage",
+        m_doorNodeNames.empty() ? nullptr : &m_doorNodeNames);
+    return !hit.hit;
 }
 
 Math::Vector3 NavMeshManager::AdvanceAlongPath(
@@ -1483,7 +1505,11 @@ Math::Vector3 NavMeshManager::AdvanceAlongPath(
             Math::Vector3 fromNode = pos - cache.waypoints[0];
             seg.y = 0;
             fromNode.y = 0;
-            if (seg.LengthSquared() > 1e-6f && fromNode.LengthSquared() <= kPassNear * kPassNear && fromNode.Dot(seg) > 0.0f)
+            // ただし、次の地点まで壁が無い時だけ。ドアの横(壁沿い)で1m以内にいると、ドアの地点を通過済みと
+            // みなして隣の部屋の次の地点へ壁越しに一直線に向かい、詰まって壁抜けが入ってすり抜けていた
+            // (2階の和室・小部屋・居間のようにドアでぐるりとつながった部屋を回られた時に起きていた)
+            if (seg.LengthSquared() > 1e-6f && fromNode.LengthSquared() <= kPassNear * kPassNear && fromNode.Dot(seg) > 0.0f &&
+                IsLineClear(pos, cache.waypoints[1]))
             {
                 cache.waypoints.erase(cache.waypoints.begin());
                 continue;

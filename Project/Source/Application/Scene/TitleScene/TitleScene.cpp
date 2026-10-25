@@ -1,4 +1,4 @@
-#include "../../../Pch.h"
+﻿#include "../../../Pch.h"
 #include "TitleScene.h"
 #include "../GameScene/GameScene.h"
 #include "../ResultScene/ResultScene.h"
@@ -12,11 +12,48 @@
 #include "../../../Framework/Manager/Scene/Scene.h"
 #include "../../../Framework/Object/GameObject.h"
 #include "../../../Framework/Manager/Audio/AudioManager.h"
+#include "../../UI/OptionMenu.h"
+#include <imgui.h>
+
+namespace
+{
+    // 画面右下の歯車(オプションボタン)。画像を用意せずImGuiの図形で描く
+    // 戻り値: マウスが乗っているか
+    bool DrawGearButton(float angle, bool selected)
+    {
+        const ImGuiViewport* vp = ImGui::GetMainViewport();
+        const float scale = vp->Size.y / 720.0f;
+        const float outerR = 30.0f * scale;
+        const ImVec2 center(vp->Pos.x + vp->Size.x - 64.0f * scale, vp->Pos.y + vp->Size.y - 64.0f * scale);
+
+        const bool hovered = ImGui::IsMouseHoveringRect(ImVec2(center.x - outerR, center.y - outerR),
+                                                        ImVec2(center.x + outerR, center.y + outerR), false);
+        const ImU32 col = (selected || hovered) ? IM_COL32(255, 51, 51, 255) : IM_COL32(230, 230, 230, 220);
+
+        ImDrawList* dl = ImGui::GetBackgroundDrawList(); // スプライトの上、エディタのウィンドウより下
+        const float bodyR = outerR * 0.72f;
+        dl->AddCircle(center, bodyR * 0.72f, col, 32, bodyR * 0.5f); // 中央に穴の開いたリング
+
+        // 歯(台形)を8枚
+        constexpr int kTeeth = 8;
+        for (int i = 0; i < kTeeth; ++i) {
+            const float a = angle + DirectX::XM_2PI * i / kTeeth;
+            const float c = cosf(a), s = sinf(a);
+            auto pt = [&](float along, float side) {
+                return ImVec2(center.x + c * along - s * side, center.y + s * along + c * side);
+            };
+            const float baseW = outerR * 0.26f, tipW = outerR * 0.17f;
+            dl->AddQuadFilled(pt(bodyR * 0.85f, -baseW), pt(outerR, -tipW), pt(outerR, tipW), pt(bodyR * 0.85f, baseW), col);
+        }
+        return hovered;
+    }
+}
 
 void TitleScene::Init()
 {
     m_time = 0.0f;
     m_cursorIndex = 0;
+    m_gearAngle = 0.0f;
 
     // GameSceneのFPS視点(Relative)モードのままだとカーソルが毎フレーム中央に戻され、ボタンをクリックできない
     Input::Instance().SetMouseModeAbsolute();
@@ -81,42 +118,68 @@ void TitleScene::Update(float deltaTime)
 
     auto& ecs = GameManager::Instance().GetECS();
 
-    // キー入力（カーソル移動）
-    if (Input::Instance().IsKeyTrigger(DirectX::Keyboard::Keys::Up) || 
-        Input::Instance().IsKeyTrigger(DirectX::Keyboard::Keys::Down)) {
-        m_cursorIndex = (m_cursorIndex == 0) ? 1 : 0;
+    // 歯車はホバー/選択中だけゆっくり回す
+    const bool gearHovered = DrawGearButton(m_gearAngle, m_cursorIndex == 2 && !OptionMenu::IsOpen());
+
+    if (OptionMenu::IsOpen())
+    {
+        // オプション画面を開いている間はタイトルの操作を受け付けない(ESCか「閉じる」で戻る)
+        if (Input::Instance().IsKeyTrigger(DirectX::Keyboard::Keys::Escape)) OptionMenu::Close();
     }
+    else
+    {
+        // キー入力（カーソル移動）: スタート → 終了 → オプション
+        if (Input::Instance().IsKeyTrigger(DirectX::Keyboard::Keys::Down)) {
+            m_cursorIndex = (m_cursorIndex + 1) % 3;
+        }
+        if (Input::Instance().IsKeyTrigger(DirectX::Keyboard::Keys::Up)) {
+            m_cursorIndex = (m_cursorIndex + 2) % 3;
+        }
 
-    // 決定キー
-    bool decided = Input::Instance().IsKeyTrigger(DirectX::Keyboard::Keys::Enter) ||
-                   Input::Instance().IsKeyTrigger(DirectX::Keyboard::Keys::Space);
+        // 決定キー
+        bool decided = Input::Instance().IsKeyTrigger(DirectX::Keyboard::Keys::Enter) ||
+                       Input::Instance().IsKeyTrigger(DirectX::Keyboard::Keys::Space);
 
-    // マウス: スプライトにホバーで選択、クリックで決定
-    if (auto spriteSys = GameManager::Instance().GetSpriteRenderSystem()) {
-        const Entity buttons[2] = { m_startEntity, m_exitEntity };
-        for (int i = 0; i < 2; ++i) {
-            if (spriteSys->IsMouseOver(buttons[i])) {
-                m_cursorIndex = i;
-                if (Input::Instance().IsMouseLeftTrigger()) decided = true;
+        // マウス: スプライトにホバーで選択、クリックで決定
+        if (auto spriteSys = GameManager::Instance().GetSpriteRenderSystem()) {
+            const Entity buttons[2] = { m_startEntity, m_exitEntity };
+            for (int i = 0; i < 2; ++i) {
+                if (spriteSys->IsMouseOver(buttons[i])) {
+                    m_cursorIndex = i;
+                    if (Input::Instance().IsMouseLeftTrigger()) decided = true;
+                }
             }
         }
-    }
+        if (gearHovered) {
+            m_cursorIndex = 2;
+            if (Input::Instance().IsMouseLeftTrigger()) decided = true;
+        }
 
-    if (decided)
-    {
-        if (m_cursorIndex == 0) {
-            SceneManager::Instance().ChangeScene(std::make_unique<GameScene>(), 1.0f);
-        } else {
-            PostQuitMessage(0); // アプリケーション終了
+        if (decided)
+        {
+            if (m_cursorIndex == 0) {
+                SceneManager::Instance().ChangeScene(std::make_unique<GameScene>(), 1.0f);
+            } else if (m_cursorIndex == 1) {
+                PostQuitMessage(0); // アプリケーション終了
+            } else {
+                OptionMenu::Open();
+            }
+        }
+        else if (Input::Instance().IsKeyTrigger(DirectX::Keyboard::Keys::Escape)) {
+            OptionMenu::Open();
+        }
+
+        if (Input::Instance().IsKeyTrigger(DirectX::Keyboard::Keys::C)) {
+            SceneManager::Instance().ChangeScene(std::make_unique<ResultScene>(true, 245.4f, 1 /*Kageonna*/, 2), 1.0f);
+        }
+        if (Input::Instance().IsKeyTrigger(DirectX::Keyboard::Keys::G)) {
+            SceneManager::Instance().ChangeScene(std::make_unique<ResultScene>(false), 1.0f);
         }
     }
 
-    if (Input::Instance().IsKeyTrigger(DirectX::Keyboard::Keys::C)) {
-        SceneManager::Instance().ChangeScene(std::make_unique<ResultScene>(true, 245.4f, 1 /*Kageonna*/, 2), 1.0f);
-    }
-    if (Input::Instance().IsKeyTrigger(DirectX::Keyboard::Keys::G)) {
-        SceneManager::Instance().ChangeScene(std::make_unique<ResultScene>(false), 1.0f);
-    }
+    OptionMenu::Draw();
+
+    if (m_cursorIndex == 2 && !OptionMenu::IsOpen()) m_gearAngle += deltaTime * 1.2f;
 
     // スプライトのアニメーションと選択状態の反映(SpriteData/Transformが無いオブジェクトはスキップ)
     if (auto* t = ecs.TryGetComponent<TransformData>(m_titleEntity))
@@ -156,6 +219,7 @@ void TitleScene::Unload()
     // オブジェクトはEditor::s_scene(ヒエラルキー)が所有する。次のシーンのInit()でEditor::Init()
     // により空のSceneへ差し替わる時に一緒に破棄されるので、ここでEntityを直接消さない。
     Editor::ClearSelection();
+    OptionMenu::Close();
 
     AudioManager::Instance().StopBGM();
 }

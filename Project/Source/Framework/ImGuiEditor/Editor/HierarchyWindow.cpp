@@ -385,7 +385,8 @@ void Editor::SaveEditorData() {
 
     // 今のシーンのルートに存在しないオブジェクトの対応は書き出さない(削除済みなど)
     std::unordered_set<uint64_t> alive;
-    if (s_scene) for (auto& obj : s_scene->GetGameObjects()) alive.insert(obj->GetUUID());
+    // Dynamic(ランタイム生成)の物はUUIDが毎回変わるので保存しない
+    if (s_scene) for (auto& obj : s_scene->GetGameObjects()) if (!obj->IsDynamic()) alive.insert(obj->GetUUID());
 
     nlohmann::json j;
     j["hierarchyFolders"] = nlohmann::json::array();
@@ -403,6 +404,37 @@ void Editor::SaveEditorData() {
         o << std::setw(4) << j << std::endl;
         Logger::Instance().AddLog(Logger::LogLevel::Info, "Editor Data Saved: %s", path.c_str());
     }
+}
+
+void Editor::SetObjectFolder(GameObject* obj, const std::string& folderPath) {
+    using namespace HierarchyFolders;
+    if (!obj || obj->GetParent()) return;
+
+    uint32_t parent = 0;
+    size_t begin = 0;
+    while (begin <= folderPath.size()) {
+        size_t end = folderPath.find('/', begin);
+        if (end == std::string::npos) end = folderPath.size();
+        const std::string name = folderPath.substr(begin, end - begin);
+        begin = end + 1;
+        if (name.empty()) continue;
+
+        uint32_t found = 0;
+        for (uint32_t id : ChildFolders(parent)) {
+            if (Find(id)->name == name) { found = id; break; }
+        }
+        if (found == 0) {
+            Folder f;
+            f.id = s_nextId++;
+            f.name = name;
+            f.parent = parent;
+            f.open = false;
+            s_folders.push_back(f);
+            found = f.id;
+        }
+        parent = found;
+    }
+    SetFolder(obj, parent);
 }
 
 void Editor::DrawHierarchyFolder(uint32_t folderId, const std::vector<std::shared_ptr<GameObject>>& roots) {

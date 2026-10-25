@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -167,10 +167,13 @@
     <ClInclude Include="Source\Application\Object\Script\System\StimulusSource.h" />
     <ClInclude Include="Source\Application\Object\Script\System\LightSwitch.h" />
     <ClInclude Include="Source\Application\Object\Script\System\DoorLock.h" />
+    <ClInclude Include="Source\Application\Object\Script\System\HidingSpot.h" />
     <ClInclude Include="Source\Application\Application.h" />
     <ClInclude Include="Source\Application\Scene\GameScene\GameScene.h" />
+    <ClInclude Include="Source\Application\Scene\GameScene\PropLayout.h" />
     <ClInclude Include="Source\Application\Scene\ResultScene\ResultScene.h" />
     <ClInclude Include="Source\Application\Scene\TitleScene\TitleScene.h" />
+    <ClInclude Include="Source\Application\UI\OptionMenu.h" />
     <ClInclude Include="Source\Application\Scene\SceneBase.h" />
     <ClInclude Include="Source\Framework\DirectX\Utility\ClassAssembly.h" />
     <ClInclude Include="Source\Framework\DirectX\Utility\EngineSettings.h" />
@@ -218,6 +221,7 @@
     <ClInclude Include="Source\Framework\ImGuiEditor\Panels\ShadowPanel.h" />
     <ClInclude Include="Source\Framework\ImGuiEditor\ShaderEditor\ShaderEditor.h" />
     <ClInclude Include="Source\Framework\Manager\Animation\AnimationManager.h" />
+    <ClInclude Include="Source\Framework\Manager\Animation\OpenableAnim.h" />
     <ClInclude Include="Source\Framework\Manager\Audio\AudioManager.h" />
     <ClInclude Include="Source\Framework\Manager\Collision\CollisionManager.h" />
     <ClInclude Include="Source\Framework\Manager\Collision\CollisionShape.h" />
@@ -340,8 +344,10 @@
     <ClCompile Include="Source\Application\Object\Script\System\LightSwitch.cpp" />
     <ClCompile Include="Source\Application\Application.cpp" />
     <ClCompile Include="Source\Application\Scene\GameScene\GameScene.cpp" />
+    <ClCompile Include="Source\Application\Scene\GameScene\PropLayout.cpp" />
     <ClCompile Include="Source\Application\Scene\ResultScene\ResultScene.cpp" />
     <ClCompile Include="Source\Application\Scene\TitleScene\TitleScene.cpp" />
+    <ClCompile Include="Source\Application\UI\OptionMenu.cpp" />
     <ClCompile Include="Source\Framework\DirectX\Utility\ClassAssembly.cpp" />
     <ClCompile Include="Source\Framework\DirectX\Utility\Input.cpp" />
     <ClCompile Include="Source\Framework\DirectX\Utility\Logger.cpp" />

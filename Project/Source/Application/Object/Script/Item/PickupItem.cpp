@@ -1,4 +1,4 @@
-#include "../../../../Pch.h"
+﻿#include "../../../../Pch.h"
 #include "PickupItem.h"
 #include "../../../../Framework/Object/GameObject.h"
 #include "../../../../Framework/DirectX/Utility/Logger.h"
@@ -20,11 +20,11 @@ void PickupItem::Deserialize(const nlohmann::json& in)
 void PickupItem::ImGuiUpdate()
 {
     int current = static_cast<int>(m_itemType) - 2; // enum starts at 2 (Incense)
-    const char* names[] = { "Incense (SmudgeStick)", "Amulet (Ofuda)", "FlashLight" };
-    if (ImGui::Combo("Item Type", &current, names, IM_ARRAYSIZE(names))) {
+    const char* names[] = { u8"お香", u8"お札", u8"懐中電灯" };
+    if (ImGui::Combo(u8"アイテムの種類", &current, names, IM_ARRAYSIZE(names))) {
         m_itemType = static_cast<ItemType>(current + 2);
     }
-    ImGui::Text("[Debug] Collected: %s", m_collected ? "true" : "false");
+    ImGui::Text(u8"[デバッグ] 拾われた: %s", m_collected ? u8"はい" : u8"いいえ");
 }
 
 void PickupItem::Update(float deltaTime)
@@ -50,7 +50,7 @@ void PickupItem::SyncLight(float deltaTime)
         light.m_range = 15.0f;
         light.m_innerAngle = 12.0f;
         light.m_outerAngle = 22.0f;
-        light.m_localOffset = { 0.0f, 0.06f, 0.15f };
+        light.m_localOffset = { 0.0f, 0.06f, 0.03f }; // z: 0.15だとレンズより前から光って本体が暗く見えたので手前に寄せた
         light.m_localDirection = { 0.0f, 0.0f, 1.0f };
         light.m_glowMaterial = "Glass"; // only the lens glows, not the whole body
         light.m_enabled = m_lightOn;
@@ -111,7 +111,23 @@ void PickupItem::UpdateFlight(float deltaTime)
 
     // Vertical move, landing on the floor.
     float fallStep = m_velocity.y * deltaTime;
-    const float probeUp = 0.3f;
+    // 上向きに飛んでいる時は天井・棚の裏に当たって止まる(以前は判定が無く、押し入れの中段などを下からすり抜けて
+    // 棚の上や棚の中に埋まり、拾えなくなっていた)
+    const float kCeilingClearance = 0.05f;
+    if (fallStep > 0.0f) {
+        RaycastHit ceiling = cm.RaycastAgainstMesh(pos + Math::Vector3(0, 0.02f, 0), Math::Vector3(0, 1, 0),
+            fallStep + kCeilingClearance, "Stage");
+        if (ceiling.hit) {
+            fallStep = (std::max)(0.0f, ceiling.distance - kCeilingClearance);
+            m_velocity.y = 0.0f;
+        }
+    }
+    // 床を探すレイは少し上から下へ飛ばすが、すぐ上に棚がある時はその下から飛ばす(棚の板の中から飛ばすと、棚の面を床と取り違える)
+    float probeUp = 0.3f;
+    {
+        RaycastHit above = cm.RaycastAgainstMesh(pos + Math::Vector3(0, 0.02f, 0), Math::Vector3(0, 1, 0), probeUp, "Stage");
+        if (above.hit) probeUp = (std::max)(0.02f, above.distance - 0.01f);
+    }
     RaycastHit floor = cm.RaycastAgainstMesh(pos + Math::Vector3(0, probeUp, 0), Math::Vector3(0, -1, 0),
         probeUp + (std::max)(0.0f, -fallStep) + 0.01f, "Stage");
     float floorY = floor.hit ? (pos.y + probeUp - floor.distance) : -FLT_MAX;

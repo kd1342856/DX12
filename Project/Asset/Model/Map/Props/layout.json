@@ -1,0 +1,5232 @@
+{
+ "version": 3,
+ "house_interactive": [
+  {
+   "node": "Fusuma_JapaneseRoom_East_L",
+   "interact": "slide",
+   "axis": [
+    1,
+    0,
+    0
+   ],
+   "open_angle_deg": null,
+   "open_distance_m": 0.7733,
+   "clip": "Fusuma_JapaneseRoom_East_L_Open"
+  },
+  {
+   "node": "Fusuma_JapaneseRoom_East_R",
+   "interact": "slide",
+   "axis": [
+    -1,
+    0,
+    0
+   ],
+   "open_angle_deg": null,
+   "open_distance_m": 0.7733,
+   "clip": "Fusuma_JapaneseRoom_East_R_Open"
+  },
+  {
+   "node": "Fusuma_JapaneseRoom_West_L",
+   "interact": "slide",
+   "axis": [
+    1,
+    0,
+    0
+   ],
+   "open_angle_deg": null,
+   "open_distance_m": 0.7733,
+   "clip": "Fusuma_JapaneseRoom_West_L_Open"
+  },
+  {
+   "node": "Fusuma_JapaneseRoom_West_R",
+   "interact": "slide",
+   "axis": [
+    -1,
+    0,
+    0
+   ],
+   "open_angle_deg": null,
+   "open_distance_m": 0.7733,
+   "clip": "Fusuma_JapaneseRoom_West_R_Open"
+  },
+  {
+   "node": "Oshiire_S_Fusuma_L",
+   "interact": "slide",
+   "axis": [
+    0,
+    0,
+    -1
+   ],
+   "open_angle_deg": null,
+   "open_distance_m": 1.0333,
+   "clip": "Oshiire_S_Fusuma_L_Open"
+  },
+  {
+   "node": "Oshiire_S_Fusuma_R",
+   "interact": "slide",
+   "axis": [
+    0,
+    0,
+    1
+   ],
+   "open_angle_deg": null,
+   "open_distance_m": 1.0333,
+   "clip": "Oshiire_S_Fusuma_R_Open"
+  },
+  {
+   "node": "Oshiire_S_Tenbukuro_L",
+   "interact": "slide",
+   "axis": [
+    0,
+    0,
+    -1
+   ],
+   "open_angle_deg": null,
+   "open_distance_m": 1.0333,
+   "clip": "Oshiire_S_Tenbukuro_L_Open"
+  },
+  {
+   "node": "Oshiire_S_Tenbukuro_R",
+   "interact": "slide",
+   "axis": [
+    0,
+    0,
+    1
+   ],
+   "open_angle_deg": null,
+   "open_distance_m": 1.0333,
+   "clip": "Oshiire_S_Tenbukuro_R_Open"
+  },
+  {
+   "node": "Oshiire_N_Fusuma_L",
+   "interact": "slide",
+   "axis": [
+    0,
+    0,
+    -1
+   ],
+   "open_angle_deg": null,
+   "open_distance_m": 1.0333,
+   "clip": "Oshiire_N_Fusuma_L_Open"
+  },
+  {
+   "node": "Oshiire_N_Fusuma_R",
+   "interact": "slide",
+   "axis": [
+    0,
+    0,
+    1
+   ],
+   "open_angle_deg": null,
+   "open_distance_m": 1.0333,
+   "clip": "Oshiire_N_Fusuma_R_Open"
+  },
+  {
+   "node": "Oshiire_N_Tenbukuro_L",
+   "interact": "slide",
+   "axis": [
+    0,
+    0,
+    -1
+   ],
+   "open_angle_deg": null,
+   "open_distance_m": 1.0333,
+   "clip": "Oshiire_N_Tenbukuro_L_Open"
+  },
+  {
+   "node": "Oshiire_N_Tenbukuro_R",
+   "interact": "slide",
+   "axis": [
+    0,
+    0,
+    1
+   ],
+   "open_angle_deg": null,
+   "open_distance_m": 1.0333,
+   "clip": "Oshiire_N_Tenbukuro_R_Open"
+  },
+  {
+   "node": "W2F_Oshiire_Fusuma_L",
+   "interact": "slide",
+   "axis": [
+    0,
+    0,
+    -1
+   ],
+   "open_angle_deg": null,
+   "open_distance_m": 1.17,
+   "clip": "W2F_Oshiire_Fusuma_L_Open"
+  },
+  {
+   "node": "W2F_Oshiire_Fusuma_R",
+   "interact": "slide",
+   "axis": [
+    0,
+    0,
+    1
+   ],
+   "open_angle_deg": null,
+   "open_distance_m": 1.17,
+   "clip": "W2F_Oshiire_Fusuma_R_Open"
+  },
+  {
+   "node": "Kitchen_BaseCabinet_Door_1",
+   "interact": "hinge",
+   "axis": [
+    0.0,
+    1.0,
+    -0.0
+   ],
+   "open_angle_deg": -95,
+   "open_distance_m": null,
+   "clip": "Kitchen_BaseCabinet_Door_1_Open"
+  },
+  {
+   "node": "Kitchen_BaseCabinet_Door_2",
+   "interact": "hinge",
+   "axis": [
+    0.0,
+    1.0,
+    -0.0
+   ],
+   "open_angle_deg": -95,
+   "open_distance_m": null,
+   "clip": "Kitchen_BaseCabinet_Door_2_Open"
+  },
+  {
+   "node": "Kitchen_BaseCabinet_Door_3",
+   "interact": "hinge",
+   "axis": [
+    0.0,
+    1.0,
+    -0.0
+   ],
+   "open_angle_deg": -95,
+   "open_distance_m": null,
+   "clip": "Kitchen_BaseCabinet_Door_3_Open"
+  },
+  {
+   "node": "Kitchen_BaseCabinet_Door_4",
+   "interact": "hinge",
+   "axis": [
+    0.0,
+    1.0,
+    -0.0
+   ],
+   "open_angle_deg": -95,
+   "open_distance_m": null,
+   "clip": "Kitchen_BaseCabinet_Door_4_Open"
+  },
+  {
+   "node": "Kitchen_BaseCabinet_Door_5",
+   "interact": "hinge",
+   "axis": [
+    0.0,
+    1.0,
+    -0.0
+   ],
+   "open_angle_deg": -95,
+   "open_distance_m": null,
+   "clip": "Kitchen_BaseCabinet_Door_5_Open"
+  },
+  {
+   "node": "Kitchen_BaseCabinet_Door_6",
+   "interact": "hinge",
+   "axis": [
+    0.0,
+    1.0,
+    -0.0
+   ],
+   "open_angle_deg": -95,
+   "open_distance_m": null,
+   "clip": "Kitchen_BaseCabinet_Door_6_Open"
+  },
+  {
+   "node": "Kitchen_BaseCabinet_Door_7",
+   "interact": "hinge",
+   "axis": [
+    0.0,
+    1.0,
+    -0.0
+   ],
+   "open_angle_deg": -95,
+   "open_distance_m": null,
+   "clip": "Kitchen_BaseCabinet_Door_7_Open"
+  },
+  {
+   "node": "Kitchen_BaseCabinet_Door_8",
+   "interact": "hinge",
+   "axis": [
+    0.0,
+    1.0,
+    -0.0
+   ],
+   "open_angle_deg": -95,
+   "open_distance_m": null,
+   "clip": "Kitchen_BaseCabinet_Door_8_Open"
+  },
+  {
+   "node": "Kitchen_BaseCabinet_Door_9",
+   "interact": "hinge",
+   "axis": [
+    0.0,
+    1.0,
+    -0.0
+   ],
+   "open_angle_deg": -95,
+   "open_distance_m": null,
+   "clip": "Kitchen_BaseCabinet_Door_9_Open"
+  },
+  {
+   "node": "Kitchen_Fridge_Door_Lower",
+   "interact": "hinge",
+   "axis": [
+    0.0,
+    1.0,
+    -0.0
+   ],
+   "open_angle_deg": -105,
+   "open_distance_m": null,
+   "clip": "Kitchen_Fridge_Door_Lower_Open"
+  },
+  {
+   "node": "Kitchen_Fridge_Door_Upper",
+   "interact": "hinge",
+   "axis": [
+    0.0,
+    1.0,
+    -0.0
+   ],
+   "open_angle_deg": -105,
+   "open_distance_m": null,
+   "clip": "Kitchen_Fridge_Door_Upper_Open"
+  },
+  {
+   "node": "Kitchen_Cupboard_Door_L",
+   "interact": "hinge",
+   "axis": [
+    0.0,
+    1.0,
+    -0.0
+   ],
+   "open_angle_deg": -100,
+   "open_distance_m": null,
+   "clip": "Kitchen_Cupboard_Door_L_Open"
+  },
+  {
+   "node": "Kitchen_Cupboard_Door_R",
+   "interact": "hinge",
+   "axis": [
+    0.0,
+    1.0,
+    -0.0
+   ],
+   "open_angle_deg": 100,
+   "open_distance_m": null,
+   "clip": "Kitchen_Cupboard_Door_R_Open"
+  },
+  {
+   "node": "Kitchen_Cupboard_Glass_L",
+   "interact": "hinge",
+   "axis": [
+    0.0,
+    1.0,
+    -0.0
+   ],
+   "open_angle_deg": -100,
+   "open_distance_m": null,
+   "clip": "Kitchen_Cupboard_Glass_L_Open"
+  },
+  {
+   "node": "Kitchen_Cupboard_Glass_R",
+   "interact": "hinge",
+   "axis": [
+    0.0,
+    1.0,
+    -0.0
+   ],
+   "open_angle_deg": 100,
+   "open_distance_m": null,
+   "clip": "Kitchen_Cupboard_Glass_R_Open"
+  },
+  {
+   "node": "Entrance_SlidingDoor_L",
+   "interact": "slide",
+   "axis": [
+    1,
+    0,
+    0
+   ],
+   "open_angle_deg": null,
+   "open_distance_m": 0.785,
+   "clip": "Entrance_SlidingDoor_L_Open"
+  },
+  {
+   "node": "Entrance_SlidingDoor_R",
+   "interact": "slide",
+   "axis": [
+    -1,
+    0,
+    0
+   ],
+   "open_angle_deg": null,
+   "open_distance_m": 0.785,
+   "clip": "Entrance_SlidingDoor_R_Open"
+  }
+ ],
+ "units": "meters",
+ "up": "+Y",
+ "handedness": "right",
+ "note": "transforms in glTF space; matrix is column-major 4x4; collider values are asset-local",
+ "house": "../House/House1.gltf",
+ "assets": {
+  "Kettle": {
+   "file": "Kettle/Kettle.gltf",
+   "physics": {
+    "kind": "throwable",
+    "mass_kg": 0.6,
+    "breakable": false,
+    "collider": {
+     "shape": "convex",
+     "center": [
+      0.04,
+      0.1075,
+      0.0
+     ],
+     "source": "render_mesh",
+     "box_fallback": {
+      "center": [
+       0.04,
+       0.1075,
+       0.0
+      ],
+      "half_extents": [
+       0.15,
+       0.1075,
+       0.11
+      ]
+     }
+    }
+   },
+   "instances": [
+    {
+     "name": "P_Kettle",
+     "initial_open": [],
+     "translation": [
+      -4.1,
+      0.965,
+      1.0
+     ],
+     "rotation": [
+      0.0,
+      0.258819,
+      -0.0,
+      0.965926
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      0.866025,
+      -0.0,
+      -0.5,
+      0.0,
+      0.0,
+      1.0,
+      -0.0,
+      0.0,
+      0.5,
+      -0.0,
+      0.866025,
+      0.0,
+      -4.1,
+      0.965,
+      1.0,
+      1.0
+     ]
+    }
+   ],
+   "lights": null,
+   "mount": null,
+   "parts": []
+  },
+  "Pot": {
+   "file": "Pot/Pot.gltf",
+   "physics": {
+    "kind": "throwable",
+    "mass_kg": 0.8,
+    "breakable": false,
+    "collider": {
+     "shape": "convex",
+     "center": [
+      -0.101,
+      0.0785,
+      -0.0
+     ],
+     "source": "render_mesh",
+     "box_fallback": {
+      "center": [
+       -0.101,
+       0.0785,
+       -0.0
+      ],
+      "half_extents": [
+       0.209,
+       0.0785,
+       0.108
+      ]
+     }
+    }
+   },
+   "instances": [
+    {
+     "name": "P_Pot",
+     "initial_open": [],
+     "translation": [
+      -4.1,
+      0.965,
+      1.35
+     ],
+     "rotation": [
+      -0.0,
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      -1.0,
+      0.0,
+      0.0,
+      0.0,
+      -0.0,
+      1.0,
+      -0.0,
+      0.0,
+      -0.0,
+      -0.0,
+      -1.0,
+      0.0,
+      -4.1,
+      0.965,
+      1.35,
+      1.0
+     ]
+    }
+   ],
+   "lights": null,
+   "mount": null,
+   "parts": []
+  },
+  "RiceCooker": {
+   "file": "RiceCooker/RiceCooker.gltf",
+   "physics": {
+    "kind": "throwable",
+    "mass_kg": 2.5,
+    "breakable": false,
+    "collider": {
+     "shape": "cylinder",
+     "center": [
+      0.0,
+      0.1175,
+      0.001
+     ],
+     "axis": "Y",
+     "radius": 0.141,
+     "half_height": 0.1175,
+     "box_fallback": {
+      "center": [
+       0.0,
+       0.1175,
+       0.001
+      ],
+      "half_extents": [
+       0.14,
+       0.1175,
+       0.141
+      ]
+     }
+    }
+   },
+   "instances": [
+    {
+     "name": "P_RiceCooker",
+     "initial_open": [],
+     "translation": [
+      -4.15,
+      0.853,
+      2.45
+     ],
+     "rotation": [
+      0.0,
+      0.707107,
+      -0.0,
+      0.707107
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      -0.0,
+      -0.0,
+      -1.0,
+      0.0,
+      0.0,
+      1.0,
+      -0.0,
+      0.0,
+      1.0,
+      -0.0,
+      -0.0,
+      0.0,
+      -4.15,
+      0.853,
+      2.45,
+      1.0
+     ]
+    }
+   ],
+   "lights": null,
+   "mount": null,
+   "parts": []
+  },
+  "Plate": {
+   "file": "Plate/Plate.gltf",
+   "physics": {
+    "kind": "throwable",
+    "mass_kg": 0.3,
+    "breakable": true,
+    "collider": {
+     "shape": "cylinder",
+     "center": [
+      0.0,
+      0.0125,
+      0.0
+     ],
+     "axis": "Y",
+     "radius": 0.12,
+     "half_height": 0.0125,
+     "box_fallback": {
+      "center": [
+       0.0,
+       0.0125,
+       0.0
+      ],
+      "half_extents": [
+       0.12,
+       0.0125,
+       0.12
+      ]
+     }
+    }
+   },
+   "instances": [
+    {
+     "name": "P_Plate",
+     "initial_open": [],
+     "translation": [
+      -4.2,
+      0.863,
+      -1.05
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      -4.2,
+      0.863,
+      -1.05,
+      1.0
+     ]
+    },
+    {
+     "name": "P_Plate.001",
+     "initial_open": [],
+     "translation": [
+      -2.0,
+      0.7,
+      2.1
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      -2.0,
+      0.7,
+      2.1,
+      1.0
+     ]
+    },
+    {
+     "name": "P_Plate.002",
+     "initial_open": [],
+     "translation": [
+      -2.0,
+      0.7,
+      1.25
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      -2.0,
+      0.7,
+      1.25,
+      1.0
+     ]
+    },
+    {
+     "name": "P_Plate.003",
+     "initial_open": [],
+     "translation": [
+      -3.42667,
+      0.977,
+      -1.95167
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      -3.426666,
+      0.977,
+      -1.951667,
+      1.0
+     ]
+    },
+    {
+     "name": "P_Plate.004",
+     "initial_open": [],
+     "translation": [
+      -3.42667,
+      0.99,
+      -1.95167
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      -3.426666,
+      0.99,
+      -1.951667,
+      1.0
+     ]
+    },
+    {
+     "name": "P_Plate.005",
+     "initial_open": [],
+     "translation": [
+      -3.42667,
+      1.003,
+      -1.95167
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      -3.426666,
+      1.003,
+      -1.951667,
+      1.0
+     ]
+    },
+    {
+     "name": "P_Plate.006",
+     "initial_open": [],
+     "translation": [
+      -3.42667,
+      1.016,
+      -1.95167
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      -3.426666,
+      1.016,
+      -1.951667,
+      1.0
+     ]
+    },
+    {
+     "name": "P_Plate.007",
+     "initial_open": [],
+     "translation": [
+      -3.42667,
+      1.029,
+      -1.95167
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      -3.426666,
+      1.029,
+      -1.951667,
+      1.0
+     ]
+    },
+    {
+     "name": "P_Plate.008",
+     "initial_open": [],
+     "translation": [
+      -3.42667,
+      1.042,
+      -1.95167
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      -3.426666,
+      1.042,
+      -1.951667,
+      1.0
+     ]
+    },
+    {
+     "name": "P_Plate.009",
+     "initial_open": [],
+     "translation": [
+      -2.97667,
+      0.977,
+      -1.97167
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      -2.976666,
+      0.977,
+      -1.971667,
+      1.0
+     ]
+    },
+    {
+     "name": "P_Plate.010",
+     "initial_open": [],
+     "translation": [
+      -2.97667,
+      0.99,
+      -1.97167
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      -2.976666,
+      0.99,
+      -1.971667,
+      1.0
+     ]
+    },
+    {
+     "name": "P_Plate.011",
+     "initial_open": [],
+     "translation": [
+      -2.97667,
+      1.003,
+      -1.97167
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      -2.976666,
+      1.003,
+      -1.971667,
+      1.0
+     ]
+    }
+   ],
+   "lights": null,
+   "mount": null,
+   "parts": []
+  },
+  "RiceBowl": {
+   "file": "RiceBowl/RiceBowl.gltf",
+   "physics": {
+    "kind": "throwable",
+    "mass_kg": 0.2,
+    "breakable": true,
+    "collider": {
+     "shape": "convex",
+     "center": [
+      0.0,
+      0.03,
+      -0.0
+     ],
+     "source": "render_mesh",
+     "box_fallback": {
+      "center": [
+       0.0,
+       0.03,
+       -0.0
+      ],
+      "half_extents": [
+       0.062,
+       0.03,
+       0.062
+      ]
+     }
+    }
+   },
+   "instances": [
+    {
+     "name": "P_RiceBowl",
+     "initial_open": [],
+     "translation": [
+      -4.1,
+      0.925,
+      -1.2
+     ],
+     "rotation": [
+      -1.0,
+      -0.0,
+      -0.0,
+      0.0
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      -1.0,
+      -0.0,
+      0.0,
+      0.0,
+      0.0,
+      -1.0,
+      0.0,
+      -4.1,
+      0.925,
+      -1.2,
+      1.0
+     ]
+    },
+    {
+     "name": "P_RiceBowl.001",
+     "initial_open": [],
+     "translation": [
+      -4.15,
+      0.925,
+      -1.42
+     ],
+     "rotation": [
+      0.996195,
+      0.0,
+      0.0,
+      0.087156
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      -0.984808,
+      0.173648,
+      0.0,
+      0.0,
+      -0.173648,
+      -0.984808,
+      0.0,
+      -4.15,
+      0.925,
+      -1.42,
+      1.0
+     ]
+    },
+    {
+     "name": "P_RiceBowl.002",
+     "initial_open": [],
+     "translation": [
+      -1.9,
+      0.712,
+      2.02
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      -1.9,
+      0.712,
+      2.02,
+      1.0
+     ]
+    },
+    {
+     "name": "P_RiceBowl.003",
+     "initial_open": [],
+     "translation": [
+      0.62,
+      0.33,
+      -4.85
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.62,
+      0.33,
+      -4.85,
+      1.0
+     ]
+    },
+    {
+     "name": "P_RiceBowl.004",
+     "initial_open": [],
+     "translation": [
+      -3.17667,
+      0.977,
+      -1.93167
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      -3.176666,
+      0.977,
+      -1.931667,
+      1.0
+     ]
+    },
+    {
+     "name": "P_RiceBowl.005",
+     "initial_open": [],
+     "translation": [
+      -3.17667,
+      0.999,
+      -1.93167
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      -3.176666,
+      0.999,
+      -1.931667,
+      1.0
+     ]
+    },
+    {
+     "name": "P_RiceBowl.006",
+     "initial_open": [],
+     "translation": [
+      -3.17667,
+      1.021,
+      -1.93167
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      -3.176666,
+      1.021,
+      -1.931667,
+      1.0
+     ]
+    },
+    {
+     "name": "P_RiceBowl.007",
+     "initial_open": [],
+     "translation": [
+      -3.17667,
+      1.043,
+      -1.93167
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      -3.176666,
+      1.043,
+      -1.931667,
+      1.0
+     ]
+    }
+   ],
+   "lights": null,
+   "mount": null,
+   "parts": []
+  },
+  "Teacup": {
+   "file": "Teacup/Teacup.gltf",
+   "physics": {
+    "kind": "throwable",
+    "mass_kg": 0.15,
+    "breakable": true,
+    "collider": {
+     "shape": "cylinder",
+     "center": [
+      0.0,
+      0.0425,
+      -0.0
+     ],
+     "axis": "Y",
+     "radius": 0.038,
+     "half_height": 0.0425,
+     "box_fallback": {
+      "center": [
+       0.0,
+       0.0425,
+       -0.0
+      ],
+      "half_extents": [
+       0.038,
+       0.0425,
+       0.038
+      ]
+     }
+    }
+   },
+   "instances": [
+    {
+     "name": "P_Teacup",
+     "initial_open": [],
+     "translation": [
+      -2.15,
+      0.7,
+      1.3
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      -2.15,
+      0.7,
+      1.3,
+      1.0
+     ]
+    },
+    {
+     "name": "P_Teacup.001",
+     "initial_open": [],
+     "translation": [
+      0.45,
+      0.33,
+      -4.62
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.45,
+      0.33,
+      -4.62,
+      1.0
+     ]
+    },
+    {
+     "name": "P_Teacup.002",
+     "initial_open": [],
+     "translation": [
+      0.8,
+      0.366,
+      -4.45
+     ],
+     "rotation": [
+      0.707107,
+      0.0,
+      0.0,
+      0.707107
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      -0.0,
+      1.0,
+      0.0,
+      0.0,
+      -1.0,
+      -0.0,
+      0.0,
+      0.8,
+      0.366,
+      -4.45,
+      1.0
+     ]
+    },
+    {
+     "name": "P_Teacup.004",
+     "initial_open": [],
+     "translation": [
+      -0.75,
+      2.936,
+      -5.4
+     ],
+     "rotation": [
+      0.707107,
+      0.0,
+      0.0,
+      0.707107
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      -0.0,
+      1.0,
+      0.0,
+      0.0,
+      -1.0,
+      -0.0,
+      0.0,
+      -0.75,
+      2.936,
+      -5.4,
+      1.0
+     ]
+    },
+    {
+     "name": "P_Teacup.005",
+     "initial_open": [],
+     "translation": [
+      1.8,
+      3.22,
+      4.8
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      1.8,
+      3.22,
+      4.8,
+      1.0
+     ]
+    },
+    {
+     "name": "P_Teacup.003",
+     "initial_open": [],
+     "translation": [
+      -3.52667,
+      1.412,
+      -1.95167
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      -3.526666,
+      1.412,
+      -1.951667,
+      1.0
+     ]
+    },
+    {
+     "name": "P_Teacup.006",
+     "initial_open": [],
+     "translation": [
+      -3.40667,
+      1.412,
+      -1.95167
+     ],
+     "rotation": [
+      0.0,
+      0.173648,
+      -0.0,
+      0.984808
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      0.939693,
+      -0.0,
+      -0.34202,
+      0.0,
+      0.0,
+      1.0,
+      -0.0,
+      0.0,
+      0.34202,
+      -0.0,
+      0.939693,
+      0.0,
+      -3.406667,
+      1.412,
+      -1.951667,
+      1.0
+     ]
+    },
+    {
+     "name": "P_Teacup.007",
+     "initial_open": [],
+     "translation": [
+      -3.28667,
+      1.412,
+      -1.95167
+     ],
+     "rotation": [
+      0.0,
+      0.34202,
+      -0.0,
+      0.939693
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      0.766044,
+      -0.0,
+      -0.642788,
+      0.0,
+      0.0,
+      1.0,
+      -0.0,
+      0.0,
+      0.642788,
+      -0.0,
+      0.766044,
+      0.0,
+      -3.286666,
+      1.412,
+      -1.951667,
+      1.0
+     ]
+    },
+    {
+     "name": "P_Teacup.008",
+     "initial_open": [],
+     "translation": [
+      -3.14667,
+      1.412,
+      -1.95167
+     ],
+     "rotation": [
+      0.0,
+      0.5,
+      -0.0,
+      0.866025
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      0.5,
+      -0.0,
+      -0.866025,
+      0.0,
+      0.0,
+      1.0,
+      -0.0,
+      0.0,
+      0.866025,
+      -0.0,
+      0.5,
+      0.0,
+      -3.146667,
+      1.412,
+      -1.951667,
+      1.0
+     ]
+    },
+    {
+     "name": "P_Teacup.009",
+     "initial_open": [],
+     "translation": [
+      -3.02667,
+      1.412,
+      -1.95167
+     ],
+     "rotation": [
+      0.0,
+      0.642788,
+      -0.0,
+      0.766044
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      0.173648,
+      -0.0,
+      -0.984808,
+      0.0,
+      0.0,
+      1.0,
+      -0.0,
+      0.0,
+      0.984808,
+      -0.0,
+      0.173648,
+      0.0,
+      -3.026666,
+      1.412,
+      -1.951667,
+      1.0
+     ]
+    }
+   ],
+   "lights": null,
+   "mount": null,
+   "parts": []
+  },
+  "SoyBottle": {
+   "file": "SoyBottle/SoyBottle.gltf",
+   "physics": {
+    "kind": "throwable",
+    "mass_kg": 0.6,
+    "breakable": true,
+    "collider": {
+     "shape": "cylinder",
+     "center": [
+      0.0,
+      0.1125,
+      -0.0
+     ],
+     "axis": "Y",
+     "radius": 0.037,
+     "half_height": 0.1125,
+     "box_fallback": {
+      "center": [
+       0.0,
+       0.1125,
+       -0.0
+      ],
+      "half_extents": [
+       0.037,
+       0.1125,
+       0.037
+      ]
+     }
+    }
+   },
+   "instances": [
+    {
+     "name": "P_SoyBottle",
+     "initial_open": [],
+     "translation": [
+      -4.33,
+      0.853,
+      2.05
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      -4.33,
+      0.853,
+      2.05,
+      1.0
+     ]
+    },
+    {
+     "name": "P_SoyBottle.001",
+     "initial_open": [],
+     "translation": [
+      -4.3,
+      0.853,
+      1.95
+     ],
+     "rotation": [
+      0.0,
+      0.34202,
+      -0.0,
+      0.939693
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      0.766044,
+      -0.0,
+      -0.642788,
+      0.0,
+      0.0,
+      1.0,
+      -0.0,
+      0.0,
+      0.642788,
+      -0.0,
+      0.766044,
+      0.0,
+      -4.3,
+      0.853,
+      1.95,
+      1.0
+     ]
+    },
+    {
+     "name": "P_SoyBottle.002",
+     "initial_open": [],
+     "translation": [
+      -2.05,
+      0.7,
+      1.67
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      -2.05,
+      0.7,
+      1.67,
+      1.0
+     ]
+    },
+    {
+     "name": "P_SoyBottle.003",
+     "initial_open": [],
+     "translation": [
+      -2.92667,
+      1.412,
+      -1.90167
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      -2.926666,
+      1.412,
+      -1.901667,
+      1.0
+     ]
+    }
+   ],
+   "lights": null,
+   "mount": null,
+   "parts": []
+  },
+  "SakeBottle": {
+   "file": "SakeBottle/SakeBottle.gltf",
+   "physics": {
+    "kind": "throwable",
+    "mass_kg": 1.8,
+    "breakable": true,
+    "collider": {
+     "shape": "cylinder",
+     "center": [
+      0.0,
+      0.2,
+      -0.0
+     ],
+     "axis": "Y",
+     "radius": 0.052,
+     "half_height": 0.2,
+     "box_fallback": {
+      "center": [
+       0.0,
+       0.2,
+       -0.0
+      ],
+      "half_extents": [
+       0.052,
+       0.2,
+       0.052
+      ]
+     }
+    }
+   },
+   "instances": [
+    {
+     "name": "P_SakeBottle",
+     "initial_open": [],
+     "translation": [
+      -3.55,
+      0.0,
+      3.45
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      -3.55,
+      0.0,
+      3.45,
+      1.0
+     ]
+    },
+    {
+     "name": "P_SakeBottle.001",
+     "initial_open": [],
+     "translation": [
+      -3.45,
+      0.052,
+      3.3
+     ],
+     "rotation": [
+      0.707107,
+      0.0,
+      0.0,
+      0.707107
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      -0.0,
+      1.0,
+      0.0,
+      0.0,
+      -1.0,
+      -0.0,
+      0.0,
+      -3.45,
+      0.052,
+      3.3,
+      1.0
+     ]
+    },
+    {
+     "name": "P_SakeBottle.002",
+     "initial_open": [],
+     "translation": [
+      -3.52667,
+      0.127,
+      -2.00167
+     ],
+     "rotation": [
+      0.541675,
+      0.45452,
+      -0.45452,
+      0.541675
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      0.173648,
+      -0.0,
+      -0.984808,
+      0.0,
+      0.984808,
+      -0.0,
+      0.173648,
+      0.0,
+      -0.0,
+      -1.0,
+      0.0,
+      0.0,
+      -3.526666,
+      0.127,
+      -2.001667,
+      1.0
+     ]
+    }
+   ],
+   "lights": null,
+   "mount": null,
+   "parts": []
+  },
+  "DishRack": {
+   "file": "DishRack/DishRack.gltf",
+   "physics": {
+    "kind": "throwable",
+    "mass_kg": 0.5,
+    "breakable": false,
+    "collider": {
+     "shape": "box",
+     "center": [
+      0.0,
+      0.06,
+      0.0
+     ],
+     "box_fallback": {
+      "center": [
+       0.0,
+       0.06,
+       0.0
+      ],
+      "half_extents": [
+       0.22,
+       0.06,
+       0.15
+      ]
+     }
+    }
+   },
+   "instances": [
+    {
+     "name": "P_DishRack",
+     "initial_open": [],
+     "translation": [
+      -4.12,
+      0.853,
+      -1.3
+     ],
+     "rotation": [
+      0.0,
+      0.707107,
+      -0.0,
+      0.707107
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      -0.0,
+      -0.0,
+      -1.0,
+      0.0,
+      0.0,
+      1.0,
+      -0.0,
+      0.0,
+      1.0,
+      -0.0,
+      -0.0,
+      0.0,
+      -4.12,
+      0.853,
+      -1.3,
+      1.0
+     ]
+    }
+   ],
+   "lights": null,
+   "mount": null,
+   "parts": []
+  },
+  "WallCalendar": {
+   "file": "WallCalendar/WallCalendar.gltf",
+   "physics": {
+    "kind": "throwable",
+    "mass_kg": 0.2,
+    "breakable": false,
+    "collider": {
+     "shape": "box",
+     "center": [
+      0.0,
+      0.2767,
+      -0.0
+     ],
+     "box_fallback": {
+      "center": [
+       0.0,
+       0.2767,
+       -0.0
+      ],
+      "half_extents": [
+       0.015,
+       0.2767,
+       0.2
+      ]
+     }
+    }
+   },
+   "instances": [
+    {
+     "name": "P_WallCalendar",
+     "initial_open": [],
+     "translation": [
+      -0.6,
+      1.2,
+      -2.165
+     ],
+     "rotation": [
+      -0.0,
+      -0.707107,
+      0.0,
+      0.707107
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      -0.0,
+      0.0,
+      1.0,
+      0.0,
+      -0.0,
+      1.0,
+      -0.0,
+      0.0,
+      -1.0,
+      -0.0,
+      -0.0,
+      0.0,
+      -0.6,
+      1.2,
+      -2.165,
+      1.0
+     ]
+    }
+   ],
+   "lights": null,
+   "mount": null,
+   "parts": []
+  },
+  "NewspaperStack": {
+   "file": "NewspaperStack/NewspaperStack.gltf",
+   "physics": {
+    "kind": "throwable",
+    "mass_kg": 2.0,
+    "breakable": false,
+    "collider": {
+     "shape": "box",
+     "center": [
+      0.0,
+      0.0786,
+      0.0
+     ],
+     "box_fallback": {
+      "center": [
+       0.0,
+       0.0786,
+       0.0
+      ],
+      "half_extents": [
+       0.2087,
+       0.0786,
+       0.1527
+      ]
+     }
+    }
+   },
+   "instances": [
+    {
+     "name": "P_NewspaperStack",
+     "initial_open": [],
+     "translation": [
+      -2.7,
+      0.0,
+      3.2
+     ],
+     "rotation": [
+      0.0,
+      0.130526,
+      -0.0,
+      0.991445
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      0.965926,
+      -0.0,
+      -0.258819,
+      0.0,
+      0.0,
+      1.0,
+      -0.0,
+      0.0,
+      0.258819,
+      -0.0,
+      0.965926,
+      0.0,
+      -2.7,
+      0.0,
+      3.2,
+      1.0
+     ]
+    },
+    {
+     "name": "P_NewspaperStack.001",
+     "initial_open": [],
+     "translation": [
+      3.85,
+      -0.0,
+      -6.25
+     ],
+     "rotation": [
+      0.0,
+      -0.173648,
+      0.0,
+      0.984808
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      0.939693,
+      0.0,
+      0.34202,
+      0.0,
+      -0.0,
+      1.0,
+      -0.0,
+      0.0,
+      -0.34202,
+      -0.0,
+      0.939693,
+      0.0,
+      3.85,
+      -0.0,
+      -6.25,
+      1.0
+     ]
+    },
+    {
+     "name": "P_NewspaperStack.002",
+     "initial_open": [],
+     "translation": [
+      -1.0,
+      2.9,
+      4.0
+     ],
+     "rotation": [
+      0.0,
+      0.258819,
+      -0.0,
+      0.965926
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      0.866025,
+      -0.0,
+      -0.5,
+      0.0,
+      0.0,
+      1.0,
+      -0.0,
+      0.0,
+      0.5,
+      -0.0,
+      0.866025,
+      0.0,
+      -1.0,
+      2.9,
+      4.0,
+      1.0
+     ]
+    },
+    {
+     "name": "P_NewspaperStack.003",
+     "initial_open": [],
+     "translation": [
+      1.55,
+      3.22,
+      5.05
+     ],
+     "rotation": [
+      0.0,
+      0.21644,
+      -0.0,
+      0.976296
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      0.906308,
+      -0.0,
+      -0.422618,
+      0.0,
+      0.0,
+      1.0,
+      -0.0,
+      0.0,
+      0.422618,
+      -0.0,
+      0.906308,
+      0.0,
+      1.55,
+      3.22,
+      5.05,
+      1.0
+     ]
+    }
+   ],
+   "lights": null,
+   "mount": null,
+   "parts": []
+  },
+  "GarbageBag": {
+   "file": "GarbageBag/GarbageBag.gltf",
+   "physics": {
+    "kind": "throwable",
+    "mass_kg": 2.0,
+    "breakable": false,
+    "collider": {
+     "shape": "sphere",
+     "center": [
+      0.0,
+      0.2355,
+      -0.0
+     ],
+     "radius": 0.2445,
+     "box_fallback": {
+      "center": [
+       0.0,
+       0.2355,
+       -0.0
+      ],
+      "half_extents": [
+       0.22,
+       0.2445,
+       0.198
+      ]
+     }
+    }
+   },
+   "instances": [
+    {
+     "name": "P_GarbageBag",
+     "initial_open": [],
+     "translation": [
+      -0.5,
+      0.0,
+      4.0
+     ],
+     "rotation": [
+      0.0,
+      0.087156,
+      -0.0,
+      0.996195
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      0.984808,
+      -0.0,
+      -0.173648,
+      0.0,
+      0.0,
+      1.0,
+      -0.0,
+      0.0,
+      0.173648,
+      -0.0,
+      0.984808,
+      0.0,
+      -0.5,
+      0.0,
+      4.0,
+      1.0
+     ]
+    },
+    {
+     "name": "P_GarbageBag.001",
+     "initial_open": [],
+     "translation": [
+      -0.95,
+      0.0,
+      4.25
+     ],
+     "rotation": [
+      0.0,
+      0.573576,
+      -0.0,
+      0.819152
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      0.34202,
+      -0.0,
+      -0.939693,
+      0.0,
+      0.0,
+      1.0,
+      -0.0,
+      0.0,
+      0.939693,
+      -0.0,
+      0.34202,
+      0.0,
+      -0.95,
+      0.0,
+      4.25,
+      1.0
+     ]
+    },
+    {
+     "name": "P_GarbageBag.002",
+     "initial_open": [],
+     "translation": [
+      3.2,
+      2.9,
+      6.35
+     ],
+     "rotation": [
+      0.0,
+      0.34202,
+      -0.0,
+      0.939693
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      0.766044,
+      -0.0,
+      -0.642788,
+      0.0,
+      0.0,
+      1.0,
+      -0.0,
+      0.0,
+      0.642788,
+      -0.0,
+      0.766044,
+      0.0,
+      3.2,
+      2.9,
+      6.35,
+      1.0
+     ]
+    }
+   ],
+   "lights": null,
+   "mount": null,
+   "parts": []
+  },
+  "PendantLamp": {
+   "file": "PendantLamp/PendantLamp.gltf",
+   "physics": {
+    "kind": "static",
+    "mass_kg": 1.0,
+    "breakable": false,
+    "collider": {
+     "shape": "convex",
+     "center": [
+      0.0,
+      0.39,
+      0.0
+     ],
+     "source": "render_mesh",
+     "box_fallback": {
+      "center": [
+       0.0,
+       0.39,
+       0.0
+      ],
+      "half_extents": [
+       0.25,
+       0.39,
+       0.25
+      ]
+     }
+    }
+   },
+   "instances": [
+    {
+     "name": "P_PendantLamp",
+     "initial_open": [],
+     "translation": [
+      -2.0,
+      1.92,
+      1.67
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      -2.0,
+      1.92,
+      1.67,
+      1.0
+     ]
+    }
+   ],
+   "lights": null,
+   "mount": null,
+   "parts": []
+  },
+  "Chabudai": {
+   "file": "Chabudai/Chabudai.gltf",
+   "physics": {
+    "kind": "dynamic",
+    "mass_kg": 6.0,
+    "breakable": false,
+    "collider": {
+     "shape": "cylinder",
+     "center": [
+      0.0,
+      0.165,
+      0.0
+     ],
+     "axis": "Y",
+     "radius": 0.4,
+     "half_height": 0.165,
+     "box_fallback": {
+      "center": [
+       0.0,
+       0.165,
+       0.0
+      ],
+      "half_extents": [
+       0.4,
+       0.165,
+       0.4
+      ]
+     }
+    }
+   },
+   "instances": [
+    {
+     "name": "P_Chabudai",
+     "initial_open": [],
+     "translation": [
+      0.6,
+      -0.0,
+      -4.6
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.6,
+      -0.0,
+      -4.6,
+      1.0
+     ]
+    },
+    {
+     "name": "P_Chabudai.001",
+     "initial_open": [],
+     "translation": [
+      1.6,
+      2.9,
+      5.0
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      1.6,
+      2.9,
+      5.0,
+      1.0
+     ]
+    }
+   ],
+   "lights": null,
+   "mount": null,
+   "parts": []
+  },
+  "Zabuton_Purple": {
+   "file": "Zabuton_Purple/Zabuton_Purple.gltf",
+   "physics": {
+    "kind": "throwable",
+    "mass_kg": 0.8,
+    "breakable": false,
+    "collider": {
+     "shape": "box",
+     "center": [
+      0.0,
+      0.0475,
+      0.0
+     ],
+     "box_fallback": {
+      "center": [
+       0.0,
+       0.0475,
+       0.0
+      ],
+      "half_extents": [
+       0.2804,
+       0.0475,
+       0.302
+      ]
+     }
+    }
+   },
+   "instances": [
+    {
+     "name": "P_Zabuton_Purple",
+     "initial_open": [],
+     "translation": [
+      0.6,
+      -0.0,
+      -3.92
+     ],
+     "rotation": [
+      0.0,
+      0.043619,
+      -0.0,
+      0.999048
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      0.996195,
+      -0.0,
+      -0.087156,
+      0.0,
+      0.0,
+      1.0,
+      -0.0,
+      0.0,
+      0.087156,
+      -0.0,
+      0.996195,
+      0.0,
+      0.6,
+      -0.0,
+      -3.92,
+      1.0
+     ]
+    },
+    {
+     "name": "P_Zabuton_Purple.001",
+     "initial_open": [],
+     "translation": [
+      -0.1,
+      -0.0,
+      -4.8
+     ],
+     "rotation": [
+      0.0,
+      0.522499,
+      -0.0,
+      0.85264
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      0.453991,
+      -0.0,
+      -0.891007,
+      0.0,
+      0.0,
+      1.0,
+      -0.0,
+      0.0,
+      0.891007,
+      -0.0,
+      0.453991,
+      0.0,
+      -0.1,
+      -0.0,
+      -4.8,
+      1.0
+     ]
+    },
+    {
+     "name": "P_Zabuton_Purple.002",
+     "initial_open": [],
+     "translation": [
+      -2.5,
+      -0.0,
+      -5.75
+     ],
+     "rotation": [
+      0.0,
+      -0.052336,
+      0.0,
+      0.99863
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      0.994522,
+      0.0,
+      0.104528,
+      0.0,
+      -0.0,
+      1.0,
+      -0.0,
+      0.0,
+      -0.104528,
+      -0.0,
+      0.994522,
+      0.0,
+      -2.5,
+      -0.0,
+      -5.75,
+      1.0
+     ]
+    }
+   ],
+   "lights": null,
+   "mount": null,
+   "parts": []
+  },
+  "Zabuton_Brown": {
+   "file": "Zabuton_Brown/Zabuton_Brown.gltf",
+   "physics": {
+    "kind": "throwable",
+    "mass_kg": 0.8,
+    "breakable": false,
+    "collider": {
+     "shape": "box",
+     "center": [
+      0.0,
+      0.0475,
+      0.0
+     ],
+     "box_fallback": {
+      "center": [
+       0.0,
+       0.0475,
+       0.0
+      ],
+      "half_extents": [
+       0.2804,
+       0.0475,
+       0.302
+      ]
+     }
+    }
+   },
+   "instances": [
+    {
+     "name": "P_Zabuton_Brown",
+     "initial_open": [],
+     "translation": [
+      1.3,
+      -0.0,
+      -4.65
+     ],
+     "rotation": [
+      0.0,
+      0.71934,
+      -0.0,
+      0.694658
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      -0.034899,
+      -0.0,
+      -0.999391,
+      0.0,
+      0.0,
+      1.0,
+      -0.0,
+      0.0,
+      0.999391,
+      -0.0,
+      -0.034899,
+      0.0,
+      1.3,
+      -0.0,
+      -4.65,
+      1.0
+     ]
+    },
+    {
+     "name": "P_Zabuton_Brown.001",
+     "initial_open": [],
+     "translation": [
+      0.8,
+      2.9,
+      -5.8
+     ],
+     "rotation": [
+      0.0,
+      0.034899,
+      -0.0,
+      0.999391
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      0.997564,
+      -0.0,
+      -0.069756,
+      0.0,
+      0.0,
+      1.0,
+      -0.0,
+      0.0,
+      0.069756,
+      -0.0,
+      0.997564,
+      0.0,
+      0.8,
+      2.9,
+      -5.8,
+      1.0
+     ]
+    }
+   ],
+   "lights": null,
+   "mount": null,
+   "parts": []
+  },
+  "CRT_TV": {
+   "file": "CRT_TV/CRT_TV.gltf",
+   "physics": {
+    "kind": "dynamic",
+    "mass_kg": 22.0,
+    "breakable": true,
+    "collider": {
+     "shape": "box",
+     "center": [
+      0.0,
+      0.4687,
+      -0.033
+     ],
+     "box_fallback": {
+      "center": [
+       0.0,
+       0.4687,
+       -0.033
+      ],
+      "half_extents": [
+       0.33,
+       0.4687,
+       0.287
+      ]
+     }
+    }
+   },
+   "instances": [
+    {
+     "name": "P_CRT_TV",
+     "initial_open": [],
+     "translation": [
+      4.1,
+      0.45,
+      -4.6
+     ],
+     "rotation": [
+      -0.0,
+      -0.707107,
+      0.0,
+      0.707107
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      -0.0,
+      0.0,
+      1.0,
+      0.0,
+      -0.0,
+      1.0,
+      -0.0,
+      0.0,
+      -1.0,
+      -0.0,
+      -0.0,
+      0.0,
+      4.1,
+      0.45,
+      -4.6,
+      1.0
+     ]
+    }
+   ],
+   "lights": null,
+   "mount": null,
+   "parts": []
+  },
+  "Butsudan": {
+   "file": "Butsudan/Butsudan.gltf",
+   "physics": {
+    "kind": "static",
+    "mass_kg": 25.0,
+    "breakable": false,
+    "collider": {
+     "shape": "box",
+     "center": [
+      0.0,
+      0.39,
+      0.01
+     ],
+     "box_fallback": {
+      "center": [
+       0.0,
+       0.39,
+       0.01
+      ],
+      "half_extents": [
+       0.285,
+       0.39,
+       0.225
+      ]
+     }
+    }
+   },
+   "instances": [
+    {
+     "name": "P_Butsudan",
+     "initial_open": [
+      "Butsudan_Door_L",
+      "Butsudan_Door_R"
+     ],
+     "translation": [
+      -2.5,
+      0.75,
+      -6.43
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      -2.5,
+      0.75,
+      -6.43,
+      1.0
+     ]
+    }
+   ],
+   "lights": null,
+   "mount": null,
+   "parts": [
+    {
+     "node": "Butsudan_Door_L",
+     "interact": "hinge",
+     "axis": [
+      0,
+      1,
+      0
+     ],
+     "open_angle_deg": -100,
+     "open_distance_m": null,
+     "clip": "Butsudan_Door_L_Open"
+    },
+    {
+     "node": "Butsudan_Door_R",
+     "interact": "hinge",
+     "axis": [
+      0,
+      1,
+      0
+     ],
+     "open_angle_deg": 100,
+     "open_distance_m": null,
+     "clip": "Butsudan_Door_R_Open"
+    },
+    {
+     "node": "Butsudan_Drawer",
+     "interact": "slide",
+     "axis": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "open_angle_deg": null,
+     "open_distance_m": 0.2,
+     "clip": "Butsudan_Drawer_Open"
+    }
+   ]
+  },
+  "FutonSet": {
+   "file": "FutonSet/FutonSet.gltf",
+   "physics": {
+    "kind": "static",
+    "mass_kg": 8.0,
+    "breakable": false,
+    "collider": {
+     "shape": "box",
+     "center": [
+      0.0,
+      0.12,
+      0.048
+     ],
+     "box_fallback": {
+      "center": [
+       0.0,
+       0.12,
+       0.048
+      ],
+      "half_extents": [
+       0.74,
+       0.12,
+       1.072
+      ]
+     }
+    }
+   },
+   "instances": [
+    {
+     "name": "P_FutonSet",
+     "initial_open": [],
+     "translation": [
+      -1.5,
+      2.9,
+      -4.45
+     ],
+     "rotation": [
+      0.0,
+      0.026177,
+      -0.0,
+      0.999657
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      0.99863,
+      -0.0,
+      -0.052336,
+      0.0,
+      0.0,
+      1.0,
+      -0.0,
+      0.0,
+      0.052336,
+      -0.0,
+      0.99863,
+      0.0,
+      -1.5,
+      2.9,
+      -4.45,
+      1.0
+     ]
+    }
+   ],
+   "lights": null,
+   "mount": null,
+   "parts": []
+  },
+  "Ikou_Kimono": {
+   "file": "Ikou_Kimono/Ikou_Kimono.gltf",
+   "physics": {
+    "kind": "static",
+    "mass_kg": 4.0,
+    "breakable": false,
+    "collider": {
+     "shape": "box",
+     "center": [
+      0.0,
+      0.85,
+      0.0
+     ],
+     "box_fallback": {
+      "center": [
+       0.0,
+       0.85,
+       0.0
+      ],
+      "half_extents": [
+       0.9,
+       0.85,
+       0.24
+      ]
+     }
+    }
+   },
+   "instances": [
+    {
+     "name": "P_Ikou_Kimono",
+     "initial_open": [],
+     "translation": [
+      -4.2,
+      2.9,
+      -4.5
+     ],
+     "rotation": [
+      0.0,
+      0.707107,
+      -0.0,
+      0.707107
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      -0.0,
+      -0.0,
+      -1.0,
+      0.0,
+      0.0,
+      1.0,
+      -0.0,
+      0.0,
+      1.0,
+      -0.0,
+      -0.0,
+      0.0,
+      -4.2,
+      2.9,
+      -4.5,
+      1.0
+     ]
+    }
+   ],
+   "lights": null,
+   "mount": null,
+   "parts": []
+  },
+  "Fuzukue": {
+   "file": "Fuzukue/Fuzukue.gltf",
+   "physics": {
+    "kind": "dynamic",
+    "mass_kg": 5.0,
+    "breakable": false,
+    "collider": {
+     "shape": "box",
+     "center": [
+      0.0,
+      0.165,
+      -0.0
+     ],
+     "box_fallback": {
+      "center": [
+       0.0,
+       0.165,
+       -0.0
+      ],
+      "half_extents": [
+       0.45,
+       0.165,
+       0.22
+      ]
+     }
+    }
+   },
+   "instances": [
+    {
+     "name": "P_Fuzukue",
+     "initial_open": [],
+     "translation": [
+      0.8,
+      2.9,
+      -6.3
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.8,
+      2.9,
+      -6.3,
+      1.0
+     ]
+    }
+   ],
+   "lights": null,
+   "mount": null,
+   "parts": []
+  },
+  "Vase_DeadFlowers": {
+   "file": "Vase_DeadFlowers/Vase_DeadFlowers.gltf",
+   "physics": {
+    "kind": "throwable",
+    "mass_kg": 0.8,
+    "breakable": true,
+    "collider": {
+     "shape": "cylinder",
+     "center": [
+      0.0,
+      0.3447,
+      0.0
+     ],
+     "axis": "Y",
+     "radius": 0.07,
+     "half_height": 0.3447,
+     "box_fallback": {
+      "center": [
+       0.0,
+       0.3447,
+       0.0
+      ],
+      "half_extents": [
+       0.07,
+       0.3447,
+       0.07
+      ]
+     }
+    }
+   },
+   "instances": [
+    {
+     "name": "P_Vase_DeadFlowers",
+     "initial_open": [],
+     "translation": [
+      4.1,
+      3.0,
+      -5.35
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      4.1,
+      3.0,
+      -5.35,
+      1.0
+     ]
+    }
+   ],
+   "lights": null,
+   "mount": null,
+   "parts": []
+  },
+  "Book_Red": {
+   "file": "Book_Red/Book_Red.gltf",
+   "physics": {
+    "kind": "throwable",
+    "mass_kg": 0.4,
+    "breakable": false,
+    "collider": {
+     "shape": "box",
+     "center": [
+      0.0,
+      0.015,
+      0.0
+     ],
+     "box_fallback": {
+      "center": [
+       0.0,
+       0.015,
+       0.0
+      ],
+      "half_extents": [
+       0.11,
+       0.015,
+       0.075
+      ]
+     }
+    }
+   },
+   "instances": [
+    {
+     "name": "P_Book_Red",
+     "initial_open": [],
+     "translation": [
+      0.65,
+      3.23,
+      -6.3
+     ],
+     "rotation": [
+      0.0,
+      0.104528,
+      -0.0,
+      0.994522
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      0.978148,
+      -0.0,
+      -0.207912,
+      0.0,
+      0.0,
+      1.0,
+      -0.0,
+      0.0,
+      0.207912,
+      -0.0,
+      0.978148,
+      0.0,
+      0.65,
+      3.23,
+      -6.3,
+      1.0
+     ]
+    },
+    {
+     "name": "P_Book_Red.001",
+     "initial_open": [],
+     "translation": [
+      -2.45,
+      2.93,
+      -0.05
+     ],
+     "rotation": [
+      0.0,
+      0.608761,
+      -0.0,
+      0.793353
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      0.258819,
+      -0.0,
+      -0.965926,
+      0.0,
+      0.0,
+      1.0,
+      -0.0,
+      0.0,
+      0.965926,
+      -0.0,
+      0.258819,
+      0.0,
+      -2.45,
+      2.93,
+      -0.05,
+      1.0
+     ]
+    }
+   ],
+   "lights": null,
+   "mount": null,
+   "parts": []
+  },
+  "Book_Green": {
+   "file": "Book_Green/Book_Green.gltf",
+   "physics": {
+    "kind": "throwable",
+    "mass_kg": 0.4,
+    "breakable": false,
+    "collider": {
+     "shape": "box",
+     "center": [
+      0.0,
+      0.015,
+      0.0
+     ],
+     "box_fallback": {
+      "center": [
+       0.0,
+       0.015,
+       0.0
+      ],
+      "half_extents": [
+       0.11,
+       0.015,
+       0.075
+      ]
+     }
+    }
+   },
+   "instances": [
+    {
+     "name": "P_Book_Green",
+     "initial_open": [],
+     "translation": [
+      -2.3,
+      2.9,
+      -0.25
+     ],
+     "rotation": [
+      0.0,
+      -0.422618,
+      0.0,
+      0.906308
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      0.642788,
+      0.0,
+      0.766044,
+      0.0,
+      -0.0,
+      1.0,
+      -0.0,
+      0.0,
+      -0.766044,
+      -0.0,
+      0.642788,
+      0.0,
+      -2.3,
+      2.9,
+      -0.25,
+      1.0
+     ]
+    }
+   ],
+   "lights": null,
+   "mount": null,
+   "parts": []
+  },
+  "Book_Blue": {
+   "file": "Book_Blue/Book_Blue.gltf",
+   "physics": {
+    "kind": "throwable",
+    "mass_kg": 0.4,
+    "breakable": false,
+    "collider": {
+     "shape": "box",
+     "center": [
+      0.0,
+      0.015,
+      0.0
+     ],
+     "box_fallback": {
+      "center": [
+       0.0,
+       0.015,
+       0.0
+      ],
+      "half_extents": [
+       0.11,
+       0.015,
+       0.075
+      ]
+     }
+    }
+   },
+   "instances": [
+    {
+     "name": "P_Book_Blue",
+     "initial_open": [],
+     "translation": [
+      -2.5,
+      2.9,
+      -0.0
+     ],
+     "rotation": [
+      0.0,
+      0.258819,
+      -0.0,
+      0.965926
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      0.866025,
+      -0.0,
+      -0.5,
+      0.0,
+      0.0,
+      1.0,
+      -0.0,
+      0.0,
+      0.5,
+      -0.0,
+      0.866025,
+      0.0,
+      -2.5,
+      2.9,
+      -0.0,
+      1.0
+     ]
+    },
+    {
+     "name": "P_Book_Blue.001",
+     "initial_open": [],
+     "translation": [
+      -2.2,
+      2.9,
+      2.6
+     ],
+     "rotation": [
+      0.0,
+      0.939693,
+      -0.0,
+      0.34202
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      -0.766044,
+      -0.0,
+      -0.642788,
+      0.0,
+      0.0,
+      1.0,
+      -0.0,
+      0.0,
+      0.642788,
+      -0.0,
+      -0.766044,
+      0.0,
+      -2.2,
+      2.9,
+      2.6,
+      1.0
+     ]
+    }
+   ],
+   "lights": null,
+   "mount": null,
+   "parts": []
+  },
+  "Book_Tan": {
+   "file": "Book_Tan/Book_Tan.gltf",
+   "physics": {
+    "kind": "throwable",
+    "mass_kg": 0.4,
+    "breakable": false,
+    "collider": {
+     "shape": "box",
+     "center": [
+      0.0,
+      0.015,
+      0.0
+     ],
+     "box_fallback": {
+      "center": [
+       0.0,
+       0.015,
+       0.0
+      ],
+      "half_extents": [
+       0.11,
+       0.015,
+       0.075
+      ]
+     }
+    }
+   },
+   "instances": [
+    {
+     "name": "P_Book_Tan",
+     "initial_open": [],
+     "translation": [
+      0.68,
+      3.26,
+      -6.28
+     ],
+     "rotation": [
+      0.0,
+      -0.173648,
+      0.0,
+      0.984808
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      0.939693,
+      0.0,
+      0.34202,
+      0.0,
+      -0.0,
+      1.0,
+      -0.0,
+      0.0,
+      -0.34202,
+      -0.0,
+      0.939693,
+      0.0,
+      0.68,
+      3.26,
+      -6.28,
+      1.0
+     ]
+    },
+    {
+     "name": "P_Book_Tan.001",
+     "initial_open": [],
+     "translation": [
+      -3.85,
+      3.63,
+      0.45
+     ],
+     "rotation": [
+      0.0,
+      0.043619,
+      -0.0,
+      0.999048
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      0.996195,
+      -0.0,
+      -0.087156,
+      0.0,
+      0.0,
+      1.0,
+      -0.0,
+      0.0,
+      0.087156,
+      -0.0,
+      0.996195,
+      0.0,
+      -3.85,
+      3.63,
+      0.45,
+      1.0
+     ]
+    }
+   ],
+   "lights": null,
+   "mount": null,
+   "parts": []
+  },
+  "CardboardBox": {
+   "file": "CardboardBox/CardboardBox.gltf",
+   "physics": {
+    "kind": "dynamic",
+    "mass_kg": 3.0,
+    "breakable": false,
+    "collider": {
+     "shape": "box",
+     "center": [
+      0.0,
+      0.1605,
+      -0.0
+     ],
+     "box_fallback": {
+      "center": [
+       0.0,
+       0.1605,
+       -0.0
+      ],
+      "half_extents": [
+       0.25,
+       0.1605,
+       0.2
+      ]
+     }
+    }
+   },
+   "instances": [
+    {
+     "name": "P_CardboardBox",
+     "initial_open": [],
+     "translation": [
+      -1.0,
+      2.9,
+      0.6
+     ],
+     "rotation": [
+      0.0,
+      0.069756,
+      -0.0,
+      0.997564
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      0.990268,
+      -0.0,
+      -0.139173,
+      0.0,
+      0.0,
+      1.0,
+      -0.0,
+      0.0,
+      0.139173,
+      -0.0,
+      0.990268,
+      0.0,
+      -1.0,
+      2.9,
+      0.6,
+      1.0
+     ]
+    },
+    {
+     "name": "P_CardboardBox.001",
+     "initial_open": [],
+     "translation": [
+      -3.8,
+      2.9,
+      3.9
+     ],
+     "rotation": [
+      0.0,
+      0.017452,
+      -0.0,
+      0.999848
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      0.999391,
+      -0.0,
+      -0.034899,
+      0.0,
+      0.0,
+      1.0,
+      -0.0,
+      0.0,
+      0.034899,
+      -0.0,
+      0.999391,
+      0.0,
+      -3.8,
+      2.9,
+      3.9,
+      1.0
+     ]
+    },
+    {
+     "name": "P_CardboardBox.002",
+     "initial_open": [],
+     "translation": [
+      -3.25,
+      2.9,
+      3.95
+     ],
+     "rotation": [
+      0.0,
+      0.104528,
+      -0.0,
+      0.994522
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      0.978148,
+      -0.0,
+      -0.207912,
+      0.0,
+      0.0,
+      1.0,
+      -0.0,
+      0.0,
+      0.207912,
+      -0.0,
+      0.978148,
+      0.0,
+      -3.25,
+      2.9,
+      3.95,
+      1.0
+     ]
+    },
+    {
+     "name": "P_CardboardBox.003",
+     "initial_open": [],
+     "translation": [
+      -3.78,
+      3.22,
+      3.88
+     ],
+     "rotation": [
+      0.0,
+      -0.078459,
+      0.0,
+      0.996917
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      0.987688,
+      0.0,
+      0.156434,
+      0.0,
+      -0.0,
+      1.0,
+      -0.0,
+      0.0,
+      -0.156434,
+      -0.0,
+      0.987688,
+      0.0,
+      -3.78,
+      3.22,
+      3.88,
+      1.0
+     ]
+    },
+    {
+     "name": "P_CardboardBox.004",
+     "initial_open": [],
+     "translation": [
+      2.6,
+      2.9,
+      6.45
+     ],
+     "rotation": [
+      0.0,
+      0.043619,
+      -0.0,
+      0.999048
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      0.996195,
+      -0.0,
+      -0.087156,
+      0.0,
+      0.0,
+      1.0,
+      -0.0,
+      0.0,
+      0.087156,
+      -0.0,
+      0.996195,
+      0.0,
+      2.6,
+      2.9,
+      6.45,
+      1.0
+     ]
+    }
+   ],
+   "lights": null,
+   "mount": null,
+   "parts": []
+  },
+  "CardboardBox_Open": {
+   "file": "CardboardBox_Open/CardboardBox_Open.gltf",
+   "physics": {
+    "kind": "dynamic",
+    "mass_kg": 1.5,
+    "breakable": false,
+    "collider": {
+     "shape": "box",
+     "center": [
+      0.0,
+      0.275,
+      -0.0
+     ],
+     "box_fallback": {
+      "center": [
+       0.0,
+       0.275,
+       -0.0
+      ],
+      "half_extents": [
+       0.27,
+       0.275,
+       0.21
+      ]
+     }
+    }
+   },
+   "instances": [
+    {
+     "name": "P_CardboardBox_Open",
+     "initial_open": [],
+     "translation": [
+      -0.6,
+      2.9,
+      -1.55
+     ],
+     "rotation": [
+      0.0,
+      0.173648,
+      -0.0,
+      0.984808
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      0.939693,
+      -0.0,
+      -0.34202,
+      0.0,
+      0.0,
+      1.0,
+      -0.0,
+      0.0,
+      0.34202,
+      -0.0,
+      0.939693,
+      0.0,
+      -0.6,
+      2.9,
+      -1.55,
+      1.0
+     ]
+    },
+    {
+     "name": "P_CardboardBox_Open.001",
+     "initial_open": [],
+     "translation": [
+      -2.5,
+      2.9,
+      3.8
+     ],
+     "rotation": [
+      0.0,
+      -0.130526,
+      0.0,
+      0.991445
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      0.965926,
+      0.0,
+      0.258819,
+      0.0,
+      -0.0,
+      1.0,
+      -0.0,
+      0.0,
+      -0.258819,
+      -0.0,
+      0.965926,
+      0.0,
+      -2.5,
+      2.9,
+      3.8,
+      1.0
+     ]
+    }
+   ],
+   "lights": null,
+   "mount": null,
+   "parts": []
+  },
+  "StudyDesk": {
+   "file": "StudyDesk/StudyDesk.gltf",
+   "physics": {
+    "kind": "static",
+    "mass_kg": 30.0,
+    "breakable": false,
+    "collider": {
+     "shape": "box",
+     "center": [
+      0.0,
+      0.54,
+      -0.0
+     ],
+     "box_fallback": {
+      "center": [
+       0.0,
+       0.54,
+       -0.0
+      ],
+      "half_extents": [
+       0.55,
+       0.54,
+       0.3
+      ]
+     }
+    }
+   },
+   "instances": [
+    {
+     "name": "P_StudyDesk",
+     "initial_open": [],
+     "translation": [
+      -4.1,
+      2.9,
+      0.45
+     ],
+     "rotation": [
+      0.0,
+      0.707107,
+      -0.0,
+      0.707107
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      -0.0,
+      -0.0,
+      -1.0,
+      0.0,
+      0.0,
+      1.0,
+      -0.0,
+      0.0,
+      1.0,
+      -0.0,
+      -0.0,
+      0.0,
+      -4.1,
+      2.9,
+      0.45,
+      1.0
+     ]
+    }
+   ],
+   "lights": null,
+   "mount": null,
+   "parts": [
+    {
+     "node": "StudyDesk_Drawer_1",
+     "interact": "slide",
+     "axis": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "open_angle_deg": null,
+     "open_distance_m": 0.4,
+     "clip": "StudyDesk_Drawer_1_Open"
+    },
+    {
+     "node": "StudyDesk_Drawer_2",
+     "interact": "slide",
+     "axis": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "open_angle_deg": null,
+     "open_distance_m": 0.4,
+     "clip": "StudyDesk_Drawer_2_Open"
+    },
+    {
+     "node": "StudyDesk_Drawer_3",
+     "interact": "slide",
+     "axis": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "open_angle_deg": null,
+     "open_distance_m": 0.4,
+     "clip": "StudyDesk_Drawer_3_Open"
+    }
+   ]
+  },
+  "DeskChair": {
+   "file": "DeskChair/DeskChair.gltf",
+   "physics": {
+    "kind": "dynamic",
+    "mass_kg": 8.0,
+    "breakable": false,
+    "collider": {
+     "shape": "convex",
+     "center": [
+      0.0208,
+      0.44,
+      0.0
+     ],
+     "source": "render_mesh",
+     "box_fallback": {
+      "center": [
+       0.0208,
+       0.44,
+       0.0
+      ],
+      "half_extents": [
+       0.2492,
+       0.44,
+       0.2628
+      ]
+     }
+    }
+   },
+   "instances": [
+    {
+     "name": "P_DeskChair",
+     "initial_open": [],
+     "translation": [
+      -3.45,
+      2.9,
+      0.4
+     ],
+     "rotation": [
+      0.0,
+      -0.642788,
+      0.0,
+      0.766044
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      0.173648,
+      0.0,
+      0.984808,
+      0.0,
+      -0.0,
+      1.0,
+      -0.0,
+      0.0,
+      -0.984808,
+      -0.0,
+      0.173648,
+      0.0,
+      -3.45,
+      2.9,
+      0.4,
+      1.0
+     ]
+    }
+   ],
+   "lights": null,
+   "mount": null,
+   "parts": []
+  },
+  "Bookshelf": {
+   "file": "Bookshelf/Bookshelf.gltf",
+   "physics": {
+    "kind": "static",
+    "mass_kg": 35.0,
+    "breakable": false,
+    "collider": {
+     "shape": "box",
+     "center": [
+      0.0,
+      0.9,
+      -0.0
+     ],
+     "box_fallback": {
+      "center": [
+       0.0,
+       0.9,
+       -0.0
+      ],
+      "half_extents": [
+       0.4,
+       0.9,
+       0.15
+      ]
+     }
+    }
+   },
+   "instances": [
+    {
+     "name": "P_Bookshelf",
+     "initial_open": [],
+     "translation": [
+      -3.6,
+      2.9,
+      -2.0
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      -3.6,
+      2.9,
+      -2.0,
+      1.0
+     ]
+    }
+   ],
+   "lights": null,
+   "mount": null,
+   "parts": []
+  },
+  "ShoeCabinet": {
+   "file": "ShoeCabinet/ShoeCabinet.gltf",
+   "physics": {
+    "kind": "static",
+    "mass_kg": 20.0,
+    "breakable": false,
+    "collider": {
+     "shape": "box",
+     "center": [
+      0.0,
+      0.45,
+      -0.0
+     ],
+     "box_fallback": {
+      "center": [
+       0.0,
+       0.45,
+       -0.0
+      ],
+      "half_extents": [
+       0.45,
+       0.45,
+       0.18
+      ]
+     }
+    }
+   },
+   "instances": [
+    {
+     "name": "P_ShoeCabinet",
+     "initial_open": [],
+     "translation": [
+      2.4,
+      0.0,
+      6.71
+     ],
+     "rotation": [
+      -0.0,
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      -1.0,
+      0.0,
+      0.0,
+      0.0,
+      -0.0,
+      1.0,
+      -0.0,
+      0.0,
+      -0.0,
+      -0.0,
+      -1.0,
+      0.0,
+      2.4,
+      0.0,
+      6.71,
+      1.0
+     ]
+    }
+   ],
+   "lights": null,
+   "mount": null,
+   "parts": [
+    {
+     "node": "ShoeCabinet_Door_L",
+     "interact": "hinge",
+     "axis": [
+      0.0,
+      1.0,
+      -0.0
+     ],
+     "open_angle_deg": -100,
+     "open_distance_m": null,
+     "clip": "ShoeCabinet_Door_L_Open"
+    },
+    {
+     "node": "ShoeCabinet_Door_R",
+     "interact": "hinge",
+     "axis": [
+      0.0,
+      1.0,
+      -0.0
+     ],
+     "open_angle_deg": 100,
+     "open_distance_m": null,
+     "clip": "ShoeCabinet_Door_R_Open"
+    }
+   ]
+  },
+  "Shoes_Pair": {
+   "file": "Shoes_Pair/Shoes_Pair.gltf",
+   "physics": {
+    "kind": "throwable",
+    "mass_kg": 0.8,
+    "breakable": false,
+    "collider": {
+     "shape": "box",
+     "center": [
+      0.0,
+      0.0425,
+      -0.0016
+     ],
+     "box_fallback": {
+      "center": [
+       0.0,
+       0.0425,
+       -0.0016
+      ],
+      "half_extents": [
+       0.1156,
+       0.0425,
+       0.1416
+      ]
+     }
+    }
+   },
+   "instances": [
+    {
+     "name": "P_Shoes_Pair",
+     "initial_open": [],
+     "translation": [
+      0.9,
+      0.0,
+      6.6
+     ],
+     "rotation": [
+      0.0,
+      0.069756,
+      -0.0,
+      0.997564
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      0.990268,
+      -0.0,
+      -0.139173,
+      0.0,
+      0.0,
+      1.0,
+      -0.0,
+      0.0,
+      0.139173,
+      -0.0,
+      0.990268,
+      0.0,
+      0.9,
+      0.0,
+      6.6,
+      1.0
+     ]
+    },
+    {
+     "name": "P_Shoes_Pair.001",
+     "initial_open": [],
+     "translation": [
+      1.45,
+      0.0,
+      6.45
+     ],
+     "rotation": [
+      0.0,
+      -0.21644,
+      0.0,
+      0.976296
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      0.906308,
+      0.0,
+      0.422618,
+      0.0,
+      -0.0,
+      1.0,
+      -0.0,
+      0.0,
+      -0.422618,
+      -0.0,
+      0.906308,
+      0.0,
+      1.45,
+      0.0,
+      6.45,
+      1.0
+     ]
+    }
+   ],
+   "lights": null,
+   "mount": null,
+   "parts": []
+  },
+  "UmbrellaStand": {
+   "file": "UmbrellaStand/UmbrellaStand.gltf",
+   "physics": {
+    "kind": "throwable",
+    "mass_kg": 3.0,
+    "breakable": false,
+    "collider": {
+     "shape": "cylinder",
+     "center": [
+      0.0,
+      0.445,
+      -0.0
+     ],
+     "axis": "Y",
+     "radius": 0.12,
+     "half_height": 0.445,
+     "box_fallback": {
+      "center": [
+       0.0,
+       0.445,
+       -0.0
+      ],
+      "half_extents": [
+       0.12,
+       0.445,
+       0.12
+      ]
+     }
+    }
+   },
+   "instances": [
+    {
+     "name": "P_UmbrellaStand",
+     "initial_open": [],
+     "translation": [
+      0.45,
+      0.0,
+      6.62
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.45,
+      0.0,
+      6.62,
+      1.0
+     ]
+    }
+   ],
+   "lights": null,
+   "mount": null,
+   "parts": []
+  },
+  "Sofa_Old": {
+   "file": "Sofa_Old/Sofa_Old.gltf",
+   "physics": {
+    "kind": "static",
+    "mass_kg": 40.0,
+    "breakable": false,
+    "collider": {
+     "shape": "box",
+     "center": [
+      0.0,
+      0.425,
+      -0.0
+     ],
+     "box_fallback": {
+      "center": [
+       0.0,
+       0.425,
+       -0.0
+      ],
+      "half_extents": [
+       0.9,
+       0.425,
+       0.4
+      ]
+     }
+    }
+   },
+   "instances": [
+    {
+     "name": "P_Sofa_Old",
+     "initial_open": [],
+     "translation": [
+      0.5,
+      2.9,
+      5.0
+     ],
+     "rotation": [
+      0.0,
+      0.707107,
+      -0.0,
+      0.707107
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      -0.0,
+      -0.0,
+      -1.0,
+      0.0,
+      0.0,
+      1.0,
+      -0.0,
+      0.0,
+      1.0,
+      -0.0,
+      -0.0,
+      0.0,
+      0.5,
+      2.9,
+      5.0,
+      1.0
+     ]
+    }
+   ],
+   "lights": null,
+   "mount": null,
+   "parts": []
+  },
+  "TVStand": {
+   "file": "TVStand/TVStand.gltf",
+   "physics": {
+    "kind": "dynamic",
+    "mass_kg": 12.0,
+    "breakable": false,
+    "collider": {
+     "shape": "box",
+     "center": [
+      0.0,
+      0.225,
+      -0.0
+     ],
+     "box_fallback": {
+      "center": [
+       0.0,
+       0.225,
+       -0.0
+      ],
+      "half_extents": [
+       0.38,
+       0.225,
+       0.27
+      ]
+     }
+    }
+   },
+   "instances": [
+    {
+     "name": "P_TVStand",
+     "initial_open": [],
+     "translation": [
+      4.14,
+      -0.0,
+      -4.6
+     ],
+     "rotation": [
+      -0.0,
+      -0.707107,
+      0.0,
+      0.707107
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      -0.0,
+      0.0,
+      1.0,
+      0.0,
+      -0.0,
+      1.0,
+      -0.0,
+      0.0,
+      -1.0,
+      -0.0,
+      -0.0,
+      0.0,
+      4.14,
+      -0.0,
+      -4.6,
+      1.0
+     ]
+    }
+   ],
+   "lights": null,
+   "mount": null,
+   "parts": [
+    {
+     "node": "TVStand_Door_L",
+     "interact": "hinge",
+     "axis": [
+      0.0,
+      1.0,
+      -0.0
+     ],
+     "open_angle_deg": -100,
+     "open_distance_m": null,
+     "clip": "TVStand_Door_L_Open"
+    },
+    {
+     "node": "TVStand_Door_R",
+     "interact": "hinge",
+     "axis": [
+      0.0,
+      1.0,
+      -0.0
+     ],
+     "open_angle_deg": 100,
+     "open_distance_m": null,
+     "clip": "TVStand_Door_R_Open"
+    }
+   ]
+  },
+  "ButsudanStand": {
+   "file": "ButsudanStand/ButsudanStand.gltf",
+   "physics": {
+    "kind": "static",
+    "mass_kg": 30.0,
+    "breakable": false,
+    "collider": {
+     "shape": "box",
+     "center": [
+      0.0,
+      0.375,
+      0.0025
+     ],
+     "box_fallback": {
+      "center": [
+       0.0,
+       0.375,
+       0.0025
+      ],
+      "half_extents": [
+       0.3,
+       0.375,
+       0.2275
+      ]
+     }
+    }
+   },
+   "instances": [
+    {
+     "name": "P_ButsudanStand",
+     "initial_open": [],
+     "translation": [
+      -2.5,
+      -0.0,
+      -6.43
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      -2.5,
+      -0.0,
+      -6.43,
+      1.0
+     ]
+    }
+   ],
+   "lights": null,
+   "mount": null,
+   "parts": [
+    {
+     "node": "ButsudanStand_Door_L",
+     "interact": "hinge",
+     "axis": [
+      0.0,
+      1.0,
+      -0.0
+     ],
+     "open_angle_deg": -100,
+     "open_distance_m": null,
+     "clip": "ButsudanStand_Door_L_Open"
+    },
+    {
+     "node": "ButsudanStand_Door_R",
+     "interact": "hinge",
+     "axis": [
+      0.0,
+      1.0,
+      -0.0
+     ],
+     "open_angle_deg": 100,
+     "open_distance_m": null,
+     "clip": "ButsudanStand_Door_R_Open"
+    },
+    {
+     "node": "ButsudanStand_Drawer_1",
+     "interact": "slide",
+     "axis": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "open_angle_deg": null,
+     "open_distance_m": 0.3,
+     "clip": "ButsudanStand_Drawer_1_Open"
+    },
+    {
+     "node": "ButsudanStand_Drawer_2",
+     "interact": "slide",
+     "axis": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "open_angle_deg": null,
+     "open_distance_m": 0.3,
+     "clip": "ButsudanStand_Drawer_2_Open"
+    }
+   ]
+  },
+  "PorchCeilingLight": {
+   "file": "PorchCeilingLight/PorchCeilingLight.gltf",
+   "physics": {
+    "kind": "static",
+    "mass_kg": 1.2,
+    "breakable": true,
+    "collider": {
+     "shape": "sphere",
+     "center": [
+      0.0,
+      -0.0875,
+      0.0
+     ],
+     "radius": 0.115,
+     "box_fallback": {
+      "center": [
+       0.0,
+       -0.0875,
+       0.0
+      ],
+      "half_extents": [
+       0.115,
+       0.0875,
+       0.115
+      ]
+     }
+    }
+   },
+   "instances": [
+    {
+     "name": "P_PorchCeilingLight",
+     "initial_open": [],
+     "translation": [
+      1.2,
+      2.33184,
+      7.47
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "matrix": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      1.2,
+      2.33184,
+      7.47,
+      1.0
+     ]
+    }
+   ],
+   "lights": [
+    {
+     "type": "spot",
+     "position": [
+      0.0,
+      -0.19,
+      0.0
+     ],
+     "direction": [
+      0.0,
+      -0.9837,
+      -0.1796
+     ],
+     "color": [
+      1.0,
+      0.78,
+      0.52
+     ],
+     "intensity_cd": 450.0,
+     "range_m": 8.0,
+     "inner_cone_deg": 40.0,
+     "outer_cone_deg": 68.0,
+     "cast_shadows": true,
+     "flicker": 0.08,
+     "note": "place just below the glass; exclude the fixture mesh from this light's shadow casters"
+    },
+    {
+     "type": "point",
+     "position": [
+      0.0,
+      -0.19,
+      0.0
+     ],
+     "color": [
+      1.0,
+      0.78,
+      0.52
+     ],
+     "intensity_cd": 25.0,
+     "range_m": 3.0,
+     "cast_shadows": false,
+     "note": "glow on canopy soffit / wall"
+    }
+   ],
+   "mount": "ceiling (origin = mounting point, hangs toward -Y in glTF)",
+   "parts": []
+  }
+ }
+}

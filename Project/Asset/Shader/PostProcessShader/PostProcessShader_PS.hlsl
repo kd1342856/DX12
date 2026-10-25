@@ -106,5 +106,7 @@ float4 main(PSInput In) : SV_Target0
         sceneColor += (grain - 0.5) * g_FilmGrainIntensity;
     }
 
+    sceneColor = pow(saturate(sceneColor), 1.0 / max(g_BrightnessGamma, 0.01));
+
     return float4(saturate(sceneColor), 1.0);
 }

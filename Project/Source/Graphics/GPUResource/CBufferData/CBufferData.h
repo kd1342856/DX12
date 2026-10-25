@@ -159,6 +159,6 @@ namespace CBufferData
 		uint32_t GodRaysNumSamples;
 		uint32_t EnableGodRays;
 		float GodRaysIntensity;
-		float Pad;
+		float BrightnessGamma;
 	};
 }

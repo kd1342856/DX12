@@ -76,6 +76,7 @@ struct PostProcessSettings
     bool EnableHDR = true;
     float Gamma = 1.00f;
     float Exposure = 0.30f;
+    float BrightnessGamma = 1.00f;
 
     // Bloom - 半径・反復回数を上げてはじめて「ふわっと広がる」見た目になる。
     // 閾値/強度だけいじっても変化が薄いのはこのため。

@@ -40,6 +40,11 @@ struct MaterialConstants
     Math::Vector3 dissolveEdgeColor = { 0.0f, 0.0f, 0.0f };
     float dissolveHeight = 0.0f;
     float dissolveEdgeWidth = 0.15f; // 光る帯の幅と、境界のギザギザの大きさ(m)
+
+    // 発光(Emissive)を表面・裏面それぞれ何倍にするか。裏面 = 頂点法線がカメラと反対を向いている面。
+    // 吊り下げ照明のかさのように「内側だけが蛍光ランプの光を受けて明るい」面を作るのに使う(表0・裏1)。
+    float emissiveFrontScale = 1.0f;
+    float emissiveBackScale = 1.0f;
 };
 
 class Material

@@ -2,149 +2,279 @@
     "hierarchyFolders": [
         {
             "id": 1,
-            "name": "Player",
+            "name": "System",
             "open": true,
             "parent": 0
         },
         {
             "id": 2,
-            "name": "Item",
-            "open": false,
-            "parent": 1
+            "name": "Player",
+            "open": true,
+            "parent": 0
         },
         {
             "id": 3,
-            "name": "Rooms",
+            "name": "HeldItems",
+            "open": false,
+            "parent": 2
+        },
+        {
+            "id": 4,
+            "name": "Enemy",
             "open": true,
             "parent": 0
         },
         {
-            "id": 4,
+            "id": 5,
+            "name": "World",
+            "open": true,
+            "parent": 0
+        },
+        {
+            "id": 6,
+            "name": "Rooms",
+            "open": true,
+            "parent": 5
+        },
+        {
+            "id": 7,
+            "name": "Lights",
+            "open": false,
+            "parent": 5
+        },
+        {
+            "id": 8,
+            "name": "Switches",
+            "open": false,
+            "parent": 7
+        },
+        {
+            "id": 9,
             "name": "UI",
             "open": true,
             "parent": 0
+        },
+        {
+            "id": 10,
+            "name": "Inventory",
+            "open": false,
+            "parent": 9
+        },
+        {
+            "id": 11,
+            "name": "Props",
+            "open": false,
+            "parent": 5
+        },
+        {
+            "id": 12,
+            "name": "Room2",
+            "open": false,
+            "parent": 11
+        },
+        {
+            "id": 13,
+            "name": "Room1",
+            "open": false,
+            "parent": 11
+        },
+        {
+            "id": 14,
+            "name": "JPRoomF2",
+            "open": false,
+            "parent": 11
+        },
+        {
+            "id": 15,
+            "name": "JPRoomF1",
+            "open": false,
+            "parent": 11
+        },
+        {
+            "id": 16,
+            "name": "Hallway2F",
+            "open": false,
+            "parent": 11
+        },
+        {
+            "id": 17,
+            "name": "Kitchen",
+            "open": false,
+            "parent": 11
+        },
+        {
+            "id": 18,
+            "name": "Outside",
+            "open": false,
+            "parent": 11
+        },
+        {
+            "id": 19,
+            "name": "Hallway1F",
+            "open": false,
+            "parent": 11
         }
     ],
     "hierarchyObjects": [
         {
-            "folder": 1,
-            "uuid": 16068478245115262117
-        },
-        {
-            "folder": 2,
-            "uuid": 1000000000000000301
-        },
-        {
-            "folder": 2,
-            "uuid": 1000000000000000302
-        },
-        {
-            "folder": 2,
-            "uuid": 1000000000000000201
-        },
-        {
-            "folder": 2,
-            "uuid": 1000000000000000303
-        },
-        {
-            "folder": 2,
-            "uuid": 1000000000000000202
-        },
-        {
-            "folder": 1,
-            "uuid": 1000000000000000401
-        },
-        {
-            "folder": 3,
-            "uuid": 4799406210541874815
-        },
-        {
-            "folder": 2,
-            "uuid": 1000000000000000203
-        },
-        {
-            "folder": 3,
+            "folder": 7,
             "uuid": 11588783537782773580
         },
         {
-            "folder": 3,
+            "folder": 6,
             "uuid": 8086630826877893660
         },
         {
-            "folder": 3,
-            "uuid": 9796608191042079858
-        },
-        {
-            "folder": 3,
-            "uuid": 6789905301624460585
-        },
-        {
-            "folder": 3,
-            "uuid": 7351902468135791357
-        },
-        {
-            "folder": 3,
-            "uuid": 8129261972548479581
-        },
-        {
-            "folder": 3,
-            "uuid": 7351902468135791358
-        },
-        {
-            "folder": 3,
-            "uuid": 7351902468135791359
-        },
-        {
-            "folder": 3,
-            "uuid": 6531053863017666774
+            "folder": 1,
+            "uuid": 11475986764733608305
         },
         {
             "folder": 4,
-            "uuid": 1000000000000000211
+            "uuid": 6950429769382998314
         },
         {
             "folder": 3,
-            "uuid": 18334743359149961339
-        },
-        {
-            "folder": 3,
-            "uuid": 16199844191969510142
-        },
-        {
-            "folder": 2,
             "uuid": 3855040649026313913
         },
         {
+            "folder": 1,
+            "uuid": 1111111111111111111
+        },
+        {
+            "folder": 2,
+            "uuid": 16068478245115262117
+        },
+        {
+            "folder": 5,
+            "uuid": 16199844191969510142
+        },
+        {
             "folder": 3,
+            "uuid": 1000000000000000302
+        },
+        {
+            "folder": 3,
+            "uuid": 1000000000000000303
+        },
+        {
+            "folder": 5,
+            "uuid": 17512716799706281348
+        },
+        {
+            "folder": 6,
+            "uuid": 9796608191042079858
+        },
+        {
+            "folder": 6,
+            "uuid": 6789905301624460585
+        },
+        {
+            "folder": 6,
+            "uuid": 7351902468135791357
+        },
+        {
+            "folder": 6,
+            "uuid": 8129261972548479581
+        },
+        {
+            "folder": 10,
+            "uuid": 1000000000000000211
+        },
+        {
+            "folder": 6,
+            "uuid": 18334743359149961339
+        },
+        {
+            "folder": 7,
+            "uuid": 6531053863017666774
+        },
+        {
+            "folder": 8,
+            "uuid": 12546499045118094765
+        },
+        {
+            "folder": 6,
+            "uuid": 7351902468135791358
+        },
+        {
+            "folder": 6,
+            "uuid": 7351902468135791359
+        },
+        {
+            "folder": 7,
             "uuid": 5601977343754321203
         },
         {
-            "folder": 3,
+            "folder": 7,
             "uuid": 12801642757453076062
         },
         {
-            "folder": 4,
-            "uuid": 1000000000000000212
+            "folder": 7,
+            "uuid": 10669521301444440440
         },
         {
-            "folder": 4,
-            "uuid": 1000000000000000213
-        },
-        {
-            "folder": 4,
-            "uuid": 1000000000000000214
-        },
-        {
-            "folder": 4,
-            "uuid": 1000000000000000402
-        },
-        {
-            "folder": 3,
+            "folder": 8,
             "uuid": 14155990107876465306
         },
         {
-            "folder": 3,
-            "uuid": 10669521301444440440
+            "folder": 7,
+            "uuid": 8273845757325692782
+        },
+        {
+            "folder": 7,
+            "uuid": 15370364597132927120
+        },
+        {
+            "folder": 7,
+            "uuid": 15202175635625740
+        },
+        {
+            "folder": 7,
+            "uuid": 6646752416635354845
+        },
+        {
+            "folder": 7,
+            "uuid": 11163502993312952864
+        },
+        {
+            "folder": 10,
+            "uuid": 1000000000000000203
+        },
+        {
+            "folder": 8,
+            "uuid": 4799406210541874815
+        },
+        {
+            "folder": 8,
+            "uuid": 13239506173795382405
+        },
+        {
+            "folder": 8,
+            "uuid": 8969881144613944906
+        },
+        {
+            "folder": 9,
+            "uuid": 1000000000000000402
+        },
+        {
+            "folder": 9,
+            "uuid": 1000000000000000401
+        },
+        {
+            "folder": 10,
+            "uuid": 1000000000000000202
+        },
+        {
+            "folder": 10,
+            "uuid": 1000000000000000212
+        },
+        {
+            "folder": 10,
+            "uuid": 1000000000000000213
+        },
+        {
+            "folder": 10,
+            "uuid": 1000000000000000204
         }
     ]
 }
