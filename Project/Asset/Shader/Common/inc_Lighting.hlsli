@@ -142,6 +142,13 @@ float3 EvaluatePointLight(SurfaceData surface, PointLight light)
 }
 
 //------------------------------------------
+// DDGI(C++のDDGIVolumeが更新する拡散の環境光のプローブ)
+//------------------------------------------
+#include "inc_DDGI.hlsli"
+Texture2D<float4> g_ddgiIrradiance : register(t23);
+Texture2D<float2> g_ddgiDistance : register(t24);
+
+//------------------------------------------
 // 反射プローブ(C++のReflectionProbesが部屋ごとに撮る)
 //------------------------------------------
 TextureCubeArray g_reflectionProbes : register(t22);
@@ -198,9 +205,9 @@ float4 SampleReflectionProbes(SurfaceData surface, SamplerState probeSampler)
 }
 
 // 環境光(拡散と鏡面)。拡散と、反射プローブが無いところの鏡面は、ダミーIBL(空と地面の2色)を使う。
-// ダミーの拡散はStep 5のGIで置き換えるまでの仮のもの。2色の値1.0がg_IBLLuminance(nit×露出)になる。
+// ダミーの拡散は、DDGIのボリュームの外だけに使う(giCoverageが1なら使わない)。2色の値1.0がg_IBLLuminance(nit×露出)になる。
 // dummyVisibilityはダミーの環境光だけに掛ける(月の影・室内。プローブは部屋の中の光を撮ってあるので掛けない)
-float3 EvaluateEnvironmentLighting(SurfaceData surface, float specularOcclusion, float dummyVisibility, SamplerState probeSampler)
+float3 EvaluateEnvironmentLighting(SurfaceData surface, float specularOcclusion, float dummyVisibility, float giCoverage, SamplerState probeSampler)
 {
     const float3 skyColor = float3(0.5, 0.6, 0.8);
     const float3 groundColor = float3(0.3, 0.25, 0.2);
@@ -208,7 +215,7 @@ float3 EvaluateEnvironmentLighting(SurfaceData surface, float specularOcclusion,
     // 拡散
     const float envWeight = surface.normal.y * 0.5 + 0.5;
     const float3 envDiff = lerp(groundColor, skyColor, envWeight) * 1.5 * g_IBLLuminance;
-    const float3 diffuse = envDiff * surface.diffuseColor / 3.141592 * dummyVisibility;
+    const float3 diffuse = envDiff * surface.diffuseColor / 3.141592 * dummyVisibility * (1.0 - giCoverage);
 
     // 鏡面: 反射プローブ、無いところはダミー
     const float3 vRef = reflect(-surface.viewDir, surface.normal);

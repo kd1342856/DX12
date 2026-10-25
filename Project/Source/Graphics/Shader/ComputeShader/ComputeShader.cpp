@@ -4,13 +4,13 @@
 
 namespace
 {
-    D3D12_STATIC_SAMPLER_DESC MakeClampSampler(D3D12_FILTER filter, UINT shaderRegister)
+    D3D12_STATIC_SAMPLER_DESC MakeSampler(D3D12_FILTER filter, D3D12_TEXTURE_ADDRESS_MODE addressMode, UINT shaderRegister)
     {
         D3D12_STATIC_SAMPLER_DESC samplerDesc = {};
         samplerDesc.Filter = filter;
-        samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
-        samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
-        samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+        samplerDesc.AddressU = addressMode;
+        samplerDesc.AddressV = addressMode;
+        samplerDesc.AddressW = addressMode;
         samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
         samplerDesc.BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
         samplerDesc.MaxAnisotropy = 1;
@@ -42,19 +42,25 @@ void ComputeShader::InitializeShared(ID3D12Device* pDevice)
         return;
     }
 
-    D3D12_ROOT_PARAMETER1 rootParameters[2] = {};
+    // [0]が32ビットの定数(b0)、[1]～[4]が定数バッファ(b1～b4)
+    D3D12_ROOT_PARAMETER1 rootParameters[1 + kLastConstantBufferRegister] = {};
     rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
     rootParameters[0].Constants.ShaderRegister = 0;
     rootParameters[0].Constants.Num32BitValues = kMaxRootConstants;
     rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-    rootParameters[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
-    rootParameters[1].Descriptor.ShaderRegister = 1;
-    rootParameters[1].Descriptor.Flags = D3D12_ROOT_DESCRIPTOR_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE;
-    rootParameters[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+    for (UINT shaderRegister = 1; shaderRegister <= kLastConstantBufferRegister; ++shaderRegister)
+    {
+        D3D12_ROOT_PARAMETER1& parameter = rootParameters[shaderRegister];
+        parameter.ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+        parameter.Descriptor.ShaderRegister = shaderRegister;
+        parameter.Descriptor.Flags = D3D12_ROOT_DESCRIPTOR_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE;
+        parameter.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+    }
 
     const D3D12_STATIC_SAMPLER_DESC samplers[] = {
-        MakeClampSampler(D3D12_FILTER_MIN_MAG_MIP_POINT, 0),
-        MakeClampSampler(D3D12_FILTER_MIN_MAG_MIP_LINEAR, 1),
+        MakeSampler(D3D12_FILTER_MIN_MAG_MIP_POINT, D3D12_TEXTURE_ADDRESS_MODE_CLAMP, 0),
+        MakeSampler(D3D12_FILTER_MIN_MAG_MIP_LINEAR, D3D12_TEXTURE_ADDRESS_MODE_CLAMP, 1),
+        MakeSampler(D3D12_FILTER_MIN_MAG_MIP_LINEAR, D3D12_TEXTURE_ADDRESS_MODE_WRAP, 2),
     };
 
     D3D12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc = {};
@@ -128,9 +134,11 @@ void ComputeShader::SetConstantsRaw(const void* pData, UINT count) const
     GraphicsDevice::Instance().GetCmdList()->SetComputeRoot32BitConstants(0, count, pData, 0);
 }
 
-void ComputeShader::SetConstantBufferAddress(D3D12_GPU_VIRTUAL_ADDRESS address) const
+void ComputeShader::SetConstantBufferAddress(UINT shaderRegister, D3D12_GPU_VIRTUAL_ADDRESS address) const
 {
-    GraphicsDevice::Instance().GetCmdList()->SetComputeRootConstantBufferView(1, address);
+    assert(shaderRegister >= 1 && shaderRegister <= kLastConstantBufferRegister && "定数バッファのレジスタはb1～b4");
+    // ルートパラメーターの番号はレジスタの番号と同じ
+    GraphicsDevice::Instance().GetCmdList()->SetComputeRootConstantBufferView(shaderRegister, address);
 }
 
 void ComputeShader::Dispatch(UINT groupCountX, UINT groupCountY, UINT groupCountZ) const

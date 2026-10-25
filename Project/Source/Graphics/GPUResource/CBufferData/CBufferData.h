@@ -108,6 +108,11 @@ namespace CBufferData
 		Math::Vector4 ProbeBoxMin[16];
 		Math::Vector4 ProbeBoxMax[16];
 		Math::Vector4 ProbeCapturePosition[16]; // xyz: 撮った位置、w: 露出の比(今の露出 ÷ 撮ったときの露出)。0なら未撮影
+
+		// DDGI(DDGIVolumeが毎フレーム書く)
+		Math::Vector4 DDGIOrigin;    // xyz: 最初のプローブの位置、w: プローブの間隔(m)
+		DirectX::XMINT4 DDGICounts;  // xyz: 各軸のプローブの数、w: テクスチャの1行に並べるプローブの数
+		Math::Vector4 DDGIParams;    // x: 有効(1)か、y: 法線の向きへずらす量、z: カメラの向きへずらす量
 	};
 
 	struct SSAO

@@ -23,6 +23,8 @@
 #include "../../Graphics/Renderer/MotionBlur.h"
 #include "../../Graphics/Renderer/EnvironmentBRDF.h"
 #include "../../Graphics/Renderer/ReflectionProbes.h"
+#include "../../Graphics/Renderer/RaytracingScene.h"
+#include "../../Graphics/Renderer/DDGIVolume.h"
 #include "Scene/Scene.h"
 #include "../Object/GameObject.h"
 #include "../ECS/CompSystem/Systems/RenderSystem.h"
@@ -167,6 +169,9 @@ void GameManager::Init()
     MotionBlur::Instance().Initialize(Renderer::GetRenderWidth(), Renderer::GetRenderHeight());
     EnvironmentBRDF::Instance().Initialize();
     ReflectionProbes::Instance().Initialize();
+    // レイトレース(DXR 1.1)とDDGI
+    RaytracingScene::Instance().Initialize();
+    DDGIVolume::Instance().Initialize();
 }
 
 void GameManager::Update(float deltaTime, class Scene* pScene)

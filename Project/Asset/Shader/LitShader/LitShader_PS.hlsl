@@ -419,7 +419,11 @@ PSOutput main(VSOutput In) : SV_Target0
     float2 screenUV = In.Pos.xy / float2(g_ScreenWidth, g_ScreenHeight);
     float ssao = g_ssaoMap.Sample(g_ss_linear_clamp, screenUV).r;
 
-    color += g_AmbientLight * baseColor.rgb * baseColor.a * occlusion * ssao * moonVisibility;
+    // 拡散の環境光: DDGIのプローブ(絶対の値なので露出を掛ける)。ボリュームの外は今までの環境光の定数
+    float giCoverage;
+    const float3 giIrradiance = SampleDDGIIrradiance(In.wPos, wN, vCam, g_ddgiIrradiance, g_ddgiDistance, g_ss_linear_clamp, giCoverage);
+    const float3 ambient = lerp(g_AmbientLight * baseColor.rgb * moonVisibility, baseDiffuse * giIrradiance * g_Exposure, giCoverage);
+    color += ambient * baseColor.a * occlusion * ssao;
     
     //------------------
     // エミッシブ
@@ -446,7 +450,7 @@ PSOutput main(VSOutput In) : SV_Target0
     float specAO = occlusion * ssao;
     float specOcclusion = saturate(pow(NdotV + specAO, exp2(-16.0 * roughness2 - 1.0)) - 1.0 + specAO);
 
-    color += EvaluateEnvironmentLighting(surface, specOcclusion, moonVisibility, g_ss_linear_clamp);
+    color += EvaluateEnvironmentLighting(surface, specOcclusion, moonVisibility, giCoverage, g_ss_linear_clamp);
 
     //------------------------------------------
     // 距離フォグ

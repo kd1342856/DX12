@@ -7,6 +7,7 @@
 #include "../../../Graphics/Device/GraphicsDevice.h"
 #include "../../Renderer/EnvironmentBRDF.h"
 #include "../../Renderer/ReflectionProbes.h"
+#include "../../Renderer/DDGIVolume.h"
 
 class ModelData;
 struct Node;
@@ -74,6 +75,38 @@ protected:
 		}
 		auto handle = m_pDevice->GetDescriptorHeapManager()->GetCBVSRVUAVAllocator()->GetGPUHandle(srvIndex);
 		m_pDevice->GetCmdList()->SetGraphicsRootDescriptorTable(rootIndex, handle);
+	}
+
+	// DDGIの放射照度(t23)と距離(t24)を束縛する。使えないときは何かを入れておく
+	// (定数バッファで無効になっているので、シェーダーは読まない)
+	void BindDDGI()
+	{
+		const DDGIVolume& volume = DDGIVolume::Instance();
+		const int irradianceRoot = GetRootParameterIndex(ShaderBindingType::SRV, DDGIVolume::kIrradianceRegister);
+		const int distanceRoot = GetRootParameterIndex(ShaderBindingType::SRV, DDGIVolume::kDistanceRegister);
+		auto* pAllocator = m_pDevice->GetDescriptorHeapManager()->GetCBVSRVUAVAllocator();
+		if (irradianceRoot != -1)
+		{
+			if (volume.IsAvailable())
+			{
+				m_pDevice->GetCmdList()->SetGraphicsRootDescriptorTable(irradianceRoot, pAllocator->GetGPUHandle(volume.GetIrradianceSRVIndex()));
+			}
+			else
+			{
+				m_pDevice->GetBlackTex()->Set(irradianceRoot);
+			}
+		}
+		if (distanceRoot != -1)
+		{
+			if (volume.IsAvailable())
+			{
+				m_pDevice->GetCmdList()->SetGraphicsRootDescriptorTable(distanceRoot, pAllocator->GetGPUHandle(volume.GetDistanceSRVIndex()));
+			}
+			else
+			{
+				m_pDevice->GetBlackTex()->Set(distanceRoot);
+			}
+		}
 	}
 
 	// 反射プローブのキューブ配列(t22)を束縛する。使えないときは何かを入れておく

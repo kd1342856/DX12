@@ -41,6 +41,8 @@ private:
     void BeginTemporalFrame(Entity cameraEntity);
     // 反射プローブを1面撮る(局所光源の影を描いた後、メインの描画の前に呼ぶ)
     void CaptureReflectionProbe();
+    // レイトレースの加速構造を作り、DDGIのプローブを更新する(局所光源の影の後、反射プローブとメインの描画の前に呼ぶ)
+    void UpdateGlobalIllumination();
     void EndTemporalFrame();
     // CameraData.m_isDebugPreviewを立てたカメラ(あれば1つ目)のTransformから見た絵を専用RTに
     // 描画する。RenderGame/RenderEditorどちらの後にもRender()から呼ぶ(反射カメラ等の他の

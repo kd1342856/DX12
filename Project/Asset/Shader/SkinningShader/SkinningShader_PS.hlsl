@@ -172,8 +172,11 @@ PSOutput main(VSOutput In)
     //------------------
     // 環境光・ダミーIBL
     //------------------
-    color += g_AmbientLight * baseColor.rgb * occlusion * moonVisibility;
-    color += EvaluateEnvironmentLighting(surface, occlusion, moonVisibility, g_ss);
+    // 拡散の環境光: DDGIのプローブ(絶対の値なので露出を掛ける)。ボリュームの外は今までの環境光の定数
+    float giCoverage;
+    const float3 giIrradiance = SampleDDGIIrradiance(In.wPos, wN, vCam, g_ddgiIrradiance, g_ddgiDistance, g_ss, giCoverage);
+    color += lerp(g_AmbientLight * baseColor.rgb * moonVisibility, surface.diffuseColor * giIrradiance * g_Exposure, giCoverage) * occlusion;
+    color += EvaluateEnvironmentLighting(surface, occlusion, moonVisibility, giCoverage, g_ss);
 
     color = ApplyDistanceFog(color, camDist);
 

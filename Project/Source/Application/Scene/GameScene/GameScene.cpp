@@ -31,6 +31,8 @@
 #include "../../../Graphics/Renderer/AutoExposure.h"
 #include "../../../Graphics/Renderer/MotionBlur.h"
 #include "../../../Graphics/Renderer/ReflectionProbes.h"
+#include "../../../Graphics/Renderer/RaytracingScene.h"
+#include "../../../Graphics/Renderer/DDGIVolume.h"
 #include "../../../Framework/Manager/Particle/ParticleManager.h"
 #include "../../../Framework/Manager/Audio/AudioManager.h"
 #include "../../UI/OptionMenu.h"
@@ -634,6 +636,7 @@ void GameScene::RenderGame()
 
         UpdateLights(m_gameCameraEntity);
         RenderLocalLightShadows();
+        UpdateGlobalIllumination();
         CaptureReflectionProbe();
         BeginTemporalFrame(m_gameCameraEntity);
         // 深度プリパス: シーンの深度と、SSAO・SSR用の法線を描く。メインの不透明の描画はこの深度にEQUALで描く
@@ -801,7 +804,37 @@ void GameScene::UpdateLights(Entity cameraEntity)
         auto& probes = ReflectionProbes::Instance();
         probes.SetVolumes(volumes);
         probes.FillShaderData(lightData, ShaderManager::Instance().GetExposure());
+
+        // DDGIのプローブは、全部の部屋をまとめた範囲に並べる
+        auto& ddgi = DDGIVolume::Instance();
+        if (!volumes.empty())
+        {
+            Math::Vector3 boundsMin = volumes[0].min;
+            Math::Vector3 boundsMax = volumes[0].max;
+            for (const ReflectionProbes::Volume& volume : volumes)
+            {
+                boundsMin = Math::Vector3::Min(boundsMin, volume.min);
+                boundsMax = Math::Vector3::Max(boundsMax, volume.max);
+            }
+            ddgi.SetBounds(boundsMin, boundsMax);
+        }
+        ddgi.FillShaderData(lightData);
     }
+}
+
+void GameScene::UpdateGlobalIllumination()
+{
+    auto renderSystem = GameManager::Instance().GetRenderSystem();
+    if (!renderSystem || !RaytracingScene::Instance().IsSupported())
+    {
+        return;
+    }
+    auto* pCmdList = GraphicsDevice::Instance().GetCmdList();
+    PROFILE_CPU_SCOPE("GlobalIllumination");
+    PROFILE_GPU_SCOPE(pCmdList, "GlobalIllumination");
+    renderSystem->BuildRaytracingScene();
+    const auto& shaderManager = ShaderManager::Instance();
+    DDGIVolume::Instance().Update(shaderManager.GetLightData(), shaderManager.GetSystemData());
 }
 
 void GameScene::CaptureReflectionProbe()
@@ -1064,6 +1097,7 @@ void GameScene::RenderEditor()
     {
         UpdateLights(m_editorCameraEntity);
         RenderLocalLightShadows();
+        UpdateGlobalIllumination();
         CaptureReflectionProbe();
         BeginTemporalFrame(m_editorCameraEntity);
         // 深度プリパス(RenderGameと同じ)。シーンの深度はここで描き直す

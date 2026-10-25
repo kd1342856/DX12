@@ -101,6 +101,13 @@ cbuffer cbLight : register(b3)
     float4 g_ProbeBoxMin[16];
     float4 g_ProbeBoxMax[16];
     float4 g_ProbeCapturePosition[16]; // xyz: 撮った位置、w: 露出の比。0なら未撮影
+
+    //-------------------------
+    // DDGI(拡散の環境光のプローブ。inc_DDGI.hlsli)
+    //-------------------------
+    float4 g_DDGIOrigin; // xyz: 最初のプローブの位置、w: プローブの間隔(m)
+    int4   g_DDGICounts; // xyz: 各軸のプローブの数、w: テクスチャの1行に並べるプローブの数
+    float4 g_DDGIParams; // x: 有効(1)か、y: 法線の向きへずらす量、z: カメラの向きへずらす量
 };
 
 // ワールド座標がいずれかの室内範囲(RoomArea)に入っているか

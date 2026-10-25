@@ -9,6 +9,7 @@
 #include "../../../../Graphics/Shader/VelocityShader/VelocityShader.h"
 #include "../../../../Graphics/Renderer/MotionVectors.h"
 #include "../../../../Graphics/Renderer/TemporalAA.h"
+#include "../../../../Graphics/Renderer/RaytracingScene.h"
 #include "../../../../Graphics/Renderer/ModelRenderer.h"
 #include "../../../../Graphics/Renderer/Renderer.h"
 #include "../../../../Graphics/Renderer/RenderManager.h"
@@ -954,6 +955,44 @@ public:
 		{
 			ParticleManager::Instance().Render(context);
 		}
+	}
+
+	// レイトレース(DDGI)の加速構造に、動かないモデルの不透明とアルファテストのメッシュを並べる。
+	// 照明の点灯(m_glowColor)による発光も、当たった所の明るさとして入れる
+	void BuildRaytracingScene()
+	{
+		if (!m_pCoordinator) return;
+		auto& scene = RaytracingScene::Instance();
+		if (!scene.IsSupported()) return;
+		PROFILE_CPU_SCOPE("BuildRaytracingScene");
+
+		scene.BeginFrame();
+		for (auto const& entity : m_entities)
+		{
+			auto& cTransform = m_pCoordinator->GetComponent<TransformData>(entity);
+			auto& cModel = m_pCoordinator->GetComponent<ModelRenderData>(entity);
+			if (!cModel.m_isVisible || !cModel.m_spModelData || !cModel.m_spModelData->IsLoaded()) continue;
+			if (cModel.m_modelType == ModelType::Dynamic || cModel.m_modelType == ModelType::Sky) continue;
+
+			const Math::Matrix& world = cTransform.m_worldMatrix;
+			const auto& nodes = cModel.m_spModelData->GetNodes();
+			for (size_t nodeIndex = 0; nodeIndex < nodes.size(); ++nodeIndex)
+			{
+				const auto& node = nodes[nodeIndex];
+				const Math::Matrix nodeWorld = cModel.GetNodeAnimDelta(nodeIndex, node) * world;
+				for (const auto& meshHandle : node.meshes)
+				{
+					Mesh* pMesh = MeshManager::Instance().Get(meshHandle);
+					if (!pMesh || !pMesh->IsReady()) continue;
+					// 半透明(ガラスなど)は光を通すものとして入れない
+					if (pMesh->GetMaterial().Constants.alphaMode == 2) continue;
+					Material glowScratch;
+					const Material& material = ResolveGlowMaterial(cModel, pMesh->GetMaterial(), glowScratch);
+					scene.AddInstance(*pMesh, material, nodeWorld);
+				}
+			}
+		}
+		scene.Build();
 	}
 
 	// 速度(モーションベクトル)を描く。メインの描画(RenderScene)の後に呼ぶ。

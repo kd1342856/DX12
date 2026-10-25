@@ -38,6 +38,10 @@ public:
 	const std::vector<MeshVertex>& GetVertices() const { return m_vertices; }
 	const std::vector<MeshFace>&   GetFaces()    const { return m_faces; }
 
+	// レイトレースの加速構造(RaytracingScene)を作るときと、当たった三角形を読むときに使う
+	const VertexBuffer& GetVertexBuffer() const { return m_vertexBuffer; }
+	const IndexBuffer& GetIndexBuffer() const { return m_indexBuffer; }
+
 	// ローカル空間のバウンディングボックス、CreateGPU()内で一度だけ計算される。
 	// メッシュコライダーの判定(CollisionSolverのMeshケース)で、全三角形の全頂点を
 	// 変換して結局どれも近くないと分かるくらいなら、ボックス1回の判定でメッシュ

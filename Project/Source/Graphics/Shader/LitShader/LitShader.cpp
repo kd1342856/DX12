@@ -134,9 +134,10 @@ void LitShader::Begin(RenderContext& context)
 
 	// 局所光源の影: t13に狭いスポットの2D配列、t14に点光源と広いスポットのキューブ配列
 	BindLocalShadowMaps();
-	// 環境BRDFのLUT(t21)と反射プローブ(t22)
+	// 環境BRDFのLUT(t21)、反射プローブ(t22)、DDGI(t23・t24)
 	BindEnvironmentBRDF();
 	BindReflectionProbes();
+	BindDDGI();
 }
 
 void LitShader::BeginNode(const ModelData::Node& node, const Math::Matrix& nodeWorld)

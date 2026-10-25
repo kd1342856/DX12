@@ -340,6 +340,8 @@
     <ClInclude Include="Source\Graphics\Shader\ShaderReflection\ShaderReflection.h" />
     <ClInclude Include="Source\Graphics\Renderer\EnvironmentBRDF.h" />
     <ClInclude Include="Source\Graphics\Renderer\ReflectionProbes.h" />
+    <ClInclude Include="Source\Graphics\Renderer\RaytracingScene.h" />
+    <ClInclude Include="Source\Graphics\Renderer\DDGIVolume.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Library\ImGui\imgui.cpp" />
@@ -488,6 +490,8 @@
     <ClCompile Include="Source\Graphics\Shader\ShaderReflection\ShaderReflection.cpp" />
     <ClCompile Include="Source\Graphics\Renderer\EnvironmentBRDF.cpp" />
     <ClCompile Include="Source\Graphics\Renderer\ReflectionProbes.cpp" />
+    <ClCompile Include="Source\Graphics\Renderer\RaytracingScene.cpp" />
+    <ClCompile Include="Source\Graphics\Renderer\DDGIVolume.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Asset\Shader\Common\ShaderCore.hlsli" />
@@ -622,6 +626,12 @@
       <FileType>Document</FileType>
     </None>
     <None Include="Asset\Shader\Lighting\ReflectionProbeFilter_CS.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Asset\Shader\Lighting\DDGI_CS.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Asset\Shader\Common\inc_DDGI.hlsli">
       <FileType>Document</FileType>
     </None>
   </ItemGroup>

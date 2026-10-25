@@ -10,8 +10,9 @@
 //   ルートシグネチャは全てのコンピュートシェーダーで共通にする。
 //     [0] 32ビットの定数 × kMaxRootConstants (b0): テクスチャのディスクリプタの番号などの小さな値
 //     [1] 定数バッファ (b1): 行列などの大きな値(フレームの定数バッファから確保する)
+//     [2]～[4] 定数バッファ (b2～b4): 描画と共通の定数バッファ(ライトのb3、システムのb4など)をそのまま使うとき
 //   テクスチャとバッファは、シェーダーの中で ResourceDescriptorHeap[番号] として直接参照する。
-//   静的サンプラー s0: ポイント・クランプ、s1: リニア・クランプ
+//   静的サンプラー s0: ポイント・クランプ、s1: リニア・クランプ、s2: リニア・ラップ
 //
 //   シェーダーモデル6.6(とリソースバインディングのTier 3)に対応していないGPUでは
 //   IsSupported()がfalseになり、これを使う機能(TAAなど)は無効になる。
@@ -21,6 +22,8 @@ class ComputeShader
 {
 public:
     static constexpr UINT kMaxRootConstants = 16;
+    // ルートの定数バッファのレジスタ(b1～kLastConstantBufferRegister)
+    static constexpr UINT kLastConstantBufferRegister = 4;
 
     // 共通のルートシグネチャを作り、GPUが対応しているかを調べる。デバイスを作った後に一度だけ呼ぶ
     static void InitializeShared(ID3D12Device* pDevice);
@@ -47,7 +50,14 @@ public:
     template<typename T>
     void SetConstantBuffer(const T& data) const
     {
-        SetConstantBufferAddress(GraphicsDevice::Instance().GetFrameConstantBufferAllocator()->AllocateData(data));
+        SetConstantBufferAddress(1, GraphicsDevice::Instance().GetFrameConstantBufferAllocator()->AllocateData(data));
+    }
+
+    // b1～b4の定数バッファ(レジスタの番号を指定する)
+    template<typename T>
+    void SetConstantBuffer(UINT shaderRegister, const T& data) const
+    {
+        SetConstantBufferAddress(shaderRegister, GraphicsDevice::Instance().GetFrameConstantBufferAllocator()->AllocateData(data));
     }
 
     void Dispatch(UINT groupCountX, UINT groupCountY, UINT groupCountZ = 1) const;
@@ -57,7 +67,7 @@ public:
 
 private:
     void SetConstantsRaw(const void* pData, UINT count) const;
-    void SetConstantBufferAddress(D3D12_GPU_VIRTUAL_ADDRESS address) const;
+    void SetConstantBufferAddress(UINT shaderRegister, D3D12_GPU_VIRTUAL_ADDRESS address) const;
 
     Microsoft::WRL::ComPtr<ID3D12PipelineState> m_cpPipelineState;
 
