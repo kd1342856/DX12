@@ -69,6 +69,13 @@ bool GraphicsDevice::Init(HWND  hWnd, int w, int h)
 
 	if (!CreateSwapChain(hWnd, w, h)) return false;
 
+	// fpsの上限で使う高精度タイマー(Windows 10 1803以降)。作れない環境では通常の精度のタイマーで代用する
+	m_frameLimiterTimer = CreateWaitableTimerExW(nullptr, nullptr, CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, TIMER_ALL_ACCESS);
+	if (!m_frameLimiterTimer)
+	{
+		m_frameLimiterTimer = CreateWaitableTimerExW(nullptr, nullptr, 0, TIMER_ALL_ACCESS);
+	}
+
 	m_upDepthStencil = std::make_unique<DepthStencil>();
 	if (!m_upDepthStencil->Create(this, Math::Vector2(static_cast<float>(w), static_cast<float>(h)), DepthStencilFormat::DepthHighQuality, true)) return false;
 
@@ -132,7 +139,11 @@ void GraphicsDevice::EndFrame()
 	m_upFrameManager->GetCurrentFrameResource().SetFenceValue(fenceVal);
 	{
 		PROFILE_CPU_SCOPE("Present");
-		m_pSwapChain->Present(0, m_allowTearing ? DXGI_PRESENT_ALLOW_TEARING : 0);
+		// VSyncのときだけ垂直同期で表示する。ALLOW_TEARINGはSyncIntervalが0のときしか指定できない
+		const bool isVSync = (m_frameRateMode == FrameRateMode::VSync);
+		const UINT syncInterval = isVSync ? 1 : 0;
+		const UINT presentFlags = (!isVSync && m_allowTearing) ? DXGI_PRESENT_ALLOW_TEARING : 0;
+		m_pSwapChain->Present(syncInterval, presentFlags);
 	}
 	m_graphicsMemory->Commit(queue->GetQueue());
 	m_upFrameManager->MoveNextFrame();
@@ -140,6 +151,9 @@ void GraphicsDevice::EndFrame()
 void GraphicsDevice::BeginFrame()
 {
 	// フレーム時間の記録とカウンタのリセットはGDF::BeginFrame()の先頭(Profiler::BeginCPUFrame)で行う
+
+	// 入力(GDF::BeginFrameでこの後に読む)より前に待つ
+	WaitForNextFrame();
 
 	// Process deferred deletion queue before acquiring the new frame
 	{
@@ -287,6 +301,8 @@ bool GraphicsDevice::CreateSwapChain(HWND hWnd, int width, int height)
 	}
 	m_allowTearing = (allowTearing == TRUE);
 	swapchainDesc.Flags = m_allowTearing ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0;
+	// 表示待ちのフレーム数をSetMaximumFrameLatencyで制限し、その空きを待機オブジェクトで待てるようにする
+	swapchainDesc.Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
 	// まずは SwapChain1 として作成する
 	ComPtr<IDXGISwapChain1> swapChain1;
 	HRESULT hr = m_pDxgiFactory->CreateSwapChainForHwnd(m_upQueueManager->GetGraphicsQueue()->GetQueue(), hWnd, &swapchainDesc,
@@ -308,7 +324,58 @@ bool GraphicsDevice::CreateSwapChain(HWND hWnd, int width, int height)
 	{
 		return false;
 	}
+
+	m_pSwapChain->SetMaximumFrameLatency(kMaxFrameLatency);
+	m_frameLatencyWaitable = m_pSwapChain->GetFrameLatencyWaitableObject();
 	return true;
+}
+
+void GraphicsDevice::WaitForNextFrame()
+{
+	using Clock = std::chrono::steady_clock;
+
+	if (m_frameRateMode == FrameRateMode::Limited)
+	{
+		PROFILE_CPU_SCOPE("FrameRateLimit");
+		const Clock::duration period = std::chrono::duration_cast<Clock::duration>(std::chrono::duration<double>(1.0 / m_frameRateLimit));
+		const Clock::time_point now = Clock::now();
+		if (m_nextFrameTime == Clock::time_point{} || now - m_nextFrameTime > period)
+		{
+			// 初回や、重いフレームで1フレーム以上遅れたときは、遅れを取り戻そうと連続で走らないよう今から数え直す
+			m_nextFrameTime = now;
+		}
+
+		// 大半は高精度タイマーで眠り、残りの少しだけスピンして時刻を合わせる(タイマーの起床は数百μsほど遅れることがある)
+		constexpr std::chrono::microseconds kSpinTime(1000);
+		const Clock::time_point sleepUntil = m_nextFrameTime - kSpinTime;
+		if (m_frameLimiterTimer && now < sleepUntil)
+		{
+			// 100ns単位。負の値は相対時間を表す
+			LARGE_INTEGER dueTime = {};
+			dueTime.QuadPart = -static_cast<LONGLONG>(std::chrono::duration_cast<std::chrono::nanoseconds>(sleepUntil - now).count() / 100);
+			if (SetWaitableTimerEx(m_frameLimiterTimer, &dueTime, 0, nullptr, nullptr, nullptr, 0))
+			{
+				WaitForSingleObject(m_frameLimiterTimer, INFINITE);
+			}
+		}
+		while (Clock::now() < m_nextFrameTime)
+		{
+			YieldProcessor();
+		}
+		m_nextFrameTime += period;
+	}
+	else
+	{
+		// 次にLimitedへ切り替えたとき、古い時刻から数え始めないようにする
+		m_nextFrameTime = {};
+	}
+
+	if (m_frameLatencyWaitable)
+	{
+		// ここが長い = 表示待ちのフレームがkMaxFrameLatency枚たまっている(GPUかVSyncが律速)
+		PROFILE_CPU_SCOPE("WaitForFrameLatency");
+		WaitForSingleObjectEx(m_frameLatencyWaitable, 1000, TRUE);
+	}
 }
 bool GraphicsDevice::CreateSwapChainRTV()
 {
@@ -368,6 +435,16 @@ void GraphicsDevice::Shutdown()
 	ShutdownImGui();
 
 	m_pSwapchainBuffers.fill(nullptr);
+	if (m_frameLatencyWaitable)
+	{
+		CloseHandle(m_frameLatencyWaitable);
+		m_frameLatencyWaitable = nullptr;
+	}
+	if (m_frameLimiterTimer)
+	{
+		CloseHandle(m_frameLimiterTimer);
+		m_frameLimiterTimer = nullptr;
+	}
 	m_pSwapChain.Reset();
 
 	if (m_upFrameManager) m_upFrameManager->Shutdown();

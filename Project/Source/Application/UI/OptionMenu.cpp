@@ -21,6 +21,33 @@ namespace
         }
         return false;
     }
+
+    // OptionSettings.jsonでのfpsの上限の決め方の名前
+    const char* ToSettingName(GraphicsDevice::FrameRateMode mode)
+    {
+        switch (mode)
+        {
+        case GraphicsDevice::FrameRateMode::VSync:
+            return "vsync";
+        case GraphicsDevice::FrameRateMode::Limited:
+            return "limited";
+        default:
+            return "unlimited";
+        }
+    }
+
+    GraphicsDevice::FrameRateMode FromSettingName(const std::string& name)
+    {
+        if (name == "vsync")
+        {
+            return GraphicsDevice::FrameRateMode::VSync;
+        }
+        if (name == "limited")
+        {
+            return GraphicsDevice::FrameRateMode::Limited;
+        }
+        return GraphicsDevice::FrameRateMode::Unlimited;
+    }
 }
 
 void OptionMenu::Open()
@@ -50,6 +77,15 @@ void OptionMenu::LoadSettings()
             pp.BrightnessGamma = std::clamp(j["brightnessGamma"].get<float>(), kMinBrightnessGamma, kMaxBrightnessGamma);
             pp.IsDirty = true;
         }
+        auto& device = GraphicsDevice::Instance();
+        if (j.contains("frameRateMode"))
+        {
+            device.SetFrameRateMode(FromSettingName(j["frameRateMode"].get<std::string>()));
+        }
+        if (j.contains("frameRateLimit"))
+        {
+            device.SetFrameRateLimit(std::clamp(j["frameRateLimit"].get<int>(), kMinFrameRateLimit, kMaxFrameRateLimit));
+        }
     }
     catch (const std::exception& e) {
         Logger::Instance().AddLog(Logger::LogLevel::Warning, "OptionMenu: Failed to load %s (%s)", AppPaths::ToUtf8(settingsPath).c_str(), e.what());
@@ -60,6 +96,8 @@ void OptionMenu::SaveSettings()
 {
     nlohmann::json j;
     j["brightnessGamma"] = ShaderManager::Instance().GetPostProcessSettings().BrightnessGamma;
+    j["frameRateMode"] = ToSettingName(GraphicsDevice::Instance().GetFrameRateMode());
+    j["frameRateLimit"] = GraphicsDevice::Instance().GetFrameRateLimit();
     std::filesystem::path settingsPath = AppPaths::GetSavedFilePath(kSettingsFileName);
     std::ofstream o(settingsPath);
     if (o.is_open()) {
@@ -124,6 +162,11 @@ void OptionMenu::Draw()
             }
             if (ImGui::BeginTabItem(u8"  明るさ  ")) {
                 DrawBrightnessTab();
+                ImGui::EndTabItem();
+            }
+            if (ImGui::BeginTabItem(u8"  画面  "))
+            {
+                DrawDisplayTab();
                 ImGui::EndTabItem();
             }
             ImGui::EndTabBar();
@@ -191,6 +234,36 @@ void OptionMenu::DrawBrightnessTab()
     DrawBrightnessPreview(ImGui::GetContentRegionAvail().x);
 
     ImGui::TextWrapped(u8"左の霊がほとんど見えず、真ん中の霊がかすかに見える明るさがおすすめです。");
+}
+
+void OptionMenu::DrawDisplayTab()
+{
+    auto& device = GraphicsDevice::Instance();
+    ImGui::Spacing();
+    ImGui::TextUnformatted(u8"フレームレートの上限");
+
+    int mode = static_cast<int>(device.GetFrameRateMode());
+    bool isChanged = false;
+    isChanged |= ImGui::RadioButton(u8"上限なし", &mode, static_cast<int>(GraphicsDevice::FrameRateMode::Unlimited));
+    isChanged |= ImGui::RadioButton(u8"垂直同期(モニターのリフレッシュレート)", &mode, static_cast<int>(GraphicsDevice::FrameRateMode::VSync));
+    isChanged |= ImGui::RadioButton(u8"fpsを指定", &mode, static_cast<int>(GraphicsDevice::FrameRateMode::Limited));
+    if (isChanged)
+    {
+        device.SetFrameRateMode(static_cast<GraphicsDevice::FrameRateMode>(mode));
+    }
+
+    const bool isLimited = (device.GetFrameRateMode() == GraphicsDevice::FrameRateMode::Limited);
+    ImGui::BeginDisabled(!isLimited);
+    int limit = device.GetFrameRateLimit();
+    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+    if (ImGui::SliderInt("##FrameRateLimit", &limit, kMinFrameRateLimit, kMaxFrameRateLimit, u8"%d fps"))
+    {
+        device.SetFrameRateLimit(limit);
+    }
+    ImGui::EndDisabled();
+
+    ImGui::Spacing();
+    ImGui::TextDisabled(u8"上限なしは最も入力の遅延が小さく、画面の横線(ティアリング)が出ることがあります。");
 }
 
 void OptionMenu::DrawBrightnessPreview(float width)

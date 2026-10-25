@@ -144,6 +144,22 @@ public:
 	// bypass DWM vsync in windowed mode.
 	bool m_allowTearing = false;
 
+	// fpsの上限の決め方
+	enum class FrameRateMode
+	{
+		Unlimited, // 上限なし(ティアリングを許して即座に表示)
+		VSync,     // モニターのリフレッシュレートに合わせる
+		Limited,   // CPU側で待ち、GetFrameRateLimit()のfpsに合わせる
+	};
+	void SetFrameRateMode(FrameRateMode mode) { m_frameRateMode = mode; }
+	FrameRateMode GetFrameRateMode() const { return m_frameRateMode; }
+	void SetFrameRateLimit(int fps) { m_frameRateLimit = (std::max)(fps, 1); }
+	int GetFrameRateLimit() const { return m_frameRateLimit; }
+
+	// 表示待ちにしてよいフレームの数。1にするとCPUとGPUが交互にしか動けなくなるので2にしている。
+	// これを超えて先行しないよう、BeginFrame()の先頭でスワップチェーンの待機オブジェクトを待つ
+	static constexpr UINT kMaxFrameLatency = 2;
+
 	std::array<Microsoft::WRL::ComPtr<ID3D12Resource>, kSwapChainBufferCount>	m_pSwapchainBuffers;
 
 
@@ -173,6 +189,16 @@ private:
 				bool CreateSwapChain(HWND hWnd, int width, int height);
 	bool CreateSwapChainRTV();
 		bool CreateDefaultTextures();
+
+	// 次のフレームを始めてよい時まで待つ(fpsの上限と、表示待ちのフレーム数の上限)。
+	// 入力を読む前に待つことで、待った時間が入力の遅延にならないようにする
+	void WaitForNextFrame();
+
+	FrameRateMode m_frameRateMode = FrameRateMode::Unlimited;
+	int m_frameRateLimit = 144;
+	std::chrono::steady_clock::time_point m_nextFrameTime = {};
+	HANDLE m_frameLatencyWaitable = nullptr;
+	HANDLE m_frameLimiterTimer = nullptr;
 
 	// SpotShadowMap: 未使用のため削除済み
 
