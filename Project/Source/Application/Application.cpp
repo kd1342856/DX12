@@ -143,7 +143,7 @@ void Application::SetDirectoryAndLoadDll()
 {
 	// assimpは遅延読み込み(DelayLoadDLLs)なので、最初に使われる前にフルパスで読み込んでおけば、
 	// 遅延読み込み側は読み込み済みのモジュールを名前で見つけて使う。
-	// 開発時は<root>/Library内のビルド結果を、配布時はProject/Bin(SetDllDirectory済み)を探す。
+	// <root>/Library内のビルド結果を探し、無ければ通常のDLL検索順(exeの隣など)で探す。
 #ifdef _DEBUG
 	const wchar_t* pConfigName = L"Debug";
 	const wchar_t* pAssimpDllName = L"assimp-vc143-mtd.dll";

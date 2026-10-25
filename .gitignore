@@ -31,8 +31,8 @@ debug_log.txt
 *.blend1
 Library/*/build/
 
-#実行に必須なDLL(Project/Bin)は例外としてコミットする
-!Project/Bin/*.dll
+#実行に必須なDXCのDLL(Library/DXC)は例外としてコミットする
+!Library/DXC/*.dll
 
 #Asset以下の.objはモデルなので例外としてコミットする
 !Project/Asset/**/*.obj

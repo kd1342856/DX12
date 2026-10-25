@@ -17,7 +17,7 @@ public:
 
 	static Microsoft::WRL::ComPtr<IDxcBlob> CompileShader(const std::wstring& filePath, const std::wstring& entryPoint, const std::wstring& profile);
 
-	// Initialize() loads dxcompiler.dll from Project/Bin at runtime, so other code must not call
+	// Initialize() loads dxcompiler.dll from Library/DXC at runtime, so other code must not call
 	// DxcCreateInstance directly (that would need an import-time link to dxcompiler.dll).
 	static IDxcUtils* GetUtils() { return s_pUtils.Get(); }
 

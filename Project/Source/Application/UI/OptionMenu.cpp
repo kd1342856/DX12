@@ -2,6 +2,7 @@
 #include "OptionMenu.h"
 #include "../../Framework/Manager/Audio/AudioManager.h"
 #include "../../Graphics/Shader/ShaderManager/ShaderManager.h"
+#include "../../Framework/System/AppPaths/AppPaths.h"
 #include <imgui.h>
 #include <algorithm>
 
@@ -38,7 +39,8 @@ void OptionMenu::Close()
 
 void OptionMenu::LoadSettings()
 {
-    std::ifstream in(kSettingsPath);
+    std::filesystem::path settingsPath = AppPaths::GetSavedFilePath(kSettingsFileName);
+    std::ifstream in(settingsPath);
     if (!in.is_open()) return;
     try {
         nlohmann::json j;
@@ -50,7 +52,7 @@ void OptionMenu::LoadSettings()
         }
     }
     catch (const std::exception& e) {
-        Logger::Instance().AddLog(Logger::LogLevel::Warning, "OptionMenu: Failed to load %s (%s)", kSettingsPath, e.what());
+        Logger::Instance().AddLog(Logger::LogLevel::Warning, "OptionMenu: Failed to load %s (%s)", AppPaths::ToUtf8(settingsPath).c_str(), e.what());
     }
 }
 
@@ -58,10 +60,11 @@ void OptionMenu::SaveSettings()
 {
     nlohmann::json j;
     j["brightnessGamma"] = ShaderManager::Instance().GetPostProcessSettings().BrightnessGamma;
-    std::ofstream o(kSettingsPath);
+    std::filesystem::path settingsPath = AppPaths::GetSavedFilePath(kSettingsFileName);
+    std::ofstream o(settingsPath);
     if (o.is_open()) {
         o << std::setw(4) << j << std::endl;
-        Logger::Instance().AddLog(Logger::LogLevel::Info, "OptionMenu: Saved %s", kSettingsPath);
+        Logger::Instance().AddLog(Logger::LogLevel::Info, "OptionMenu: Saved %s", AppPaths::ToUtf8(settingsPath).c_str());
     }
 }
 

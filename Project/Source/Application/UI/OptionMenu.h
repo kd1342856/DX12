@@ -6,8 +6,8 @@
 class OptionMenu
 {
 public:
-    // 明るさ(表示ガンマ)の保存先。音量はAudioManagerがAudioSettings.jsonに保存する
-    static constexpr const char* kSettingsPath = "Asset/Data/OptionSettings.json";
+    // 明るさ(表示ガンマ)の保存先(<root>/Saved内のファイル名)。音量はAudioManagerがAudioSettings.jsonに保存する
+    static constexpr const wchar_t* kSettingsFileName = L"OptionSettings.json";
 
     static constexpr float kMinBrightnessGamma = 0.5f;
     static constexpr float kMaxBrightnessGamma = 2.5f;
