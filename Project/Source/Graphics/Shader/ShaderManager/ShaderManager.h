@@ -114,7 +114,7 @@ public:
 	ShaderProgram* LoadShader(const std::wstring& vsPath, const std::wstring& psPath);
 	ID3D12PipelineState* GetPipelineState(ShaderProgram* pProgram, const PipelineDesc& desc);
 
-	// 新しく作ったPSOがあれば、PSOライブラリを<root>/Saved/ShaderCache/PipelineLibrary.binに保存する。
+	// 新しく作ったPSOがあれば、PSOライブラリを<root>/Saved/ShaderCache/PipelineLibrary_<構成>.binに保存する。
 	// 全シェーダーの登録(PSOの事前作成)が終わった後と、終了時(デバイスの解放前)に呼ぶ
 	void SavePipelineLibrary();
 

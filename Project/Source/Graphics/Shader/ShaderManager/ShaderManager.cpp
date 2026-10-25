@@ -10,7 +10,13 @@ namespace
 		std::filesystem::path dir = AppPaths::GetSavedDir() / L"ShaderCache";
 		std::error_code errorCode;
 		std::filesystem::create_directories(dir, errorCode);
-		return dir / L"PipelineLibrary.bin";
+		// DebugとReleaseはシェーダーの中身が違い、保存のたびに今回使ったPSOだけで作り直すので、
+		// 同じファイルだと交互に起動するたびに互いのPSOを消してしまう。構成ごとにファイルを分ける
+#ifdef _DEBUG
+		return dir / L"PipelineLibrary_Debug.bin";
+#else
+		return dir / L"PipelineLibrary_Release.bin";
+#endif
 	}
 
 	std::wstring ToHex(uint64_t value)
