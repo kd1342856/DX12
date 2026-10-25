@@ -34,6 +34,10 @@ struct RendererSettings
     bool  EnableSSR = true;
     float SSRStepSize = 0.35f; // ビュー空間での1ステップの距離
     float SSROpaqueIntensity = 0.5f; // Opaque材質向けSSR(床・タイル等)の強さ。ガラスのSSRとは別パラメータ
+
+    // コンタクトシャドウ: 光源の方向へ画面の深度を短くたどり、シャドウマップでは拾えない接地の細かい影を足す
+    bool  EnableContactShadows = true;
+    float ContactShadowLength = 0.2f; // たどる長さ(m)
 };
 
 struct LightingSettings

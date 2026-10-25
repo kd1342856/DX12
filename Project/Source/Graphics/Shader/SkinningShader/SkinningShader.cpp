@@ -70,6 +70,8 @@ void SkinningShader::Begin(RenderContext& context)
 	BindEnvironmentBRDF();
 	BindReflectionProbes();
 	BindDDGI();
+	// コンタクトシャドウの画面の深度(t25)
+	BindContactShadowDepth();
 }
 
 void SkinningShader::BeginModel(const ModelData& model, const DrawContext& drawContext)

@@ -8,6 +8,8 @@
 #include "../../Renderer/EnvironmentBRDF.h"
 #include "../../Renderer/ReflectionProbes.h"
 #include "../../Renderer/DDGIVolume.h"
+#include "../../Renderer/Renderer.h"
+#include "../../GPUResource/RenderTarget/RenderTarget.h"
 
 class ModelData;
 struct Node;
@@ -107,6 +109,20 @@ protected:
 				m_pDevice->GetBlackTex()->Set(distanceRoot);
 			}
 		}
+	}
+
+	// コンタクトシャドウで読む画面の深度(t25)を束縛する。深度プリパスの深度のコピー(法線のRTの深度)を使う
+	// (メインの描画の間、シーンのRTの深度は深度バッファとして使っているため)
+	void BindContactShadowDepth()
+	{
+		const int rootIndex = GetRootParameterIndex(ShaderBindingType::SRV, 25);
+		auto* pNormalRT = Renderer::GetNormalPrepassRenderTarget();
+		if (rootIndex == -1 || !pNormalRT || pNormalRT->GetDepthSRVIndex() == -1)
+		{
+			return;
+		}
+		auto handle = m_pDevice->GetDescriptorHeapManager()->GetCBVSRVUAVAllocator()->GetGPUHandle(pNormalRT->GetDepthSRVIndex());
+		m_pDevice->GetCmdList()->SetGraphicsRootDescriptorTable(rootIndex, handle);
 	}
 
 	// 反射プローブのキューブ配列(t22)を束縛する。使えないときは何かを入れておく

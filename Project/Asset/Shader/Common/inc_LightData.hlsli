@@ -45,7 +45,7 @@ cbuffer cbLight : register(b3)
     // ダミーIBLと空の明るさ(nitの値に露出を掛けたもの)
     float g_IBLLuminance;
     float g_SkyLuminance;
-    float g_dummy;
+    float g_ContactShadowLength; // コンタクトシャドウでたどる長さ(m)。0なら使わない
     
     //-------------------------
     // 環境光

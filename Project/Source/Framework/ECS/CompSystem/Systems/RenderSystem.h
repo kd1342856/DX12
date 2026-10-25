@@ -528,6 +528,7 @@ public:
 
 			context.View = refView;
 			context.Projection = refProj;
+			context.IsMainView = false;
 
 			// このガラスのピクセルシェーダーがワールド座標を再投影して正しい反射用のUVを
 			// 求められるように、反射カメラのView*Proj行列をスロット別に渡しておく
@@ -546,6 +547,7 @@ public:
 		// 復元
 		context.View = oldView;
 		context.Projection = oldProj;
+		context.IsMainView = true;
 	}
 
 	// SSAO/SSR用のビュー空間法線プリパス。RenderScene直前に呼ぶ。
@@ -699,6 +701,7 @@ public:
 		RenderContext& context = Renderer::GetContext();
 		context.View = sceneView.view;
 		context.Projection = sceneView.projection;
+		context.IsMainView = !sceneView.isProbeCapture && pRT == Renderer::GetSceneHDRRenderTarget();
 
 		// 投影行列から作ったカメラ空間のフラスタムを、カメラのワールド変換(View行列の逆)で
 		// ワールド空間に移す - 毎フレーム全部記録+描画するのではなく、視界外のものの
@@ -905,6 +908,7 @@ public:
 		if (sceneView.isProbeCapture)
 		{
 			litShader.SetDepthEqual(false);
+			context.IsMainView = true;
 			return;
 		}
 

@@ -77,7 +77,7 @@ namespace CBufferData
 		// ダミーIBLと空の明るさ(nitの値に露出を掛けたもの)
 		float IBLLuminance;
 		float SkyLuminance;
-		float dummy1;
+		float ContactShadowLength; // コンタクトシャドウでたどる長さ(m)。0なら使わない(反射・反射プローブの描画)
 		Math::Vector3 AmbientLight;
 		float IndirectShadowFloor; // 影が落ちる場所に残す間接光(Ambient/IBL)の下限 0..1
 		Math::Vector3 DL_Dir;

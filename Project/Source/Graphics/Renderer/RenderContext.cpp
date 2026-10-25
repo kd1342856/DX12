@@ -22,7 +22,15 @@ void RenderContext::BindCamera(int slot)
 
 void RenderContext::BindLight(int slot)
 {
-	GDF::Instance().BindCBuffer(slot, ShaderManager::Instance().GetLightData());
+	if (IsMainView)
+	{
+		GDF::Instance().BindCBuffer(slot, ShaderManager::Instance().GetLightData());
+		return;
+	}
+	// 画面の深度を使う効果を切る
+	CBufferData::Light lightData = ShaderManager::Instance().GetLightData();
+	lightData.ContactShadowLength = 0.0f;
+	GDF::Instance().BindCBuffer(slot, lightData);
 }
 
 void RenderContext::BindSystem(int slot)

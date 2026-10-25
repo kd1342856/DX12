@@ -410,6 +410,57 @@ float SampleCubeShadow(float3 lightPos, float range, float cubeIndex, float sour
     return lit / 16.0;
 }
 
+//------------------------------------------
+// コンタクトシャドウ
+//------------------------------------------
+// 深度プリパスの深度(メインの視点)。反射などの描画ではg_ContactShadowLengthが0なので読まない
+Texture2D<float> g_contactShadowDepth : register(t25);
+
+// 表面から光源の方向へ、画面の深度を短い距離だけたどり、何かの裏に入ったら影にする。
+// シャドウマップの解像度では拾えない、物と床の接するところや細かい凹凸の影を足す。
+// viewProjはメインの描画の(ジッターを含む)ビュー×投影、projectionZは投影行列の(_33, _43)
+float EvaluateContactShadow(float3 position, float3 normal, float3 toLight, float maxDistance,
+    float4x4 viewProj, float2 projectionZ, float2 screenPos)
+{
+    const float rayLength = min(g_ContactShadowLength, maxDistance);
+    if (rayLength <= 0.0)
+    {
+        return 1.0;
+    }
+    float width, height;
+    g_contactShadowDepth.GetDimensions(width, height);
+    const int kStepCount = 8;
+    // これより厚い段差は、奥にある別の面とみなして影にしない(薄い物の後ろが全部影になるのを防ぐ)
+    const float kThickness = 0.1;
+    const float3 magic = float3(0.06711056, 0.00583715, 52.9829189);
+    const float noise = frac(magic.z * frac(dot(screenPos, magic.xy)));
+    const float3 start = position + normal * 0.01;
+    for (int i = 0; i < kStepCount; ++i)
+    {
+        const float t = (float(i) + noise) / float(kStepCount) * rayLength;
+        const float4 clip = mul(float4(start + toLight * t, 1.0), viewProj);
+        if (clip.w <= 0.0)
+        {
+            break;
+        }
+        const float2 uv = clip.xy / clip.w * float2(0.5, -0.5) + 0.5;
+        if (any(uv < 0.0) || any(uv > 1.0))
+        {
+            break;
+        }
+        const float sceneNdc = g_contactShadowDepth.Load(int3(uv * float2(width, height), 0));
+        // 深度(0..1)を視点空間のZに戻す(z_ndc = _33 + _43 / z)
+        const float sceneZ = projectionZ.y / max(sceneNdc - projectionZ.x, 1e-6);
+        const float difference = clip.w - sceneZ;
+        if (difference > 0.005 && difference < kThickness)
+        {
+            // 光源に近いところで遮られるほど、影を弱くする(たどった先の端で途切れないように)
+            return saturate(float(i) / float(kStepCount));
+        }
+    }
+    return 1.0;
+}
+
 // スポットライトの影(影が割り当てられていなければ1)
 float EvaluateSpotLightShadow(SurfaceData surface, SpotLight light, float2 screenPos)
 {

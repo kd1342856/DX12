@@ -370,6 +370,7 @@ void ShaderManager::UpdateFogCB()
 	m_LightData.DistanceFogColor = { m_FogSettings.FogColor.x * exposure, m_FogSettings.FogColor.y * exposure, m_FogSettings.FogColor.z * exposure };
 	m_LightData.IBLLuminance = m_IBLSettings.EnableIBL ? m_IBLSettings.IBLIntensity * lightScale : 0.0f;
 	m_LightData.SkyLuminance = m_LightingSettings.SkyLuminance * exposure;
+	m_LightData.ContactShadowLength = m_RendererSettings.EnableContactShadows ? m_RendererSettings.ContactShadowLength : 0.0f;
 }
 
 float ShaderManager::GetManualEV100() const

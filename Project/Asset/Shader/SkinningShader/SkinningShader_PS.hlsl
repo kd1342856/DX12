@@ -156,6 +156,8 @@ PSOutput main(VSOutput In)
         if (any(spotLight > 0.0))
         {
             spotLight *= EvaluateSpotLightShadow(surface, g_SL[spotIndex], In.pos.xy);
+            const float3 toLight = g_SL[spotIndex].Pos - In.wPos;
+            spotLight *= EvaluateContactShadow(In.wPos, wN, normalize(toLight), length(toLight), mul(c_mView, c_mProj), float2(c_mProj._33, c_mProj._43), In.pos.xy);
         }
         color += spotLight;
     }
@@ -165,6 +167,8 @@ PSOutput main(VSOutput In)
         if (any(pointLight > 0.0))
         {
             pointLight *= EvaluatePointLightShadow(surface, g_PL[pointIndex], In.pos.xy);
+            const float3 toLight = g_PL[pointIndex].Pos - In.wPos;
+            pointLight *= EvaluateContactShadow(In.wPos, wN, normalize(toLight), length(toLight), mul(c_mView, c_mProj), float2(c_mProj._33, c_mProj._43), In.pos.xy);
         }
         color += pointLight;
     }

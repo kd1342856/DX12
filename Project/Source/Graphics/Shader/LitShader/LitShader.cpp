@@ -138,6 +138,8 @@ void LitShader::Begin(RenderContext& context)
 	BindEnvironmentBRDF();
 	BindReflectionProbes();
 	BindDDGI();
+	// コンタクトシャドウの画面の深度(t25)
+	BindContactShadowDepth();
 }
 
 void LitShader::BeginNode(const ModelData::Node& node, const Math::Matrix& nodeWorld)
