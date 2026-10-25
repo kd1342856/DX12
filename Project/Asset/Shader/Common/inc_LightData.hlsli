@@ -91,6 +91,16 @@ cbuffer cbLight : register(b3)
     float3 g_PadIndoor;
     float4 g_IndoorMin[16];
     float4 g_IndoorMax[16];
+
+    //-------------------------
+    // 反射プローブ(部屋ごとのキューブマップ。箱はxyzだけを使う)
+    //-------------------------
+    int    g_ProbeCount;
+    float  g_ProbeMipCount;
+    float2 g_PadProbe;
+    float4 g_ProbeBoxMin[16];
+    float4 g_ProbeBoxMax[16];
+    float4 g_ProbeCapturePosition[16]; // xyz: 撮った位置、w: 露出の比。0なら未撮影
 };
 
 // ワールド座標がいずれかの室内範囲(RoomArea)に入っているか

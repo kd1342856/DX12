@@ -30,6 +30,7 @@
 #include "../../../Graphics/Renderer/TemporalAA.h"
 #include "../../../Graphics/Renderer/AutoExposure.h"
 #include "../../../Graphics/Renderer/MotionBlur.h"
+#include "../../../Graphics/Renderer/ReflectionProbes.h"
 #include "../../../Framework/Manager/Particle/ParticleManager.h"
 #include "../../../Framework/Manager/Audio/AudioManager.h"
 #include "../../UI/OptionMenu.h"
@@ -633,6 +634,7 @@ void GameScene::RenderGame()
 
         UpdateLights(m_gameCameraEntity);
         RenderLocalLightShadows();
+        CaptureReflectionProbe();
         BeginTemporalFrame(m_gameCameraEntity);
         // 深度プリパス: シーンの深度と、SSAO・SSR用の法線を描く。メインの不透明の描画はこの深度にEQUALで描く
         auto* pSceneHDR = Renderer::GetSceneHDRRenderTarget();
@@ -780,6 +782,61 @@ void GameScene::UpdateLights(Entity cameraEntity)
         }
     }
     lightData.IndoorCount = indoorCount;
+
+    // 反射プローブ: 部屋ごとに1つ。箱は室内判定と同じ余白で広げ、壁や床の面が箱の内側に入るようにする
+    {
+        std::vector<ReflectionProbes::Volume> volumes;
+        if (auto gs = GameSequence::GetInstance())
+        {
+            const float margin = lighting.IndoorMargin;
+            for (RoomArea* room : gs->GetRooms())
+            {
+                if (!room) continue;
+                ReflectionProbes::Volume volume;
+                volume.min = { room->m_min.x - margin, room->m_min.y - margin, room->m_min.z - margin };
+                volume.max = { room->m_max.x + margin, room->m_max.y + margin, room->m_max.z + margin };
+                volumes.push_back(volume);
+            }
+        }
+        auto& probes = ReflectionProbes::Instance();
+        probes.SetVolumes(volumes);
+        probes.FillShaderData(lightData, ShaderManager::Instance().GetExposure());
+    }
+}
+
+void GameScene::CaptureReflectionProbe()
+{
+    auto renderSystem = GameManager::Instance().GetRenderSystem();
+    auto& probes = ReflectionProbes::Instance();
+    Math::Matrix view;
+    Math::Matrix projection;
+    RenderTarget* pTarget = nullptr;
+    if (!renderSystem || !probes.BeginFaceCapture(view, projection, pTarget))
+    {
+        return;
+    }
+    auto* pCmdList = GraphicsDevice::Instance().GetCmdList();
+    PROFILE_CPU_SCOPE("ReflectionProbe");
+    PROFILE_GPU_SCOPE(pCmdList, "ReflectionProbe");
+
+    // SSAOは画面のテクスチャで、プローブの視点とは合わないので、遮蔽なし(1)にしておく。
+    // このフレームのSSAOは、この後のRenderSSAOで描き直される
+    auto* pSSAO = Renderer::GetSSAORenderTarget(0);
+    GraphicsDevice::Instance().SetRenderTarget(pSSAO);
+    pSSAO->Clear(1.0f, 1.0f, 1.0f, 1.0f);
+    GraphicsDevice::Instance().TransitionToSRV(pSSAO);
+
+    // メインのカメラの視点を、描いた後に戻す(フラスタムカリングなどが参照するため)
+    const Entity savedCameraEntity = renderSystem->GetCameraEntity();
+    RenderSystem::SceneView sceneView;
+    sceneView.view = view;
+    sceneView.projection = projection;
+    sceneView.cullingProjection = projection;
+    sceneView.isProbeCapture = true;
+    renderSystem->RenderSceneView(sceneView, pTarget);
+    renderSystem->SetCameraEntity(savedCameraEntity);
+
+    probes.EndFaceCapture(ShaderManager::Instance().GetExposure());
 }
 
 void GameScene::RenderLocalLightShadows()
@@ -1007,6 +1064,7 @@ void GameScene::RenderEditor()
     {
         UpdateLights(m_editorCameraEntity);
         RenderLocalLightShadows();
+        CaptureReflectionProbe();
         BeginTemporalFrame(m_editorCameraEntity);
         // 深度プリパス(RenderGameと同じ)。シーンの深度はここで描き直す
         renderSystem->RenderNormalPrepass(m_editorCameraEntity, Renderer::GetNormalPrepassRenderTarget(), pSceneHDR);

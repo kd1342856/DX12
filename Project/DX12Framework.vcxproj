@@ -339,6 +339,7 @@
     <ClInclude Include="Source\Graphics\Shader\ShaderManager\ShaderManager.h" />
     <ClInclude Include="Source\Graphics\Shader\ShaderReflection\ShaderReflection.h" />
     <ClInclude Include="Source\Graphics\Renderer\EnvironmentBRDF.h" />
+    <ClInclude Include="Source\Graphics\Renderer\ReflectionProbes.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Library\ImGui\imgui.cpp" />
@@ -486,6 +487,7 @@
     <ClCompile Include="Source\Graphics\Shader\ShaderManager\ShaderManager.cpp" />
     <ClCompile Include="Source\Graphics\Shader\ShaderReflection\ShaderReflection.cpp" />
     <ClCompile Include="Source\Graphics\Renderer\EnvironmentBRDF.cpp" />
+    <ClCompile Include="Source\Graphics\Renderer\ReflectionProbes.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Asset\Shader\Common\ShaderCore.hlsli" />
@@ -617,6 +619,9 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </None>
     <None Include="Asset\Shader\Lighting\EnvironmentBRDF_CS.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Asset\Shader\Lighting\ReflectionProbeFilter_CS.hlsl">
       <FileType>Document</FileType>
     </None>
   </ItemGroup>

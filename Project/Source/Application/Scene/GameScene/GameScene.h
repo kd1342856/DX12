@@ -39,6 +39,8 @@ private:
     // TAAのジッターと、速度に使うカメラの行列を、そのフレームのメインのカメラで決める。
     // 深度プリパスより前に呼ぶ。描き終わったらEndTemporalFrame()でジッターを0に戻す
     void BeginTemporalFrame(Entity cameraEntity);
+    // 反射プローブを1面撮る(局所光源の影を描いた後、メインの描画の前に呼ぶ)
+    void CaptureReflectionProbe();
     void EndTemporalFrame();
     // CameraData.m_isDebugPreviewを立てたカメラ(あれば1つ目)のTransformから見た絵を専用RTに
     // 描画する。RenderGame/RenderEditorどちらの後にもRender()から呼ぶ(反射カメラ等の他の

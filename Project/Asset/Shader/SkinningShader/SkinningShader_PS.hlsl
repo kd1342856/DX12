@@ -173,7 +173,7 @@ PSOutput main(VSOutput In)
     // 環境光・ダミーIBL
     //------------------
     color += g_AmbientLight * baseColor.rgb * occlusion * moonVisibility;
-    color += EvaluateDummyIBL(surface, occlusion) * moonVisibility;
+    color += EvaluateEnvironmentLighting(surface, occlusion, moonVisibility, g_ss);
 
     color = ApplyDistanceFog(color, camDist);
 

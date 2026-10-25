@@ -6,6 +6,7 @@
 #include "../../Renderer/DrawContext.h"
 #include "../../../Graphics/Device/GraphicsDevice.h"
 #include "../../Renderer/EnvironmentBRDF.h"
+#include "../../Renderer/ReflectionProbes.h"
 
 class ModelData;
 struct Node;
@@ -66,6 +67,25 @@ protected:
 			return;
 		}
 		const int srvIndex = EnvironmentBRDF::Instance().GetSRVIndex();
+		if (srvIndex == -1)
+		{
+			m_pDevice->GetBlackTex()->Set(rootIndex);
+			return;
+		}
+		auto handle = m_pDevice->GetDescriptorHeapManager()->GetCBVSRVUAVAllocator()->GetGPUHandle(srvIndex);
+		m_pDevice->GetCmdList()->SetGraphicsRootDescriptorTable(rootIndex, handle);
+	}
+
+	// 反射プローブのキューブ配列(t22)を束縛する。使えないときは何かを入れておく
+	// (定数バッファのプローブの数が0なので、シェーダーは読まない)
+	void BindReflectionProbes()
+	{
+		const int rootIndex = GetRootParameterIndex(ShaderBindingType::SRV, ReflectionProbes::kShaderRegister);
+		if (rootIndex == -1)
+		{
+			return;
+		}
+		const int srvIndex = ReflectionProbes::Instance().GetSRVIndex();
 		if (srvIndex == -1)
 		{
 			m_pDevice->GetBlackTex()->Set(rootIndex);

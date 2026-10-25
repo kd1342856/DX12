@@ -30,6 +30,9 @@ struct GPUTextureDesc
     bool allowUAV = false;
     // 2Dのミップ0にだけRTVを作る
     bool allowRenderTarget = false;
+    // ミップ1枚だけを見るSRVも作る(コンピュートで1つ上のミップから次のミップを作るときに読む)。
+    // 2Dは Texture2D、配列とキューブは面を並べた Texture2DArray として見る
+    bool createMipSRVs = false;
     // デバッグ用の名前(PIXなどに出る)
     const wchar_t* pName = nullptr;
 };
@@ -51,6 +54,12 @@ public:
     int GetSRVIndex() const { return m_srvIndex; }
     // ミップごとのUAV。allowUAVがfalseなら-1
     int GetUAVIndex(UINT mip = 0) const;
+    // ミップ1枚だけのSRV。createMipSRVsがfalseなら-1
+    int GetMipSRVIndex(UINT mip) const;
+    // サブリソースの番号(ミップ、配列の要素(キューブは面の通し番号))。サブリソースごとの状態遷移に使う
+    UINT GetSubresourceIndex(UINT mip, UINT arraySlice) const { return mip + arraySlice * m_desc.mipLevels; }
+    // 配列の要素の数(キューブは面の数)
+    UINT GetArraySize() const;
     int GetRTVIndex() const { return m_rtvIndex; }
 
     // RTVをクリアする(呼び出し側でRENDER_TARGETの状態にしておく)
@@ -59,10 +68,10 @@ public:
 private:
     bool CreateResource();
     void WriteDescriptors();
-    UINT GetArraySize() const;
 
     GPUTextureDesc m_desc;
     int m_srvIndex = -1;
     std::vector<int> m_uavIndices;
+    std::vector<int> m_mipSrvIndices;
     int m_rtvIndex = -1;
 };

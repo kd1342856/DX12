@@ -26,6 +26,14 @@ bool GPUTexture::Create(const GPUTextureDesc& desc)
             uavIndex = static_cast<int>(pHeapManager->GetCBVSRVUAVAllocator()->Allocate());
         }
     }
+    if (m_desc.createMipSRVs)
+    {
+        m_mipSrvIndices.resize(m_desc.mipLevels);
+        for (int& srvIndex : m_mipSrvIndices)
+        {
+            srvIndex = static_cast<int>(pHeapManager->GetCBVSRVUAVAllocator()->Allocate());
+        }
+    }
     if (m_desc.allowRenderTarget)
     {
         m_rtvIndex = static_cast<int>(pHeapManager->GetRTVAllocator()->Allocate());
@@ -60,6 +68,15 @@ int GPUTexture::GetUAVIndex(UINT mip) const
         return -1;
     }
     return m_uavIndices[mip];
+}
+
+int GPUTexture::GetMipSRVIndex(UINT mip) const
+{
+    if (mip >= m_mipSrvIndices.size())
+    {
+        return -1;
+    }
+    return m_mipSrvIndices[mip];
 }
 
 UINT GPUTexture::GetArraySize() const
@@ -154,6 +171,35 @@ void GPUTexture::WriteDescriptors()
         break;
     }
     pDevice->CreateShaderResourceView(m_resource.Get(), &srvDesc, pHeapManager->GetCBVSRVUAVAllocator()->GetCPUHandle(m_srvIndex));
+
+    // ミップ1枚だけのSRV
+    for (UINT mip = 0; mip < static_cast<UINT>(m_mipSrvIndices.size()); ++mip)
+    {
+        D3D12_SHADER_RESOURCE_VIEW_DESC mipSrvDesc = {};
+        mipSrvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+        mipSrvDesc.Format = m_desc.format;
+        switch (m_desc.dimension)
+        {
+        case TextureDimension::Texture2D:
+            mipSrvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+            mipSrvDesc.Texture2D.MostDetailedMip = mip;
+            mipSrvDesc.Texture2D.MipLevels = 1;
+            break;
+        case TextureDimension::Texture2DArray:
+        case TextureDimension::TextureCube:
+            mipSrvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
+            mipSrvDesc.Texture2DArray.MostDetailedMip = mip;
+            mipSrvDesc.Texture2DArray.MipLevels = 1;
+            mipSrvDesc.Texture2DArray.ArraySize = GetArraySize();
+            break;
+        case TextureDimension::Texture3D:
+            mipSrvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE3D;
+            mipSrvDesc.Texture3D.MostDetailedMip = mip;
+            mipSrvDesc.Texture3D.MipLevels = 1;
+            break;
+        }
+        pDevice->CreateShaderResourceView(m_resource.Get(), &mipSrvDesc, pHeapManager->GetCBVSRVUAVAllocator()->GetCPUHandle(m_mipSrvIndices[mip]));
+    }
 
     // UAVはミップごとに作る。キューブは面を並べた2D配列として書き込む
     for (UINT mip = 0; mip < static_cast<UINT>(m_uavIndices.size()); ++mip)

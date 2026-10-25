@@ -141,9 +141,66 @@ float3 EvaluatePointLight(SurfaceData surface, PointLight light)
     return EvaluateSphereLight(surface, light.Pos - surface.position, light.SourceRadius, light.Color * attenuation);
 }
 
-// ダミーIBL(空と地面の2色)の拡散と鏡面。Step 5の反射プローブとGIで置き換えるまでの仮のもの。
-// 2色の値1.0がg_IBLLuminance(nit×露出)になる
-float3 EvaluateDummyIBL(SurfaceData surface, float specularOcclusion)
+//------------------------------------------
+// 反射プローブ(C++のReflectionProbesが部屋ごとに撮る)
+//------------------------------------------
+TextureCubeArray g_reflectionProbes : register(t22);
+
+// 箱投影(Lagarde 2012)。反射の向きの光線が部屋の箱にぶつかる点を、撮った位置から見た向きにする。
+// 無限遠の景色として読むと、部屋の中の物の映り込みの位置がずれるため
+float3 BoxProjectedDirection(float3 position, float3 direction, float3 boxMin, float3 boxMax, float3 capturePosition)
+{
+    const float3 firstPlane = (boxMax - position) / direction;
+    const float3 secondPlane = (boxMin - position) / direction;
+    const float3 furthestPlane = max(firstPlane, secondPlane);
+    const float distanceToBox = min(furthestPlane.x, min(furthestPlane.y, furthestPlane.z));
+    return position + direction * distanceToBox - capturePosition;
+}
+
+// プローブの重み。箱の中ほど1で、箱の縁のkProbeFadeDistance(m)で0に落とす(部屋の境目で混ぜる)
+static const float kProbeFadeDistance = 0.3;
+float ReflectionProbeWeight(float3 position, float3 boxMin, float3 boxMax)
+{
+    const float3 distanceToFace = min(position - boxMin, boxMax - position);
+    return saturate(min(distanceToFace.x, min(distanceToFace.y, distanceToFace.z)) / kProbeFadeDistance);
+}
+
+// 反射プローブから鏡面の環境光(放射輝度)を読む。aは覆えた割合(0なら、どのプローブの中でもない)
+float4 SampleReflectionProbes(SurfaceData surface, SamplerState probeSampler)
+{
+    const float3 R = reflect(-surface.viewDir, surface.normal);
+    const float mip = sqrt(surface.alpha) * (g_ProbeMipCount - 1.0);
+    float3 radiance = 0.0;
+    float weightSum = 0.0;
+    for (int i = 0; i < g_ProbeCount; ++i)
+    {
+        const float exposureRatio = g_ProbeCapturePosition[i].w;
+        if (exposureRatio <= 0.0)
+        {
+            continue;
+        }
+        const float weight = ReflectionProbeWeight(surface.position, g_ProbeBoxMin[i].xyz, g_ProbeBoxMax[i].xyz);
+        if (weight <= 0.0)
+        {
+            continue;
+        }
+        const float3 direction = BoxProjectedDirection(surface.position, R, g_ProbeBoxMin[i].xyz, g_ProbeBoxMax[i].xyz, g_ProbeCapturePosition[i].xyz);
+        radiance += g_reflectionProbes.SampleLevel(probeSampler, float4(direction, i), mip).rgb * (exposureRatio * weight);
+        weightSum += weight;
+    }
+    // 重なった部屋(出入り口)では重みで平均する。どの部屋にも入りきらない分は呼ぶ側で補う
+    if (weightSum > 1.0)
+    {
+        radiance /= weightSum;
+        weightSum = 1.0;
+    }
+    return float4(radiance, weightSum);
+}
+
+// 環境光(拡散と鏡面)。拡散と、反射プローブが無いところの鏡面は、ダミーIBL(空と地面の2色)を使う。
+// ダミーの拡散はStep 5のGIで置き換えるまでの仮のもの。2色の値1.0がg_IBLLuminance(nit×露出)になる。
+// dummyVisibilityはダミーの環境光だけに掛ける(月の影・室内。プローブは部屋の中の光を撮ってあるので掛けない)
+float3 EvaluateEnvironmentLighting(SurfaceData surface, float specularOcclusion, float dummyVisibility, SamplerState probeSampler)
 {
     const float3 skyColor = float3(0.5, 0.6, 0.8);
     const float3 groundColor = float3(0.3, 0.25, 0.2);
@@ -151,13 +208,16 @@ float3 EvaluateDummyIBL(SurfaceData surface, float specularOcclusion)
     // 拡散
     const float envWeight = surface.normal.y * 0.5 + 0.5;
     const float3 envDiff = lerp(groundColor, skyColor, envWeight) * 1.5 * g_IBLLuminance;
-    const float3 diffuse = envDiff * surface.diffuseColor / 3.141592;
+    const float3 diffuse = envDiff * surface.diffuseColor / 3.141592 * dummyVisibility;
 
-    // 鏡面
+    // 鏡面: 反射プローブ、無いところはダミー
     const float3 vRef = reflect(-surface.viewDir, surface.normal);
     // 粗い面ほど反射像がぼやけるので、反射方向のグラデーションを法線方向(拡散と同じ)へ寄せる
     const float specWeight = lerp(vRef.y * 0.5 + 0.5, envWeight, surface.roughness);
-    const float3 envSpec = lerp(groundColor, skyColor, specWeight) * 2.0 * g_IBLLuminance;
+    const float3 dummySpecular = lerp(groundColor, skyColor, specWeight) * 2.0 * g_IBLLuminance * dummyVisibility;
+    const float4 probe = SampleReflectionProbes(surface, probeSampler);
+    const float3 envSpec = probe.rgb + dummySpecular * (1.0 - probe.a);
+
     // 環境BRDF(スプリットサム近似)。粗さとフレネルで反射量を決める
     // (粗いほど正面の反射が弱まり、浅い角度ほど強まる)。マルチスキャッタの分も足す
     const float3 envBRDF = (surface.specularColor * surface.environmentBRDF.x + surface.environmentBRDF.y) * surface.energyCompensation;

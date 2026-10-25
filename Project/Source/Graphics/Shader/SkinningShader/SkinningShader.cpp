@@ -66,8 +66,9 @@ void SkinningShader::Begin(RenderContext& context)
 
 	// 局所光源の影(t13・t14)
 	BindLocalShadowMaps();
-	// 環境BRDFのLUT(t21)
+	// 環境BRDFのLUT(t21)と反射プローブ(t22)
 	BindEnvironmentBRDF();
+	BindReflectionProbes();
 }
 
 void SkinningShader::BeginModel(const ModelData& model, const DrawContext& drawContext)

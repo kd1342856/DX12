@@ -656,6 +656,31 @@ public:
 		if (cameraEntity == INVALID_ENTITY) return;
 		m_cameraEntity = cameraEntity;
 
+		auto& cCamera = m_pCoordinator->GetComponent<CameraData>(cameraEntity);
+		SceneView sceneView;
+		sceneView.view = cCamera.m_viewMatrix;
+		sceneView.projection = TemporalAA::ApplyJitter(cCamera.m_projMatrix, m_projectionJitter);
+		sceneView.cullingProjection = cCamera.m_projMatrix;
+		sceneView.useDepthPrepass = useDepthPrepass;
+		RenderSceneView(sceneView, pRT);
+	}
+
+	// シーンを描く視点と、描き方
+	struct SceneView
+	{
+		Math::Matrix view;
+		Math::Matrix projection;        // 描画に使う投影(ジッターを含んでよい)
+		Math::Matrix cullingProjection; // カリングに使う投影(ジッターを含まない)
+		bool useDepthPrepass = false;
+		// 反射プローブの撮影。ルームカリング・半透明・パーティクル・屈折用のコピーを省く
+		// (半透明とガラスは、メインの視点の画面のテクスチャ(深度・屈折・SSR)を読むため正しく描けない)
+		bool isProbeCapture = false;
+	};
+
+	// 行列を指定してシーンを描く(メインのカメラ・プレビュー・反射プローブの撮影で共通)
+	void RenderSceneView(const SceneView& sceneView, class RenderTarget* pRT)
+	{
+		const bool useDepthPrepass = sceneView.useDepthPrepass;
 		auto* pGraphicsDevice = &GDF::Instance().GetGraphicsDevice();
 		auto* pCmdList = pGraphicsDevice->GetCmdList();
 
@@ -670,23 +695,27 @@ public:
 			Renderer::BindDefaultViewport();
 		}
 
-		auto& cCamera = m_pCoordinator->GetComponent<CameraData>(cameraEntity);
 		RenderContext& context = Renderer::GetContext();
-		context.View = cCamera.m_viewMatrix;
-		context.Projection = TemporalAA::ApplyJitter(cCamera.m_projMatrix, m_projectionJitter);
+		context.View = sceneView.view;
+		context.Projection = sceneView.projection;
 
 		// 投影行列から作ったカメラ空間のフラスタムを、カメラのワールド変換(View行列の逆)で
 		// ワールド空間に移す - 毎フレーム全部記録+描画するのではなく、視界外のものの
 		// 描画コマンドを以下でスキップするために使う。
-		Math::Matrix camWorld = cCamera.m_viewMatrix.Invert();
+		Math::Matrix camWorld = sceneView.view.Invert();
 		DirectX::BoundingFrustum frustum;
-		DirectX::BoundingFrustum::CreateFromMatrix(frustum, cCamera.m_projMatrix);
+		DirectX::BoundingFrustum::CreateFromMatrix(frustum, sceneView.cullingProjection);
 		frustum.Transform(frustum, camWorld);
 
 		// フラスタム判定の上にさらにポータル/ルームカリングを重ねる - フラスタムカリング
 		// だけでは足りない理由(部屋が視錐台の中にあっても壁の裏に隠れていることがある)は
 		// RoomVisibilityManagerを参照。
-		RoomVisibilityManager::Instance().UpdateVisibleRooms(camWorld.Translation());
+		// 反射プローブは部屋の中から全方向を撮るので、ルームカリングはしない
+		const bool useRoomCulling = s_enableRoomCulling && !sceneView.isProbeCapture;
+		if (useRoomCulling)
+		{
+			RoomVisibilityManager::Instance().UpdateVisibleRooms(camWorld.Translation());
+		}
 
 		auto& litShader = ShaderLibrary::Instance().Get<LitShader>();
 		auto& skinningShader = ShaderLibrary::Instance().Get<SkinningShader>();
@@ -826,7 +855,7 @@ public:
 									// 影響を受けやすい(例: 出入り口付近に置かれたピックアップ
 									// アイテム) - 実質的に意味のあるメッシュ数を持つモデルにだけ適用する。
 									constexpr int kRoomCullingMinMeshCount = 6;
-									if (!meshCulled && s_enableRoomCulling
+									if (!meshCulled && useRoomCulling
 										&& !cModel.m_spModelData->IsNodeAnimated(node.name)
 										&& cModel.m_spModelData->GetTotalMeshCount() >= kRoomCullingMinMeshCount) {
 										meshCulled = !RoomVisibilityManager::Instance().IsMeshInVisibleRoom(pMesh, staticNodeWorld);
@@ -870,6 +899,13 @@ public:
 		drawEntities(false);
 
 		auto* pGraphicsContext = pGraphicsDevice->GetContextManager()->GetGraphicsContext();
+
+		// 反射プローブの撮影では、不透明とアルファテストだけを描く
+		if (sceneView.isProbeCapture)
+		{
+			litShader.SetDepthEqual(false);
+			return;
+		}
 
 		// Opaqueパスの結果を Refraction 用にコピー
 		if (pRT)

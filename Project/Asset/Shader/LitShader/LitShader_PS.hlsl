@@ -446,7 +446,7 @@ PSOutput main(VSOutput In) : SV_Target0
     float specAO = occlusion * ssao;
     float specOcclusion = saturate(pow(NdotV + specAO, exp2(-16.0 * roughness2 - 1.0)) - 1.0 + specAO);
 
-    color += EvaluateDummyIBL(surface, specOcclusion) * moonVisibility;
+    color += EvaluateEnvironmentLighting(surface, specOcclusion, moonVisibility, g_ss_linear_clamp);
 
     //------------------------------------------
     // 距離フォグ
