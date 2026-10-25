@@ -294,6 +294,7 @@ PSOutput main(VSOutput In) : SV_Target0
     surface.specularColor = baseSpecular;
     surface.roughness = roughness;
     surface.alpha = roughness2;
+    InitializeSurfaceBRDF(surface);
 
     // 最終的な色
     float3 color = 0;

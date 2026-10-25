@@ -338,6 +338,7 @@
     <ClInclude Include="Source\Graphics\Renderer\RenderQueue.h" />
     <ClInclude Include="Source\Graphics\Shader\ShaderManager\ShaderManager.h" />
     <ClInclude Include="Source\Graphics\Shader\ShaderReflection\ShaderReflection.h" />
+    <ClInclude Include="Source\Graphics\Renderer\EnvironmentBRDF.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Library\ImGui\imgui.cpp" />
@@ -484,6 +485,7 @@
     <ClCompile Include="Source\Graphics\Renderer\RenderQueue.cpp" />
     <ClCompile Include="Source\Graphics\Shader\ShaderManager\ShaderManager.cpp" />
     <ClCompile Include="Source\Graphics\Shader\ShaderReflection\ShaderReflection.cpp" />
+    <ClCompile Include="Source\Graphics\Renderer\EnvironmentBRDF.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Asset\Shader\Common\ShaderCore.hlsli" />
@@ -613,6 +615,9 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Asset\Shader\Lighting\EnvironmentBRDF_CS.hlsl">
+      <FileType>Document</FileType>
     </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

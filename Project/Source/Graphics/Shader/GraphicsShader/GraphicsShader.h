@@ -5,6 +5,7 @@
 #include "../../Renderer/RenderContext.h"
 #include "../../Renderer/DrawContext.h"
 #include "../../../Graphics/Device/GraphicsDevice.h"
+#include "../../Renderer/EnvironmentBRDF.h"
 
 class ModelData;
 struct Node;
@@ -53,6 +54,25 @@ protected:
 	{
 		BindShadowMapArray(13, m_pDevice->GetSpotShadowMaps());
 		BindShadowMapArray(14, m_pDevice->GetCubeShadowMaps());
+	}
+
+	// 環境BRDFのLUT(t21)を束縛する。inc_Lighting.hlsliのInitializeSurfaceBRDFを使うシェーダーのBegin()で呼ぶ。
+	// LUTをまだ作っていなければ黒を渡し、シェーダー側で解析的な近似に切り替える
+	void BindEnvironmentBRDF()
+	{
+		const int rootIndex = GetRootParameterIndex(ShaderBindingType::SRV, EnvironmentBRDF::kShaderRegister);
+		if (rootIndex == -1)
+		{
+			return;
+		}
+		const int srvIndex = EnvironmentBRDF::Instance().GetSRVIndex();
+		if (srvIndex == -1)
+		{
+			m_pDevice->GetBlackTex()->Set(rootIndex);
+			return;
+		}
+		auto handle = m_pDevice->GetDescriptorHeapManager()->GetCBVSRVUAVAllocator()->GetGPUHandle(srvIndex);
+		m_pDevice->GetCmdList()->SetGraphicsRootDescriptorTable(rootIndex, handle);
 	}
 
 	GraphicsDevice* m_pDevice = nullptr;

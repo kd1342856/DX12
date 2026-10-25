@@ -331,6 +331,9 @@
     <Filter Include="Source\Graphics\Shader\SSROpaqueShader">
       <UniqueIdentifier>{7BA8A10B-57CF-45C8-8819-16281180623E}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Asset\Shader\Lighting">
+      <UniqueIdentifier>{6536952A-F22B-4D14-ADF5-3348852295C3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Library\ImGui\imgui.cpp">
@@ -749,6 +752,9 @@
     </ClCompile>
     <ClCompile Include="Source\Graphics\Shader\ShaderReflection\ShaderReflection.cpp">
       <Filter>Source\Graphics\Shader\ShaderReflection</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Graphics\Renderer\EnvironmentBRDF.cpp">
+      <Filter>Source\Graphics\Renderer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1283,6 +1289,9 @@
     <ClInclude Include="Source\Graphics\Shader\ShaderReflection\ShaderReflection.h">
       <Filter>Source\Graphics\Shader\ShaderReflection</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Graphics\Renderer\EnvironmentBRDF.h">
+      <Filter>Source\Graphics\Renderer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Asset\Shader\Common\ShaderCore.hlsli">
@@ -1393,6 +1402,9 @@
     </None>
     <None Include="Asset\Shader\LitShader\temp_pbr.txt">
       <Filter>Asset\Shader\LitShader</Filter>
+    </None>
+    <None Include="Asset\Shader\Lighting\EnvironmentBRDF_CS.hlsl">
+      <Filter>Asset\Shader\Lighting</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

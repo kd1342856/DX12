@@ -132,6 +132,7 @@ PSOutput main(VSOutput In)
     surface.specularColor = lerp(kSpecularCoefficient, baseColor.rgb, metallic);
     surface.roughness = roughness;
     surface.alpha = ApplyGeometricSpecularAA(roughness * roughness, wN);
+    InitializeSurfaceBRDF(surface);
 
     float3 color = 0;
 

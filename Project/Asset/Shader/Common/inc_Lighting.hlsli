@@ -14,7 +14,57 @@ struct SurfaceData
     float3 specularColor; // 鏡面反射の色(F0)
     float  roughness;     // 知覚的なラフネス(拡散のBurleyに使う)
     float  alpha;         // GGXのα(ラフネスの2乗)
+    // 以下はInitializeSurfaceBRDF()で埋める
+    float2 environmentBRDF;    // 環境BRDFの(A, B)。環境光の鏡面 = F0 × A + B
+    float3 energyCompensation; // マルチスキャッタのエネルギー補償。鏡面に掛ける
 };
+
+//------------------------------------------
+// 環境BRDF(スプリットサム近似のLUT。C++のEnvironmentBRDFが作る)
+//------------------------------------------
+Texture2D<float2> g_environmentBRDF : register(t21);
+
+// LUTが無いとき(作る前・コンピュートに対応していないGPU)の解析的な近似(Karis, UE4 Mobile)
+float2 AnalyticEnvironmentBRDF(float perceptualRoughness, float NdotV)
+{
+    const float4 kEnvC0 = float4(-1.0, -0.0275, -0.572, 0.022);
+    const float4 kEnvC1 = float4(1.0, 0.0425, 1.04, -0.04);
+    const float4 envR = perceptualRoughness * kEnvC0 + kEnvC1;
+    const float envA004 = min(envR.x * envR.x, exp2(-9.28 * NdotV)) * envR.x + envR.y;
+    return float2(-1.04, 1.04) * envA004 + envR.zw;
+}
+
+// LUTを読む。サンプラーを増やさないよう、4テクセルを読んで自分で補間する
+// (テクセルの中心がちょうど0と1になる並び。EnvironmentBRDF_CS.hlslと同じ)
+float2 SampleEnvironmentBRDF(float perceptualRoughness, float NdotV)
+{
+    float width, height;
+    g_environmentBRDF.GetDimensions(width, height);
+    const float2 position = saturate(float2(NdotV, perceptualRoughness)) * (float2(width, height) - 1.0);
+    const int2 base = min(int2(position), int2(width, height) - 2);
+    const float2 t = position - float2(base);
+    const float2 v00 = g_environmentBRDF.Load(int3(base, 0));
+    const float2 v10 = g_environmentBRDF.Load(int3(base + int2(1, 0), 0));
+    const float2 v01 = g_environmentBRDF.Load(int3(base + int2(0, 1), 0));
+    const float2 v11 = g_environmentBRDF.Load(int3(base + int2(1, 1), 0));
+    return lerp(lerp(v00, v10, t.x), lerp(v01, v11, t.x), t.y);
+}
+
+// 表面の環境BRDFとエネルギー補償を求める。SurfaceDataの他の値を埋めた後に呼ぶ
+void InitializeSurfaceBRDF(inout SurfaceData surface)
+{
+    // Geometric Specular AAで広げたαに合わせる
+    const float perceptualRoughness = sqrt(surface.alpha);
+    float2 environmentBRDF = SampleEnvironmentBRDF(perceptualRoughness, surface.NdotV);
+    if (environmentBRDF.x + environmentBRDF.y <= 0.0)
+    {
+        environmentBRDF = AnalyticEnvironmentBRDF(perceptualRoughness, surface.NdotV);
+    }
+    surface.environmentBRDF = environmentBRDF;
+    // 1回の反射で返るエネルギーはA + B(F0 = 1)。足りない分は、何度も反射して最後には出てくる光なので、
+    // F0の色を付けて足し戻す(Fdez-Aguera 2019、Filamentと同じ)。ラフな金属が暗くなりすぎるのを防ぐ
+    surface.energyCompensation = 1.0 + surface.specularColor * (1.0 / max(environmentBRDF.x + environmentBRDF.y, 1e-3) - 1.0);
+}
 
 // Geometric Specular AA(Tokuyoshi & Kaplanyan 2019)。画面上で法線が急に変わる所(細かい凹凸や遠くの曲面)は、
 // 1ピクセルの中にいろいろな向きの法線が含まれる。その広がりの分だけαを大きくし、ハイライトのちらつきを抑える
@@ -35,7 +85,7 @@ float3 EvaluateDirectLight(SurfaceData surface, float3 lightDir, float3 illumina
     const float LdotH = saturate(dot(lightDir, H));
     const float NdotH = saturate(dot(surface.normal, H));
     const float3 diffuse = Diffuse_Burley(surface.diffuseColor, NdotL, surface.NdotV, LdotH, surface.roughness);
-    const float3 specular = Specular_BRDF(surface.alpha, surface.specularColor, surface.NdotV, NdotL, LdotH, NdotH);
+    const float3 specular = Specular_BRDF(surface.alpha, surface.specularColor, surface.NdotV, NdotL, LdotH, NdotH) * surface.energyCompensation;
     return NdotL * illuminance * (diffuse + specular);
 }
 
@@ -64,7 +114,7 @@ float3 EvaluateSphereLight(SurfaceData surface, float3 toLight, float sourceRadi
     const float specularNdotH = saturate(dot(surface.normal, specularH));
     const float widenedAlpha = saturate(surface.alpha + sourceRadius / (2.0 * distanceToLight));
     const float normalization = (surface.alpha * surface.alpha) / max(widenedAlpha * widenedAlpha, 1e-6);
-    const float3 specular = Specular_BRDF(surface.alpha, surface.specularColor, surface.NdotV, specularNdotL, specularLdotH, specularNdotH) * normalization;
+    const float3 specular = Specular_BRDF(surface.alpha, surface.specularColor, surface.NdotV, specularNdotL, specularLdotH, specularNdotH) * normalization * surface.energyCompensation;
 
     return illuminance * (NdotL * diffuse + specularNdotL * specular);
 }
@@ -108,14 +158,9 @@ float3 EvaluateDummyIBL(SurfaceData surface, float specularOcclusion)
     // 粗い面ほど反射像がぼやけるので、反射方向のグラデーションを法線方向(拡散と同じ)へ寄せる
     const float specWeight = lerp(vRef.y * 0.5 + 0.5, envWeight, surface.roughness);
     const float3 envSpec = lerp(groundColor, skyColor, specWeight) * 2.0 * g_IBLLuminance;
-    // 環境BRDF近似(Karis, UE4 Mobile)。粗さとフレネルで反射量を決める
-    // (粗いほど正面の反射が弱まり、浅い角度ほど強まる)
-    const float4 kEnvC0 = float4(-1.0, -0.0275, -0.572, 0.022);
-    const float4 kEnvC1 = float4(1.0, 0.0425, 1.04, -0.04);
-    const float4 envR = surface.roughness * kEnvC0 + kEnvC1;
-    const float envA004 = min(envR.x * envR.x, exp2(-9.28 * surface.NdotV)) * envR.x + envR.y;
-    const float2 envAB = float2(-1.04, 1.04) * envA004 + envR.zw;
-    const float3 envBRDF = surface.specularColor * envAB.x + envAB.y;
+    // 環境BRDF(スプリットサム近似)。粗さとフレネルで反射量を決める
+    // (粗いほど正面の反射が弱まり、浅い角度ほど強まる)。マルチスキャッタの分も足す
+    const float3 envBRDF = (surface.specularColor * surface.environmentBRDF.x + surface.environmentBRDF.y) * surface.energyCompensation;
 
     return diffuse + envSpec * envBRDF * specularOcclusion;
 }

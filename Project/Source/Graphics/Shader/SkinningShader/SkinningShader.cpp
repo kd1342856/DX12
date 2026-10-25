@@ -66,6 +66,8 @@ void SkinningShader::Begin(RenderContext& context)
 
 	// ‹ÇŠŒõŒ¹‚Ì‰e(t13Et14)
 	BindLocalShadowMaps();
+	// ŠÂ‹«BRDF‚ÌLUT(t21)
+	BindEnvironmentBRDF();
 }
 
 void SkinningShader::BeginModel(const ModelData& model, const DrawContext& drawContext)

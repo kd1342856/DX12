@@ -21,6 +21,7 @@
 #include "../../Graphics/Renderer/TemporalAA.h"
 #include "../../Graphics/Renderer/AutoExposure.h"
 #include "../../Graphics/Renderer/MotionBlur.h"
+#include "../../Graphics/Renderer/EnvironmentBRDF.h"
 #include "Scene/Scene.h"
 #include "../Object/GameObject.h"
 #include "../ECS/CompSystem/Systems/RenderSystem.h"
@@ -163,6 +164,7 @@ void GameManager::Init()
     TemporalAA::Instance().Initialize(Renderer::GetRenderWidth(), Renderer::GetRenderHeight());
     AutoExposure::Instance().Initialize();
     MotionBlur::Instance().Initialize(Renderer::GetRenderWidth(), Renderer::GetRenderHeight());
+    EnvironmentBRDF::Instance().Initialize();
 }
 
 void GameManager::Update(float deltaTime, class Scene* pScene)

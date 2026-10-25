@@ -7,11 +7,14 @@
 #include "MotionVectors.h"
 #include "TemporalAA.h"
 #include "MotionBlur.h"
+#include "EnvironmentBRDF.h"
 
 static RenderContext s_renderContext;
 
 RenderContext& Renderer::BeginFrame()
 {
+	// 環境BRDFのLUTは最初のフレームで一度だけ作る
+	EnvironmentBRDF::Instance().GenerateIfNeeded();
 	ShaderManager::Instance().UpdateConstantBuffers();
 	return s_renderContext;
 }
