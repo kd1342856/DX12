@@ -115,6 +115,13 @@ void RenderTarget::WriteDescriptors()
 	depthSrvDesc.Texture2D.MipLevels = 1;
 	pDevice->CreateShaderResourceView(m_pDepthBuffer.Get(), &depthSrvDesc, pHeapManager->GetCBVSRVUAVAllocator()->GetCPUHandle(m_depthSrvIndex));
 }
+void RenderTarget::ClearColor(float r, float g, float b, float a)
+{
+	auto rtvH = m_device->GetDescriptorHeapManager()->GetRTVAllocator()->GetCPUHandle(m_rtvIndex);
+	float clearColor[] = { r, g, b, a };
+	m_device->GetCmdList()->ClearRenderTargetView(rtvH, clearColor, 0, nullptr);
+}
+
 void RenderTarget::Clear(float r, float g, float b, float a)
 {
 	auto rtvH = m_device->GetDescriptorHeapManager()->GetRTVAllocator()->GetCPUHandle(m_rtvIndex);

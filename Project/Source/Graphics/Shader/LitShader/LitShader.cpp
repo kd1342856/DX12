@@ -19,11 +19,20 @@ void LitShader::Create(GraphicsDevice* pGraphicsDevice)
 	m_topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
 	// Opaque
+	// LESS_EQUALにしておく。深度プリパスで同じ深さが書かれていても描ける(プリパスとの条件がずれても穴が開かない)
 	desc.CullMode = CullMode::None; // 反射の鏡像描画でカリングが反転しても描画されるようにNoneにする
 	desc.BlendMode = BlendMode::None;
 	desc.DepthBias = 0;
 	desc.IsDepthMask = true;
+	desc.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
 	m_psoOpaque = ShaderManager::Instance().GetPipelineState(m_pProgram, desc);
+
+	// Opaque(深度プリパスで深度を描いたメッシュ用)。深度が同じピクセルだけを描き、深度は書かない
+	desc.DepthFunc = D3D12_COMPARISON_FUNC_EQUAL;
+	desc.IsDepthMask = false;
+	m_psoOpaqueDepthEqual = ShaderManager::Instance().GetPipelineState(m_pProgram, desc);
+	desc.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
+	desc.IsDepthMask = true;
 
 	// Mask
 	desc.CullMode = CullMode::None;
@@ -31,6 +40,7 @@ void LitShader::Create(GraphicsDevice* pGraphicsDevice)
 	desc.DepthBias = 0;
 	desc.IsDepthMask = true;
 	m_psoMask = ShaderManager::Instance().GetPipelineState(m_pProgram, desc);
+	desc.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
 
 	// Blend (デカール用)
 	desc.CullMode = CullMode::None;
@@ -140,6 +150,8 @@ void LitShader::BeforeDrawMesh(const Mesh& mesh, const Material& material)
 		m_pDevice->GetCmdList()->SetPipelineState(m_psoBlend.Get());
 	} else if (material.Constants.alphaMode == 1) {
 		m_pDevice->GetCmdList()->SetPipelineState(m_psoMask.Get());
+	} else if (m_isDepthEqual) {
+		m_pDevice->GetCmdList()->SetPipelineState(m_psoOpaqueDepthEqual.Get());
 	} else {
 		m_pDevice->GetCmdList()->SetPipelineState(m_psoOpaque.Get());
 	}

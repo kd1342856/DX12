@@ -15,9 +15,12 @@ VSOutput main(  float3 pos : POSITION,  // 頂点座標
     VSOutput Out;
 
     // 変換
-    float4x4 mVP = mul(g_mV, g_mP);
-    float4x4 mWVP = mul(g_mW, mVP);
-    Out.Pos = mul(float4(pos, 1.0f), mWVP);       // ローカル座標 -> 投影座標へ一括変換
+    // 深度プリパス(NormalPrepass_VS)と1ビットも違わない深度にするため、同じ式をpreciseで計算する
+    // (最適化で計算の順番やFMAの使い方が変わると、EQUALの深度テストに通らないピクセルが出る)
+    precise float4x4 mVP = mul(g_mV, g_mP);
+    precise float4x4 mWVP = mul(g_mW, mVP);
+    precise float4 clipPos = mul(float4(pos, 1.0f), mWVP); // ローカル座標 -> 投影座標へ一括変換
+    Out.Pos = clipPos;
     Out.wPos = mul(float4(pos, 1.0f), g_mW).xyz;
 
     // 法線

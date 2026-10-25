@@ -629,6 +629,9 @@ void GameScene::RenderGame()
 
         UpdateLights(m_gameCameraEntity);
         RenderLocalLightShadows();
+        // 深度プリパス: シーンの深度と、SSAO・SSR用の法線を描く。メインの不透明の描画はこの深度にEQUALで描く
+        auto* pSceneHDR = Renderer::GetSceneHDRRenderTarget();
+        renderSystem->RenderNormalPrepass(m_gameCameraEntity, Renderer::GetNormalPrepassRenderTarget(), pSceneHDR);
         RenderSSAO(m_gameCameraEntity);
 
         // ReflectionComponent::PreDraw()がここで平面の位置/法線をワールド空間へ変換する。
@@ -642,9 +645,9 @@ void GameScene::RenderGame()
             scriptSystemPreDraw->PreDraw();
         }
 
-        auto* pSceneHDR = Renderer::GetSceneHDRRenderTarget();
+        // 深度はプリパスで描いたので、色だけをクリアする
         GraphicsDevice::Instance().SetRenderTarget(pSceneHDR);
-        pSceneHDR->Clear(0.0f, 0.0f, 0.0f, 1.0f);
+        pSceneHDR->ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
         {
             PROFILE_CPU_SCOPE("Reflection");
@@ -654,7 +657,7 @@ void GameScene::RenderGame()
         {
             PROFILE_CPU_SCOPE("Scene");
             PROFILE_GPU_SCOPE(pCmdList, "Scene");
-            renderSystem->RenderScene(m_gameCameraEntity, pSceneHDR);
+            renderSystem->RenderScene(m_gameCameraEntity, pSceneHDR, true);
         }
         // Script Draw (Player UI, GameClear/Over 表示など)
         // ※ DebugWireはゲームモードでは非表示
@@ -762,8 +765,8 @@ void GameScene::RenderSSAO(Entity cameraEntity)
         return;
     }
 
+    // 法線と深度は、直前の深度プリパス(RenderNormalPrepass)で描いてある
     auto* pNormalRT = Renderer::GetNormalPrepassRenderTarget();
-    renderSystem->RenderNormalPrepass(cameraEntity, pNormalRT);
 
     auto& ssaoShader = ShaderLibrary::Instance().Get<SSAOShader>();
     SSAOShader::Params params;
@@ -933,6 +936,8 @@ void GameScene::RenderEditor()
     {
         UpdateLights(m_editorCameraEntity);
         RenderLocalLightShadows();
+        // 深度プリパス(RenderGameと同じ)。シーンの深度はここで描き直す
+        renderSystem->RenderNormalPrepass(m_editorCameraEntity, Renderer::GetNormalPrepassRenderTarget(), pSceneHDR);
         RenderSSAO(m_editorCameraEntity);
 
         // ReflectionComponent::PreDraw()がここで平面の位置/法線をワールド空間へ変換する。
@@ -956,7 +961,7 @@ void GameScene::RenderEditor()
         {
             PROFILE_CPU_SCOPE("Scene");
             PROFILE_GPU_SCOPE(pCmdList, "Scene");
-            renderSystem->RenderScene(m_editorCameraEntity, pSceneHDR);
+            renderSystem->RenderScene(m_editorCameraEntity, pSceneHDR, true);
         }
         // Script Draw (デバッグワイヤー等表示)
         if (scriptSystem) {

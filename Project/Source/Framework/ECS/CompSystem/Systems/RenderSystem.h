@@ -539,21 +539,43 @@ public:
 
 	// SSAO/SSR用のビュー空間法線プリパス。RenderScene直前に呼ぶ。
 	// スキニングメッシュ/半透明/Skyは対象外(近似用途のため単純化 - Phase3の既知の制限)。
-	void RenderNormalPrepass(Entity cameraEntity, class RenderTarget* pNormalRT)
+	// 深度プリパス。シーンの深度(pDepthRTの深度)と、SSAO・SSR用のビュー空間の法線(pNormalRT)を描く。
+	// メインの描画(RenderSceneのuseDepthPrepass)は、ここで描いたメッシュをEQUALで描くので、
+	// 見えているピクセルだけに重いライティングが走る。描く条件はLitShader::IsDepthPrepassMaterialと合わせること
+	void RenderNormalPrepass(Entity cameraEntity, class RenderTarget* pNormalRT, class RenderTarget* pDepthRT)
 	{
 		if (!m_pCoordinator) return;
-		if (cameraEntity == INVALID_ENTITY || !pNormalRT) return;
+		if (cameraEntity == INVALID_ENTITY || !pNormalRT || !pDepthRT) return;
 
 		auto* pGraphicsDevice = &GDF::Instance().GetGraphicsDevice();
+		auto* pCmdList = pGraphicsDevice->GetCmdList();
+		auto* pGraphicsContext = pGraphicsDevice->GetContextManager()->GetGraphicsContext();
+		auto* pHeapManager = pGraphicsDevice->GetDescriptorHeapManager();
+		PROFILE_CPU_SCOPE("DepthPrepass");
+		PROFILE_GPU_SCOPE(pCmdList, "DepthPrepass");
 
-		pGraphicsDevice->SetRenderTarget(pNormalRT);
+		// 色は法線のRT、深度はシーンのRTの深度に描く
+		pGraphicsContext->TransitionResource(pNormalRT->GetResource(), D3D12_RESOURCE_STATE_RENDER_TARGET);
+		pGraphicsContext->TransitionResource(pDepthRT->GetDepthResource(), D3D12_RESOURCE_STATE_DEPTH_WRITE);
+		pGraphicsContext->FlushResourceBarriers();
+		auto rtvHandle = pHeapManager->GetRTVAllocator()->GetCPUHandle(pNormalRT->GetRTVIndex());
+		auto dsvHandle = pHeapManager->GetDSVAllocator()->GetCPUHandle(pDepthRT->GetDSVIndex());
+		pCmdList->OMSetRenderTargets(1, &rtvHandle, false, &dsvHandle);
 		Renderer::BindViewport(pNormalRT);
-		pNormalRT->Clear(0.5f, 0.5f, 1.0f, 1.0f); // (0,0,1)相当(カメラ正面向き)でクリア
+		const float clearNormal[] = { 0.5f, 0.5f, 1.0f, 1.0f }; // (0,0,1)相当(カメラ正面向き)
+		pCmdList->ClearRenderTargetView(rtvHandle, clearNormal, 0, nullptr);
+		pCmdList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
 		auto& cCamera = m_pCoordinator->GetComponent<CameraData>(cameraEntity);
 		RenderContext& context = Renderer::GetContext();
 		context.View = cCamera.m_viewMatrix;
 		context.Projection = cCamera.m_projMatrix;
+
+		// メインの描画と同じフラスタムで、エンティティ単位とメッシュ単位のカリングをする。
+		// メインはこれに加えてルームカリングもするので、メインで描くメッシュは必ずここでも描かれる
+		DirectX::BoundingFrustum frustum;
+		DirectX::BoundingFrustum::CreateFromMatrix(frustum, cCamera.m_projMatrix);
+		frustum.Transform(frustum, cCamera.m_viewMatrix.Invert());
 
 		auto& normalShader = ShaderLibrary::Instance().Get<NormalPrepassShader>();
 
@@ -562,8 +584,19 @@ public:
 			auto& cTransform = m_pCoordinator->GetComponent<TransformData>(entity);
 			auto& cModel = m_pCoordinator->GetComponent<ModelRenderData>(entity);
 			if (!cModel.m_isVisible || !cModel.m_spModelData || !cModel.m_spModelData->IsLoaded()) continue;
-			if (cModel.m_modelType == ModelType::Dynamic) continue; // スキニングは今回対象外
+			if (cModel.m_modelType == ModelType::Dynamic) continue; // スキニングはメインの描画で深度も書く
 			if (cModel.m_modelType == ModelType::Sky) continue;
+
+			if (s_enableFrustumCulling)
+			{
+				DirectX::BoundingBox entityBoundsLocal;
+				if (cModel.m_spModelData->TryGetLocalBounds(entityBoundsLocal))
+				{
+					DirectX::BoundingBox entityBoundsWorld;
+					entityBoundsLocal.Transform(entityBoundsWorld, cTransform.m_worldMatrix);
+					if (!frustum.Intersects(entityBoundsWorld)) continue;
+				}
+			}
 
 			normalShader.Begin(context);
 			Math::Matrix world = cTransform.m_worldMatrix;
@@ -574,22 +607,40 @@ public:
 				for (const auto& meshHandle : node.meshes)
 				{
 					Mesh* pMesh = MeshManager::Instance().Get(meshHandle);
-					if (pMesh && pMesh->IsReady())
+					if (!pMesh || !pMesh->IsReady())
 					{
-						bool isMeshBlend = (pMesh->GetMaterial().Constants.alphaMode == 2);
-						if (isMeshBlend) continue; // 半透明はAO/SSRの元データに含めない
-						normalShader.BeforeDrawMesh(*pMesh, pMesh->GetMaterial());
-						pMesh->DrawInstanced(pMesh->GetInstanceCount());
+						continue;
 					}
+					// 半透明・アルファテスト・プロシージャルは、メインの描画で深度を書く(EQUALにしない)
+					if (!LitShader::IsDepthPrepassMaterial(pMesh->GetMaterial()))
+					{
+						continue;
+					}
+					if (s_enableFrustumCulling)
+					{
+						DirectX::BoundingBox meshWorldBounds;
+						pMesh->GetLocalAABB().Transform(meshWorldBounds, nodeWorld);
+						if (!frustum.Intersects(meshWorldBounds)) continue;
+					}
+					normalShader.BeforeDrawMesh(*pMesh, pMesh->GetMaterial());
+					pMesh->DrawInstanced(pMesh->GetInstanceCount());
 				}
 			}
 		}
 
-		pGraphicsDevice->TransitionToSRV(pNormalRT);
-		pGraphicsDevice->TransitionDepthToSRV(pNormalRT);
+		// SSAO・SSRは法線のRTの深度を読むので、シーンの深度をそこへ写す
+		pGraphicsContext->TransitionResource(pDepthRT->GetDepthResource(), D3D12_RESOURCE_STATE_COPY_SOURCE);
+		pGraphicsContext->TransitionResource(pNormalRT->GetDepthResource(), D3D12_RESOURCE_STATE_COPY_DEST);
+		pGraphicsContext->FlushResourceBarriers();
+		pCmdList->CopyResource(pNormalRT->GetDepthResource(), pDepthRT->GetDepthResource());
+		pGraphicsContext->TransitionResource(pDepthRT->GetDepthResource(), D3D12_RESOURCE_STATE_DEPTH_WRITE);
+		pGraphicsContext->TransitionResource(pNormalRT->GetDepthResource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+		pGraphicsContext->TransitionResource(pNormalRT->GetResource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+		pGraphicsContext->FlushResourceBarriers();
 	}
 
-	void RenderScene(Entity cameraEntity, class RenderTarget* pRT = nullptr)
+	// useDepthPrepass: 直前にRenderNormalPrepassでpRTの深度を描いたならtrue。プリパスで描いた不透明のメッシュをEQUALで描く
+	void RenderScene(Entity cameraEntity, class RenderTarget* pRT = nullptr, bool useDepthPrepass = false)
 	{
 		if (!m_pCoordinator) return;
 		if (cameraEntity == INVALID_ENTITY) return;
@@ -781,7 +832,13 @@ public:
 									auto& skyShader = ShaderLibrary::Instance().Get<SkyShader>();
 									skyShader.BeforeDrawMesh(*pMesh, pMesh->GetMaterial());
 								}
-								else litShader.BeforeDrawMesh(*pMesh, drawMat);
+								else
+								{
+									// プリパスで深度を描いたメッシュはEQUALで描く。元のマテリアルと描くマテリアルの両方が条件を満たすときだけ
+									litShader.SetDepthEqual(useDepthPrepass && !isBlendPass &&
+										LitShader::IsDepthPrepassMaterial(pMesh->GetMaterial()) && LitShader::IsDepthPrepassMaterial(drawMat));
+									litShader.BeforeDrawMesh(*pMesh, drawMat);
+								}
 
 								pMesh->DrawInstanced(pMesh->GetInstanceCount());
 							}
@@ -838,6 +895,7 @@ public:
 
 		// パス2: Blend & Decal
 		drawEntities(true);
+		litShader.SetDepthEqual(false);
 
 		// Depth Buffer を書き込み用に戻す
 		if (pRT)

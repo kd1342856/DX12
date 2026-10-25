@@ -24,6 +24,8 @@ public:
 	ID3D12Resource* GetResource() const { return m_resource.Get(); }
 
 	void Clear(float r = 0.0f, float g = 0.0f, float b = 1.0f, float a = 1.0f);
+	// 色だけをクリアする(深度はそのまま。深度プリパスで描いた深度を残すとき)
+	void ClearColor(float r, float g, float b, float a);
 
 private:
 	bool CreateResources(int width, int height);
