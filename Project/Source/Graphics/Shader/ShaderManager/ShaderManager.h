@@ -47,6 +47,8 @@ public:
 	float GetExposure() const;
 	// 手動の露出のEV100(設定のEV100、またはカメラの絞り・シャッター速度・ISO感度から求めたもの)
 	float GetManualEV100() const;
+	// 霧の濃さ(消散係数、1/m)。ハント中は濃くなる。ボリュメトリックフォグが使う
+	float GetFogExtinction() const { return m_fogExtinction; }
 
 	// 描画解像度(シーンを描くRTの大きさ)。シェーダーが画面のUVを求めるのに使う。Rendererが作り直すたびに呼ぶ
 	void SetScreenSize(int width, int height)
@@ -166,6 +168,7 @@ private:
 	CBufferData::Light m_LightData;
 
 	int m_huntActiveCount = 0;
+	float m_fogExtinction = 0.0f;
 	float m_huntBlend = 0.0f; // 0 = normal, 1 = full hunt; smoothed toward its target each frame
 
 	// Lighting values as set by LightingSettings, before the hunt-darken multiplier is applied.

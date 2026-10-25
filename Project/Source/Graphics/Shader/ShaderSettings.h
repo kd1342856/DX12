@@ -181,4 +181,11 @@ struct FogSettings
     // Shared normal<->hunt blend rate, in "fraction per second" (1.0 = full transition in ~1s).
     // Drives both the fog density interpolation and the darkening above, so they move together.
     float HuntTransitionSpeed = 0.8f;
+
+    // ボリュメトリックフォグ(フロクセル)。オンのときは、上の濃さを消散係数(1/m)として使い、
+    // FogColorを散乱の割合(色)として使う。霧の明るさはライト・影・DDGIの環境光から求まる
+    bool  EnableVolumetricFog = true;
+    float VolumetricFogAnisotropy = 0.3f;    // 正で前方散乱(光の方を向くと霧が明るく光る)
+    float VolumetricFogFar = 40.0f;          // フロクセルの奥の端(m)。家の大きさに合わせる
+    float VolumetricFogHistoryWeight = 0.9f; // 前のフレームの結果を残す割合
 };

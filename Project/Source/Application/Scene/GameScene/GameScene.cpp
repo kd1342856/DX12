@@ -33,6 +33,7 @@
 #include "../../../Graphics/Renderer/ReflectionProbes.h"
 #include "../../../Graphics/Renderer/RaytracingScene.h"
 #include "../../../Graphics/Renderer/DDGIVolume.h"
+#include "../../../Graphics/Renderer/VolumetricFog.h"
 #include "../../../Framework/Manager/Particle/ParticleManager.h"
 #include "../../../Framework/Manager/Audio/AudioManager.h"
 #include "../../UI/OptionMenu.h"
@@ -716,6 +717,7 @@ void GameScene::BeginTemporalFrame(Entity cameraEntity)
     {
         MotionVectors::Instance().InvalidateHistory();
         TemporalAA::Instance().InvalidateHistory();
+        VolumetricFog::Instance().InvalidateHistory();
     }
     m_temporalCameraEntity = cameraEntity;
     m_temporalCameraPosition = cameraPosition;
@@ -960,6 +962,20 @@ void GameScene::DoPostProcess(Entity cameraEntity, float clearR, float clearG, f
         ssrParams.StepSize = rendererSettings.SSRStepSize;
         ssrParams.Intensity = rendererSettings.SSROpaqueIntensity;
         ssrOpaqueShader.Draw(pNormalRT, pSceneOpaqueCopy, pSceneHDR, ssrParams);
+    }
+
+    // 0.4 ボリュメトリックフォグ - ライトと影で光る霧を、ピクセルの深さまで積み上げて掛ける。
+    // SSRの反射にも掛かるよう、SSRの後に行う
+    const auto& fogSettings = ShaderManager::Instance().GetFogSettings();
+    if (fogSettings.EnableVolumetricFog && cameraEntity != INVALID_ENTITY)
+    {
+        auto& ecs = GameManager::Instance().GetECS();
+        if (auto* pCamData = ecs.TryGetComponent<CameraData>(cameraEntity))
+        {
+            const auto& shaderManager = ShaderManager::Instance();
+            VolumetricFog::Instance().Render(pSceneHDR, pCamData->m_viewMatrix, pCamData->m_projMatrix, fogSettings,
+                shaderManager.GetFogExtinction(), shaderManager.GetLightData(), shaderManager.GetSystemData());
+        }
     }
 
     // 0.5 TAA - ジッターで揺らして描いた絵を履歴と混ぜ、ジャギーとちらつきを抑える。

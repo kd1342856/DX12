@@ -3,6 +3,7 @@
 #include "../ShaderCompiler/ShaderCompiler.h"
 #include "../PhotometricUnits.h"
 #include "../../Renderer/AutoExposure.h"
+#include "../../Renderer/VolumetricFog.h"
 #include <algorithm>
 
 namespace
@@ -349,9 +350,12 @@ void ShaderManager::UpdateFogCB()
 
 	// Distance fog: present at FogDensity from the start of a match, growing to HuntFogDensity
 	// while a ghost is hunting.
-	m_LightData.DistanceFogDensity = m_FogSettings.EnableFog
+	m_fogExtinction = m_FogSettings.EnableFog
 		? (m_FogSettings.FogDensity + (m_FogSettings.HuntFogDensity - m_FogSettings.FogDensity) * m_huntBlend)
 		: 0.0f;
+	// ボリュメトリックフォグを使うときは、シェーダーの中の距離フォグは掛けない(二重にならないように)
+	const bool isVolumetricFog = m_FogSettings.EnableVolumetricFog && VolumetricFog::Instance().IsAvailable();
+	m_LightData.DistanceFogDensity = isVolumetricFog ? 0.0f : m_fogExtinction;
 
 	// Screen darkening: scales ambient + directional light down toward black as the hunt blend
 	// rises, layered on top of whatever LightingSettings/UpdateLightingCB last computed.

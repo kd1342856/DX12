@@ -765,6 +765,9 @@
     <ClCompile Include="Source\Graphics\Renderer\DDGIVolume.cpp">
       <Filter>Source\Graphics\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Graphics\Renderer\VolumetricFog.cpp">
+      <Filter>Source\Graphics\Renderer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Application\Object\Script\Player\Player.h">
@@ -1310,6 +1313,9 @@
     <ClInclude Include="Source\Graphics\Renderer\DDGIVolume.h">
       <Filter>Source\Graphics\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Graphics\Renderer\VolumetricFog.h">
+      <Filter>Source\Graphics\Renderer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Asset\Shader\Common\ShaderCore.hlsli">
@@ -1432,6 +1438,9 @@
     </None>
     <None Include="Asset\Shader\Common\inc_DDGI.hlsli">
       <Filter>Asset\Shader\Common</Filter>
+    </None>
+    <None Include="Asset\Shader\Lighting\VolumetricFog_CS.hlsl">
+      <Filter>Asset\Shader\Lighting</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
