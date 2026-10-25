@@ -1,0 +1,3 @@
+# 外部ライブラリは整形しない（clang-format はこのフォルダー以下でこの設定を使う）
+DisableFormat: true
+SortIncludes: Never

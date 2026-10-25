@@ -1,0 +1,56 @@
+# DX12Framework の書式設定（規則の説明は CLAUDE.md）
+# Visual Studio 2022 同梱の clang-format（17 以降）で動く項目だけを使う
+---
+Language: Cpp
+BasedOnStyle: Microsoft
+Standard: c++17
+
+# 括弧: if・for・while・else・switch・関数・クラスなどの { } は単独の行（Allman）
+BreakBeforeBraces: Allman
+# 中身が1行でも if・for・while・else の括弧を省略しない（自動で補う）
+InsertBraces: true
+AllowShortBlocksOnASingleLine: Never
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: None
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortEnumsOnASingleLine: false
+# ラムダは規則の対象外なので現状どおり 1 行も許す
+AllowShortLambdasOnASingleLine: All
+# ラムダの中身は呼び出し側の行を基準にインデントする（既存コードの書き方）
+LambdaBodyIndentation: OuterScope
+
+# インデント: スペース4つ。アクセス指定子と case ラベルは1段浅く（既存コードの多数派）
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+AccessModifierOffset: -4
+IndentCaseLabels: false
+NamespaceIndentation: All
+IndentPPDirectives: None
+
+# 列幅: 既存コードは 120 列を超える行が多いので折り返しは書いた人に任せる
+ColumnLimit: 0
+
+# ポインタ・参照は型の側（Mesh* pMesh）
+PointerAlignment: Left
+DerivePointerAlignment: false
+
+# 既存の並びをなるべく崩さない（行末コメントは揃える）
+SortIncludes: Never
+IncludeBlocks: Preserve
+ReflowComments: false
+AlignTrailingComments:
+  Kind: Always
+AlignConsecutiveAssignments: None
+AlignConsecutiveDeclarations: None
+AlignConsecutiveMacros: None
+AlignEscapedNewlines: DontAlign
+MaxEmptyLinesToKeep: 2
+KeepEmptyLinesAtTheStartOfBlocks: false
+InsertNewlineAtEOF: true
+FixNamespaceComments: false
+
+# 改行コードはファイルごとに今のもの（LF / CRLF）を保つ
+LineEnding: DeriveLF
+...

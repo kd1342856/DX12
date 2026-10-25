@@ -1,0 +1,4 @@
+# HLSL は clang-format が正しく解釈できない（: SV_Target を改行する、[loop] を for と同じ行にする）ため
+# 自動整形しない。書式の規則は C++ と同じ（CLAUDE.md）で、手で合わせる
+DisableFormat: true
+SortIncludes: Never
