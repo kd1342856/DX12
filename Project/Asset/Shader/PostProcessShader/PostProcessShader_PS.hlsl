@@ -11,10 +11,29 @@ float3 ACESFilmicToneMapping(float3 x)
     return saturate((x * (a * x + b)) / (x * (c * x + d) + e));
 }
 
-// 簡易ハッシュ関数(フィルムグレイン用)
+// 簡易ハッシュ関数(フィルムグレイン・ディザ用)
 float Hash(float2 p)
 {
     return frac(sin(dot(p, float2(12.9898, 78.233))) * 43758.5453123);
+}
+
+// リニアの値をsRGBの伝達関数(IEC 61966-2-1)でエンコードする。
+// スワップチェーンのRTVはUNORMのまま(後から描くImGui・SpriteBatchの色を変えないため)なので、ここで行う
+float3 LinearToSrgb(float3 linearColor)
+{
+    float3 low = linearColor * 12.92;
+    float3 high = 1.055 * pow(max(linearColor, 0.0), 1.0 / 2.4) - 0.055;
+    return select(linearColor <= 0.0031308, low, high);
+}
+
+// 8bitに量子化したときの縞(バンディング)を消すディザ。三角分布で±1段階、毎フレーム模様を変える。
+// 暗いグラデーションが多いホラーでは、縞が特に目立つ
+float DitherNoise(float2 pixelPos)
+{
+    float2 seed = pixelPos + frac(g_Time * 7.31) * 512.0;
+    float noise1 = Hash(seed);
+    float noise2 = Hash(seed + float2(37.17, 11.83));
+    return (noise1 + noise2 - 1.0) / 255.0;
 }
 
 // 深度バッファ(NDC 0..1)からビュー空間の線形距離を求める。
@@ -83,8 +102,10 @@ float4 main(PSInput In) : SV_Target0
         sceneColor = ACESFilmicToneMapping(sceneColor * g_Exposure);
     }
 
-    // Gamma Correction
-    sceneColor = pow(max(sceneColor, 0.0), 1.0f / g_Gamma);
+    // ここまではリニア。ここから先(ビネット・グレイン・明るさ)は表示用のsRGBの値で扱う
+    sceneColor = LinearToSrgb(saturate(sceneColor));
+    // 表示ガンマの微調整(既定の1.0では何もしない)。sRGBへのエンコードは上で済んでいる
+    sceneColor = pow(sceneColor, 1.0f / g_Gamma);
 
     //------------------------------------------
     // ビネット(周辺減光)
@@ -107,6 +128,8 @@ float4 main(PSInput In) : SV_Target0
     }
 
     sceneColor = pow(saturate(sceneColor), 1.0 / max(g_BrightnessGamma, 0.01));
+
+    sceneColor += DitherNoise(In.Pos.xy);
 
     return float4(saturate(sceneColor), 1.0);
 }

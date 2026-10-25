@@ -269,14 +269,26 @@ void OptionMenu::DrawDisplayTab()
 void OptionMenu::DrawBrightnessPreview(float width)
 {
     const auto& pp = ShaderManager::Instance().GetPostProcessSettings();
-    // ゲーム画面の最終合成(PostProcessShader_PS)と同じ変換(見た目用のGamma → 明るさ)をCPUで再現し、
+    // ゲーム画面の最終合成(PostProcessShader_PS)と同じ変換(リニア → sRGB → 見た目用のGamma → 明るさ)をCPUで再現し、
     // 「この設定でゲーム内の暗がりがどう見えるか」をその場で確認できるようにする
-    auto toDisplay = [&](float v) {
-        v = powf((std::max)(v, 0.0f), 1.0f / pp.Gamma);
+    auto linearToSrgb = [](float v)
+    {
+        v = std::clamp(v, 0.0f, 1.0f);
+        return v <= 0.0031308f ? v * 12.92f : 1.055f * powf(v, 1.0f / 2.4f) - 0.055f;
+    };
+    auto srgbToLinear = [](float v)
+    {
+        return v <= 0.04045f ? v / 12.92f : powf((v + 0.055f) / 1.055f, 2.4f);
+    };
+    auto toDisplay = [&](float linearValue) {
+        float v = linearToSrgb(linearValue);
+        v = powf(v, 1.0f / pp.Gamma);
         return powf(std::clamp(v, 0.0f, 1.0f), 1.0f / (std::max)(pp.BrightnessGamma, 0.01f));
     };
-    auto gray = [&](float v) {
-        const float d = toDisplay(v);
+    // 見本の明るさ(下のkLevels・kMaxLevel)は、明るさが初期値のときの画面上の値(sRGB)で決めている。
+    // ゲーム内のリニアの値に戻してから、ゲームと同じ変換を通す
+    auto gray = [&](float displayValue) {
+        const float d = toDisplay(srgbToLinear(displayValue));
         return ImGui::GetColorU32(ImVec4(d, d, d, 1.0f));
     };
 

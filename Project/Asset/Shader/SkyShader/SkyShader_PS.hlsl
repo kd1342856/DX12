@@ -10,12 +10,10 @@ struct PSInput
 
 float4 main(PSInput In) : SV_Target0
 {
-    // Sample the sky texture
+    // 空のテクスチャはBaseColorのスロットなので_SRGBフォーマットで読み込まれ、サンプルした時点でリニアになっている。
+    // (以前はここでpow(2.2)していたが、ハードウェアの変換と二重になるので外した)
     float4 color = g_skyTex.Sample(g_ss_linear_wrap, In.UV);
-    
-    // Convert from sRGB to Linear space to fix gamma (brightness)
-    color.rgb = pow(color.rgb, 2.2f);
-    
+
     // Can add color tinting, rotation, or twinkling here later.
     return color;
 }
