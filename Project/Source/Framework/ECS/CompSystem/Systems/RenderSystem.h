@@ -6,6 +6,9 @@
 #include "../../../../Graphics/Shader/SkinningShader/SkinningShader.h"
 #include "../../../../Graphics/Shader/SkyShader/SkyShader.h"
 #include "../../../../Graphics/Shader/NormalPrepassShader/NormalPrepassShader.h"
+#include "../../../../Graphics/Shader/VelocityShader/VelocityShader.h"
+#include "../../../../Graphics/Renderer/MotionVectors.h"
+#include "../../../../Graphics/Renderer/TemporalAA.h"
 #include "../../../../Graphics/Renderer/ModelRenderer.h"
 #include "../../../../Graphics/Renderer/Renderer.h"
 #include "../../../../Graphics/Renderer/RenderManager.h"
@@ -35,6 +38,10 @@ public:
 
 	Entity GetCameraEntity() const { return m_cameraEntity; }
 	void SetCameraEntity(Entity cameraEntity) { m_cameraEntity = cameraEntity; }
+
+	// TAAのジッター(投影のずれ、NDC)。深度プリパス・メインの描画・速度のパスの投影に足す。
+	// メインのカメラの描画の間だけ設定し、終わったら0に戻す(反射やプレビューには掛けない)
+	void SetProjectionJitter(const Math::Vector2& jitterNdc) { m_projectionJitter = jitterNdc; }
 
 	// RendererPanel用の実行時トグル - 描画の不具合がカリング（フラスタム/ポータルルーム）に
 	// 起因するのか、それとは無関係なのかをA/Bテストするためにオフにする。
@@ -572,7 +579,7 @@ public:
 		auto& cCamera = m_pCoordinator->GetComponent<CameraData>(cameraEntity);
 		RenderContext& context = Renderer::GetContext();
 		context.View = cCamera.m_viewMatrix;
-		context.Projection = cCamera.m_projMatrix;
+		context.Projection = TemporalAA::ApplyJitter(cCamera.m_projMatrix, m_projectionJitter);
 
 		// メインの描画と同じフラスタムで、エンティティ単位とメッシュ単位のカリングをする。
 		// メインはこれに加えてルームカリングもするので、メインで描くメッシュは必ずここでも描かれる
@@ -666,7 +673,7 @@ public:
 		auto& cCamera = m_pCoordinator->GetComponent<CameraData>(cameraEntity);
 		RenderContext& context = Renderer::GetContext();
 		context.View = cCamera.m_viewMatrix;
-		context.Projection = cCamera.m_projMatrix;
+		context.Projection = TemporalAA::ApplyJitter(cCamera.m_projMatrix, m_projectionJitter);
 
 		// 投影行列から作ったカメラ空間のフラスタムを、カメラのワールド変換(View行列の逆)で
 		// ワールド空間に移す - 毎フレーム全部記録+描画するのではなく、視界外のものの
@@ -913,6 +920,148 @@ public:
 		}
 	}
 
+	// 速度(モーションベクトル)を描く。メインの描画(RenderScene)の後に呼ぶ。
+	// カメラの動きによる速度を全画面に書いてから、前のフレームから動いた物だけを描き直して上書きする
+	void RenderVelocity(Entity cameraEntity, class RenderTarget* pSceneRT)
+	{
+		if (!m_pCoordinator) return;
+		auto& motionVectors = MotionVectors::Instance();
+		if (cameraEntity == INVALID_ENTITY || !pSceneRT || !motionVectors.IsValid()) return;
+
+		auto* pGraphicsDevice = &GDF::Instance().GetGraphicsDevice();
+		auto* pCmdList = pGraphicsDevice->GetCmdList();
+		auto* pGraphicsContext = pGraphicsDevice->GetContextManager()->GetGraphicsContext();
+		auto* pHeapManager = pGraphicsDevice->GetDescriptorHeapManager();
+		PROFILE_CPU_SCOPE("Velocity");
+		PROFILE_GPU_SCOPE(pCmdList, "Velocity");
+
+		motionVectors.RenderCameraVelocity(pSceneRT);
+
+		GPUTexture* pVelocity = motionVectors.GetVelocityTexture();
+		auto rtvHandle = pHeapManager->GetRTVAllocator()->GetCPUHandle(pVelocity->GetRTVIndex());
+		auto dsvHandle = pHeapManager->GetDSVAllocator()->GetCPUHandle(pSceneRT->GetDSVIndex());
+		pCmdList->OMSetRenderTargets(1, &rtvHandle, false, &dsvHandle);
+		Renderer::BindViewport(pSceneRT);
+
+		auto& cCamera = m_pCoordinator->GetComponent<CameraData>(cameraEntity);
+		RenderContext& context = Renderer::GetContext();
+		context.View = cCamera.m_viewMatrix;
+		context.Projection = TemporalAA::ApplyJitter(cCamera.m_projMatrix, m_projectionJitter);
+
+		DirectX::BoundingFrustum frustum;
+		DirectX::BoundingFrustum::CreateFromMatrix(frustum, cCamera.m_projMatrix);
+		frustum.Transform(frustum, cCamera.m_viewMatrix.Invert());
+
+		VelocityShader::FrameConstants frame;
+		frame.currentViewProjection = motionVectors.GetCurrentViewProjection();
+		frame.previousViewProjection = motionVectors.GetPreviousViewProjection();
+		auto& velocityShader = ShaderLibrary::Instance().Get<VelocityShader>();
+
+		++m_motionFrame;
+		for (auto const& entity : m_entities)
+		{
+			auto& cTransform = m_pCoordinator->GetComponent<TransformData>(entity);
+			auto& cModel = m_pCoordinator->GetComponent<ModelRenderData>(entity);
+			if (!cModel.m_isVisible || !cModel.m_spModelData || !cModel.m_spModelData->IsLoaded()) continue;
+			if (cModel.m_modelType == ModelType::Sky) continue;
+
+			const bool isSkinned = (cModel.m_modelType == ModelType::Dynamic);
+			const auto& nodes = cModel.m_spModelData->GetNodes();
+
+			// 今のフレームの位置(ワールド行列・ノードのアニメーション・骨)を集める。
+			// 毎フレームのメモリの確保を避けるため、作業用の入れ物を使い回す(前のフレームの物と入れ替えていく)
+			MotionState& current = m_scratchMotionState;
+			current.world = cTransform.m_worldMatrix;
+			current.lastSeenFrame = m_motionFrame;
+			if (isSkinned)
+			{
+				const auto& bones = cModel.m_spModelData->GetBoneMatrices();
+				current.bones.assign(bones.begin(), bones.end());
+				current.nodeDeltas.clear();
+			}
+			else
+			{
+				current.bones.clear();
+				current.nodeDeltas.resize(nodes.size());
+				for (size_t nodeIndex = 0; nodeIndex < nodes.size(); ++nodeIndex)
+				{
+					current.nodeDeltas[nodeIndex] = cModel.GetNodeAnimDelta(nodeIndex, nodes[nodeIndex]);
+				}
+			}
+
+			// 前のフレームと比べる。初めて見た物は動いていないものとして扱う
+			auto it = m_motionStates.find(entity);
+			if (it == m_motionStates.end())
+			{
+				m_motionStates.emplace(entity, current);
+				continue;
+			}
+			MotionState& previous = it->second;
+			const bool isMoving = !IsSameMatrices(&current.world, &previous.world, 1) ||
+				current.bones.size() != previous.bones.size() || !IsSameMatrices(current.bones.data(), previous.bones.data(), current.bones.size()) ||
+				current.nodeDeltas.size() != previous.nodeDeltas.size() || !IsSameMatrices(current.nodeDeltas.data(), previous.nodeDeltas.data(), current.nodeDeltas.size());
+
+			bool isVisible = true;
+			DirectX::BoundingBox entityBoundsLocal;
+			if (isMoving && cModel.m_spModelData->TryGetLocalBounds(entityBoundsLocal))
+			{
+				DirectX::BoundingBox entityBoundsWorld;
+				entityBoundsLocal.Transform(entityBoundsWorld, cTransform.m_worldMatrix);
+				isVisible = frustum.Intersects(entityBoundsWorld);
+			}
+
+			if (isMoving && isVisible)
+			{
+				if (isSkinned)
+				{
+					velocityShader.BeginSkinned(context, frame);
+					velocityShader.SetBones(current.bones, previous.bones);
+					// スキニングは骨の行列がノードの変換を含むので、エンティティのワールド行列だけを使う(SkinningShaderと同じ)
+					velocityShader.SetWorld(current.world, previous.world);
+				}
+				else
+				{
+					velocityShader.BeginStatic(context, frame);
+				}
+				for (size_t nodeIndex = 0; nodeIndex < nodes.size(); ++nodeIndex)
+				{
+					const auto& node = nodes[nodeIndex];
+					if (!isSkinned)
+					{
+						velocityShader.SetWorld(current.nodeDeltas[nodeIndex] * current.world, previous.nodeDeltas[nodeIndex] * previous.world);
+					}
+					for (const auto& meshHandle : node.meshes)
+					{
+						Mesh* pMesh = MeshManager::Instance().Get(meshHandle);
+						if (!pMesh || !pMesh->IsReady()) continue;
+						// 半透明は深度を書かないので、速度も書かない
+						if (pMesh->GetMaterial().Constants.alphaMode == 2) continue;
+						velocityShader.BeforeDrawMesh(*pMesh, pMesh->GetMaterial());
+						pMesh->DrawInstanced(pMesh->GetInstanceCount());
+					}
+				}
+			}
+			// 今の位置を次のフレームの「前の位置」にする(古い方は作業用の入れ物として次の物で使う)
+			std::swap(previous, current);
+		}
+
+		// このフレームで見つからなかった物(非表示・削除)は忘れる。次に現れたとき前の位置から飛んで見えないように
+		for (auto it = m_motionStates.begin(); it != m_motionStates.end();)
+		{
+			if (it->second.lastSeenFrame != m_motionFrame)
+			{
+				it = m_motionStates.erase(it);
+			}
+			else
+			{
+				++it;
+			}
+		}
+
+		pGraphicsContext->TransitionResource(pVelocity->GetResource(), GPUTexture::kInitialState);
+		pGraphicsContext->FlushResourceBarriers();
+	}
+
 private:
 	// 影の1面(2D配列の1枚、またはキューブの1面)を描く
 	void RenderShadowFace(ShadowMapArray* pShadowMaps, UINT faceIndex, const Math::Matrix& view, const Math::Matrix& projection)
@@ -1114,6 +1263,23 @@ private:
 	std::unordered_map<Entity, ShadowCasterState> m_shadowCasterStates;
 	std::vector<DirectX::BoundingSphere> m_changedShadowCasterBounds;
 	uint64_t m_shadowCasterFrame = 0;
+
+	// 速度のパス: 物ごとの前のフレームの位置
+	struct MotionState
+	{
+		Math::Matrix world;
+		std::vector<Math::Matrix> nodeDeltas; // スタティックメッシュのノードのアニメーション(扉の開閉など)
+		std::vector<Math::Matrix> bones;      // スキニングの骨
+		uint64_t lastSeenFrame = 0;
+	};
+	static bool IsSameMatrices(const Math::Matrix* pA, const Math::Matrix* pB, size_t count)
+	{
+		return count == 0 || std::memcmp(pA, pB, sizeof(Math::Matrix) * count) == 0;
+	}
+	std::unordered_map<Entity, MotionState> m_motionStates;
+	MotionState m_scratchMotionState;
+	uint64_t m_motionFrame = 0;
+	Math::Vector2 m_projectionJitter = Math::Vector2::Zero;
 
 	Entity m_cameraEntity = INVALID_ENTITY;
 	Math::Vector3 m_lightDirection = Math::Vector3(0.5f, -1.0f, 0.5f);

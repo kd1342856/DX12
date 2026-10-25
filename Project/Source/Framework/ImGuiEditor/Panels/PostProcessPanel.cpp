@@ -2,6 +2,7 @@
 #include "../EditorContext.h"
 #include "ImGui/imgui.h"
 #include "../../../Graphics/Shader/PhotometricUnits.h"
+#include "../../../Graphics/Renderer/TemporalAA.h"
 
 void PostProcessPanel::Draw(EditorContext& ctx)
 {
@@ -30,6 +31,18 @@ void PostProcessPanel::Draw(EditorContext& ctx)
                 ImGui::SliderFloat("EV100", &ctx.PostProcess->EV100, -6.0f, 16.0f, "%.2f");
             }
             if (ImGui::SliderFloat("Gamma", &ctx.PostProcess->Gamma, 1.0f, 3.0f, "%.2f")) changed = true;
+
+            ImGui::Separator();
+            ImGui::Text("Anti-Aliasing");
+            // TAAはCPU側だけで使う設定なので、IsDirtyを待たずに毎フレーム反映される
+            ImGui::Checkbox("Enable TAA", &ctx.PostProcess->EnableTAA);
+            if (!TemporalAA::Instance().IsAvailable())
+            {
+                ImGui::SameLine();
+                ImGui::TextDisabled(u8"(このGPUでは使えません)");
+            }
+            ImGui::SliderFloat("TAA Current Weight", &ctx.PostProcess->TAACurrentWeight, 0.03f, 0.5f, "%.2f");
+            if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"今のフレームを混ぜる割合。小さいほど滑らかでちらつかないが、動いたときに残像が出やすい。");
 
             ImGui::Separator();
             ImGui::Text("Bloom");

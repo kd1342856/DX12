@@ -283,6 +283,21 @@
     <Filter Include="Source\Graphics\Shader\NormalPrepassShader">
       <UniqueIdentifier>{BCAC7177-F9C0-4B28-A8CC-9D607184682C}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Graphics\GPUResource\GPUTexture">
+      <UniqueIdentifier>{1BC218B8-9310-4BE6-82BC-0464962B691D}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Graphics\Shader\ComputeShader">
+      <UniqueIdentifier>{5C80A6F1-BEA4-4B75-8D63-99AA5395AF45}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Graphics\Shader\VelocityShader">
+      <UniqueIdentifier>{BE13205F-8B9D-4BA7-BD59-CD9D9B4F5600}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Asset\Shader\VelocityShader">
+      <UniqueIdentifier>{15F73AD6-3955-4FF3-BA5B-CB46CF4C8458}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Asset\Shader\Temporal">
+      <UniqueIdentifier>{BB18860A-3312-4AFA-A919-351936325EE8}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source\Graphics\Shader\Pipeline">
       <UniqueIdentifier>{7E543CDC-D4CE-4152-96A6-92C3A46EE243}</UniqueIdentifier>
     </Filter>
@@ -539,6 +554,21 @@
     </ClCompile>
     <ClCompile Include="Source\Graphics\Shader\NormalPrepassShader\NormalPrepassShader.cpp">
       <Filter>Source\Graphics\Shader\NormalPrepassShader</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Graphics\GPUResource\GPUTexture\GPUTexture.cpp">
+      <Filter>Source\Graphics\GPUResource\GPUTexture</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Graphics\Shader\ComputeShader\ComputeShader.cpp">
+      <Filter>Source\Graphics\Shader\ComputeShader</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Graphics\Shader\VelocityShader\VelocityShader.cpp">
+      <Filter>Source\Graphics\Shader\VelocityShader</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Graphics\Renderer\MotionVectors.cpp">
+      <Filter>Source\Graphics\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Graphics\Renderer\TemporalAA.cpp">
+      <Filter>Source\Graphics\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="Source\Graphics\Shader\SSAOShader\SSAOShader.cpp">
       <Filter>Source\Graphics\Shader\SSAOShader</Filter>
@@ -998,6 +1028,21 @@
     <ClInclude Include="Source\Graphics\Shader\NormalPrepassShader\NormalPrepassShader.h">
       <Filter>Source\Graphics\Shader\NormalPrepassShader</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Graphics\GPUResource\GPUTexture\GPUTexture.h">
+      <Filter>Source\Graphics\GPUResource\GPUTexture</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Graphics\Shader\ComputeShader\ComputeShader.h">
+      <Filter>Source\Graphics\Shader\ComputeShader</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Graphics\Shader\VelocityShader\VelocityShader.h">
+      <Filter>Source\Graphics\Shader\VelocityShader</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Graphics\Renderer\MotionVectors.h">
+      <Filter>Source\Graphics\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Graphics\Renderer\TemporalAA.h">
+      <Filter>Source\Graphics\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="Source\Graphics\Shader\SSAOShader\SSAOShader.h">
       <Filter>Source\Graphics\Shader\SSAOShader</Filter>
     </ClInclude>
@@ -1279,6 +1324,24 @@
     </None>
     <None Include="Asset\Shader\NormalPrepassShader\NormalPrepass.hlsli">
       <Filter>Asset\Shader\NormalPrepassShader</Filter>
+    </None>
+    <None Include="Asset\Shader\VelocityShader\inc_Velocity.hlsli">
+      <Filter>Asset\Shader\VelocityShader</Filter>
+    </None>
+    <None Include="Asset\Shader\VelocityShader\Velocity_VS.hlsl">
+      <Filter>Asset\Shader\VelocityShader</Filter>
+    </None>
+    <None Include="Asset\Shader\VelocityShader\VelocitySkinned_VS.hlsl">
+      <Filter>Asset\Shader\VelocityShader</Filter>
+    </None>
+    <None Include="Asset\Shader\VelocityShader\Velocity_PS.hlsl">
+      <Filter>Asset\Shader\VelocityShader</Filter>
+    </None>
+    <None Include="Asset\Shader\Temporal\CameraVelocity_CS.hlsl">
+      <Filter>Asset\Shader\Temporal</Filter>
+    </None>
+    <None Include="Asset\Shader\Temporal\TemporalAA_CS.hlsl">
+      <Filter>Asset\Shader\Temporal</Filter>
     </None>
     <None Include="Asset\Shader\SSAOShader\SSAO_VS.hlsl">
       <Filter>Asset\Shader\SSAOShader</Filter>

@@ -255,6 +255,11 @@
     <ClInclude Include="Source\Graphics\Shader\BloomShader\BloomShader.h" />
     <ClInclude Include="Source\Graphics\Shader\GodRaysShader\GodRaysShader.h" />
     <ClInclude Include="Source\Graphics\Shader\NormalPrepassShader\NormalPrepassShader.h" />
+    <ClInclude Include="Source\Graphics\GPUResource\GPUTexture\GPUTexture.h" />
+    <ClInclude Include="Source\Graphics\Shader\ComputeShader\ComputeShader.h" />
+    <ClInclude Include="Source\Graphics\Shader\VelocityShader\VelocityShader.h" />
+    <ClInclude Include="Source\Graphics\Renderer\MotionVectors.h" />
+    <ClInclude Include="Source\Graphics\Renderer\TemporalAA.h" />
     <ClInclude Include="Source\Graphics\Shader\SSAOShader\SSAOShader.h" />
     <ClInclude Include="Source\Graphics\Shader\SSROpaqueShader\SSROpaqueShader.h" />
     <ClInclude Include="Source\Graphics\Shader\FogShader\FogShader.h" />
@@ -407,6 +412,11 @@
     <ClCompile Include="Source\Graphics\Shader\BloomShader\BloomShader.cpp" />
     <ClCompile Include="Source\Graphics\Shader\GodRaysShader\GodRaysShader.cpp" />
     <ClCompile Include="Source\Graphics\Shader\NormalPrepassShader\NormalPrepassShader.cpp" />
+    <ClCompile Include="Source\Graphics\GPUResource\GPUTexture\GPUTexture.cpp" />
+    <ClCompile Include="Source\Graphics\Shader\ComputeShader\ComputeShader.cpp" />
+    <ClCompile Include="Source\Graphics\Shader\VelocityShader\VelocityShader.cpp" />
+    <ClCompile Include="Source\Graphics\Renderer\MotionVectors.cpp" />
+    <ClCompile Include="Source\Graphics\Renderer\TemporalAA.cpp" />
     <ClCompile Include="Source\Graphics\Shader\SSAOShader\SSAOShader.cpp" />
     <ClCompile Include="Source\Graphics\Shader\SSROpaqueShader\SSROpaqueShader.cpp" />
     <ClCompile Include="Source\Graphics\Shader\FogShader\FogShader.cpp" />
@@ -516,6 +526,24 @@
       <FileType>Document</FileType>
     </None>
     <None Include="Asset\Shader\NormalPrepassShader\NormalPrepass.hlsli">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Asset\Shader\VelocityShader\inc_Velocity.hlsli">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Asset\Shader\VelocityShader\Velocity_VS.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Asset\Shader\VelocityShader\VelocitySkinned_VS.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Asset\Shader\VelocityShader\Velocity_PS.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Asset\Shader\Temporal\CameraVelocity_CS.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Asset\Shader\Temporal\TemporalAA_CS.hlsl">
       <FileType>Document</FileType>
     </None>
     <None Include="Asset\Shader\SSAOShader\SSAO_VS.hlsl">

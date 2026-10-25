@@ -36,6 +36,10 @@ private:
     // 法線プリパス+SSAOの計算。RenderScene呼び出し前に呼ぶ必要がある
     // (LitShaderが読むg_ssaoMapをここで確定させるため)。
     void RenderSSAO(Entity cameraEntity);
+    // TAAのジッターと、速度に使うカメラの行列を、そのフレームのメインのカメラで決める。
+    // 深度プリパスより前に呼ぶ。描き終わったらEndTemporalFrame()でジッターを0に戻す
+    void BeginTemporalFrame(Entity cameraEntity);
+    void EndTemporalFrame();
     // CameraData.m_isDebugPreviewを立てたカメラ(あれば1つ目)のTransformから見た絵を専用RTに
     // 描画する。RenderGame/RenderEditorどちらの後にもRender()から呼ぶ(反射カメラ等の他の
     // システムとは完全に独立、既存のRenderScene()をそのまま流用するだけ)。
@@ -51,4 +55,8 @@ private:
 
     Entity m_editorCameraEntity = INVALID_ENTITY;
     Entity m_gameCameraEntity = INVALID_ENTITY;
+
+    // TAAの履歴を捨てるかの判定用(カメラの切り替え・瞬間移動)
+    Entity m_temporalCameraEntity = INVALID_ENTITY;
+    Math::Vector3 m_temporalCameraPosition = Math::Vector3::Zero;
 };

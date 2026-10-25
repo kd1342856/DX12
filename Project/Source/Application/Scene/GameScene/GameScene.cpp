@@ -26,6 +26,8 @@
 #include "../../../Framework/DirectX/Utility/Profiler.h"
 #include "../../../Framework/ECS/CompSystem/Systems/LightSystem.h"
 #include "../../../Graphics/Shadow/LocalShadowManager.h"
+#include "../../../Graphics/Renderer/MotionVectors.h"
+#include "../../../Graphics/Renderer/TemporalAA.h"
 #include "../../../Framework/Manager/Particle/ParticleManager.h"
 #include "../../../Framework/Manager/Audio/AudioManager.h"
 #include "../../UI/OptionMenu.h"
@@ -629,6 +631,7 @@ void GameScene::RenderGame()
 
         UpdateLights(m_gameCameraEntity);
         RenderLocalLightShadows();
+        BeginTemporalFrame(m_gameCameraEntity);
         // 深度プリパス: シーンの深度と、SSAO・SSR用の法線を描く。メインの不透明の描画はこの深度にEQUALで描く
         auto* pSceneHDR = Renderer::GetSceneHDRRenderTarget();
         renderSystem->RenderNormalPrepass(m_gameCameraEntity, Renderer::GetNormalPrepassRenderTarget(), pSceneHDR);
@@ -667,6 +670,9 @@ void GameScene::RenderGame()
             PROFILE_GPU_SCOPE(pCmdList, "ScriptDraw");
             scriptSystem->Draw();
         }
+        // 速度(TAA・モーションブラー用)
+        renderSystem->RenderVelocity(m_gameCameraEntity, pSceneHDR);
+        EndTemporalFrame();
 
         // Phase 4: PostProcess (Bloom, DOF, ToneMapping, Vignette, Grain, Chromatic Aberration...)
         DoPostProcess(m_gameCameraEntity, 0.0f, 0.0f, 0.0f);
@@ -682,6 +688,42 @@ void GameScene::RenderGame()
     else
     {
         GraphicsDevice::Instance().ClearBackBuffer(0.0f, 0.0f, 0.0f, 1.0f);
+    }
+}
+
+void GameScene::BeginTemporalFrame(Entity cameraEntity)
+{
+    auto renderSystem = GameManager::Instance().GetRenderSystem();
+    auto& ecs = GameManager::Instance().GetECS();
+    auto* pCamera = ecs.TryGetComponent<CameraData>(cameraEntity);
+    if (!renderSystem || !pCamera)
+    {
+        return;
+    }
+
+    // カメラが切り替わった・瞬間移動した(1フレームで3m以上)ときは、前のフレームとつながらないので履歴を捨てる
+    constexpr float kTeleportDistance = 3.0f;
+    const Math::Vector3 cameraPosition = pCamera->m_viewMatrix.Invert().Translation();
+    if (cameraEntity != m_temporalCameraEntity ||
+        Math::Vector3::DistanceSquared(cameraPosition, m_temporalCameraPosition) > kTeleportDistance * kTeleportDistance)
+    {
+        MotionVectors::Instance().InvalidateHistory();
+        TemporalAA::Instance().InvalidateHistory();
+    }
+    m_temporalCameraEntity = cameraEntity;
+    m_temporalCameraPosition = cameraPosition;
+
+    const auto& postProcessSettings = ShaderManager::Instance().GetPostProcessSettings();
+    const Math::Vector2 jitter = TemporalAA::Instance().BeginFrame(postProcessSettings.EnableTAA, Renderer::GetRenderWidth(), Renderer::GetRenderHeight());
+    MotionVectors::Instance().BeginFrame(pCamera->m_viewMatrix, pCamera->m_projMatrix, TemporalAA::ApplyJitter(pCamera->m_projMatrix, jitter));
+    renderSystem->SetProjectionJitter(jitter);
+}
+
+void GameScene::EndTemporalFrame()
+{
+    if (auto renderSystem = GameManager::Instance().GetRenderSystem())
+    {
+        renderSystem->SetProjectionJitter(Math::Vector2::Zero);
     }
 }
 
@@ -828,6 +870,10 @@ void GameScene::DoPostProcess(Entity cameraEntity, float clearR, float clearG, f
         ssrOpaqueShader.Draw(pNormalRT, pSceneOpaqueCopy, pSceneHDR, ssrParams);
     }
 
+    // 0.5 TAA - ジッターで揺らして描いた絵を履歴と混ぜ、ジャギーとちらつきを抑える。
+    // SSRまで足し終えたシーンに掛け、ブルームなどはその結果から作る
+    TemporalAA::Instance().Resolve(pSceneHDR, postProcessSettings.TAACurrentWeight);
+
     // 1. Bloom Extract (輝度が閾値を超えた部分だけ抽出)
     auto* pExtractRT = Renderer::GetBloomExtractRenderTarget();
     GraphicsDevice::Instance().TransitionToSRV(pSceneHDR);
@@ -936,6 +982,7 @@ void GameScene::RenderEditor()
     {
         UpdateLights(m_editorCameraEntity);
         RenderLocalLightShadows();
+        BeginTemporalFrame(m_editorCameraEntity);
         // 深度プリパス(RenderGameと同じ)。シーンの深度はここで描き直す
         renderSystem->RenderNormalPrepass(m_editorCameraEntity, Renderer::GetNormalPrepassRenderTarget(), pSceneHDR);
         RenderSSAO(m_editorCameraEntity);
@@ -975,6 +1022,9 @@ void GameScene::RenderEditor()
             NavMeshManager::Instance().DrawDebugMesh();
             CollisionManager::Instance().DrawDebugWires(0, 0, static_cast<float>(Renderer::GetRenderWidth()), static_cast<float>(Renderer::GetRenderHeight()), m_editorCameraEntity);
         }
+        // 速度(TAA・モーションブラー用)
+        renderSystem->RenderVelocity(m_editorCameraEntity, pSceneHDR);
+        EndTemporalFrame();
     }
 
     // Post Process to Back Buffer

@@ -91,6 +91,10 @@ struct PostProcessSettings
     float ShutterSpeed = 1.0f / 30.0f; // 秒
     float ISO = 800.0f;
 
+    // TAA(テンポラル・アンチエイリアス)。シェーダーモデル6.6に対応していないGPUでは使えない
+    bool  EnableTAA = true;
+    float TAACurrentWeight = 0.1f; // 今のフレームを混ぜる割合。小さいほど滑らかだが、動きに残像が出やすい
+
     // Bloom - 半径・反復回数を上げてはじめて「ふわっと広がる」見た目になる。
     // 閾値/強度だけいじっても変化が薄いのはこのため。
     float BloomThreshold = 1.0f;

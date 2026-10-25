@@ -12,6 +12,10 @@ public:
 
 	template<typename T>
 	void BindAndAttachData(int descIndex, const T& data);
+	// このフレームのバッファにデータを写し、そのGPUアドレスを返す(ディスクリプタは作らない)。
+	// ルートCBV(コンピュートシェーダーのSetComputeRootConstantBufferViewなど)に使う
+	template<typename T>
+	D3D12_GPU_VIRTUAL_ADDRESS AllocateData(const T& data);
 	void Reset();
 
 private:
@@ -50,4 +54,22 @@ inline void FrameConstantBufferAllocator::BindAndAttachData(int descIndex, const
 	m_device->GetCmdList()->SetGraphicsRootDescriptorTable(descIndex, gpuHandle);
 
 	m_currentUseNumber += useValue;
+}
+
+template<typename T>
+inline D3D12_GPU_VIRTUAL_ADDRESS FrameConstantBufferAllocator::AllocateData(const T& data)
+{
+	int sizeAligned = (sizeof(T) + 255) & ~255;
+	int useValue = sizeAligned / 256;
+
+	if (m_currentUseNumber + useValue > m_capacityPerFrame)
+	{
+		assert(false && "Constant buffer capacity exceeded.");
+		return 0;
+	}
+
+	int top = m_currentUseNumber;
+	memcpy(m_pMappedBuffer + (size_t)top * 256, &data, sizeof(T));
+	m_currentUseNumber += useValue;
+	return m_resource->GetGPUVirtualAddress() + (UINT64)top * 256;
 }

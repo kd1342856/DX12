@@ -4,8 +4,9 @@ VSOutput main(float3 pos : POSITION, float2 uv : TEXCOORD, float3 normal: NORMAL
 {
     VSOutput Out = (VSOutput)0;
     
-    // Compute bone matrix
-    row_major matrix mBones = 0;
+    // 速度のパス(VelocitySkinned_VS)と1ビットも違わない深度にするため、位置はpreciseで計算する
+    // (最適化で計算の順番やFMAの使い方が変わると、速度のパスの深度テストに通らないピクセルが出る)
+    precise row_major matrix mBones = 0;
     [unroll]
     for (int i = 0; i < 4; ++i)
     {
@@ -13,14 +14,14 @@ VSOutput main(float3 pos : POSITION, float2 uv : TEXCOORD, float3 normal: NORMAL
     }
     
     // Apply bone matrix
-    float4 pos4 = mul(float4(pos, 1.0f), mBones); 
+    precise float4 pos4 = mul(float4(pos, 1.0f), mBones); 
     normal = mul(normal, (float3x3) mBones);
     tangent = mul(tangent, (float3x3) mBones);
 
-    Out.pos = mul(pos4, c_mWorld);
-    Out.wPos = Out.pos.xyz;
-    Out.pos = mul(Out.pos, c_mView);
-    Out.pos = mul(Out.pos, c_mProj);
+    precise float4 worldPos = mul(pos4, c_mWorld);
+    precise float4 clipPos = mul(mul(worldPos, c_mView), c_mProj);
+    Out.pos = clipPos;
+    Out.wPos = worldPos.xyz;
     Out.uv = uv;
     
     Out.Color = color;

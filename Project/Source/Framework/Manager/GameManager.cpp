@@ -14,6 +14,11 @@
 #include "../../Graphics/Shader/FogShader/FogShader.h"
 #include "../../Graphics/Shader/MistShader/MistShader.h"
 #include "../../Graphics/Shader/ParticleShader/ParticleShader.h"
+#include "../../Graphics/Shader/VelocityShader/VelocityShader.h"
+#include "../../Graphics/Shader/ComputeShader/ComputeShader.h"
+#include "../../Graphics/Renderer/Renderer.h"
+#include "../../Graphics/Renderer/MotionVectors.h"
+#include "../../Graphics/Renderer/TemporalAA.h"
 #include "Scene/Scene.h"
 #include "../Object/GameObject.h"
 #include "../ECS/CompSystem/Systems/RenderSystem.h"
@@ -148,6 +153,12 @@ void GameManager::Init()
     ShaderLibrary::Instance().Register<FogShader>(pDevice);
     ShaderLibrary::Instance().Register<MistShader>(pDevice);
     ShaderLibrary::Instance().Register<ParticleShader>(pDevice);
+    ShaderLibrary::Instance().Register<VelocityShader>(pDevice);
+
+    // バインドレスのコンピュート(シェーダーモデル6.6)と、それを使う速度・TAA。描画解像度で作る
+    ComputeShader::InitializeShared(pDevice->GetDevice());
+    MotionVectors::Instance().Initialize(Renderer::GetRenderWidth(), Renderer::GetRenderHeight());
+    TemporalAA::Instance().Initialize(Renderer::GetRenderWidth(), Renderer::GetRenderHeight());
 }
 
 void GameManager::Update(float deltaTime, class Scene* pScene)
