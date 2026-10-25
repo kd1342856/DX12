@@ -161,13 +161,13 @@ void ShaderManager::UpdatePostProcessCB()
 		m_PostProcessData.GodRaysIntensity = m_PostProcessSettings.GodRaysIntensity;
 		m_PostProcessData.GodRaysNumSamples = static_cast<uint32_t>(std::max(1, m_PostProcessSettings.GodRaysNumSamples));
 
-		// EnableGodRaysè‡ªä½“ã¯SetGodRaysLightScreenPoså´ã§æ¯ãƒ•ãƒ¬ãƒ¼ãƒ ç¢ºå®šã•ã›ã‚‹(ã“ã®IsDirtyãƒ–ãƒ­ãƒƒã‚¯ã¯
-		// è¨­å®šå¤‰æ›´æ™‚ã«ã—ã‹é€šã‚‰ãªã„ãŸã‚ã€ã“ã“ã§æ›¸ãã¨å…‰æºä½ç½®ã®æ›´æ–°ã¨1ãƒ•ãƒ¬ãƒ¼ãƒ ãšã‚Œã¦ã—ã¾ã†)ã€‚
+		// EnableGodRays©‘Ì‚ÍSetGodRaysLightScreenPos‘¤‚Å–ˆƒtƒŒ[ƒ€Šm’è‚³‚¹‚é(‚±‚ÌIsDirtyƒuƒƒbƒN‚Í
+		// İ’è•ÏX‚É‚µ‚©’Ê‚ç‚È‚¢‚½‚ßA‚±‚±‚Å‘‚­‚ÆŒõŒ¹ˆÊ’u‚ÌXV‚Æ1ƒtƒŒ[ƒ€‚¸‚ê‚Ä‚µ‚Ü‚¤)B
 
 		m_PostProcessSettings.IsDirty = false;
 	}
 
-	// ãƒ•ã‚£ãƒ«ãƒ ã‚°ãƒ¬ã‚¤ãƒ³ã®ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ç”¨ã«çµŒéæ™‚é–“ã‚’æ¯ãƒ•ãƒ¬ãƒ¼ãƒ é€²ã‚ã‚‹(IsDirtyã«é–¢ä¿‚ãªã)ã€‚
+	// ƒtƒBƒ‹ƒ€ƒOƒŒƒCƒ“‚ÌƒAƒjƒ[ƒVƒ‡ƒ“—p‚ÉŒo‰ßŠÔ‚ğ–ˆƒtƒŒ[ƒ€i‚ß‚é(IsDirty‚ÉŠÖŒW‚È‚­)B
 	m_PostProcessData.Time += GameTimer::Instance().DeltaTime();
 }
 
