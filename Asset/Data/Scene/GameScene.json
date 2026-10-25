@@ -18,13 +18,13 @@
             "Components": [
                 {
                     "Position": [
-                        1.1787878274917603,
-                        3.5287551879882813,
-                        -10.535969734191895
+                        3.357388973236084,
+                        4.745802402496338,
+                        -2.606313467025757
                     ],
                     "Rotation": [
-                        0.7573400735855103,
-                        6.198315143585205,
+                        0.25133979320526123,
+                        4.746306419372559,
                         0.0
                     ],
                     "Scale": [
@@ -197,7 +197,7 @@
                             "AnimationIndex": 6,
                             "IsLoop": true,
                             "IsPlaying": true,
-                            "ProgressTime": 1621.79736328125,
+                            "ProgressTime": 2683.427001953125,
                             "Speed": 1.0,
                             "Type": "AnimationDataComponent"
                         }
@@ -216,7 +216,7 @@
                                 0.19230769574642181
                             ],
                             "Rotation": [
-                                0.28465670347213745,
+                                0.09265659004449844,
                                 0.0,
                                 0.0
                             ],
@@ -298,13 +298,13 @@
             "Components": [
                 {
                     "Position": [
-                        1.4077727794647217,
-                        -0.2133333683013916,
-                        -9.353687286376953
+                        1.200528860092163,
+                        -0.21333333849906921,
+                        -12.624557495117188
                     ],
                     "Rotation": [
                         0.0,
-                        -50.37202072143555,
+                        -56.58491134643555,
                         0.0
                     ],
                     "Scale": [
@@ -389,14 +389,14 @@
             "Components": [
                 {
                     "Position": [
-                        1.5452584028244019,
-                        1.0567431449890137,
-                        -9.027467727661133
+                        1.4285494089126587,
+                        1.0567470788955688,
+                        -12.005227088928223
                     ],
                     "Rotation": [
-                        0.01609448529779911,
-                        -0.8824062347412109,
-                        -0.4549277126789093
+                        0.016108911484479904,
+                        -0.7744342684745789,
+                        -0.45491206645965576
                     ],
                     "Scale": [
                         0.26923075318336487,
@@ -428,14 +428,14 @@
             "Components": [
                 {
                     "Position": [
-                        1.5142308473587036,
-                        0.8260568380355835,
-                        -7.519223213195801
+                        1.345368504524231,
+                        1.0929970741271973,
+                        -9.826148986816406
                     ],
                     "Rotation": [
-                        0.2156580686569214,
-                        0.3102232813835144,
-                        -0.15099658071994781
+                        0.46296533942222595,
+                        0.6174505949020386,
+                        0.05522380396723747
                     ],
                     "Scale": [
                         0.6923076510429382,
@@ -491,14 +491,14 @@
             "Components": [
                 {
                     "Position": [
-                        1.6349340677261353,
+                        1.456131100654602,
                         1.0134268999099731,
-                        -8.940764427185059
+                        -12.228609085083008
                     ],
                     "Rotation": [
-                        0.0002267695963382721,
-                        1.3776527643203735,
-                        0.05251885578036308
+                        0.00022677704691886902,
+                        1.447946310043335,
+                        0.05251888185739517
                     ],
                     "Scale": [
                         0.7692307829856873,
@@ -1091,7 +1091,7 @@
                     "ScriptName": "RoomArea",
                     "Type": "NativeScriptData",
                     "floorType": 0,
-                    "isCandidate": true,
+                    "isCandidate": false,
                     "isStairs": false,
                     "maxX": -0.13333334028720856,
                     "maxY": 5.5333333015441895,
@@ -1130,7 +1130,7 @@
                     "ScriptName": "RoomArea",
                     "Type": "NativeScriptData",
                     "floorType": 0,
-                    "isCandidate": true,
+                    "isCandidate": false,
                     "isStairs": false,
                     "maxX": -0.06666667014360428,
                     "maxY": 5.5333333015441895,
@@ -1176,7 +1176,7 @@
                             "AnimationIndex": 3,
                             "IsLoop": true,
                             "IsPlaying": true,
-                            "ProgressTime": 2306.003173828125,
+                            "ProgressTime": 1813.157470703125,
                             "Speed": 1.0,
                             "Type": "AnimationDataComponent"
                         }
@@ -1232,13 +1232,13 @@
             "Components": [
                 {
                     "Position": [
-                        -1.5782668590545654,
+                        -1.3441979885101318,
                         2.9000000953674316,
-                        1.7350001335144043
+                        5.862325191497803
                     ],
                     "Rotation": [
                         0.0,
-                        -56.79821014404297,
+                        -28.355003356933594,
                         0.0
                     ],
                     "Scale": [
@@ -1256,8 +1256,9 @@
                     "animHunt": 0,
                     "animIdle": 2,
                     "animWander": 3,
-                    "breathIntervalMax": 90.0,
-                    "breathIntervalMin": 40.0,
+                    "breathChance": 0.5,
+                    "breathIntervalMax": 40.5,
+                    "breathIntervalMin": 20.0,
                     "breathOtherFloorRatio": 0.0,
                     "breathRange": 7.0,
                     "breathVolume": 0.23999999463558197,
@@ -1281,7 +1282,7 @@
                     "faceHeight": 1.899999976158142,
                     "failHuntExtension": 5.0,
                     "flashLightFlickerRange": 4.0,
-                    "ghostType": 1,
+                    "ghostType": 0,
                     "groundOffset": 0.0,
                     "hidePatrolDuration": 10.0,
                     "hidePatrolRadius": 2.5,
@@ -1296,17 +1297,18 @@
                     "houseWanderStuckTimeout": 5.0,
                     "huntBreathRange": 12.0,
                     "huntBreathVolume": 0.24500000476837158,
-                    "huntDurationMax": 30.0,
-                    "huntDurationMin": 20.0,
+                    "huntDurationMax": 25.0,
+                    "huntDurationMin": 15.0,
                     "huntLoopFadeTime": 1.5,
                     "huntLoopMinRatio": 0.3499999940395355,
                     "huntLoopNearRange": 15.0,
                     "huntLoopVolume": 0.24300000071525574,
                     "huntMaxSpeedKmh": 11.0,
                     "huntSpeedKmh": 10.399999618530273,
-                    "huntTriggerIntervalMax": 58.5,
-                    "huntTriggerIntervalMin": 48.5,
-                    "kageonnaLightRadius": 8.0,
+                    "huntTriggerIntervalMax": 180.0,
+                    "huntTriggerIntervalMin": 120.0,
+                    "kageonnaTellIntervalMax": 15.0,
+                    "kageonnaTellIntervalMin": 8.0,
                     "lightFlickerRange": 2.6666667461395264,
                     "lightFlickerVerticalRange": 2.799999952316284,
                     "litSpeedMultiplier": 0.75,
@@ -1954,7 +1956,7 @@
                                 0.9800000190734863,
                                 1.0
                             ],
-                            "Enabled": false,
+                            "Enabled": true,
                             "GlowMaterial": "FL_Tube_Baked",
                             "GlowReflectMaterial": "",
                             "GlowReflectScale": 0.30000001192092896,
@@ -2001,7 +2003,7 @@
                     "Type": "TransformData"
                 },
                 {
-                    "Active": false,
+                    "Active": true,
                     "Interactable": true,
                     "Radius": 8.0,
                     "RoomLight": true,
@@ -2219,7 +2221,7 @@
                                 0.9800000190734863,
                                 1.0
                             ],
-                            "Enabled": false,
+                            "Enabled": true,
                             "GlowMaterial": "RL_Shade_Acrylic_Baked",
                             "GlowReflectMaterial": "",
                             "GlowReflectScale": 0.30000001192092896,
@@ -2266,7 +2268,7 @@
                     "Type": "TransformData"
                 },
                 {
-                    "Active": false,
+                    "Active": true,
                     "Interactable": false,
                     "Radius": 8.0,
                     "RoomLight": true,
@@ -2310,7 +2312,7 @@
                             "Type": "ModelRenderData"
                         },
                         {
-                            "AnimationIndex": 1,
+                            "AnimationIndex": 0,
                             "IsLoop": false,
                             "IsPlaying": false,
                             "ProgressTime": 208.3323211669922,
