@@ -362,6 +362,8 @@ void GraphicsDevice::Shutdown()
 	if (m_upResourceLifetimeManager)
 		m_upResourceLifetimeManager->ForceReleaseAll();
 
+	// 起動後に作られたPSOがあれば、デバイスを解放する前に保存しておく
+	ShaderManager::Instance().SavePipelineLibrary();
 	ShaderCompiler::Terminate();
 	ShutdownImGui();
 

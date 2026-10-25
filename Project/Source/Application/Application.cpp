@@ -84,6 +84,8 @@ void Application::Execute()
 
 	// GameManager 
 	GameManager::Instance().Init();
+	// GameManager::Init()で全シェーダーを登録し、PSOを事前に作り終えている。新しく作ったPSOがあればディスクに保存する
+	ShaderManager::Instance().SavePipelineLibrary();
 
 	// SceneManager
 	SceneManager::Instance().Init();

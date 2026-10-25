@@ -3,6 +3,24 @@
 #include "../ShaderCompiler/ShaderCompiler.h"
 #include <algorithm>
 
+namespace
+{
+	std::filesystem::path GetPipelineLibraryPath()
+	{
+		std::filesystem::path dir = AppPaths::GetSavedDir() / L"ShaderCache";
+		std::error_code errorCode;
+		std::filesystem::create_directories(dir, errorCode);
+		return dir / L"PipelineLibrary.bin";
+	}
+
+	std::wstring ToHex(uint64_t value)
+	{
+		wchar_t buffer[17] = {};
+		swprintf_s(buffer, L"%016llx", static_cast<unsigned long long>(value));
+		return buffer;
+	}
+}
+
 ShaderManager& ShaderManager::Instance()
 {
 	static ShaderManager instance;
@@ -14,6 +32,123 @@ void ShaderManager::Initialize(GraphicsDevice* pDevice)
 	std::lock_guard<std::mutex> lock(m_mutex);
 	m_pDevice = pDevice;
 	InitializeShaderSettings();
+	OpenPipelineLibrary();
+}
+
+void ShaderManager::OpenPipelineLibrary()
+{
+	m_cpPipelineLibrary.Reset();
+	m_pipelineLibraryData.clear();
+	if (!m_pDevice || !m_pDevice->GetDevice())
+	{
+		return;
+	}
+	ID3D12Device8* pD3DDevice = m_pDevice->GetDevice();
+
+	const std::filesystem::path libraryPath = GetPipelineLibraryPath();
+	{
+		std::ifstream ifs(libraryPath, std::ios::binary | std::ios::ate);
+		if (ifs.is_open())
+		{
+			const std::streamsize size = ifs.tellg();
+			if (size > 0)
+			{
+				m_pipelineLibraryData.resize(static_cast<size_t>(size));
+				ifs.seekg(0);
+				if (!ifs.read(reinterpret_cast<char*>(m_pipelineLibraryData.data()), size))
+				{
+					m_pipelineLibraryData.clear();
+				}
+			}
+		}
+	}
+
+	if (!m_pipelineLibraryData.empty())
+	{
+		HRESULT hr = pD3DDevice->CreatePipelineLibrary(m_pipelineLibraryData.data(), m_pipelineLibraryData.size(), IID_PPV_ARGS(&m_cpPipelineLibrary));
+		if (FAILED(hr))
+		{
+			// ドライバーの更新やGPUの交換の後はD3D12_ERROR_DRIVER_VERSION_MISMATCHなどで失敗する。空から作り直す
+			Logger::Instance().AddLog(Logger::LogLevel::Info, u8"PSOライブラリを読み込めないため作り直します (hr=0x%08X)", static_cast<unsigned int>(hr));
+			m_cpPipelineLibrary.Reset();
+			m_pipelineLibraryData.clear();
+		}
+	}
+
+	if (!m_cpPipelineLibrary)
+	{
+		if (FAILED(pD3DDevice->CreatePipelineLibrary(nullptr, 0, IID_PPV_ARGS(&m_cpPipelineLibrary))))
+		{
+			// 対応していないドライバーでは、ライブラリを使わずに毎回PSOを作成する
+			Logger::Instance().AddLog(Logger::LogLevel::Warning, u8"このドライバーはPSOライブラリに対応していません");
+			m_cpPipelineLibrary.Reset();
+		}
+	}
+}
+
+void ShaderManager::SavePipelineLibrary()
+{
+	std::lock_guard<std::mutex> lock(m_mutex);
+
+	Logger::Instance().AddLog(Logger::LogLevel::Info, u8"シェーダー: キャッシュから %d / コンパイル %d、PSO: ライブラリから %d / 新規作成 %d",
+		ShaderCompiler::GetCacheHitCount(), ShaderCompiler::GetCacheMissCount(), m_psoLoadedCount, m_psoCreatedCount);
+
+	if (!m_isPipelineLibraryDirty || !m_cpPipelineLibrary || !m_pDevice)
+	{
+		return;
+	}
+
+	// 今回使ったPSOだけで新しいライブラリを作って保存する。
+	// 読み込んだライブラリに書き足していくと、シェーダーを変えるたびに古いPSOが溜まり続けるため
+	Microsoft::WRL::ComPtr<ID3D12PipelineLibrary> cpNewLibrary;
+	if (FAILED(m_pDevice->GetDevice()->CreatePipelineLibrary(nullptr, 0, IID_PPV_ARGS(&cpNewLibrary))))
+	{
+		return;
+	}
+	for (const auto& [key, entry] : m_psoCache)
+	{
+		if (entry.cpPipelineState)
+		{
+			// 中身が同じPSOが別のキーで2回来ると名前が重なりE_INVALIDARGになるが、1つ入っていれば十分なので無視する
+			cpNewLibrary->StorePipeline(entry.libraryName.c_str(), entry.cpPipelineState.Get());
+		}
+	}
+
+	const SIZE_T serializedSize = cpNewLibrary->GetSerializedSize();
+	std::vector<uint8_t> serialized(serializedSize);
+	if (serializedSize == 0 || FAILED(cpNewLibrary->Serialize(serialized.data(), serializedSize)))
+	{
+		return;
+	}
+
+	// 一時ファイルに書いてから置き換え、書き込みの途中で終了しても壊れたファイルを残さない
+	const std::filesystem::path libraryPath = GetPipelineLibraryPath();
+	std::filesystem::path tempPath = libraryPath;
+	tempPath += L".tmp";
+	{
+		std::ofstream ofs(tempPath, std::ios::binary | std::ios::trunc);
+		if (!ofs.is_open())
+		{
+			return;
+		}
+		ofs.write(reinterpret_cast<const char*>(serialized.data()), static_cast<std::streamsize>(serialized.size()));
+		if (!ofs)
+		{
+			return;
+		}
+	}
+	std::error_code errorCode;
+	std::filesystem::rename(tempPath, libraryPath, errorCode);
+	if (errorCode)
+	{
+		std::filesystem::remove(tempPath, errorCode);
+		return;
+	}
+
+	// 古いライブラリを解放してから、そのライブラリが参照していたデータを捨てる
+	m_cpPipelineLibrary = cpNewLibrary;
+	m_pipelineLibraryData.clear();
+	m_isPipelineLibraryDirty = false;
 }
 
 void ShaderManager::InitializeShaderSettings()
@@ -246,6 +381,15 @@ ShaderProgram* ShaderManager::LoadShader(const std::wstring& vsPath, const std::
 		program->pPS = ShaderCompiler::CompilePS(psPath, L"main");
 	}
 
+	if (program->pVS)
+	{
+		program->vsHash = ShaderCompiler::HashBytes(program->pVS->GetBufferPointer(), program->pVS->GetBufferSize());
+	}
+	if (program->pPS)
+	{
+		program->psHash = ShaderCompiler::HashBytes(program->pPS->GetBufferPointer(), program->pPS->GetBufferSize());
+	}
+
 	auto vsBindings = ShaderReflection::Reflect(program->pVS);
 	auto psBindings = ShaderReflection::Reflect(program->pPS);
 
@@ -300,13 +444,16 @@ ID3D12PipelineState* ShaderManager::GetPipelineState(ShaderProgram* pProgram, co
 	std::lock_guard<std::mutex> lock(m_mutex);
 
 	// Generate cache key from desc parameters
-	std::wstring key = std::to_wstring((uint64_t)pProgram) + L"|";
+	// PSOの中身を決めるdescの値はすべてキーに含める(ディスクのライブラリでも同じキーを名前に使う)
+	std::wstring key;
 	key += std::to_wstring((uint32_t)desc.TopologyType) + L"|";
 	key += std::to_wstring((uint32_t)desc.BlendMode) + L"|";
 	key += std::to_wstring((uint32_t)desc.CullMode) + L"|";
 	key += std::to_wstring(desc.IsDepth) + L"|";
 	key += std::to_wstring(desc.IsDepthMask) + L"|";
 	key += std::to_wstring(desc.IsWireFrame) + L"|";
+	key += std::to_wstring((uint32_t)desc.DepthFunc) + L"|";
+	key += std::to_wstring(desc.DepthBias) + L"|";
 
 	// Encode Formats
 	for (auto fmt : desc.Formats) {
@@ -330,8 +477,12 @@ ID3D12PipelineState* ShaderManager::GetPipelineState(ShaderProgram* pProgram, co
 	key += L"|PS=";
 	key += std::to_wstring((int)bUsePS);
 
+	// ライブラリでの名前は、起動ごとに変わるポインタの代わりにシェーダーの中身のハッシュで区別する
+	std::wstring libraryName = ToHex(pProgram->vsHash) + L"|" + ToHex(pProgram->psHash) + L"|" + key;
+	key = std::to_wstring((uint64_t)pProgram) + L"|" + key;
+
 	if (m_psoCache.find(key) != m_psoCache.end()) {
-		return m_psoCache[key].Get();
+		return m_psoCache[key].cpPipelineState.Get();
 	}
 
 	Pipeline pipeline;
@@ -349,8 +500,17 @@ ID3D12PipelineState* ShaderManager::GetPipelineState(ShaderProgram* pProgram, co
 		copyDesc.pBlobs = { pProgram->pVS.Get(), nullptr, nullptr, nullptr, nullptr };
 	}
 
-	pipeline.Create(m_pDevice, copyDesc);
-	m_psoCache[key] = pipeline.GetPipeline();
+	pipeline.Create(m_pDevice, copyDesc, m_cpPipelineLibrary.Get(), libraryName.c_str());
+	if (pipeline.IsLoadedFromLibrary())
+	{
+		++m_psoLoadedCount;
+	}
+	else if (pipeline.GetPipeline())
+	{
+		++m_psoCreatedCount;
+		m_isPipelineLibraryDirty = true;
+	}
+	m_psoCache[key] = { pipeline.GetPipeline(), libraryName };
 
-	return m_psoCache[key].Get();
+	return m_psoCache[key].cpPipelineState.Get();
 }

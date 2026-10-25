@@ -38,13 +38,17 @@ struct PipelineDesc {
 
 class Pipeline {
 public:
-	void Create(GraphicsDevice* pGraphicsDevice, const PipelineDesc& desc);
+	// pLibraryとpNameを渡すと、先にPSOライブラリ(ディスクキャッシュ)からpNameで読み込みを試み、
+	// 見つからない(または中身が違う)ときだけ新しく作成する。ライブラリへの登録は呼び出し側で行う
+	void Create(GraphicsDevice* pGraphicsDevice, const PipelineDesc& desc, ID3D12PipelineLibrary* pLibrary = nullptr, const wchar_t* pName = nullptr);
 	PrimitiveTopologyType GetTopologyType() const { return m_topologyType; }
 	ID3D12PipelineState* GetPipeline() const { return m_pPipelineState.Get(); }
+	bool IsLoadedFromLibrary() const { return m_isLoadedFromLibrary; }
 private:
 	void SetInputLayout(std::vector<D3D12_INPUT_ELEMENT_DESC>& inputElements, const std::vector<InputLayout>& inputLayouts);
 	void SetBlendMode(D3D12_RENDER_TARGET_BLEND_DESC& blendDesc, BlendMode blendMode);
 	GraphicsDevice* m_pDevice = nullptr;
 	PrimitiveTopologyType m_topologyType = PrimitiveTopologyType::Undefined;
 	Microsoft::WRL::ComPtr<ID3D12PipelineState> m_pPipelineState = nullptr;
+	bool m_isLoadedFromLibrary = false;
 };

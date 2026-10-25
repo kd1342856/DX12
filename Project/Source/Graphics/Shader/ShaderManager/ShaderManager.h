@@ -20,6 +20,9 @@ struct ShaderProgram {
 	Microsoft::WRL::ComPtr<IDxcBlob> pPS;
 	std::vector<ShaderBinding> Bindings;
 	std::unique_ptr<RootSignature> pRootSignature;
+	// DXILの中身のハッシュ。PSOライブラリでの名前に使う(ポインタは起動ごとに変わるため)
+	uint64_t vsHash = 0;
+	uint64_t psHash = 0;
 };
 
 class ShaderManager {
@@ -111,11 +114,31 @@ public:
 	ShaderProgram* LoadShader(const std::wstring& vsPath, const std::wstring& psPath);
 	ID3D12PipelineState* GetPipelineState(ShaderProgram* pProgram, const PipelineDesc& desc);
 
+	// 新しく作ったPSOがあれば、PSOライブラリを<root>/Saved/ShaderCache/PipelineLibrary.binに保存する。
+	// 全シェーダーの登録(PSOの事前作成)が終わった後と、終了時(デバイスの解放前)に呼ぶ
+	void SavePipelineLibrary();
+
 private:
+	struct PipelineCacheEntry
+	{
+		Microsoft::WRL::ComPtr<ID3D12PipelineState> cpPipelineState;
+		std::wstring libraryName;
+	};
+
+	void OpenPipelineLibrary();
+
 	GraphicsDevice* m_pDevice = nullptr;
 	std::unordered_map<std::wstring, std::unique_ptr<ShaderProgram>> m_shaderCache;
-	std::unordered_map<std::wstring, Microsoft::WRL::ComPtr<ID3D12PipelineState>> m_psoCache;
+	std::unordered_map<std::wstring, PipelineCacheEntry> m_psoCache;
 	std::mutex m_mutex;
+
+	// PSOのディスクキャッシュ。ドライバーやGPUが変わって読めないときは空のライブラリから作り直す
+	Microsoft::WRL::ComPtr<ID3D12PipelineLibrary> m_cpPipelineLibrary;
+	// CreatePipelineLibraryに渡したデータ。そのライブラリを使っている間は解放できない
+	std::vector<uint8_t> m_pipelineLibraryData;
+	bool m_isPipelineLibraryDirty = false;
+	int m_psoLoadedCount = 0;
+	int m_psoCreatedCount = 0;
 
 	void UpdateRendererCB();
 	void UpdateLightingCB();

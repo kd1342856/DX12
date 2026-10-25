@@ -1,10 +1,11 @@
 #include "../../../Pch.h"
 #include "Pipeline.h"
 
-void Pipeline::Create(GraphicsDevice* pGraphicsDevice, const PipelineDesc& desc)
+void Pipeline::Create(GraphicsDevice* pGraphicsDevice, const PipelineDesc& desc, ID3D12PipelineLibrary* pLibrary, const wchar_t* pName)
 {
 	m_pDevice = pGraphicsDevice;
 	m_topologyType = desc.TopologyType;
+	m_isLoadedFromLibrary = false;
 
 	std::vector<D3D12_INPUT_ELEMENT_DESC> inputLayouts;
 	SetInputLayout(inputLayouts, desc.InputLayouts);
@@ -86,7 +87,17 @@ void Pipeline::Create(GraphicsDevice* pGraphicsDevice, const PipelineDesc& desc)
 	}
 	OutputDebugStringA(graphicsPipelineState.VS.BytecodeLength ? "VS OK\n" : "VS NULL\n");
 
-	auto hr = m_pDevice->GetDevice()->CreateGraphicsPipelineState(&graphicsPipelineState, IID_PPV_ARGS(&m_pPipelineState));
+	if (pLibrary && pName)
+	{
+		// 名前が無い、またはドライバーの更新などで中身が合わないときはE_INVALIDARGが返るので、そのまま作成に進む
+		if (SUCCEEDED(pLibrary->LoadGraphicsPipeline(pName, &graphicsPipelineState, IID_PPV_ARGS(&m_pPipelineState))))
+		{
+			m_isLoadedFromLibrary = true;
+			return;
+		}
+	}
+
+	auto hr =m_pDevice->GetDevice()->CreateGraphicsPipelineState(&graphicsPipelineState, IID_PPV_ARGS(&m_pPipelineState));
 	if (FAILED(hr))
 	{
 		OutputDebugStringA("Failed to create PipelineState\n");
