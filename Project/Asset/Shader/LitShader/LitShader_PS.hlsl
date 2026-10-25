@@ -203,15 +203,7 @@ PSOutput main(VSOutput In) : SV_Target0
     float roughness = mr.g * g_roughnessFactor;
     // ラフネスの2乗したほうが、感覚的にリニアに見えるらしい(GGXのα)
     float roughness2 = roughness * roughness;
-    // Geometric Specular AA(Tokuyoshi & Kaplanyan 2019)。画面上で法線が急に変わる所(細かい凹凸や遠くの曲面)は、
-    // 1ピクセルの中にいろいろな向きの法線が含まれる。その広がりの分だけαを大きくし、ハイライトのちらつきを抑える
-    {
-        const float3 normalDdx = ddx(wN);
-        const float3 normalDdy = ddy(wN);
-        const float variance = 0.25 * (dot(normalDdx, normalDdx) + dot(normalDdy, normalDdy));
-        const float kernelRoughness2 = min(2.0 * variance, 0.18);
-        roughness2 = sqrt(saturate(roughness2 * roughness2 + kernelRoughness2));
-    }
+    roughness2 = ApplyGeometricSpecularAA(roughness2, wN);
 
     // 材質の色
     float4 baseColor = g_baseMap_white.Sample(g_ss_aniso_wrap, In.UV) * g_baseColorFactor;
@@ -292,6 +284,17 @@ PSOutput main(VSOutput In) : SV_Target0
     // 材質の反射　非金属ほど光の色をそのまま反射、金属ほど材質の色が乗る
     const float3 baseSpecular = lerp(kSpecularCoefficient, baseColor.rgb, metallic);
 
+    // ライトの計算(inc_Lighting.hlsli)に渡す表面の情報
+    SurfaceData surface;
+    surface.position = In.wPos;
+    surface.normal = wN;
+    surface.viewDir = vCam;
+    surface.NdotV = NdotV;
+    surface.diffuseColor = baseDiffuse;
+    surface.specularColor = baseSpecular;
+    surface.roughness = roughness;
+    surface.alpha = roughness2;
+
     // 最終的な色
     float3 color = 0;
     
@@ -312,12 +315,8 @@ PSOutput main(VSOutput In) : SV_Target0
     }
     else
     {
-        // Half vector
-        const float3 H = normalize(-g_DL_Dir + vCam);
-
+        // 影のスロープスケールバイアスに使う
         const float NdotL = saturate(dot(wN, -g_DL_Dir));
-        const float LdotH = saturate(dot(-g_DL_Dir, H));
-        const float NdotH = saturate(dot(wN, H));
 
         // 影
         float shadow = 1;
@@ -371,13 +370,8 @@ PSOutput main(VSOutput In) : SV_Target0
             }
         }
         
-        // 拡散光
-        float3 diffuse = Diffuse_Burley(baseDiffuse, NdotL, NdotV, LdotH, roughness);
-        // 反射光
-        float3 specular = Specular_BRDF(roughness2, baseSpecular, NdotV, NdotL, LdotH, NdotH);
-
-        // 光を加算
-        color += NdotL * g_DL_Color * (diffuse + specular) * shadow;
+        // 光を加算(g_DL_Colorは照度(lx)×露出)
+        color += EvaluateDirectLight(surface, -g_DL_Dir, g_DL_Color) * shadow;
 
         // 間接光(Ambient/IBL)側で使う可視率。下限をg_IndirectShadowFloorで確保し、
         // 完全な真っ暗にはせず、現実のバウンス光程度の明るさを残す。
@@ -393,28 +387,8 @@ PSOutput main(VSOutput In) : SV_Target0
     //------------------
     for (int i = 0; i < g_SL_Count; i++)
     {
-        float3 L = g_SL[i].Pos - In.wPos;
-        float d = length(L);
-        L = L / d;
-        
-        // g_SL[i].Colorは光度(cd)×露出。逆二乗で照度にする
-        float attenuation = DistanceAttenuation(d, g_SL[i].Range);
-        
-        // Spotlight cone
-        float cosAngle = dot(-L, normalize(g_SL[i].Dir));
-        float coneAtt = saturate((cosAngle - g_SL[i].OuterCorn) / (g_SL[i].InnerCorn - g_SL[i].OuterCorn));
-        // SpotShadow未使用のため常に1（影なし）
-        float spotShadow = 1;
-        
-        float NdotL_SL = saturate(dot(wN, L));
-        float3 H_SL = normalize(L + vCam);
-        float LdotH_SL = saturate(dot(L, H_SL));
-        float NdotH_SL = saturate(dot(wN, H_SL));
-        
-        float3 diff_SL = Diffuse_Burley(baseDiffuse, NdotL_SL, NdotV, LdotH_SL, roughness);
-        float3 spec_SL = Specular_BRDF(roughness2, baseSpecular, NdotV, NdotL_SL, LdotH_SL, NdotH_SL);
-        
-        color += NdotL_SL * g_SL[i].Color * (diff_SL + spec_SL) * attenuation * coneAtt * spotShadow;
+        // スポットの影は未対応(Step 2で入れる)
+        color += EvaluateSpotLight(surface, g_SL[i]);
     }
 
     //------------------
@@ -426,16 +400,8 @@ PSOutput main(VSOutput In) : SV_Target0
         float d_PL = length(L_PL);
         L_PL = L_PL / max(d_PL, 0.0001);
 
-        // g_PL[j].Colorは光束(lm)を光度(cd)に直したもの×露出。逆二乗で照度にする
-        float attenuation_PL = DistanceAttenuation(d_PL, g_PL[j].Range);
-
+        // 影のスロープスケールバイアスに使う
         float NdotL_PL = saturate(dot(wN, L_PL));
-        float3 H_PL = normalize(L_PL + vCam);
-        float LdotH_PL = saturate(dot(L_PL, H_PL));
-        float NdotH_PL = saturate(dot(wN, H_PL));
-
-        float3 diff_PL = Diffuse_Burley(baseDiffuse, NdotL_PL, NdotV, LdotH_PL, roughness);
-        float3 spec_PL = Specular_BRDF(roughness2, baseSpecular, NdotV, NdotL_PL, LdotH_PL, NdotH_PL);
 
         // 影(最も近い1灯[j==0]のみ)。6面キューブシャドウ(Texture2D×6の簡易実装)。
         // ライトからこのピクセルへのベクトルの主軸から、6面のうちどれに属するかを判定する。
@@ -487,7 +453,7 @@ PSOutput main(VSOutput In) : SV_Target0
             }
         }
 
-        color += NdotL_PL * g_PL[j].Color * (diff_PL + spec_PL) * attenuation_PL * shadow_PL;
+        color += EvaluatePointLight(surface, g_PL[j]) * shadow_PL;
     }
 
     // オクルージョン (R channel: マテリアルのベイク済みAOマップ)
@@ -521,48 +487,16 @@ PSOutput main(VSOutput In) : SV_Target0
     //------------------
     // IBL (Dummy Env)
     //------------------
-    float3 skyColor = float3(0.5, 0.6, 0.8);
-    float3 groundColor = float3(0.3, 0.25, 0.2);
-    
-    // 拡散
-    float envWeight = wN.y * 0.5 + 0.5;
-    // 2色の値1.0がg_IBLLuminance(nit×露出)になる
-    float3 envDiff = lerp(groundColor, skyColor, envWeight) * 1.5 * g_IBLLuminance;
-    color += envDiff * baseDiffuse.rgb / 3.141592 * moonVisibility;
-
-    // 鏡面
-    float3 vRef = reflect(-vCam, wN);
-    // 粗い面ほど反射像がぼやけるので、反射方向のグラデーションを法線方向(拡散と同じ)へ寄せる
-    float specWeight = lerp(vRef.y * 0.5 + 0.5, envWeight, roughness);
-    float3 envSpec = lerp(groundColor, skyColor, specWeight) * 2.0 * g_IBLLuminance;
-
-    // 環境BRDF近似(Karis, UE4 Mobile)。粗さとフレネルで反射量を決める
-    // (粗いほど正面の反射が弱まり、浅い角度ほど強まる)
-    const float4 kEnvC0 = float4(-1.0, -0.0275, -0.572, 0.022);
-    const float4 kEnvC1 = float4(1.0, 0.0425, 1.04, -0.04);
-    float4 envR = roughness * kEnvC0 + kEnvC1;
-    float envA004 = min(envR.x * envR.x, exp2(-9.28 * NdotV)) * envR.x + envR.y;
-    float2 envAB = float2(-1.04, 1.04) * envA004 + envR.zw;
-    float3 envBRDF = baseSpecular * envAB.x + envAB.y;
-
     // スペキュラオクルージョン(Lagarde)。隅や隙間(AO/SSAO)では反射も遮られる
     float specAO = occlusion * ssao;
     float specOcclusion = saturate(pow(NdotV + specAO, exp2(-16.0 * roughness2 - 1.0)) - 1.0 + specAO);
 
-    color += envSpec * envBRDF * specOcclusion * moonVisibility;
+    color += EvaluateDummyIBL(surface, specOcclusion) * moonVisibility;
 
     //------------------------------------------
     // 距離フォグ
     //------------------------------------------
-    if (g_DistanceFogDensity > 0)
-    {
-        float d = camDist * g_DistanceFogDensity;
-        
-        // 持ちフォグ 1(近い)から0(遠い)
-        float f = saturate(1.0 / exp(d * d));
-        // 適用
-        color = lerp(g_DistanceFogColor, color, f);
-    }
+    color = ApplyDistanceFog(color, camDist);
     
     //------------------------------------------
     // デバッグビュー切り替え

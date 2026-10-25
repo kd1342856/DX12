@@ -1,5 +1,6 @@
 #include "../Common/ShaderCore.hlsli"
 #include "../Common/inc_PBRCommon.hlsli"
+#include "../Common/inc_Lighting.hlsli"
 
 // 16サンプルの Poisson Disk
 static const float2 g_poissonDisk16[16] = {
