@@ -9,7 +9,7 @@ class Texture;
 
 struct MeshFace
 {
-	UINT Idx[3];
+    UINT Idx[3];
 };
 #include "../../GPUResource/Material/Material.h"
 
@@ -22,45 +22,72 @@ struct MeshFace
 class Mesh
 {
 public:
-	// メインスレッド専用：CPUデータ → GPU バッファ生成＋コマンド記録
-	// Begin()/End() は外側の GPUUploadQueue::Process() が管理する
-	void CreateGPU(GraphicsDevice* pDevice,
-		const std::vector<MeshVertex>& vertices,
-		const std::vector<MeshFace>&   faces,
-		const Material&                material);
+    // メインスレッド専用：CPUデータ → GPU バッファ生成＋コマンド記録
+    // Begin()/End() は外側の GPUUploadQueue::Process() が管理する
+    void CreateGPU(GraphicsDevice* pDevice,
+                   const std::vector<MeshVertex>& vertices,
+                   const std::vector<MeshFace>& faces,
+                   const Material& material);
 
-	void DrawInstanced(UINT vertexCount) const;
+    void DrawInstanced(UINT vertexCount) const;
 
-	const Material& GetMaterial() const { return m_material; }
-	Material& GetMaterialRef() { return m_material; }
-	UINT GetInstanceCount() const { return m_instanceCount; }
+    const Material& GetMaterial() const
+    {
+        return m_material;
+    }
+    Material& GetMaterialRef()
+    {
+        return m_material;
+    }
+    UINT GetInstanceCount() const
+    {
+        return m_instanceCount;
+    }
 
-	const std::vector<MeshVertex>& GetVertices() const { return m_vertices; }
-	const std::vector<MeshFace>&   GetFaces()    const { return m_faces; }
+    const std::vector<MeshVertex>& GetVertices() const
+    {
+        return m_vertices;
+    }
+    const std::vector<MeshFace>& GetFaces() const
+    {
+        return m_faces;
+    }
 
-	// ローカル空間のバウンディングボックス、CreateGPU()内で一度だけ計算される。
-	// メッシュコライダーの判定(CollisionSolverのMeshケース)で、全三角形の全頂点を
-	// 変換して結局どれも近くないと分かるくらいなら、ボックス1回の判定でメッシュ
-	// 全体を棄却できるようにする。
-	const DirectX::BoundingBox& GetLocalAABB() const { return m_localAABB; }
+    // ローカル空間のバウンディングボックス、CreateGPU()内で一度だけ計算される。
+    // メッシュコライダーの判定(CollisionSolverのMeshケース)で、全三角形の全頂点を
+    // 変換して結局どれも近くないと分かるくらいなら、ボックス1回の判定でメッシュ
+    // 全体を棄却できるようにする。
+    const DirectX::BoundingBox& GetLocalAABB() const
+    {
+        return m_localAABB;
+    }
 
-	// AssetState：描画前に IsReady() を確認すること
-	AssetState GetState() const { return m_state; }
-	void SetState(AssetState state) { m_state = state; }
-	bool IsReady() const { return m_state == AssetState::Ready; }
+    // AssetState：描画前に IsReady() を確認すること
+    AssetState GetState() const
+    {
+        return m_state;
+    }
+    void SetState(AssetState state)
+    {
+        m_state = state;
+    }
+    bool IsReady() const
+    {
+        return m_state == AssetState::Ready;
+    }
 
 private:
-	GraphicsDevice* m_pDevice = nullptr;
+    GraphicsDevice* m_pDevice = nullptr;
 
-	std::vector<MeshVertex> m_vertices;
-	std::vector<MeshFace>   m_faces;
+    std::vector<MeshVertex> m_vertices;
+    std::vector<MeshFace> m_faces;
 
-	VertexBuffer m_vertexBuffer;
-	IndexBuffer  m_indexBuffer;
+    VertexBuffer m_vertexBuffer;
+    IndexBuffer m_indexBuffer;
 
-	UINT     m_instanceCount = 0;
-	Material m_material;
-	DirectX::BoundingBox m_localAABB;
+    UINT m_instanceCount = 0;
+    Material m_material;
+    DirectX::BoundingBox m_localAABB;
 
-	AssetState m_state = AssetState::LoadingCPU;
+    AssetState m_state = AssetState::LoadingCPU;
 };

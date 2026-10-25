@@ -23,12 +23,15 @@ public:
     virtual void Close() = 0;
     virtual void ResetAllocator() = 0;
 
-    ID3D12GraphicsCommandList6* GetCmdList() const { return m_pCmdList.Get(); }
+    ID3D12GraphicsCommandList6* GetCmdList() const
+    {
+        return m_pCmdList.Get();
+    }
 
     void TransitionResource(ID3D12Resource* pResource, D3D12_RESOURCE_STATES stateAfter);
     void TransitionResource(GPUResource* pResource, D3D12_RESOURCE_STATES stateAfter);
     void FlushResourceBarriers();
-    
+
     // CommandContext がクローズ/サブミットされる際にグローバルな Tracker を更新する
     void ResolvePendingStates();
 

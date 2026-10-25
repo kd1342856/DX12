@@ -21,7 +21,7 @@ void MaterialPanel::Draw(EditorContext& ctx)
 
         auto& ecs = GameManager::Instance().GetECS();
         auto* pModelData = ecs.TryGetComponent<ModelRenderData>(ctx.SelectedObject->GetEntityID());
-        
+
         if (!pModelData || !pModelData->m_spModelData || !pModelData->m_spModelData->IsLoaded())
         {
             ImGui::TextDisabled("Selected object has no loaded 3D Model.");
@@ -32,7 +32,7 @@ void MaterialPanel::Draw(EditorContext& ctx)
         // A more advanced panel would list all submeshes.
         auto& nodes = pModelData->m_spModelData->GetNodesRef();
         bool foundMaterial = false;
-        
+
         for (auto& node : nodes)
         {
             for (auto& meshHandle : node.meshes)
@@ -40,22 +40,25 @@ void MaterialPanel::Draw(EditorContext& ctx)
                 if (meshHandle.IsValid())
                 {
                     auto pMesh = MeshManager::Instance().Get(meshHandle);
-                    if (!pMesh) continue;
+                    if (!pMesh)
+                    {
+                        continue;
+                    }
 
                     auto& material = pMesh->GetMaterialRef();
-                    
+
                     std::string matName = material.Name.empty() ? "Unnamed Material" : material.Name;
                     ImGui::Text("Material Name: %s", matName.c_str());
-                    
+
                     // Base Color
                     ImGui::ColorEdit4("Base Color", &material.Constants.baseColorFactor.x);
-                    
+
                     // Metallic Roughness
                     ImGui::SliderFloat("Metallic", &material.Constants.metallicFactor, 0.0f, 1.0f);
                     ImGui::SliderFloat("Roughness", &material.Constants.roughnessFactor, 0.0f, 1.0f);
-                    
+
                     // Emissive
-                    float emissive[3] = { material.Constants.emissiveFactorX, material.Constants.emissiveFactorY, material.Constants.emissiveFactorZ };
+                    float emissive[3] = {material.Constants.emissiveFactorX, material.Constants.emissiveFactorY, material.Constants.emissiveFactorZ};
                     if (ImGui::ColorEdit3("Emissive Factor", emissive))
                     {
                         material.Constants.emissiveFactorX = emissive[0];
@@ -63,7 +66,7 @@ void MaterialPanel::Draw(EditorContext& ctx)
                         material.Constants.emissiveFactorZ = emissive[2];
                     }
                     ImGui::DragFloat("Emissive Strength", &material.Constants.emissiveStrength, 0.01f, 0.0f, 100.0f);
-                    
+
                     // Normal Scale
                     ImGui::SliderFloat("Normal Scale", &material.Constants.normalScale, 0.0f, 2.0f);
 
@@ -74,7 +77,10 @@ void MaterialPanel::Draw(EditorContext& ctx)
                     break;
                 }
             }
-            if (foundMaterial) break;
+            if (foundMaterial)
+            {
+                break;
+            }
         }
 
         if (!foundMaterial)

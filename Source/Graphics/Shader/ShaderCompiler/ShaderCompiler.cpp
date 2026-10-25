@@ -3,31 +3,34 @@
 
 #pragma comment(lib, "dxcompiler.lib")
 
-Microsoft::WRL::ComPtr<IDxcUtils>          ShaderCompiler::s_pUtils;
-Microsoft::WRL::ComPtr<IDxcCompiler3>      ShaderCompiler::s_pCompiler;
+Microsoft::WRL::ComPtr<IDxcUtils> ShaderCompiler::s_pUtils;
+Microsoft::WRL::ComPtr<IDxcCompiler3> ShaderCompiler::s_pCompiler;
 Microsoft::WRL::ComPtr<IDxcIncludeHandler> ShaderCompiler::s_pIncludeHandler;
-Microsoft::WRL::ComPtr<IDxcValidator>      ShaderCompiler::s_pValidator;
+Microsoft::WRL::ComPtr<IDxcValidator> ShaderCompiler::s_pValidator;
 
 void ShaderCompiler::Initialize()
 {
-    if (s_pCompiler) return;
+    if (s_pCompiler)
+    {
+        return;
+    }
     HMODULE hDxc = LoadLibraryA("dxcompiler.dll");
     if (hDxc)
     {
-        typedef HRESULT(__stdcall* DxcCreateInstanceProc)(REFCLSID, REFIID, LPVOID*);
+        typedef HRESULT(__stdcall * DxcCreateInstanceProc)(REFCLSID, REFIID, LPVOID*);
         DxcCreateInstanceProc pfnDxcCreateInstance =
             (DxcCreateInstanceProc)GetProcAddress(hDxc, "DxcCreateInstance");
         if (pfnDxcCreateInstance)
         {
-            pfnDxcCreateInstance(CLSID_DxcUtils,     IID_PPV_ARGS(&s_pUtils));
-            pfnDxcCreateInstance(CLSID_DxcCompiler,  IID_PPV_ARGS(&s_pCompiler));
+            pfnDxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(&s_pUtils));
+            pfnDxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&s_pCompiler));
             pfnDxcCreateInstance(CLSID_DxcValidator, IID_PPV_ARGS(&s_pValidator));
         }
     }
     else
     {
-        DxcCreateInstance(CLSID_DxcUtils,     IID_PPV_ARGS(&s_pUtils));
-        DxcCreateInstance(CLSID_DxcCompiler,  IID_PPV_ARGS(&s_pCompiler));
+        DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(&s_pUtils));
+        DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&s_pCompiler));
         DxcCreateInstance(CLSID_DxcValidator, IID_PPV_ARGS(&s_pValidator));
     }
 
@@ -43,7 +46,6 @@ void ShaderCompiler::Initialize()
         {
             OutputDebugStringA("IncludeHandler is nullptr\n");
         }
-
     }
 }
 
@@ -70,8 +72,7 @@ Microsoft::WRL::ComPtr<IDxcBlob> ShaderCompiler::CompileShader(
         0, absoluteFilePath.find_last_of(L"/\\"));
 
     std::wstring shaderCommon =
-        shaderDir.substr(0, shaderDir.find_last_of(L"/\\"))
-        + L"\\Common";
+        shaderDir.substr(0, shaderDir.find_last_of(L"/\\")) + L"\\Common";
 
     Microsoft::WRL::ComPtr<IDxcBlobEncoding> pSourceBlob;
     HRESULT hr = s_pUtils->LoadFile(absoluteFilePath.c_str(), nullptr, &pSourceBlob);
@@ -85,12 +86,11 @@ Microsoft::WRL::ComPtr<IDxcBlob> ShaderCompiler::CompileShader(
     }
 
     DxcBuffer sourceBuffer;
-    sourceBuffer.Ptr      = pSourceBlob->GetBufferPointer();
-    sourceBuffer.Size     = pSourceBlob->GetBufferSize();
+    sourceBuffer.Ptr = pSourceBlob->GetBufferPointer();
+    sourceBuffer.Size = pSourceBlob->GetBufferSize();
     sourceBuffer.Encoding = DXC_CP_UTF8;
 
     std::vector<LPCWSTR> arguments;
-
 
 
     arguments.push_back(absoluteFilePath.c_str());
@@ -156,14 +156,21 @@ Microsoft::WRL::ComPtr<IDxcBlob> ShaderCompiler::CompileShader(
     }
 
     if (FAILED(hrCompile))
+    {
         throw std::runtime_error("IDxcCompiler3::Compile HRESULT failed");
+    }
 
-    if (!pResults) return nullptr;
+    if (!pResults)
+    {
+        return nullptr;
+    }
 
     HRESULT status = S_OK;
     pResults->GetStatus(&status);
     if (FAILED(status))
+    {
         throw std::runtime_error("Shader compile status failed");
+    }
 
     Microsoft::WRL::ComPtr<IDxcBlob> pShader;
     pResults->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(&pShader), nullptr);
@@ -178,7 +185,9 @@ Microsoft::WRL::ComPtr<IDxcBlob> ShaderCompiler::CompileShader(
             HRESULT valStatus = S_OK;
             pValResult->GetStatus(&valStatus);
             if (SUCCEEDED(valStatus))
+            {
                 pValResult->GetResult(&pShader);
+            }
         }
     }
 

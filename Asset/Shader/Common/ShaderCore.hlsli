@@ -38,7 +38,7 @@ cbuffer cbPerMaterial : register(b0)
 //----------------------------------------
 cbuffer cbPerDraw : register(b1)
 {
-    row_major float4x4 g_mW;    // ワールド変換行列
+    row_major float4x4 g_mW; // ワールド変換行列
 };
 
 //----------------------------------------
@@ -52,10 +52,10 @@ cbuffer cbPerCamera : register(b0)
     row_major float4x4 g_mP;    // 投影変換行列
     row_major float4x4 g_mInvP; // 投影変換行列(逆行列)
 
-    row_major float4x4 g_mVP;       // ビュー*投影変換行列
+    row_major float4x4 g_mVP;    // ビュー*投影変換行列
     row_major float4x4 g_mInvVP; // ビュー*投影変換行列(逆行列)
 
-    float3 g_CamPos;            // カメラ座標(World)
+    float3 g_CamPos; // カメラ座標(World)
 };
 
 
@@ -66,11 +66,11 @@ cbuffer cbPerCamera : register(b0)
 // スポットライトのデータ
 struct SpotLight
 {
-    float3 Dir; // 光の方向
-    float Range; // 距離
-    float3 Color; // 色
+    float3 Dir;      // 光の方向
+    float Range;     // 距離
+    float3 Color;    // 色
     float InnerCorn; // 内側の角度
-    float3 Pos; // 座標
+    float3 Pos;      // 座標
     float OuterCorn; // 外側の角度
 
     float EnableShadow;
@@ -82,8 +82,8 @@ struct SpotLight
 // 明滅させた結果のColorを毎フレーム書き込むので、シェーダー側はただの点光源として扱う)
 struct PointLight
 {
-    float3 Pos; // 座標
-    float Range; // 減衰距離
+    float3 Pos;   // 座標
+    float Range;  // 減衰距離
     float3 Color; // 色
     float pad;
 };
@@ -93,35 +93,35 @@ cbuffer cbLight : register(b3)
     // スポット光の使用数
     int g_SL_Count;
     float3 g_dummy;
-    
+
     //-------------------------
     // 環境光
     //-------------------------
     float3 g_AmbientLight;
-    float  g_IndirectShadowFloor; // 平行光の影が落ちる場所に残す間接光(Ambient/IBL)の下限 0..1
+    float g_IndirectShadowFloor; // 平行光の影が落ちる場所に残す間接光(Ambient/IBL)の下限 0..1
 
     //-------------------------
     // 平行光
     //-------------------------
-    float3 g_DL_Dir;    // 平行光の方向
-    float  g_DL_DirLightShadowBias; // 平行光のシャドウマップ用バイアス
-    
-    float3 g_DL_Color;  // 平行光の色
-    float  g_DL_ShadowPower;
-    
+    float3 g_DL_Dir;               // 平行光の方向
+    float g_DL_DirLightShadowBias; // 平行光のシャドウマップ用バイアス
+
+    float3 g_DL_Color; // 平行光の色
+    float g_DL_ShadowPower;
+
     row_major float4x4 g_DL_mLightVP[3]; // 平行光のビュー*投影行列 (カスケード数分)
-    float4 g_DL_CascadeSplits;       // カスケード分割深度
+    float4 g_DL_CascadeSplits;           // カスケード分割深度
 
     //-------------------------
     // スポット光
     //-------------------------
     SpotLight g_SL[10];
-     
+
     //-------------------------
     // フォグ
     //-------------------------
-    float3  g_DistanceFogColor;
-    float   g_DistanceFogDensity;
+    float3 g_DistanceFogColor;
+    float g_DistanceFogDensity;
 
     //-------------------------
     // ポイント光 (ロウソク/裸電球等、フリッカー対応)
@@ -137,14 +137,14 @@ cbuffer cbLight : register(b3)
     //-------------------------
     row_major float4x4 g_PL0_ShadowVP[6];
     float g_PL0_ShadowBias;
-    int   g_PL0_ShadowEnabled;
+    int g_PL0_ShadowEnabled;
     float2 g_PadPL0Shadow;
 
     //-------------------------
     // 室内判定 (RoomAreaのAABB、xyzのみ使用)。範囲内のピクセルは外の光(月明かり・環境光・
     // 空の反射光)を受けず、月の影の中と同じ扱いになる
     //-------------------------
-    int    g_IndoorCount;
+    int g_IndoorCount;
     float3 g_PadIndoor;
     float4 g_IndoorMin[16];
     float4 g_IndoorMax[16];
@@ -155,7 +155,10 @@ bool IsIndoor(float3 wPos)
 {
     for (int r = 0; r < g_IndoorCount; r++)
     {
-        if (all(wPos >= g_IndoorMin[r].xyz) && all(wPos <= g_IndoorMax[r].xyz)) return true;
+        if (all(wPos >= g_IndoorMin[r].xyz) && all(wPos <= g_IndoorMax[r].xyz))
+        {
+            return true;
+        }
     }
     return false;
 }
@@ -166,8 +169,8 @@ bool IsIndoor(float3 wPos)
 cbuffer cbPerUI : register(b10)
 {
     row_major float4x4 g_mUIP; // 正投影行列
-    float4 g_Color; // 全体の色・不透明度
-    float2 g_ScreenRes; // 画面解像度
+    float4 g_Color;            // 全体の色・不透明度
+    float2 g_ScreenRes;        // 画面解像度
     float2 g_tmpUI;
 };
 

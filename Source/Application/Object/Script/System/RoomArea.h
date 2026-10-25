@@ -9,7 +9,8 @@ enum class FloorType
     Soil,
 };
 
-class RoomArea : public NativeScript {
+class RoomArea : public NativeScript
+{
 public:
     void Serialize(nlohmann::json& out) const override;
     void Deserialize(const nlohmann::json& in) override;
@@ -30,6 +31,6 @@ public:
 
     FloorType m_floorType = FloorType::Wood;
 
-    Math::Vector3 m_min = { -5.0f, -5.0f, -5.0f };
-    Math::Vector3 m_max = {  5.0f,  5.0f,  5.0f };
+    Math::Vector3 m_min = {-5.0f, -5.0f, -5.0f};
+    Math::Vector3 m_max = {5.0f, 5.0f, 5.0f};
 };

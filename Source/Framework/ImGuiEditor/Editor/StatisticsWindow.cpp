@@ -8,7 +8,8 @@
 #include "../../../Graphics/Device/GraphicsDevice.h"
 
 // Resolve the GetCurrentScene issue
-static std::shared_ptr<Scene> GetCurrentScenePtr() {
+static std::shared_ptr<Scene> GetCurrentScenePtr()
+{
     return Editor::GetScene();
 }
 
@@ -31,10 +32,13 @@ void Editor::DrawStatistics()
             float frameTimes[Profiler::kFrameHistorySize];
             std::copy(frameHistory.begin(), frameHistory.end(), frameTimes);
             float maxMs = 0.0f;
-            for (float v : frameTimes) maxMs = std::max(maxMs, v);
+            for (float v : frameTimes)
+            {
+                maxMs = std::max(maxMs, v);
+            }
             ImGui::PlotLines("##FrameTimeMs", frameTimes, Profiler::kFrameHistorySize,
-                Profiler::Instance().GetFrameTimeHistoryIndex(), nullptr, 0.0f,
-                std::max(maxMs, 1.0f) * 1.1f, ImVec2(-FLT_MIN, 60));
+                             Profiler::Instance().GetFrameTimeHistoryIndex(), nullptr, 0.0f,
+                             std::max(maxMs, 1.0f) * 1.1f, ImVec2(-FLT_MIN, 60));
         }
         ImGui::Separator();
 
@@ -60,11 +64,16 @@ void Editor::DrawStatistics()
             // 両方に出てきた名前の和集合。片方にしか無いパスも表示に出るようにする。
             std::vector<std::string> names;
             names.reserve(cpuTimings.size() + gpuTimings.size());
-            for (const auto& pair : cpuTimings) names.push_back(pair.first);
+            for (const auto& pair : cpuTimings)
+            {
+                names.push_back(pair.first);
+            }
             for (const auto& pair : gpuTimings)
             {
                 if (std::find(names.begin(), names.end(), pair.first) == names.end())
+                {
                     names.push_back(pair.first);
+                }
             }
             std::sort(names.begin(), names.end());
 
@@ -75,12 +84,24 @@ void Editor::DrawStatistics()
                 ImGui::Text("%s", name.c_str());
                 ImGui::TableNextColumn();
                 auto cpuIt = cpuTimings.find(name);
-                if (cpuIt != cpuTimings.end()) ImGui::Text("%.3f", cpuIt->second);
-                else ImGui::TextUnformatted("-");
+                if (cpuIt != cpuTimings.end())
+                {
+                    ImGui::Text("%.3f", cpuIt->second);
+                }
+                else
+                {
+                    ImGui::TextUnformatted("-");
+                }
                 ImGui::TableNextColumn();
                 auto gpuIt = gpuTimings.find(name);
-                if (gpuIt != gpuTimings.end()) ImGui::Text("%.3f", gpuIt->second);
-                else ImGui::TextUnformatted("-");
+                if (gpuIt != gpuTimings.end())
+                {
+                    ImGui::Text("%.3f", gpuIt->second);
+                }
+                else
+                {
+                    ImGui::TextUnformatted("-");
+                }
             }
             ImGui::EndTable();
         }
@@ -169,4 +190,3 @@ void Editor::DrawStatistics()
     }
     ImGui::End();
 }
-

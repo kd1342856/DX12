@@ -5,7 +5,7 @@
 
 struct ShaderData
 {
-	PipelineDesc m_pipelineDesc;
-	std::vector<RangeType> m_rangeTypes;
-	std::wstring m_shaderFilePath;
+    PipelineDesc m_pipelineDesc;
+    std::vector<RangeType> m_rangeTypes;
+    std::wstring m_shaderFilePath;
 };

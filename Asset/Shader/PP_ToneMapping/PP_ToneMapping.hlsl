@@ -9,7 +9,7 @@ Texture2D g_tex : register(t0); // ベースカラーテクスチャ
 struct PSInput
 {
     float4 Pos : SV_Position; // 射影座標
-    float2 UV : TEXCOORD0; // UV座標
+    float2 UV : TEXCOORD0;    // UV座標
 };
 
 // ACES Filmic ToneMapping
@@ -31,9 +31,9 @@ float3 ACESFilmicToneMapping(float3 x)
 float4 ACESFilmicPS(PSInput In) : SV_Target0
 {
     const float linearExposure = 0.7;
-    
+
     float4 texColor = g_tex.Sample(g_ss, In.UV);
     texColor.rgb = ACESFilmicToneMapping(texColor.rgb * linearExposure);
-    
+
     return texColor;
 }

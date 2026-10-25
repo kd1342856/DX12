@@ -14,7 +14,7 @@ float4 main(PSInput In) : SV_Target0
     float2 lightUV = float2(g_GodRaysLightU, g_GodRaysLightV);
 
     uint numSamples = max(g_GodRaysNumSamples, 1);
-    float2 deltaUV = (In.UV - lightUV) * (g_GodRaysDensity / (float) numSamples);
+    float2 deltaUV = (In.UV - lightUV) * (g_GodRaysDensity / (float)numSamples);
 
     float2 uv = In.UV;
     float illuminationDecay = 1.0;

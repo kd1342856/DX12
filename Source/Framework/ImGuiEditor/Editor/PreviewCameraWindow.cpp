@@ -20,7 +20,11 @@ void Editor::DrawPreviewCamera()
         bool found = false;
         for (auto& cam : ecs.GetComponentArray<CameraData>())
         {
-            if (cam.m_isDebugPreview) { found = true; break; }
+            if (cam.m_isDebugPreview)
+            {
+                found = true;
+                break;
+            }
         }
 
         if (!found)
@@ -42,7 +46,10 @@ void Editor::DrawPreviewCamera()
             auto handle = GraphicsDevice::Instance().GetImGuiSRVGPUHandle(pRT->GetImGuiSRVIndex());
             ImGui::Text("%dx%d (ImGuiSRVIndex=%d)", pRT->GetWidth(), pRT->GetHeight(), pRT->GetImGuiSRVIndex());
             float availWidth = ImGui::GetContentRegionAvail().x;
-            if (availWidth < 64.0f) availWidth = 64.0f;
+            if (availWidth < 64.0f)
+            {
+                availWidth = 64.0f;
+            }
             float aspect = (float)pRT->GetHeight() / (float)pRT->GetWidth();
             ImGui::Image((ImTextureID)handle.ptr, ImVec2(availWidth, availWidth * aspect));
             // このウィンドウの映像に乗っている間だけ、右クリックドラッグでの操作を有効にする

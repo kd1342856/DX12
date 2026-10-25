@@ -10,13 +10,19 @@ class ContextManager
 {
 public:
     ContextManager() = default;
-    ~ContextManager() { Shutdown(); }
+    ~ContextManager()
+    {
+        Shutdown();
+    }
 
     bool Init(ID3D12Device* pDevice);
     void Shutdown();
 
     // GraphicsContextは単一インスタンスとして保持する
-    GraphicsCommandContext* GetGraphicsContext() const { return m_upGraphicsContext.get(); }
+    GraphicsCommandContext* GetGraphicsContext() const
+    {
+        return m_upGraphicsContext.get();
+    }
 
     // UploadContextはPoolから取得する
     ScopedCommandContext<UploadCommandContext> AcquireUploadContext();

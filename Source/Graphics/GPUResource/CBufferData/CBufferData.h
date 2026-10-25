@@ -2,163 +2,163 @@
 
 namespace CBufferData
 {
-	struct Camera
-	{
-		Math::Matrix mView;
-		Math::Matrix mInvV;
-		Math::Matrix mProj;
-		Math::Matrix mInvP;
-		Math::Matrix mVP;
-		Math::Matrix mInvVP;
-		Math::Vector3 CamPos;
-		float dummy;
-	};
+    struct Camera
+    {
+        Math::Matrix mView;
+        Math::Matrix mInvV;
+        Math::Matrix mProj;
+        Math::Matrix mInvP;
+        Math::Matrix mVP;
+        Math::Matrix mInvVP;
+        Math::Vector3 CamPos;
+        float dummy;
+    };
 
-	struct Bones
-	{
-		Math::Matrix mBones[256];
-	};
+    struct Bones
+    {
+        Math::Matrix mBones[256];
+    };
 
-	struct PerDraw
-	{
-		Math::Matrix mWorld;
-	};
+    struct PerDraw
+    {
+        Math::Matrix mWorld;
+    };
 
-	struct System
-	{
-		int DebugView;
-		int EnableHDR;
-		float Exposure;
-		float Gamma;
-		float ScreenWidth;
-		float ScreenHeight;
+    struct System
+    {
+        int DebugView;
+        int EnableHDR;
+        float Exposure;
+        float Gamma;
+        float ScreenWidth;
+        float ScreenHeight;
 
-		// SSR (スクリーンスペース反射) - 平面反射が無いガラス等のフォールバックに使う
-		int32_t EnableSSR;
-		float SSRStepSize;
+        // SSR (スクリーンスペース反射) - 平面反射が無いガラス等のフォールバックに使う
+        int32_t EnableSSR;
+        float SSRStepSize;
 
-		// 平面反射(窓ガラス等)用: 各反射スロット(最大3枚=3窓まで同時)の反射カメラView*Proj行列。
-		// ガラスのピクセルシェーダーがワールド座標をこれで再投影して
-		// g_planarReflectionMapN(N=スロット番号)の正しいUVを求めるために使う。
-		Math::Matrix mReflectionVP[3];
-		DirectX::XMINT4 HasReflectionPacked; // x,y,z = スロット0/1/2の有効フラグ(0/1)、wは未使用
-	};
+        // 平面反射(窓ガラス等)用: 各反射スロット(最大3枚=3窓まで同時)の反射カメラView*Proj行列。
+        // ガラスのピクセルシェーダーがワールド座標をこれで再投影して
+        // g_planarReflectionMapN(N=スロット番号)の正しいUVを求めるために使う。
+        Math::Matrix mReflectionVP[3];
+        DirectX::XMINT4 HasReflectionPacked; // x,y,z = スロット0/1/2の有効フラグ(0/1)、wは未使用
+    };
 
-	struct SpotLight
-	{
-		Math::Vector3 Dir;
-		float Range;
-		Math::Vector3 Color;
-		float InnerCorn;
-		Math::Vector3 Pos;
-		float OuterCorn;
-		float EnableShadow;
-		float ShadowBias;
-		float padding[2];
-		Math::Matrix mLightVP;
-	};
+    struct SpotLight
+    {
+        Math::Vector3 Dir;
+        float Range;
+        Math::Vector3 Color;
+        float InnerCorn;
+        Math::Vector3 Pos;
+        float OuterCorn;
+        float EnableShadow;
+        float ShadowBias;
+        float padding[2];
+        Math::Matrix mLightVP;
+    };
 
-	struct PointLight
-	{
-		Math::Vector3 Pos;
-		float Range;
-		Math::Vector3 Color;
-		float pad;
-	};
+    struct PointLight
+    {
+        Math::Vector3 Pos;
+        float Range;
+        Math::Vector3 Color;
+        float pad;
+    };
 
-	struct Light
-	{
-		int SL_Count;
-		Math::Vector3 dummy1;
-		Math::Vector3 AmbientLight;
-		float IndirectShadowFloor; // 影が落ちる場所に残す間接光(Ambient/IBL)の下限 0..1
-		Math::Vector3 DL_Dir;
-		float DL_ShadowBias;
-		Math::Vector3 DL_Color;
-		float DL_ShadowPower;
-		Math::Matrix DL_mLightVP[3];
-		Math::Vector4 DL_CascadeSplits;
-		SpotLight SL[10];
-		Math::Vector3 DistanceFogColor;
-		float DistanceFogDensity;
+    struct Light
+    {
+        int SL_Count;
+        Math::Vector3 dummy1;
+        Math::Vector3 AmbientLight;
+        float IndirectShadowFloor; // 影が落ちる場所に残す間接光(Ambient/IBL)の下限 0..1
+        Math::Vector3 DL_Dir;
+        float DL_ShadowBias;
+        Math::Vector3 DL_Color;
+        float DL_ShadowPower;
+        Math::Matrix DL_mLightVP[3];
+        Math::Vector4 DL_CascadeSplits;
+        SpotLight SL[10];
+        Math::Vector3 DistanceFogColor;
+        float DistanceFogDensity;
 
-		int PL_Count;
-		Math::Vector3 dummyPL;
-		PointLight PL[8]; // ロウソク/裸電球等、フリッカー付きの点光源(LightSystemが毎フレーム更新)
+        int PL_Count;
+        Math::Vector3 dummyPL;
+        PointLight PL[8]; // ロウソク/裸電球等、フリッカー付きの点光源(LightSystemが毎フレーム更新)
 
-		// ポイント光の影(最も近い1灯のみ、6面キューブシャドウ。Texture2D×6の簡易実装)
-		Math::Matrix PL0_ShadowVP[6];
-		float PL0_ShadowBias;
-		int32_t PL0_ShadowEnabled;
-		float PadPL0Shadow[2];
+        // ポイント光の影(最も近い1灯のみ、6面キューブシャドウ。Texture2D×6の簡易実装)
+        Math::Matrix PL0_ShadowVP[6];
+        float PL0_ShadowBias;
+        int32_t PL0_ShadowEnabled;
+        float PadPL0Shadow[2];
 
-		// 室内判定(RoomAreaのAABB、xyzのみ使用)。範囲内のピクセルは外の光(月明かり・環境光・
-		// 空の反射光)を受けず、月の影の中と同じ扱いになる(GameScene::UpdateLightsが毎フレーム更新)。
-		int32_t IndoorCount;
-		float PadIndoor[3];
-		Math::Vector4 IndoorMin[16];
-		Math::Vector4 IndoorMax[16];
-	};
+        // 室内判定(RoomAreaのAABB、xyzのみ使用)。範囲内のピクセルは外の光(月明かり・環境光・
+        // 空の反射光)を受けず、月の影の中と同じ扱いになる(GameScene::UpdateLightsが毎フレーム更新)。
+        int32_t IndoorCount;
+        float PadIndoor[3];
+        Math::Vector4 IndoorMin[16];
+        Math::Vector4 IndoorMax[16];
+    };
 
-	struct SSAO
-	{
-		float Radius;
-		float Bias;
-		float Power;
-		float Intensity;
-	};
+    struct SSAO
+    {
+        float Radius;
+        float Bias;
+        float Power;
+        float Intensity;
+    };
 
-	struct SSROpaque
-	{
-		float StepSize;
-		float Intensity;
-		float Pad[2];
-	};
+    struct SSROpaque
+    {
+        float StepSize;
+        float Intensity;
+        float Pad[2];
+    };
 
-	struct PostProcess
-	{
-		// Tonemap / Exposure
-		float Exposure;
-		float Gamma;
-		uint32_t EnableHDR;
-		float Time;
+    struct PostProcess
+    {
+        // Tonemap / Exposure
+        float Exposure;
+        float Gamma;
+        uint32_t EnableHDR;
+        float Time;
 
-		// Bloom
-		float BloomThreshold;
-		float BloomIntensity;
-		float BlurDirectionX; // Blurパス専用
-		float BlurDirectionY;
+        // Bloom
+        float BloomThreshold;
+        float BloomIntensity;
+        float BlurDirectionX; // Blurパス専用
+        float BlurDirectionY;
 
-		float BlurRadius;
-		// Vignette
-		float VignetteIntensity;
-		float VignetteSmoothness;
-		// Film Grain
-		float FilmGrainIntensity;
+        float BlurRadius;
+        // Vignette
+        float VignetteIntensity;
+        float VignetteSmoothness;
+        // Film Grain
+        float FilmGrainIntensity;
 
-		// Chromatic Aberration
-		float ChromaticAberrationIntensity;
-		// Depth of Field
-		uint32_t EnableDOF;
-		float DOFFocusDistance;
-		float DOFFocusRange;
+        // Chromatic Aberration
+        float ChromaticAberrationIntensity;
+        // Depth of Field
+        uint32_t EnableDOF;
+        float DOFFocusDistance;
+        float DOFFocusRange;
 
-		// Camera Near/Far (深度リニア化用)
-		float CameraNear;
-		float CameraFar;
-		// God Rays: 光源のスクリーン空間UV
-		float GodRaysLightU;
-		float GodRaysLightV;
+        // Camera Near/Far (深度リニア化用)
+        float CameraNear;
+        float CameraFar;
+        // God Rays: 光源のスクリーン空間UV
+        float GodRaysLightU;
+        float GodRaysLightV;
 
-		// God Rays
-		float GodRaysDensity;
-		float GodRaysDecay;
-		float GodRaysWeight;
-		float GodRaysExposure;
+        // God Rays
+        float GodRaysDensity;
+        float GodRaysDecay;
+        float GodRaysWeight;
+        float GodRaysExposure;
 
-		uint32_t GodRaysNumSamples;
-		uint32_t EnableGodRays;
-		float GodRaysIntensity;
-		float Pad;
-	};
+        uint32_t GodRaysNumSamples;
+        uint32_t EnableGodRays;
+        float GodRaysIntensity;
+        float Pad;
+    };
 }

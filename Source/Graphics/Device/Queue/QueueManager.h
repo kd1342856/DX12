@@ -12,8 +12,14 @@ public:
     bool Init(ID3D12Device* pDevice);
     void Shutdown();
 
-    CommandQueue* GetGraphicsQueue() const { return m_upGraphicsQueue.get(); }
-    CommandQueue* GetCopyQueue() const { return m_upCopyQueue.get(); }
+    CommandQueue* GetGraphicsQueue() const
+    {
+        return m_upGraphicsQueue.get();
+    }
+    CommandQueue* GetCopyQueue() const
+    {
+        return m_upCopyQueue.get();
+    }
 
     void ExecuteGraphics(CommandContext* pContext);
     void ExecuteCopy(CommandContext* pContext);

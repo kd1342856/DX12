@@ -6,7 +6,10 @@
 
 void CommandContext::TransitionResource(ID3D12Resource* pResource, D3D12_RESOURCE_STATES stateAfter)
 {
-    if (!pResource) return;
+    if (!pResource)
+    {
+        return;
+    }
 
     D3D12_RESOURCE_STATES stateBefore;
 
@@ -41,7 +44,7 @@ void CommandContext::TransitionResource(ID3D12Resource* pResource, D3D12_RESOURC
         barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 
         m_pendingBarriers.push_back(barrier);
-        m_pendingStates.push_back({ pResource, stateBefore, stateAfter });
+        m_pendingStates.push_back({pResource, stateBefore, stateAfter});
     }
 }
 

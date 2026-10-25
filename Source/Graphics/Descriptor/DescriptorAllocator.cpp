@@ -29,7 +29,7 @@ void DescriptorAllocator::Release()
 
 UINT DescriptorAllocator::Allocate()
 {
-	std::lock_guard<std::mutex> lock(m_mutex);
+    std::lock_guard<std::mutex> lock(m_mutex);
     if (!m_freeIndices.empty())
     {
         UINT index = m_freeIndices.back();
@@ -48,7 +48,7 @@ UINT DescriptorAllocator::Allocate()
 
 void DescriptorAllocator::Free(UINT index)
 {
-	std::lock_guard<std::mutex> lock(m_mutex);
+    std::lock_guard<std::mutex> lock(m_mutex);
     m_freeIndices.push_back(index);
 }
 

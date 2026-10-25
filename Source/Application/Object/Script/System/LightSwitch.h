@@ -6,7 +6,8 @@ class StimulusSource;
 // まとめてon/offする(例: 廊下の天井照明)。指定された照明は本体を直接Fキーで操作できなくなり、
 // このスイッチ経由でのみ切り替えられる(ゴーストが勝手に点けるのは引き続き可能)。
 // 点灯中はパイロットランプ(m_pilotMaterial)を光らせる。
-class LightSwitch : public NativeScript {
+class LightSwitch : public NativeScript
+{
 public:
     void Start() override;
     void Update(float deltaTime) override;
@@ -35,5 +36,5 @@ private:
 
     std::vector<StimulusSource*> m_targets;
     bool m_resolved = false;
-    int  m_rockerState = -1; // -1=未反映, 0=OFF, 1=ON
+    int m_rockerState = -1; // -1=未反映, 0=OFF, 1=ON
 };

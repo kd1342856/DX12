@@ -55,9 +55,9 @@ private:
     static uint64_t EdgeKey(int a, int b);
 
     std::vector<RoomArea*> m_rooms;
-    std::vector<DirectX::BoundingBox> m_paddedRoomBoxes; // 外側にパディングした部屋のAABB - 隣接判定/ドア突き合わせ/メッシュ割り当てで共有
-    std::vector<std::vector<int>> m_adjacency;         // 部屋インデックス -> 隣接する部屋インデックスのリスト
-    std::unordered_map<uint64_t, DoorLink> m_edgeDoors; // EdgeKey(i,j) -> ドア（該当するドアが見つかったエッジのみ）
+    std::vector<DirectX::BoundingBox> m_paddedRoomBoxes;           // 外側にパディングした部屋のAABB - 隣接判定/ドア突き合わせ/メッシュ割り当てで共有
+    std::vector<std::vector<int>> m_adjacency;                     // 部屋インデックス -> 隣接する部屋インデックスのリスト
+    std::unordered_map<uint64_t, DoorLink> m_edgeDoors;            // EdgeKey(i,j) -> ドア（該当するドアが見つかったエッジのみ）
     std::unordered_map<Mesh*, std::vector<int>> m_meshRoomIndices; // 空 = どの部屋にも割り当てられなかった
     std::unordered_set<int> m_visibleRoomIndices;
     bool m_graphBuilt = false;

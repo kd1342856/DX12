@@ -4,12 +4,19 @@
 class ConstantBuffer : public GPUBuffer
 {
 public:
-    ConstantBuffer() {}
-    virtual ~ConstantBuffer() {}
+    ConstantBuffer()
+    {
+    }
+    virtual ~ConstantBuffer()
+    {
+    }
 
     void Create(GraphicsDevice* pDevice, UINT size);
 
-    void* GetMappedData() const { return m_pMappedData; }
+    void* GetMappedData() const
+    {
+        return m_pMappedData;
+    }
     void UpdateData(const void* pData, UINT size);
 
 private:

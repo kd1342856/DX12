@@ -14,19 +14,19 @@ class RoomArea;
 
 struct NavMeshBakeSettings
 {
-    float cellSize       = 0.3f;
-    float cellHeight     = 0.2f;
+    float cellSize = 0.3f;
+    float cellHeight = 0.2f;
 
-    float agentRadius    = 0.5f;
-    float agentHeight    = 2.0f;
+    float agentRadius = 0.5f;
+    float agentHeight = 2.0f;
 
-    float agentMaxClimb  = 0.4f;
-    float agentMaxSlope  = 45.0f;
+    float agentMaxClimb = 0.4f;
+    float agentMaxSlope = 45.0f;
 
-    bool useSeedPoint    = false;
-    Math::Vector3 seedPoint = { 0.0f, 0.0f, 0.0f };
+    bool useSeedPoint = false;
+    Math::Vector3 seedPoint = {0.0f, 0.0f, 0.0f};
 
-    bool isDirty         = false;
+    bool isDirty = false;
 };
 
 class NavMeshManager
@@ -48,13 +48,28 @@ public:
     // これがtrueになってから作るのが望ましい(falseの時は開口部の判定なしで壁の全長をつなぐ)。
     static bool IsStageCollisionReady();
 
-    bool IsBuilt() const { return m_navMesh != nullptr; }
+    bool IsBuilt() const
+    {
+        return m_navMesh != nullptr;
+    }
 
-    NavMeshBakeSettings GetBakeSettings() const { return m_bakeSettings; }
-    void SetBakeSettings(const NavMeshBakeSettings& settings) { m_bakeSettings = settings; }
+    NavMeshBakeSettings GetBakeSettings() const
+    {
+        return m_bakeSettings;
+    }
+    void SetBakeSettings(const NavMeshBakeSettings& settings)
+    {
+        m_bakeSettings = settings;
+    }
 
-    void SetDebugDrawEnabled(bool enabled) { m_debugDrawEnabled = enabled; }
-    bool IsDebugDrawEnabled() const { return m_debugDrawEnabled; }
+    void SetDebugDrawEnabled(bool enabled)
+    {
+        m_debugDrawEnabled = enabled;
+    }
+    bool IsDebugDrawEnabled() const
+    {
+        return m_debugDrawEnabled;
+    }
     void DrawDebugMesh();
 
     Math::Vector3 MoveToward(
@@ -103,7 +118,10 @@ public:
     // 生存期間中の合計。このNavMeshは小さいのでfindPathは1フレームより十分速く終わって
     // しまい、Statisticsウィンドウの「Active Jobs」が1になる瞬間を目で追うのは難しい -
     // このカウンタは非同期パスが実際に動いているかを確実に確認する手段。
-    int GetAsyncRecomputeCount() const { return m_asyncRecomputeCount.load(); }
+    int GetAsyncRecomputeCount() const
+    {
+        return m_asyncRecomputeCount.load();
+    }
 
 private:
     NavMeshManager();
@@ -130,7 +148,7 @@ private:
     {
         std::vector<Math::Vector3> waypoints;
         float timer = 0.0f;
-        Math::Vector3 lastTarget = { 0, 0, 0 };
+        Math::Vector3 lastTarget = {0, 0, 0};
         bool hasTarget = false;
 
         // 非同期再計算の状態 - MoveToward参照。初回使用時に遅延生成される。
@@ -149,15 +167,15 @@ private:
 
     std::atomic<int> m_asyncRecomputeCount{0};
 
-    rcHeightfield*        m_solid   = nullptr;
-    rcCompactHeightfield* m_chf     = nullptr;
-    rcContourSet*         m_cset    = nullptr;
-    rcPolyMesh*           m_pmesh   = nullptr;
-    rcPolyMeshDetail*     m_dmesh   = nullptr;
+    rcHeightfield* m_solid = nullptr;
+    rcCompactHeightfield* m_chf = nullptr;
+    rcContourSet* m_cset = nullptr;
+    rcPolyMesh* m_pmesh = nullptr;
+    rcPolyMeshDetail* m_dmesh = nullptr;
 
-    dtNavMesh*      m_navMesh  = nullptr;
+    dtNavMesh* m_navMesh = nullptr;
     dtNavMeshQuery* m_navQuery = nullptr;
-    dtQueryFilter*  m_filter   = nullptr;
+    dtQueryFilter* m_filter = nullptr;
 
     void CleanupRecast();
 

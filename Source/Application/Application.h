@@ -4,22 +4,22 @@
 class Application
 {
 public:
-
-	void Execute();
+    void Execute();
 
 private:
-	// DLLの読み込みとディレクトリ設定
-	void SetDirectoryAndLoadDll();
+    // DLLの読み込みとディレクトリ設定
+    void SetDirectoryAndLoadDll();
 
-	Window m_window;
+    Window m_window;
 
-	// 画面サイズ
-	static constexpr int SCREEN_WIDTH = 1280;
-	static constexpr int SCREEN_HEIGHT = 720;
+    // 画面サイズ
+    static constexpr int SCREEN_WIDTH = 1280;
+    static constexpr int SCREEN_HEIGHT = 720;
 
-	Application(){}
+    Application()
+    {
+    }
+
 public:
-	static Application& Instance();
-
+    static Application& Instance();
 };
-

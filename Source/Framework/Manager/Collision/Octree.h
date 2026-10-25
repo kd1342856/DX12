@@ -6,13 +6,15 @@
 
 class CollisionShape;
 
-struct OctreeItem {
+struct OctreeItem
+{
     Entity entity = INVALID_ENTITY;
     CollisionShape* shape = nullptr;
     DirectX::BoundingBox aabb;
 };
 
-class OctreeNode {
+class OctreeNode
+{
 public:
     OctreeNode(const DirectX::BoundingBox& region, int depth, int maxDepth);
     ~OctreeNode() = default;
@@ -20,7 +22,10 @@ public:
     void Clear();
     void Insert(const OctreeItem& item);
     void GetPotentialCollisions(const DirectX::BoundingBox& testAABB, std::vector<OctreeItem>& outItems) const;
-    const DirectX::BoundingBox& GetRegion() const { return m_region; }
+    const DirectX::BoundingBox& GetRegion() const
+    {
+        return m_region;
+    }
 
 private:
     DirectX::BoundingBox m_region;
@@ -33,7 +38,8 @@ private:
     int GetChildIndex(const DirectX::BoundingBox& itemAABB) const;
 };
 
-class Octree {
+class Octree
+{
 public:
     Octree();
     ~Octree() = default;

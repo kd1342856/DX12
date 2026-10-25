@@ -4,7 +4,10 @@
 
 void DebugPanel::Draw(EditorContext& ctx)
 {
-    if (!ctx.Debug) return;
+    if (!ctx.Debug)
+    {
+        return;
+    }
 
     if (ImGui::CollapsingHeader("Debug Views", ImGuiTreeNodeFlags_DefaultOpen))
     {

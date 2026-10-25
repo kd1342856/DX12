@@ -26,12 +26,18 @@ public:
     // Add a barrier to be issued on the Graphics Queue after copy is complete.
     // Copy Queue does NOT support TRANSITION barriers.
     void AddPendingBarrier(const D3D12_RESOURCE_BARRIER& barrier);
-    const std::vector<D3D12_RESOURCE_BARRIER>& GetPendingBarriers() const { return m_pendingBarriers; }
-    void ClearPendingBarriers() { m_pendingBarriers.clear(); }
+    const std::vector<D3D12_RESOURCE_BARRIER>& GetPendingBarriers() const
+    {
+        return m_pendingBarriers;
+    }
+    void ClearPendingBarriers()
+    {
+        m_pendingBarriers.clear();
+    }
 
 private:
     Microsoft::WRL::ComPtr<ID3D12CommandAllocator> m_pCommandAllocator;
-    
+
     UINT64 m_lastFenceValue = 0;
 
     // List of TRANSITION barriers to be issued on Graphics Queue after copy completes

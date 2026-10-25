@@ -48,7 +48,10 @@ public:
     // Entity破棄(生存チェック付き・二重破棄を安全にスキップ)
     void DestroyEntity(Entity entity)
     {
-        if (!IsAlive(entity)) return;
+        if (!IsAlive(entity))
+        {
+            return;
+        }
         m_upEntityManager->DestroyEntity(entity);
         m_upComponentManager->EntityDestroyed(entity);
         m_upSystemManager->EntityDestroyed(entity);
@@ -62,25 +65,25 @@ public:
 
     // === Component管理 ===
 
-    template<typename T>
+    template <typename T>
     void RegisterComponent()
     {
         m_upComponentManager->RegisterComponent<T>();
     }
 
-    template<typename T>
+    template <typename T>
     void AddComponent(Entity entity, const T& component)
     {
         m_upComponentManager->AddComponent<T>(entity, component);
 
         // Signatureを更新して各Systemに通知
-        auto signature = m_upEntityManager->GetSignature(entity);        
+        auto signature = m_upEntityManager->GetSignature(entity);
         signature.set(m_upComponentManager->GetComponentType<T>(), true);
         m_upEntityManager->SetSignature(entity, signature);
         m_upSystemManager->EntitySignatureChanged(entity, signature);
     }
 
-    template<typename T, typename... Args>
+    template <typename T, typename... Args>
     T& EmplaceComponent(Entity entity, Args&&... args)
     {
         T& component = m_upComponentManager->EmplaceComponent<T>(entity, std::forward<Args>(args)...);
@@ -94,7 +97,7 @@ public:
         return component;
     }
 
-    template<typename T>
+    template <typename T>
     void RemoveComponent(Entity entity)
     {
         m_upComponentManager->RemoveComponent<T>(entity);
@@ -106,43 +109,43 @@ public:
         m_upSystemManager->EntitySignatureChanged(entity, signature);
     }
 
-    template<typename T>
+    template <typename T>
     T& GetComponent(Entity entity)
     {
         return m_upComponentManager->GetComponent<T>(entity);
     }
 
-    template<typename T>
+    template <typename T>
     const T& GetComponent(Entity entity) const
     {
         return m_upComponentManager->GetComponent<T>(entity);
     }
 
-    template<typename T>
+    template <typename T>
     T* TryGetComponent(Entity entity)
     {
         return m_upComponentManager->TryGetComponent<T>(entity);
     }
 
-    template<typename T>
+    template <typename T>
     const T* TryGetComponent(Entity entity) const
     {
         return m_upComponentManager->TryGetComponent<T>(entity);
     }
 
-    template<typename T>
+    template <typename T>
     ComponentArray<T>& GetComponentArray()
     {
         return m_upComponentManager->GetComponentArray<T>();
     }
 
-    template<typename T>
+    template <typename T>
     const ComponentArray<T>& GetComponentArray() const
     {
         return m_upComponentManager->GetComponentArray<T>();
     }
 
-    template<typename T>
+    template <typename T>
     ComponentType GetComponentType()
     {
         return m_upComponentManager->GetComponentType<T>();
@@ -150,7 +153,7 @@ public:
 
     // === System管理 ===
 
-    template<typename T>
+    template <typename T>
     std::shared_ptr<T> RegisterSystem()
     {
         auto system = m_upSystemManager->RegisterSystem<T>();
@@ -158,20 +161,29 @@ public:
         return system;
     }
 
-    template<typename T>
+    template <typename T>
     void SetSystemSignature(Signature signature)
     {
         m_upSystemManager->SetSignature<T>(signature);
     }
 
 public:
-    ECSCommandBuffer& GetCommandBuffer(int threadIndex = 0) {
-        if (threadIndex >= m_commandBuffers.size()) { m_commandBuffers.resize(threadIndex + 1); }
+    ECSCommandBuffer& GetCommandBuffer(int threadIndex = 0)
+    {
+        if (threadIndex >= m_commandBuffers.size())
+        {
+            m_commandBuffers.resize(threadIndex + 1);
+        }
         return m_commandBuffers[threadIndex];
     }
-    void FlushCommands() {
-        for (auto& cb : m_commandBuffers) { cb.Playback(this); }
+    void FlushCommands()
+    {
+        for (auto& cb : m_commandBuffers)
+        {
+            cb.Playback(this);
+        }
     }
+
 private:
     std::vector<ECSCommandBuffer> m_commandBuffers;
     std::unique_ptr<EntityManager> m_upEntityManager;
@@ -180,25 +192,22 @@ private:
 };
 
 
-
-
-
-template<typename T>
+template <typename T>
 inline void ECSCommandBuffer::AddComponent(Entity entity, const T& component)
 {
-    ECSExecuteFn fn = [](ECSCoordinator* coord, Entity e, const void* data) {
+    ECSExecuteFn fn = [](ECSCoordinator* coord, Entity e, const void* data)
+    {
         coord->AddComponent<T>(e, *static_cast<const T*>(data));
     };
     WriteCommand(ECSCommandType::AddComponent, entity, fn, sizeof(T), &component);
 }
 
-template<typename T>
+template <typename T>
 inline void ECSCommandBuffer::RemoveComponent(Entity entity)
 {
-    ECSExecuteFn fn = [](ECSCoordinator* coord, Entity e, const void*) {
+    ECSExecuteFn fn = [](ECSCoordinator* coord, Entity e, const void*)
+    {
         coord->RemoveComponent<T>(e);
     };
     WriteCommand(ECSCommandType::RemoveComponent, entity, fn, 0, nullptr);
 }
-
-

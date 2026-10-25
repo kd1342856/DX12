@@ -26,7 +26,10 @@ void GPUUploadQueue::Process()
     std::vector<UploadRequest> currentQueue;
     {
         std::lock_guard<std::mutex> lock(m_mutex);
-        if (m_queue.empty()) return;
+        if (m_queue.empty())
+        {
+            return;
+        }
         currentQueue.swap(m_queue);
     }
 
@@ -62,20 +65,24 @@ void GPUUploadQueue::Process()
             {
                 if (data)
                 {
-                    try {
+                    try
+                    {
                         data();
-                    } catch (const std::exception& e) {
+                    }
+                    catch (const std::exception& e)
+                    {
                         std::ofstream ofs("exception.log", std::ios::app);
                         ofs << "Exception in GPUUploadQueue::Process: " << e.what() << "\n";
                         ofs.close();
-                    } catch (...) {
+                    }
+                    catch (...)
+                    {
                         std::ofstream ofs("exception.log", std::ios::app);
                         ofs << "Unknown exception in GPUUploadQueue::Process\n";
                         ofs.close();
                     }
                 }
             }
-
         }, request.data);
     }
 

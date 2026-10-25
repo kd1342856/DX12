@@ -5,23 +5,23 @@
 
 enum class RenderPassType
 {
-	Shadow,
-	DepthPrePass,
-	Opaque,
-	Transparent,
-	PostProcess
+    Shadow,
+    DepthPrePass,
+    Opaque,
+    Transparent,
+    PostProcess
 };
 
 class RenderQueue
 {
 public:
-	void Submit(RenderPassType pass, const RenderItem& item);
-	void Sort();
-	void Clear();
+    void Submit(RenderPassType pass, const RenderItem& item);
+    void Sort();
+    void Clear();
 
-	const std::vector<RenderItem>& GetItems(RenderPassType pass) const;
+    const std::vector<RenderItem>& GetItems(RenderPassType pass) const;
 
 private:
-	std::unordered_map<RenderPassType, std::vector<RenderItem>> m_items;
-	std::vector<RenderItem> m_emptyItems;
+    std::unordered_map<RenderPassType, std::vector<RenderItem>> m_items;
+    std::vector<RenderItem> m_emptyItems;
 };

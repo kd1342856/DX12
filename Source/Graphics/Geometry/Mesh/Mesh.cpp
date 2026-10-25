@@ -9,17 +9,17 @@
 // Begin()/End() is managed once by the outer GPUUploadQueue::Process()
 // Do NOT call Begin()/End() inside this function
 void Mesh::CreateGPU(GraphicsDevice* pDevice,
-    const std::vector<MeshVertex>& vertices,
-    const std::vector<MeshFace>&   faces,
-    const Material&                material)
+                     const std::vector<MeshVertex>& vertices,
+                     const std::vector<MeshFace>& faces,
+                     const Material& material)
 {
     assert(Thread::IsMainThread() && "Mesh::CreateGPU must be called on the main thread!");
     assert(!vertices.empty() && "Mesh::CreateGPU: vertices are empty");
 
-    m_pDevice       = pDevice;
-    m_material      = material;
-    m_vertices      = vertices;
-    m_faces         = faces;
+    m_pDevice = pDevice;
+    m_material = material;
+    m_vertices = vertices;
+    m_faces = faces;
     m_instanceCount = static_cast<UINT>(faces.size() * 3);
 
     // ローカル空間のAABB。メッシュコライダーの判定で、全頂点を変換して結局何も近くに
@@ -30,12 +30,15 @@ void Mesh::CreateGPU(GraphicsDevice* pDevice,
         DirectX::XMFLOAT3 maxP = m_vertices[0].Position;
         for (const auto& v : m_vertices)
         {
-            minP.x = std::min(minP.x, v.Position.x); maxP.x = std::max(maxP.x, v.Position.x);
-            minP.y = std::min(minP.y, v.Position.y); maxP.y = std::max(maxP.y, v.Position.y);
-            minP.z = std::min(minP.z, v.Position.z); maxP.z = std::max(maxP.z, v.Position.z);
+            minP.x = std::min(minP.x, v.Position.x);
+            maxP.x = std::max(maxP.x, v.Position.x);
+            minP.y = std::min(minP.y, v.Position.y);
+            maxP.y = std::max(maxP.y, v.Position.y);
+            minP.z = std::min(minP.z, v.Position.z);
+            maxP.z = std::max(maxP.z, v.Position.z);
         }
         DirectX::BoundingBox::CreateFromPoints(m_localAABB,
-            DirectX::XMLoadFloat3(&minP), DirectX::XMLoadFloat3(&maxP));
+                                               DirectX::XMLoadFloat3(&minP), DirectX::XMLoadFloat3(&maxP));
     }
 
     // Create GPU buffers (empty, to be filled by upload)
@@ -69,7 +72,10 @@ void Mesh::DrawInstanced(UINT vertexCount) const
     // 非同期ロード中のモデルは、ModelData::IsLoaded()がtrueになった後もGPUUploadQueue::Process()が
     // CreateGPU()するまでの間はGPUバッファが無い(m_pDevice==nullptr)。呼び出し側はIsReady()を
     // 確認する想定だが、確認漏れがあってもクラッシュしないようにここでも弾く。
-    if (!m_pDevice || !IsReady()) return;
+    if (!m_pDevice || !IsReady())
+    {
+        return;
+    }
 
     std::string name = m_material.Name.empty() ? "Unnamed Mesh" : m_material.Name;
     Profiler::Instance().AddDrawCall(name, 1);

@@ -31,7 +31,10 @@ void IndexBuffer::Create(GraphicsDevice* pDevice, UINT indexCount, const void* p
         nullptr,
         IID_PPV_ARGS(&m_resource));
 
-    if (FAILED(hr)) return;
+    if (FAILED(hr))
+    {
+        return;
+    }
 
     m_view.BufferLocation = m_resource->GetGPUVirtualAddress();
     m_view.SizeInBytes = m_bufferSize;

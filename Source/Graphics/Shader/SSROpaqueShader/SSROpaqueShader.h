@@ -10,13 +10,13 @@ class RenderTarget;
 class SSROpaqueShader : public GraphicsShader
 {
 public:
-	virtual void Create(GraphicsDevice* pGraphicsDevice) override;
+    virtual void Create(GraphicsDevice* pGraphicsDevice) override;
 
-	struct Params
-	{
-		float StepSize = 0.35f;
-		float Intensity = 0.5f;
-	};
+    struct Params
+    {
+        float StepSize = 0.35f;
+        float Intensity = 0.5f;
+    };
 
-	void Draw(RenderTarget* pNormalRT, RenderTarget* pSceneOpaqueCopy, RenderTarget* pDestRT, const Params& params);
+    void Draw(RenderTarget* pNormalRT, RenderTarget* pSceneOpaqueCopy, RenderTarget* pDestRT, const Params& params);
 };

@@ -13,7 +13,16 @@ namespace DoorLock
         return s_locked;
     }
 
-    inline void Lock(Entity entity, int animIndex) { LockedSet().insert({ entity, animIndex }); }
-    inline void UnlockAll() { LockedSet().clear(); }
-    inline bool IsLocked(Entity entity, int animIndex) { return LockedSet().count({ entity, animIndex }) > 0; }
+    inline void Lock(Entity entity, int animIndex)
+    {
+        LockedSet().insert({entity, animIndex});
+    }
+    inline void UnlockAll()
+    {
+        LockedSet().clear();
+    }
+    inline bool IsLocked(Entity entity, int animIndex)
+    {
+        return LockedSet().count({entity, animIndex}) > 0;
+    }
 }

@@ -18,8 +18,7 @@ public:
                 DirectX::XMConvertToRadians(camera.m_fov),
                 1280.0f / 720.0f,
                 camera.m_nearZ,
-                camera.m_farZ
-            );
+                camera.m_farZ);
         }
     }
 };

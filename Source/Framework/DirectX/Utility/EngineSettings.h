@@ -31,7 +31,10 @@ private:
         return instance;
     }
 
-    EngineSettings() { Load(); }
+    EngineSettings()
+    {
+        Load();
+    }
 
     // 単純な相対パス "EngineSettings.ini" ではなく、一度だけ解決して使い回す - 相対パスだと、
     // プロセスのカレントディレクトリが毎回同じ場合しか同じファイルを見つけられない。
@@ -44,7 +47,10 @@ private:
     {
         wchar_t exePath[MAX_PATH];
         DWORD len = GetModuleFileNameW(nullptr, exePath, MAX_PATH);
-        if (len == 0 || len >= MAX_PATH) return "EngineSettings.ini"; // フォールバック: CWD相対
+        if (len == 0 || len >= MAX_PATH)
+        {
+            return "EngineSettings.ini"; // フォールバック: CWD相対
+        }
 
         std::wstring path(exePath, len);
         size_t slash = path.find_last_of(L"\\/");
@@ -53,23 +59,35 @@ private:
 
         int utf8Len = WideCharToMultiByte(CP_UTF8, 0, fullW.c_str(), -1, nullptr, 0, nullptr, nullptr);
         std::string full(utf8Len > 0 ? utf8Len - 1 : 0, '\0');
-        if (utf8Len > 0) WideCharToMultiByte(CP_UTF8, 0, fullW.c_str(), -1, full.data(), utf8Len, nullptr, nullptr);
+        if (utf8Len > 0)
+        {
+            WideCharToMultiByte(CP_UTF8, 0, fullW.c_str(), -1, full.data(), utf8Len, nullptr, nullptr);
+        }
         return full;
     }
 
     void Load()
     {
         std::ifstream ifs(GetSettingsFilePath());
-        if (!ifs.is_open()) return;
+        if (!ifs.is_open())
+        {
+            return;
+        }
 
         std::string line;
         while (std::getline(ifs, line))
         {
             size_t eq = line.find('=');
-            if (eq == std::string::npos) continue;
+            if (eq == std::string::npos)
+            {
+                continue;
+            }
             std::string key = line.substr(0, eq);
             std::string val = line.substr(eq + 1);
-            if (!val.empty() && (val.back() == '\r')) val.pop_back();
+            if (!val.empty() && (val.back() == '\r'))
+            {
+                val.pop_back();
+            }
             m_values[key] = (val == "1");
         }
     }
@@ -77,7 +95,10 @@ private:
     void Save() const
     {
         std::ofstream ofs(GetSettingsFilePath(), std::ios::trunc);
-        if (!ofs.is_open()) return;
+        if (!ofs.is_open())
+        {
+            return;
+        }
         for (const auto& pair : m_values)
         {
             ofs << pair.first << "=" << (pair.second ? "1" : "0") << "\n";

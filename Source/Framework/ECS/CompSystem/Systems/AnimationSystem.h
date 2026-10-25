@@ -11,7 +11,10 @@ public:
             auto& animComp = m_pCoordinator->GetComponent<AnimationDataComponent>(entity);
             auto& modelData = m_pCoordinator->GetComponent<ModelRenderData>(entity);
 
-            if (!modelData.m_spModelData || !modelData.m_spModelData->IsLoaded()) continue;
+            if (!modelData.m_spModelData || !modelData.m_spModelData->IsLoaded())
+            {
+                continue;
+            }
 
             const auto& anims = modelData.m_spModelData->GetAnimations();
             bool anyUpdated = false;
@@ -25,13 +28,21 @@ public:
                 modelData.m_instanceNodeLocal.resize(sharedNodes.size());
                 modelData.m_instanceNodeDelta.assign(sharedNodes.size(), Math::Matrix::Identity);
                 for (size_t i = 0; i < sharedNodes.size(); ++i)
+                {
                     modelData.m_instanceNodeLocal[i] = sharedNodes[i].originalLocalTransform;
+                }
             }
             bool instanceLoaded = false;
-            auto loadInstancePose = [&]() {
-                if (!modelData.m_perInstanceAnimation || instanceLoaded) return;
+            auto loadInstancePose = [&]()
+            {
+                if (!modelData.m_perInstanceAnimation || instanceLoaded)
+                {
+                    return;
+                }
                 for (size_t i = 0; i < sharedNodes.size(); ++i)
+                {
                     sharedNodes[i].localTransform = modelData.m_instanceNodeLocal[i];
+                }
                 instanceLoaded = true;
             };
 
@@ -53,11 +64,15 @@ public:
                         float stopLimit = (!data.IsLoop && data.StopAtTime >= 0.0f) ? data.StopAtTime : animInfo.duration;
                         if (data.ProgressTime >= stopLimit)
                         {
-                            if (data.IsLoop) {
-                                while (data.ProgressTime >= animInfo.duration) {
+                            if (data.IsLoop)
+                            {
+                                while (data.ProgressTime >= animInfo.duration)
+                                {
                                     data.ProgressTime -= animInfo.duration;
                                 }
-                            } else {
+                            }
+                            else
+                            {
                                 data.ProgressTime = stopLimit - 0.001f;
                                 data.IsPlaying = false;
                                 data.StopAtTime = -1.0f;
@@ -69,9 +84,12 @@ public:
                         // 逆再生: 先頭に達したら停止
                         if (data.ProgressTime <= 0.0f)
                         {
-                            if (data.IsLoop) {
+                            if (data.IsLoop)
+                            {
                                 data.ProgressTime = animInfo.duration;
-                            } else {
+                            }
+                            else
+                            {
                                 data.ProgressTime = 0.0f;
                                 data.IsPlaying = false;
                             }
@@ -85,7 +103,10 @@ public:
                     // ラップせずに渡すと「狙ったポーズ」ではなく「クリップの最終ポーズ(片足立ち等)」
                     // が表示されてしまっていた(目標まで何周必要かで見た目が変わっていた不具合の原因)。
                     float sampleTime = std::fmod(data.ProgressTime, animInfo.duration);
-                    if (sampleTime < 0.0f) sampleTime += animInfo.duration;
+                    if (sampleTime < 0.0f)
+                    {
+                        sampleTime += animInfo.duration;
+                    }
                     loadInstancePose();
                     modelData.m_spModelData->UpdateAnimation(data.AnimationIndex, sampleTime);
                     anyUpdated = true;
@@ -98,17 +119,22 @@ public:
                 int animIdx = pair.first;
                 auto& data = pair.second;
 
-                if (!data.IsPlaying || animIdx < 0 || animIdx >= (int)anims.size()) continue;
+                if (!data.IsPlaying || animIdx < 0 || animIdx >= (int)anims.size())
+                {
+                    continue;
+                }
 
                 const auto& animInfo = anims[animIdx];
 
                 float safeDelta = deltaTime;
-                if (safeDelta > 0.1f || safeDelta <= 0.0001f) {
+                if (safeDelta > 0.1f || safeDelta <= 0.0001f)
+                {
                     safeDelta = 0.016f;
                 }
 
                 float addTime = animInfo.ticksPerSecond * safeDelta * data.Speed;
-                if (fabsf(addTime) < 0.001f) {
+                if (fabsf(addTime) < 0.001f)
+                {
                     addTime = 16.0f * data.Speed;
                 }
                 data.ProgressTime += addTime;
@@ -119,11 +145,15 @@ public:
                 {
                     if (data.ProgressTime >= targetTime)
                     {
-                        if (data.IsLoop) {
-                            while (data.ProgressTime >= targetTime) {
+                        if (data.IsLoop)
+                        {
+                            while (data.ProgressTime >= targetTime)
+                            {
                                 data.ProgressTime -= targetTime;
                             }
-                        } else {
+                        }
+                        else
+                        {
                             data.ProgressTime = targetTime - 0.001f;
                             data.IsPlaying = false;
                         }
@@ -133,9 +163,12 @@ public:
                 {
                     if (data.ProgressTime <= 0.0f)
                     {
-                        if (data.IsLoop) {
+                        if (data.IsLoop)
+                        {
                             data.ProgressTime = targetTime;
-                        } else {
+                        }
+                        else
+                        {
                             data.ProgressTime = 0.0f;
                             data.IsPlaying = false;
                         }

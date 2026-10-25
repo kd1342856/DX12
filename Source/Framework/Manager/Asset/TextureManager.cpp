@@ -13,8 +13,10 @@ AssetHandle<Texture> TextureManager::LoadTexture(const std::string& filepath)
 
     // Cache check
     auto it = m_cache.find(filepath);
-    if (it != m_cache.end()) {
-        if (GetRaw(it->second)) {
+    if (it != m_cache.end())
+    {
+        if (GetRaw(it->second))
+        {
             return it->second;
         }
     }
@@ -23,10 +25,16 @@ AssetHandle<Texture> TextureManager::LoadTexture(const std::string& filepath)
     auto spTexture = std::make_unique<Texture>();
 
     uint32_t slotIndex = m_nextIndex;
-    for (uint32_t i = 0; i < m_slots.size(); ++i) {
-        if (!m_slots[i].active) { slotIndex = i; break; }
+    for (uint32_t i = 0; i < m_slots.size(); ++i)
+    {
+        if (!m_slots[i].active)
+        {
+            slotIndex = i;
+            break;
+        }
     }
-    if (slotIndex == (uint32_t)m_slots.size()) {
+    if (slotIndex == (uint32_t)m_slots.size())
+    {
         m_slots.push_back({});
         m_nextIndex++;
     }
@@ -40,7 +48,8 @@ AssetHandle<Texture> TextureManager::LoadTexture(const std::string& filepath)
 
     // CPU load only (worker thread safe)
     TextureUploadData cpuData;
-    if (!spTexture->LoadCPU(filepath, cpuData)) {
+    if (!spTexture->LoadCPU(filepath, cpuData))
+    {
         slot.active = false;
         return AssetHandle<Texture>();
     }
@@ -63,8 +72,10 @@ AssetHandle<Texture> TextureManager::LoadTextureFromMemory(const std::string& ke
 
     // Cache check
     auto it = m_cache.find(key);
-    if (it != m_cache.end()) {
-        if (GetRaw(it->second)) {
+    if (it != m_cache.end())
+    {
+        if (GetRaw(it->second))
+        {
             return it->second;
         }
     }
@@ -73,10 +84,16 @@ AssetHandle<Texture> TextureManager::LoadTextureFromMemory(const std::string& ke
     auto spTexture = std::make_unique<Texture>();
 
     uint32_t slotIndex = m_nextIndex;
-    for (uint32_t i = 0; i < m_slots.size(); ++i) {
-        if (!m_slots[i].active) { slotIndex = i; break; }
+    for (uint32_t i = 0; i < m_slots.size(); ++i)
+    {
+        if (!m_slots[i].active)
+        {
+            slotIndex = i;
+            break;
+        }
     }
-    if (slotIndex == (uint32_t)m_slots.size()) {
+    if (slotIndex == (uint32_t)m_slots.size())
+    {
         m_slots.push_back({});
         m_nextIndex++;
     }
@@ -90,7 +107,8 @@ AssetHandle<Texture> TextureManager::LoadTextureFromMemory(const std::string& ke
 
     // CPU load only
     TextureUploadData cpuData;
-    if (!spTexture->LoadCPUFromMemory(pData, size, cpuData)) {
+    if (!spTexture->LoadCPUFromMemory(pData, size, cpuData))
+    {
         slot.active = false;
         return AssetHandle<Texture>();
     }
@@ -114,9 +132,13 @@ AssetHandle<Texture> TextureManager::CreateTexture(const AssetTextureData& data)
 Texture* TextureManager::Get(AssetHandle<Texture> handle)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
-    if (!handle.IsValid() || handle.index >= m_slots.size()) return nullptr;
+    if (!handle.IsValid() || handle.index >= m_slots.size())
+    {
+        return nullptr;
+    }
     auto& slot = m_slots[handle.index];
-    if (slot.active && slot.generation == handle.generation) {
+    if (slot.active && slot.generation == handle.generation)
+    {
         return slot.resource.get();
     }
     return nullptr;
@@ -125,9 +147,13 @@ Texture* TextureManager::Get(AssetHandle<Texture> handle)
 // GetRaw - No lock version for main thread use (GPUUploadQueue::Process)
 Texture* TextureManager::GetRaw(AssetHandle<Texture> handle)
 {
-    if (!handle.IsValid() || handle.index >= m_slots.size()) return nullptr;
+    if (!handle.IsValid() || handle.index >= m_slots.size())
+    {
+        return nullptr;
+    }
     auto& slot = m_slots[handle.index];
-    if (slot.active && slot.generation == handle.generation) {
+    if (slot.active && slot.generation == handle.generation)
+    {
         return slot.resource.get();
     }
     return nullptr;
@@ -136,9 +162,13 @@ Texture* TextureManager::GetRaw(AssetHandle<Texture> handle)
 void TextureManager::Release(AssetHandle<Texture> handle)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
-    if (!handle.IsValid() || handle.index >= m_slots.size()) return;
+    if (!handle.IsValid() || handle.index >= m_slots.size())
+    {
+        return;
+    }
     auto& slot = m_slots[handle.index];
-    if (slot.active && slot.generation == handle.generation) {
+    if (slot.active && slot.generation == handle.generation)
+    {
         slot.resource.reset();
         slot.active = false;
     }

@@ -45,19 +45,50 @@ void NavMeshManager::Release()
 
 void NavMeshManager::CleanupRecast()
 {
-    if (m_solid)    { rcFreeHeightField(m_solid);            m_solid    = nullptr; }
-    if (m_chf)      { rcFreeCompactHeightfield(m_chf);       m_chf      = nullptr; }
-    if (m_cset)     { rcFreeContourSet(m_cset);              m_cset     = nullptr; }
-    if (m_pmesh)    { rcFreePolyMesh(m_pmesh);               m_pmesh    = nullptr; }
-    if (m_dmesh)    { rcFreePolyMeshDetail(m_dmesh);         m_dmesh    = nullptr; }
-    if (m_navMesh)  { dtFreeNavMesh(m_navMesh);              m_navMesh  = nullptr; }
-    if (m_navQuery) { dtFreeNavMeshQuery(m_navQuery);        m_navQuery = nullptr; }
+    if (m_solid)
+    {
+        rcFreeHeightField(m_solid);
+        m_solid = nullptr;
+    }
+    if (m_chf)
+    {
+        rcFreeCompactHeightfield(m_chf);
+        m_chf = nullptr;
+    }
+    if (m_cset)
+    {
+        rcFreeContourSet(m_cset);
+        m_cset = nullptr;
+    }
+    if (m_pmesh)
+    {
+        rcFreePolyMesh(m_pmesh);
+        m_pmesh = nullptr;
+    }
+    if (m_dmesh)
+    {
+        rcFreePolyMeshDetail(m_dmesh);
+        m_dmesh = nullptr;
+    }
+    if (m_navMesh)
+    {
+        dtFreeNavMesh(m_navMesh);
+        m_navMesh = nullptr;
+    }
+    if (m_navQuery)
+    {
+        dtFreeNavMeshQuery(m_navQuery);
+        m_navQuery = nullptr;
+    }
     m_manualPolygons.clear();
 }
 
 bool NavMeshManager::BuildNavMesh(std::shared_ptr<ModelData> stageModel, const Math::Matrix& worldTransform)
 {
-    if (!stageModel) return false;
+    if (!stageModel)
+    {
+        return false;
+    }
 
     CleanupRecast();
     m_pathCache.clear();
@@ -71,7 +102,9 @@ bool NavMeshManager::BuildNavMesh(std::shared_ptr<ModelData> stageModel, const M
     for (const auto& anim : stageModel->GetAnimations())
     {
         if (anim.name.find("Door") == std::string::npos && anim.name.find("door") == std::string::npos)
+        {
             continue;
+        }
         for (const auto& channel : anim.channels)
         {
             doorNodeNames.insert(channel.nodeName);
@@ -83,7 +116,8 @@ bool NavMeshManager::BuildNavMesh(std::shared_ptr<ModelData> stageModel, const M
     // to be walkable interior floor - including a room-scale flat surface stacked directly under
     // every room's floor confuses Recast's region/contour building right where it matters most
     // (room-to-room doorways), so keep them out of the source geometry entirely.
-    auto isEnvironmentNode = [](const std::string& name) {
+    auto isEnvironmentNode = [](const std::string& name)
+    {
         return name == "Ground" || name.find("Roof") != std::string::npos;
     };
 
@@ -105,24 +139,31 @@ bool NavMeshManager::BuildNavMesh(std::shared_ptr<ModelData> stageModel, const M
     // furniture height, plus a near-horizontal face normal so real (steep) wall faces are left
     // alone regardless of height.
     constexpr float kShelfMinFloorClearance = 0.12f;
-    constexpr float kShelfMaxHeight         = 0.5f;
-    constexpr float kShelfMinUpDot          = 0.5f; // ~60 degrees from vertical, matches walkableSlopeAngle
-    auto isShelfLikeFace = [&](const Math::Vector3& a, const Math::Vector3& b, const Math::Vector3& c) {
-        float minY = std::min({ a.y, b.y, c.y });
-        float maxY = std::max({ a.y, b.y, c.y });
-        if (minY < kShelfMinFloorClearance || maxY > kShelfMaxHeight) return false;
+    constexpr float kShelfMaxHeight = 0.5f;
+    constexpr float kShelfMinUpDot = 0.5f; // ~60 degrees from vertical, matches walkableSlopeAngle
+    auto isShelfLikeFace = [&](const Math::Vector3& a, const Math::Vector3& b, const Math::Vector3& c)
+    {
+        float minY = std::min({a.y, b.y, c.y});
+        float maxY = std::max({a.y, b.y, c.y});
+        if (minY < kShelfMinFloorClearance || maxY > kShelfMaxHeight)
+        {
+            return false;
+        }
 
         Math::Vector3 edge1 = b - a;
         Math::Vector3 edge2 = c - a;
         Math::Vector3 normal;
         edge1.Cross(edge2, normal);
-        if (normal.LengthSquared() < 0.0000001f) return false;
+        if (normal.LengthSquared() < 0.0000001f)
+        {
+            return false;
+        }
         normal.Normalize();
         return fabsf(normal.y) >= kShelfMinUpDot;
     };
 
     std::vector<float> verts;
-    std::vector<int>   tris;
+    std::vector<int> tris;
     int skippedDoorNodes = 0;
     int skippedEnvNodes = 0;
     int skippedShelfFaces = 0;
@@ -131,8 +172,12 @@ bool NavMeshManager::BuildNavMesh(std::shared_ptr<ModelData> stageModel, const M
     // against the source .blend object names when the by-name exclusion filters don't match
     {
         std::string allNames;
-        for (const auto& node : stageModel->GetNodes()) {
-            if (!allNames.empty()) allNames += " | ";
+        for (const auto& node : stageModel->GetNodes())
+        {
+            if (!allNames.empty())
+            {
+                allNames += " | ";
+            }
             allNames += node.name;
         }
         Logger::Instance().AddLog(Logger::LogLevel::Info, "NavMesh: model node names = [%s]", allNames.c_str());
@@ -154,7 +199,10 @@ bool NavMeshManager::BuildNavMesh(std::shared_ptr<ModelData> stageModel, const M
         for (const auto& meshHandle : node.meshes)
         {
             Mesh* mesh = MeshManager::Instance().Get(meshHandle);
-            if (!mesh) continue;
+            if (!mesh)
+            {
+                continue;
+            }
 
             const auto& meshVerts = mesh->GetVertices();
             const auto& meshFaces = mesh->GetFaces();
@@ -197,26 +245,26 @@ bool NavMeshManager::BuildNavMesh(std::shared_ptr<ModelData> stageModel, const M
     }
 
     int nverts = (int)(verts.size() / 3);
-    int ntris  = (int)(tris.size()  / 3);
+    int ntris = (int)(tris.size() / 3);
 
     rcConfig cfg;
     memset(&cfg, 0, sizeof(cfg));
 
-    cfg.cs                   = m_bakeSettings.cellSize;
-    cfg.ch                   = m_bakeSettings.cellHeight;
-    cfg.walkableSlopeAngle   = m_bakeSettings.agentMaxSlope;
-    cfg.walkableHeight       = (int)ceilf (m_bakeSettings.agentHeight / cfg.ch);
-    cfg.walkableClimb        = (int)floorf(m_bakeSettings.agentMaxClimb / cfg.ch);
-    cfg.walkableRadius       = (int)ceilf (m_bakeSettings.agentRadius / cfg.cs);
-    cfg.maxEdgeLen           = (int)(12.0f / cfg.cs);
+    cfg.cs = m_bakeSettings.cellSize;
+    cfg.ch = m_bakeSettings.cellHeight;
+    cfg.walkableSlopeAngle = m_bakeSettings.agentMaxSlope;
+    cfg.walkableHeight = (int)ceilf(m_bakeSettings.agentHeight / cfg.ch);
+    cfg.walkableClimb = (int)floorf(m_bakeSettings.agentMaxClimb / cfg.ch);
+    cfg.walkableRadius = (int)ceilf(m_bakeSettings.agentRadius / cfg.cs);
+    cfg.maxEdgeLen = (int)(12.0f / cfg.cs);
     cfg.maxSimplificationError = 0.2f;
-    cfg.minRegionArea        = (int)rcSqr(2.0f);
-    cfg.mergeRegionArea      = (int)rcSqr(6.0f);
-    cfg.maxVertsPerPoly      = 6;
-    cfg.detailSampleDist     = 6.0f;
+    cfg.minRegionArea = (int)rcSqr(2.0f);
+    cfg.mergeRegionArea = (int)rcSqr(6.0f);
+    cfg.maxVertsPerPoly = 6;
+    cfg.detailSampleDist = 6.0f;
     cfg.detailSampleMaxError = 1.0f;
 
-    rcCalcBounds  (verts.data(), nverts, cfg.bmin, cfg.bmax);
+    rcCalcBounds(verts.data(), nverts, cfg.bmin, cfg.bmax);
     rcCalcGridSize(cfg.bmin, cfg.bmax, cfg.cs, &cfg.width, &cfg.height);
 
     rcContext ctx;
@@ -237,23 +285,44 @@ bool NavMeshManager::BuildNavMesh(std::shared_ptr<ModelData> stageModel, const M
     }
 
     rcFilterLowHangingWalkableObstacles(&ctx, cfg.walkableClimb, *m_solid);
-    rcFilterLedgeSpans                 (&ctx, cfg.walkableHeight, cfg.walkableClimb, *m_solid);
-    rcFilterWalkableLowHeightSpans     (&ctx, cfg.walkableHeight, *m_solid);
+    rcFilterLedgeSpans(&ctx, cfg.walkableHeight, cfg.walkableClimb, *m_solid);
+    rcFilterWalkableLowHeightSpans(&ctx, cfg.walkableHeight, *m_solid);
 
     m_chf = rcAllocCompactHeightfield();
-    if (!rcBuildCompactHeightfield(&ctx, cfg.walkableHeight, cfg.walkableClimb, *m_solid, *m_chf)) return false;
-    if (!rcErodeWalkableArea      (&ctx, cfg.walkableRadius, *m_chf))                              return false;
-    if (!rcBuildDistanceField     (&ctx, *m_chf))                                                  return false;
-    if (!rcBuildRegions           (&ctx, *m_chf, cfg.borderSize, cfg.minRegionArea, cfg.mergeRegionArea)) return false;
+    if (!rcBuildCompactHeightfield(&ctx, cfg.walkableHeight, cfg.walkableClimb, *m_solid, *m_chf))
+    {
+        return false;
+    }
+    if (!rcErodeWalkableArea(&ctx, cfg.walkableRadius, *m_chf))
+    {
+        return false;
+    }
+    if (!rcBuildDistanceField(&ctx, *m_chf))
+    {
+        return false;
+    }
+    if (!rcBuildRegions(&ctx, *m_chf, cfg.borderSize, cfg.minRegionArea, cfg.mergeRegionArea))
+    {
+        return false;
+    }
 
     m_cset = rcAllocContourSet();
-    if (!rcBuildContours    (&ctx, *m_chf, cfg.maxSimplificationError, cfg.maxEdgeLen, *m_cset)) return false;
+    if (!rcBuildContours(&ctx, *m_chf, cfg.maxSimplificationError, cfg.maxEdgeLen, *m_cset))
+    {
+        return false;
+    }
 
     m_pmesh = rcAllocPolyMesh();
-    if (!rcBuildPolyMesh    (&ctx, *m_cset, cfg.maxVertsPerPoly, *m_pmesh)) return false;
+    if (!rcBuildPolyMesh(&ctx, *m_cset, cfg.maxVertsPerPoly, *m_pmesh))
+    {
+        return false;
+    }
 
     m_dmesh = rcAllocPolyMeshDetail();
-    if (!rcBuildPolyMeshDetail(&ctx, *m_pmesh, *m_chf, cfg.detailSampleDist, cfg.detailSampleMaxError, *m_dmesh)) return false;
+    if (!rcBuildPolyMeshDetail(&ctx, *m_pmesh, *m_chf, cfg.detailSampleDist, cfg.detailSampleMaxError, *m_dmesh))
+    {
+        return false;
+    }
 
     for (int i = 0; i < m_pmesh->npolys; ++i)
     {
@@ -268,15 +337,18 @@ bool NavMeshManager::BuildNavMesh(std::shared_ptr<ModelData> stageModel, const M
     {
         int bestPoly = -1;
         float bestDistSq = FLT_MAX;
-        
+
         for (int i = 0; i < m_pmesh->npolys; ++i)
         {
             const unsigned short* p = &m_pmesh->polys[i * m_pmesh->nvp * 2];
-            Math::Vector3 centroid = {0,0,0};
+            Math::Vector3 centroid = {0, 0, 0};
             int vCount = 0;
             for (int j = 0; j < m_pmesh->nvp; ++j)
             {
-                if (p[j] == RC_MESH_NULL_IDX) break;
+                if (p[j] == RC_MESH_NULL_IDX)
+                {
+                    break;
+                }
                 const unsigned short* v = &m_pmesh->verts[p[j] * 3];
                 centroid += Math::Vector3(
                     m_pmesh->bmin[0] + v[0] * m_pmesh->cs,
@@ -295,24 +367,27 @@ bool NavMeshManager::BuildNavMesh(std::shared_ptr<ModelData> stageModel, const M
                 }
             }
         }
-        
+
         if (bestPoly != -1)
         {
             std::vector<bool> visited(m_pmesh->npolys, false);
             std::vector<int> queue;
             queue.push_back(bestPoly);
             visited[bestPoly] = true;
-            
+
             while (!queue.empty())
             {
                 int curr = queue.back();
                 queue.pop_back();
-                
+
                 const unsigned short* p = &m_pmesh->polys[curr * m_pmesh->nvp * 2];
                 for (int j = 0; j < m_pmesh->nvp; ++j)
                 {
-                    if (p[j] == RC_MESH_NULL_IDX) break;
-                    
+                    if (p[j] == RC_MESH_NULL_IDX)
+                    {
+                        break;
+                    }
+
                     int neighbor = p[m_pmesh->nvp + j];
                     if (neighbor != RC_MESH_NULL_IDX && neighbor < m_pmesh->npolys)
                     {
@@ -324,7 +399,7 @@ bool NavMeshManager::BuildNavMesh(std::shared_ptr<ModelData> stageModel, const M
                     }
                 }
             }
-            
+
             int disabledCount = 0;
             for (int i = 0; i < m_pmesh->npolys; ++i)
             {
@@ -340,28 +415,32 @@ bool NavMeshManager::BuildNavMesh(std::shared_ptr<ModelData> stageModel, const M
 
     dtNavMeshCreateParams params;
     memset(&params, 0, sizeof(params));
-    params.verts           = m_pmesh->verts;
-    params.vertCount       = m_pmesh->nverts;
-    params.polys           = m_pmesh->polys;
-    params.polyAreas       = m_pmesh->areas;
-    params.polyFlags       = m_pmesh->flags;
-    params.polyCount       = m_pmesh->npolys;
-    params.nvp             = m_pmesh->nvp;
-    params.detailMeshes    = m_dmesh->meshes;
-    params.detailVerts     = m_dmesh->verts;
-    params.detailVertsCount= m_dmesh->nverts;
-    params.detailTris      = m_dmesh->tris;
-    params.detailTriCount  = m_dmesh->ntris;
-    params.walkableHeight  = m_bakeSettings.agentHeight;
-    params.walkableRadius  = m_bakeSettings.agentRadius;
-    params.walkableClimb   = m_bakeSettings.agentMaxClimb;
-    params.bmin[0] = m_pmesh->bmin[0]; params.bmin[1] = m_pmesh->bmin[1]; params.bmin[2] = m_pmesh->bmin[2];
-    params.bmax[0] = m_pmesh->bmax[0]; params.bmax[1] = m_pmesh->bmax[1]; params.bmax[2] = m_pmesh->bmax[2];
+    params.verts = m_pmesh->verts;
+    params.vertCount = m_pmesh->nverts;
+    params.polys = m_pmesh->polys;
+    params.polyAreas = m_pmesh->areas;
+    params.polyFlags = m_pmesh->flags;
+    params.polyCount = m_pmesh->npolys;
+    params.nvp = m_pmesh->nvp;
+    params.detailMeshes = m_dmesh->meshes;
+    params.detailVerts = m_dmesh->verts;
+    params.detailVertsCount = m_dmesh->nverts;
+    params.detailTris = m_dmesh->tris;
+    params.detailTriCount = m_dmesh->ntris;
+    params.walkableHeight = m_bakeSettings.agentHeight;
+    params.walkableRadius = m_bakeSettings.agentRadius;
+    params.walkableClimb = m_bakeSettings.agentMaxClimb;
+    params.bmin[0] = m_pmesh->bmin[0];
+    params.bmin[1] = m_pmesh->bmin[1];
+    params.bmin[2] = m_pmesh->bmin[2];
+    params.bmax[0] = m_pmesh->bmax[0];
+    params.bmax[1] = m_pmesh->bmax[1];
+    params.bmax[2] = m_pmesh->bmax[2];
     params.cs = cfg.cs;
     params.ch = cfg.ch;
 
-    unsigned char* navData     = 0;
-    int            navDataSize = 0;
+    unsigned char* navData = 0;
+    int navDataSize = 0;
     if (!dtCreateNavMeshData(&params, &navData, &navDataSize))
     {
         Logger::Instance().AddLog(Logger::LogLevel::Error, "NavMesh: dtCreateNavMeshData failed.");
@@ -380,35 +459,49 @@ bool NavMeshManager::BuildNavMesh(std::shared_ptr<ModelData> stageModel, const M
     m_navQuery->init(m_navMesh, 2048);
 
     Logger::Instance().AddLog(Logger::LogLevel::Info,
-        "NavMesh built successfully! Polys: %d (skipped %d door node(s), %d env node(s), %d shelf-band face(s)) verts=%d tris=%d bounds=(%.1f,%.1f,%.1f)-(%.1f,%.1f,%.1f)",
-        m_pmesh->npolys, skippedDoorNodes, skippedEnvNodes, skippedShelfFaces, nverts, ntris,
-        cfg.bmin[0], cfg.bmin[1], cfg.bmin[2], cfg.bmax[0], cfg.bmax[1], cfg.bmax[2]);
+                              "NavMesh built successfully! Polys: %d (skipped %d door node(s), %d env node(s), %d shelf-band face(s)) verts=%d tris=%d bounds=(%.1f,%.1f,%.1f)-(%.1f,%.1f,%.1f)",
+                              m_pmesh->npolys, skippedDoorNodes, skippedEnvNodes, skippedShelfFaces, nverts, ntris,
+                              cfg.bmin[0], cfg.bmin[1], cfg.bmin[2], cfg.bmax[0], cfg.bmax[1], cfg.bmax[2]);
     return true;
 }
 
 bool NavMeshManager::IsStageCollisionReady()
 {
     auto scene = Editor::GetScene();
-    if (!scene) return false;
+    if (!scene)
+    {
+        return false;
+    }
     auto& ecs = GameManager::Instance().GetECS();
     bool foundAny = false;
     bool allReady = true;
-    std::function<void(const std::shared_ptr<GameObject>&)> check = [&](const std::shared_ptr<GameObject>& obj) {
-        if (auto* pModel = ecs.TryGetComponent<ModelRenderData>(obj->GetEntityID())) {
-            if (!pModel->m_filePath.empty()) {
+    std::function<void(const std::shared_ptr<GameObject>&)> check = [&](const std::shared_ptr<GameObject>& obj)
+    {
+        if (auto* pModel = ecs.TryGetComponent<ModelRenderData>(obj->GetEntityID()))
+        {
+            if (!pModel->m_filePath.empty())
+            {
                 foundAny = true;
                 DirectX::BoundingBox bounds;
                 // TryGetLocalBoundsは全メッシュのGPU/CPUデータが揃っていない間はfalseを返す
                 if (!pModel->m_spModelData || !pModel->m_spModelData->IsLoaded() ||
-                    !pModel->m_spModelData->TryGetLocalBounds(bounds)) {
+                    !pModel->m_spModelData->TryGetLocalBounds(bounds))
+                {
                     allReady = false;
                 }
             }
         }
-        for (auto& child : obj->GetChildren()) check(child);
+        for (auto& child : obj->GetChildren())
+        {
+            check(child);
+        }
     };
-    for (auto& obj : scene->GetGameObjects()) {
-        if (obj && obj->GetName() == "Stage") check(obj);
+    for (auto& obj : scene->GetGameObjects())
+    {
+        if (obj && obj->GetName() == "Stage")
+        {
+            check(obj);
+        }
     }
     return foundAny && allReady;
 }
@@ -423,11 +516,20 @@ static std::unordered_set<std::string> CollectDoorNodeNames()
     for (Entity entity = 0; entity < MAX_ENTITIES; ++entity)
     {
         auto* pModel = ecs.TryGetComponent<ModelRenderData>(entity);
-        if (!pModel || !pModel->m_spModelData || !pModel->m_spModelData->IsLoaded()) continue;
+        if (!pModel || !pModel->m_spModelData || !pModel->m_spModelData->IsLoaded())
+        {
+            continue;
+        }
         for (const auto& anim : pModel->m_spModelData->GetAnimations())
         {
-            if (anim.name.find("Door") == std::string::npos && anim.name.find("door") == std::string::npos) continue;
-            for (const auto& channel : anim.channels) names.insert(channel.nodeName);
+            if (anim.name.find("Door") == std::string::npos && anim.name.find("door") == std::string::npos)
+            {
+                continue;
+            }
+            for (const auto& channel : anim.channels)
+            {
+                names.insert(channel.nodeName);
+            }
         }
     }
     return names;
@@ -452,7 +554,8 @@ bool NavMeshManager::BuildManualNavMesh(const std::vector<RoomArea*>& rooms)
     // How far apart two rooms' floor heights can be and still be treated as the same floor.
     const float kSameFloorTolerance = 1.5f;
 
-    struct RoomRect {
+    struct RoomRect
+    {
         float minX, maxX, minZ, maxZ, floorY;
         float rawMinX, rawMaxX, rawMinZ, rawMaxZ;
         int stairPairWith = -1; // index of this rect's other end, if this rect came from a stairs RoomArea
@@ -462,12 +565,18 @@ bool NavMeshManager::BuildManualNavMesh(const std::vector<RoomArea*>& rooms)
     std::vector<RoomRect> rects;
     for (RoomArea* room : rooms)
     {
-        if (!room) continue;
+        if (!room)
+        {
+            continue;
+        }
         float minX = room->m_min.x + kMargin;
         float maxX = room->m_max.x - kMargin;
         float minZ = room->m_min.z + kMargin;
         float maxZ = room->m_max.z - kMargin;
-        if (minX >= maxX || minZ >= maxZ) continue; // room too small for this margin, skip it
+        if (minX >= maxX || minZ >= maxZ)
+        {
+            continue; // room too small for this margin, skip it
+        }
 
         auto pObj = room->GetGameObject();
         std::string baseName = pObj ? pObj->GetName() : "?";
@@ -482,11 +591,11 @@ bool NavMeshManager::BuildManualNavMesh(const std::vector<RoomArea*>& rooms)
             // its own normal room neighbor through the usual adjacency check further down, and the
             // two ends are bridged directly to each other afterward (search stairPairWith below).
             int bottomIdx = (int)rects.size();
-            rects.push_back({ minX, maxX, minZ, maxZ, room->m_min.y,
-                room->m_min.x, room->m_max.x, room->m_min.z, room->m_max.z, -1, true, baseName + "(bottom)" });
+            rects.push_back({minX, maxX, minZ, maxZ, room->m_min.y,
+                             room->m_min.x, room->m_max.x, room->m_min.z, room->m_max.z, -1, true, baseName + "(bottom)"});
             int topIdx = (int)rects.size();
-            rects.push_back({ minX, maxX, minZ, maxZ, room->m_max.y,
-                room->m_min.x, room->m_max.x, room->m_min.z, room->m_max.z, -1, true, baseName + "(top)" });
+            rects.push_back({minX, maxX, minZ, maxZ, room->m_max.y,
+                             room->m_min.x, room->m_max.x, room->m_min.z, room->m_max.z, -1, true, baseName + "(top)"});
             rects[bottomIdx].stairPairWith = topIdx; // only the bottom end carries the link, so the
             // bridge-building loop below (which iterates on stairPairWith) processes each stair
             // exactly once instead of building the same bridge polygon twice (forward + a
@@ -494,8 +603,8 @@ bool NavMeshManager::BuildManualNavMesh(const std::vector<RoomArea*>& rooms)
             continue;
         }
 
-        rects.push_back({ minX, maxX, minZ, maxZ, room->m_min.y,
-            room->m_min.x, room->m_max.x, room->m_min.z, room->m_max.z, -1, false, baseName });
+        rects.push_back({minX, maxX, minZ, maxZ, room->m_min.y,
+                         room->m_min.x, room->m_max.x, room->m_min.z, room->m_max.z, -1, false, baseName});
     }
     if (rects.empty())
     {
@@ -508,9 +617,14 @@ bool NavMeshManager::BuildManualNavMesh(const std::vector<RoomArea*>& rooms)
     // same float bits and get welded to a single index - which is how dtCreateNavMeshData finds
     // polygon adjacency (it links polys that share an edge's two vertex indices).
     std::vector<Math::Vector3> vertPool;
-    auto getOrAdd = [&](const Math::Vector3& p) -> int {
-        for (size_t i = 0; i < vertPool.size(); ++i) {
-            if ((vertPool[i] - p).LengthSquared() < 0.0004f) return (int)i;
+    auto getOrAdd = [&](const Math::Vector3& p) -> int
+    {
+        for (size_t i = 0; i < vertPool.size(); ++i)
+        {
+            if ((vertPool[i] - p).LengthSquared() < 0.0004f)
+            {
+                return (int)i;
+            }
         }
         vertPool.push_back(p);
         return (int)vertPool.size() - 1;
@@ -531,7 +645,12 @@ bool NavMeshManager::BuildManualNavMesh(const std::vector<RoomArea*>& rooms)
     // room). Connector geometry doesn't depend on any of this - only room-quad generation does -
     // so gather every connector's (side, room, along-the-wall range) here first, then decide per
     // room below whether it needs splitting before its quad(s) get built.
-    struct ConnSide { int side; int connIdx; float lo, hi; }; // lo/hi along the wall (X for south/north sides, Z for east/west sides)
+    struct ConnSide
+    {
+        int side;
+        int connIdx;
+        float lo, hi;
+    }; // lo/hi along the wall (X for south/north sides, Z for east/west sides)
     std::vector<std::vector<ConnSide>> roomConnSides(rects.size());
 
     // 部屋同士のつながりを、実際に通れる開口部だけに絞る。以前は隣り合う部屋の範囲が重なる区間
@@ -542,23 +661,27 @@ bool NavMeshManager::BuildManualNavMesh(const std::vector<RoomArea*>& rooms)
     // ドア枠や壁の角ぎりぎりに来ると、体がぶつかってその地点に近づけず、壁の方を向いたまま進み続けるため)。
     const bool detectOpenings = IsStageCollisionReady();
     std::unordered_set<std::string> doorNodeNames;
-    if (detectOpenings) {
+    if (detectOpenings)
+    {
         // RaycastAgainstMeshはCollisionManagerの対象シーンが未設定だと何にも当たらない(=全部開いている扱い)
         CollisionManager::Instance().SetScene(Editor::GetScene().get());
         doorNodeNames = CollectDoorNodeNames();
         Logger::Instance().AddLog(Logger::LogLevel::Info,
-            "NavMesh (manual): detecting openings from Stage collision (%d door nodes ignored).", (int)doorNodeNames.size());
-    } else {
+                                  "NavMesh (manual): detecting openings from Stage collision (%d door nodes ignored).", (int)doorNodeNames.size());
+    }
+    else
+    {
         Logger::Instance().AddLog(Logger::LogLevel::Warning,
-            "NavMesh (manual): Stage collision not ready - connecting whole shared walls (ghosts may cut through walls).");
+                                  "NavMesh (manual): Stage collision not ready - connecting whole shared walls (ghosts may cut through walls).");
     }
     // rayAlongX: 壁がZ方向に伸びている(X-connector)ならtrue。acrossFrom/To: レイを飛ばす区間(壁をまたぐ)。
     // [lo, hi]: 壁に沿った候補区間。開口部が見つかればoutLo/outHiに入れてtrue。
     auto findOpening = [&](bool rayAlongX, float acrossFrom, float acrossTo, float floorY,
-                           float lo, float hi, float& outLo, float& outHi) -> bool {
+                           float lo, float hi, float& outLo, float& outHi) -> bool
+    {
         const float kStep = 0.1f;
-        const float kRayHeight = 1.0f;   // 腰の高さ(テーブル等の家具より上、ドア枠の上端より下)
-        const float kMinWidth = 0.5f;    // これより狭い隙間は通れない
+        const float kRayHeight = 1.0f;    // 腰の高さ(テーブル等の家具より上、ドア枠の上端より下)
+        const float kMinWidth = 0.5f;     // これより狭い隙間は通れない
         const float kAgentRadius = 0.45f; // ゴーストの当たり判定の半径(0.44m)。両端からこの分だけ内側へ寄せる
         float bestLo = 0.0f, bestHi = -1.0f, runLo = 0.0f, lastOpen = 0.0f;
         bool inRun = false;
@@ -571,20 +694,34 @@ bool NavMeshManager::BuildManualNavMesh(const std::vector<RoomArea*>& rooms)
             Math::Vector3 dir = rayAlongX ? Math::Vector3(1, 0, 0) : Math::Vector3(0, 0, 1);
             RaycastHit hit = CollisionManager::Instance().RaycastAgainstMesh(origin, dir, acrossTo - acrossFrom, "Stage", &doorNodeNames);
             bool open = !hit.hit;
-            if (open) {
-                if (!inRun) { inRun = true; runLo = s; }
+            if (open)
+            {
+                if (!inRun)
+                {
+                    inRun = true;
+                    runLo = s;
+                }
                 lastOpen = s;
             }
-            if (inRun && (!open || k == count)) {
-                if (lastOpen - runLo > bestHi - bestLo) { bestLo = runLo; bestHi = lastOpen; }
+            if (inRun && (!open || k == count))
+            {
+                if (lastOpen - runLo > bestHi - bestLo)
+                {
+                    bestLo = runLo;
+                    bestHi = lastOpen;
+                }
                 inRun = false;
             }
         }
-        if (bestHi - bestLo < kMinWidth) return false;
+        if (bestHi - bestLo < kMinWidth)
+        {
+            return false;
+        }
         // 体の半径分だけ内側へ。狭い出入口で幅が残らない時は中央の一点を通らせる
         float insetLo = bestLo + kAgentRadius;
         float insetHi = bestHi - kAgentRadius;
-        if (insetHi - insetLo < 0.1f) {
+        if (insetHi - insetLo < 0.1f)
+        {
             float mid = (bestLo + bestHi) * 0.5f;
             insetLo = mid - 0.05f;
             insetHi = mid + 0.05f;
@@ -601,14 +738,25 @@ bool NavMeshManager::BuildManualNavMesh(const std::vector<RoomArea*>& rooms)
         {
             const RoomRect& A = rects[i];
             const RoomRect& B = rects[j];
-            if (fabsf(A.floorY - B.floorY) > kSameFloorTolerance) continue;
+            if (fabsf(A.floorY - B.floorY) > kSameFloorTolerance)
+            {
+                continue;
+            }
 
             // X-adjacency: whichever room is to the west ("left") connects to the one to the east.
             // Gap test uses raw (pre-margin) bounds - see kAdjacencyGapTolerance comment above.
             const RoomRect* left = nullptr;
             const RoomRect* right = nullptr;
-            if (fabsf(A.rawMaxX - B.rawMinX) <= kAdjacencyGapTolerance) { left = &A; right = &B; }
-            else if (fabsf(B.rawMaxX - A.rawMinX) <= kAdjacencyGapTolerance) { left = &B; right = &A; }
+            if (fabsf(A.rawMaxX - B.rawMinX) <= kAdjacencyGapTolerance)
+            {
+                left = &A;
+                right = &B;
+            }
+            else if (fabsf(B.rawMaxX - A.rawMinX) <= kAdjacencyGapTolerance)
+            {
+                left = &B;
+                right = &A;
+            }
             if (left && right)
             {
                 float overlapMin = (left->minZ > right->minZ) ? left->minZ : right->minZ;
@@ -625,34 +773,43 @@ bool NavMeshManager::BuildManualNavMesh(const std::vector<RoomArea*>& rooms)
                     constexpr float kConnEdgeEpsilon = 0.05f;
                     float clipMin = overlapMin + kConnEdgeEpsilon;
                     float clipMax = overlapMax - kConnEdgeEpsilon;
-                    if (clipMin >= clipMax) { clipMin = overlapMin; clipMax = overlapMax; }
+                    if (clipMin >= clipMax)
+                    {
+                        clipMin = overlapMin;
+                        clipMax = overlapMax;
+                    }
                     bool connect = true;
-                    if (detectOpenings) {
+                    if (detectOpenings)
+                    {
                         float acrossFrom = (std::min)(left->rawMaxX, right->rawMinX) - kOpeningRayMargin;
-                        float acrossTo   = (std::max)(left->rawMaxX, right->rawMinX) + kOpeningRayMargin;
+                        float acrossTo = (std::max)(left->rawMaxX, right->rawMinX) + kOpeningRayMargin;
                         float oLo, oHi;
-                        if (findOpening(true, acrossFrom, acrossTo, (std::min)(left->floorY, right->floorY), clipMin, clipMax, oLo, oHi)) {
+                        if (findOpening(true, acrossFrom, acrossTo, (std::min)(left->floorY, right->floorY), clipMin, clipMax, oLo, oHi))
+                        {
                             clipMin = oLo;
                             clipMax = oHi;
-                        } else {
+                        }
+                        else
+                        {
                             connect = false;
                             Logger::Instance().AddLog(Logger::LogLevel::Info,
-                                "NavMesh (manual): no opening between %s and %s - not connected", left->name.c_str(), right->name.c_str());
+                                                      "NavMesh (manual): no opening between %s and %s - not connected", left->name.c_str(), right->name.c_str());
                         }
                     }
-                    if (connect) {
-                        Math::Vector3 c0(left->maxX,  left->floorY,  clipMax);
-                        Math::Vector3 c1(left->maxX,  left->floorY,  clipMin);
+                    if (connect)
+                    {
+                        Math::Vector3 c0(left->maxX, left->floorY, clipMax);
+                        Math::Vector3 c1(left->maxX, left->floorY, clipMin);
                         Math::Vector3 c2(right->minX, right->floorY, clipMin);
                         Math::Vector3 c3(right->minX, right->floorY, clipMax);
                         int connIdx = (int)polyIndices.size();
-                        polyIndices.push_back({ getOrAdd(c0), getOrAdd(c1), getOrAdd(c2), getOrAdd(c3) });
-                        int leftIdx  = (left  == &A) ? (int)i : (int)j;
+                        polyIndices.push_back({getOrAdd(c0), getOrAdd(c1), getOrAdd(c2), getOrAdd(c3)});
+                        int leftIdx = (left == &A) ? (int)i : (int)j;
                         int rightIdx = (right == &A) ? (int)i : (int)j;
-                        roomConnSides[leftIdx].push_back({ 1, connIdx, clipMin, clipMax });  // left room's east side
-                        roomConnSides[rightIdx].push_back({ 3, connIdx, clipMin, clipMax }); // right room's west side
+                        roomConnSides[leftIdx].push_back({1, connIdx, clipMin, clipMax});  // left room's east side
+                        roomConnSides[rightIdx].push_back({3, connIdx, clipMin, clipMax}); // right room's west side
                         Logger::Instance().AddLog(Logger::LogLevel::Info,
-                            "NavMesh (manual): X-connector %s <-> %s (z %.2f..%.2f)", left->name.c_str(), right->name.c_str(), clipMin, clipMax);
+                                                  "NavMesh (manual): X-connector %s <-> %s (z %.2f..%.2f)", left->name.c_str(), right->name.c_str(), clipMin, clipMax);
                     }
                 }
             }
@@ -661,8 +818,16 @@ bool NavMeshManager::BuildManualNavMesh(const std::vector<RoomArea*>& rooms)
             // Gap test uses raw (pre-margin) bounds - see kAdjacencyGapTolerance comment above.
             const RoomRect* south = nullptr;
             const RoomRect* north = nullptr;
-            if (fabsf(A.rawMaxZ - B.rawMinZ) <= kAdjacencyGapTolerance) { south = &A; north = &B; }
-            else if (fabsf(B.rawMaxZ - A.rawMinZ) <= kAdjacencyGapTolerance) { south = &B; north = &A; }
+            if (fabsf(A.rawMaxZ - B.rawMinZ) <= kAdjacencyGapTolerance)
+            {
+                south = &A;
+                north = &B;
+            }
+            else if (fabsf(B.rawMaxZ - A.rawMinZ) <= kAdjacencyGapTolerance)
+            {
+                south = &B;
+                north = &A;
+            }
             if (south && north)
             {
                 float overlapMin = (south->minX > north->minX) ? south->minX : north->minX;
@@ -674,34 +839,43 @@ bool NavMeshManager::BuildManualNavMesh(const std::vector<RoomArea*>& rooms)
                     constexpr float kConnEdgeEpsilon = 0.05f;
                     float clipMin = overlapMin + kConnEdgeEpsilon;
                     float clipMax = overlapMax - kConnEdgeEpsilon;
-                    if (clipMin >= clipMax) { clipMin = overlapMin; clipMax = overlapMax; }
+                    if (clipMin >= clipMax)
+                    {
+                        clipMin = overlapMin;
+                        clipMax = overlapMax;
+                    }
                     bool connect = true;
-                    if (detectOpenings) {
+                    if (detectOpenings)
+                    {
                         float acrossFrom = (std::min)(south->rawMaxZ, north->rawMinZ) - kOpeningRayMargin;
-                        float acrossTo   = (std::max)(south->rawMaxZ, north->rawMinZ) + kOpeningRayMargin;
+                        float acrossTo = (std::max)(south->rawMaxZ, north->rawMinZ) + kOpeningRayMargin;
                         float oLo, oHi;
-                        if (findOpening(false, acrossFrom, acrossTo, (std::min)(south->floorY, north->floorY), clipMin, clipMax, oLo, oHi)) {
+                        if (findOpening(false, acrossFrom, acrossTo, (std::min)(south->floorY, north->floorY), clipMin, clipMax, oLo, oHi))
+                        {
                             clipMin = oLo;
                             clipMax = oHi;
-                        } else {
+                        }
+                        else
+                        {
                             connect = false;
                             Logger::Instance().AddLog(Logger::LogLevel::Info,
-                                "NavMesh (manual): no opening between %s and %s - not connected", south->name.c_str(), north->name.c_str());
+                                                      "NavMesh (manual): no opening between %s and %s - not connected", south->name.c_str(), north->name.c_str());
                         }
                     }
-                    if (connect) {
+                    if (connect)
+                    {
                         Math::Vector3 c0(clipMin, south->floorY, south->maxZ);
                         Math::Vector3 c1(clipMax, south->floorY, south->maxZ);
                         Math::Vector3 c2(clipMax, north->floorY, north->minZ);
                         Math::Vector3 c3(clipMin, north->floorY, north->minZ);
                         int connIdx = (int)polyIndices.size();
-                        polyIndices.push_back({ getOrAdd(c0), getOrAdd(c1), getOrAdd(c2), getOrAdd(c3) });
+                        polyIndices.push_back({getOrAdd(c0), getOrAdd(c1), getOrAdd(c2), getOrAdd(c3)});
                         int southIdx = (south == &A) ? (int)i : (int)j;
                         int northIdx = (north == &A) ? (int)i : (int)j;
-                        roomConnSides[southIdx].push_back({ 2, connIdx, clipMin, clipMax }); // south room's north side
-                        roomConnSides[northIdx].push_back({ 0, connIdx, clipMin, clipMax }); // north room's south side
+                        roomConnSides[southIdx].push_back({2, connIdx, clipMin, clipMax}); // south room's north side
+                        roomConnSides[northIdx].push_back({0, connIdx, clipMin, clipMax}); // north room's south side
                         Logger::Instance().AddLog(Logger::LogLevel::Info,
-                            "NavMesh (manual): Z-connector %s <-> %s (x %.2f..%.2f)", south->name.c_str(), north->name.c_str(), clipMin, clipMax);
+                                                  "NavMesh (manual): Z-connector %s <-> %s (x %.2f..%.2f)", south->name.c_str(), north->name.c_str(), clipMin, clipMax);
                     }
                 }
             }
@@ -713,7 +887,11 @@ bool NavMeshManager::BuildManualNavMesh(const std::vector<RoomArea*>& rooms)
     // partitioned along the wall at the midpoints between neighboring connectors' ranges. Split
     // sub-quads share an exact edge with each other, which the automatic edge-adjacency pass below
     // welds back into one walkable room with no extra bookkeeping for that internal seam.
-    struct SubQuad { int polyIdx; float lo, hi; }; // lo/hi along the split axis; {-inf,+inf} if this room wasn't split
+    struct SubQuad
+    {
+        int polyIdx;
+        float lo, hi;
+    }; // lo/hi along the split axis; {-inf,+inf} if this room wasn't split
     std::vector<std::vector<SubQuad>> rectRoomPolys(rects.size());
     std::vector<int> rectSplitSide(rects.size(), -1); // which side (0-3) was split, -1 if none
 
@@ -721,11 +899,19 @@ bool NavMeshManager::BuildManualNavMesh(const std::vector<RoomArea*>& rooms)
     {
         const RoomRect& rc = rects[i];
         std::array<std::vector<ConnSide*>, 4> bySide;
-        for (auto& cs : roomConnSides[i]) bySide[cs.side].push_back(&cs);
+        for (auto& cs : roomConnSides[i])
+        {
+            bySide[cs.side].push_back(&cs);
+        }
 
         int splitSide = -1;
-        for (int s = 0; s < 4; ++s) {
-            if (bySide[s].size() >= 2) { splitSide = s; break; }
+        for (int s = 0; s < 4; ++s)
+        {
+            if (bySide[s].size() >= 2)
+            {
+                splitSide = s;
+                break;
+            }
         }
         rectSplitSide[i] = splitSide;
 
@@ -736,44 +922,52 @@ bool NavMeshManager::BuildManualNavMesh(const std::vector<RoomArea*>& rooms)
             Math::Vector3 c2(rc.maxX, rc.floorY, rc.maxZ);
             Math::Vector3 c3(rc.minX, rc.floorY, rc.maxZ);
             int polyIdx = (int)polyIndices.size();
-            polyIndices.push_back({ getOrAdd(c0), getOrAdd(c1), getOrAdd(c2), getOrAdd(c3) });
-            rectRoomPolys[i].push_back({ polyIdx, -FLT_MAX, FLT_MAX });
+            polyIndices.push_back({getOrAdd(c0), getOrAdd(c1), getOrAdd(c2), getOrAdd(c3)});
+            rectRoomPolys[i].push_back({polyIdx, -FLT_MAX, FLT_MAX});
             continue;
         }
 
         bool splitAlongX = (splitSide == 0 || splitSide == 2); // south/north sides vary along X
         auto& claims = bySide[splitSide];
-        std::sort(claims.begin(), claims.end(), [](ConnSide* a, ConnSide* b) { return a->lo < b->lo; });
+        std::sort(claims.begin(), claims.end(), [](ConnSide* a, ConnSide* b)
+        { return a->lo < b->lo; });
 
         std::vector<float> bounds;
         bounds.push_back(splitAlongX ? rc.minX : rc.minZ);
         for (size_t k = 0; k + 1 < claims.size(); ++k)
+        {
             bounds.push_back((claims[k]->hi + claims[k + 1]->lo) * 0.5f);
+        }
         bounds.push_back(splitAlongX ? rc.maxX : rc.maxZ);
 
         for (size_t k = 0; k < claims.size(); ++k)
         {
             float lo = bounds[k], hi = bounds[k + 1];
             Math::Vector3 c0, c1, c2, c3;
-            if (splitAlongX) {
+            if (splitAlongX)
+            {
                 c0 = Math::Vector3(lo, rc.floorY, rc.minZ);
                 c1 = Math::Vector3(hi, rc.floorY, rc.minZ);
                 c2 = Math::Vector3(hi, rc.floorY, rc.maxZ);
                 c3 = Math::Vector3(lo, rc.floorY, rc.maxZ);
-            } else {
+            }
+            else
+            {
                 c0 = Math::Vector3(rc.minX, rc.floorY, lo);
                 c1 = Math::Vector3(rc.maxX, rc.floorY, lo);
                 c2 = Math::Vector3(rc.maxX, rc.floorY, hi);
                 c3 = Math::Vector3(rc.minX, rc.floorY, hi);
             }
             int polyIdx = (int)polyIndices.size();
-            polyIndices.push_back({ getOrAdd(c0), getOrAdd(c1), getOrAdd(c2), getOrAdd(c3) });
-            rectRoomPolys[i].push_back({ polyIdx, lo, hi });
+            polyIndices.push_back({getOrAdd(c0), getOrAdd(c1), getOrAdd(c2), getOrAdd(c3)});
+            rectRoomPolys[i].push_back({polyIdx, lo, hi});
         }
         Logger::Instance().AddLog(Logger::LogLevel::Info,
-            "NavMesh (manual): split %s into %d sub-quads along its %s side (multiple neighbors share that wall)",
-            rc.name.c_str(), (int)claims.size(),
-            splitSide == 0 ? "south" : splitSide == 1 ? "east" : splitSide == 2 ? "north" : "west");
+                                  "NavMesh (manual): split %s into %d sub-quads along its %s side (multiple neighbors share that wall)",
+                                  rc.name.c_str(), (int)claims.size(),
+                                  splitSide == 0 ? "south" : splitSide == 1 ? "east"
+                                                         : splitSide == 2   ? "north"
+                                                                            : "west");
     }
 
     // Bridge each staircase's bottom and top rects directly - see the stairPairWith comment above.
@@ -789,16 +983,19 @@ bool NavMeshManager::BuildManualNavMesh(const std::vector<RoomArea*>& rooms)
     for (size_t i = 0; i < rects.size(); ++i)
     {
         int j = rects[i].stairPairWith;
-        if (j < 0) continue;
-        const RoomRect& south = rects[i];           // bottom end of the stairs
-        const RoomRect& north = rects[(size_t)j];   // top end of the stairs
+        if (j < 0)
+        {
+            continue;
+        }
+        const RoomRect& south = rects[i];         // bottom end of the stairs
+        const RoomRect& north = rects[(size_t)j]; // top end of the stairs
         Math::Vector3 c0(south.minX, south.floorY, south.maxZ);
         Math::Vector3 c1(south.maxX, south.floorY, south.maxZ);
         Math::Vector3 c2(north.maxX, north.floorY, north.minZ);
         Math::Vector3 c3(north.minX, north.floorY, north.minZ);
-        polyIndices.push_back({ getOrAdd(c0), getOrAdd(c1), getOrAdd(c2), getOrAdd(c3) });
+        polyIndices.push_back({getOrAdd(c0), getOrAdd(c1), getOrAdd(c2), getOrAdd(c3)});
         Logger::Instance().AddLog(Logger::LogLevel::Info,
-            "NavMesh (manual): stair-bridge %s <-> %s", south.name.c_str(), north.name.c_str());
+                                  "NavMesh (manual): stair-bridge %s <-> %s", south.name.c_str(), north.name.c_str());
     }
     size_t stairBridgeRangeEnd = polyIndices.size();
 
@@ -815,8 +1012,8 @@ bool NavMeshManager::BuildManualNavMesh(const std::vector<RoomArea*>& rooms)
     worldMax += Math::Vector3(1.0f, 1.0f, 1.0f);
 
     constexpr float kCellSize = 0.02f; // 2cm grid resolution, comfortably precise for room-scale geometry
-    float bmin[3] = { worldMin.x, worldMin.y, worldMin.z };
-    float bmax[3] = { worldMax.x, worldMax.y, worldMax.z };
+    float bmin[3] = {worldMin.x, worldMin.y, worldMin.z};
+    float bmax[3] = {worldMax.x, worldMax.y, worldMax.z};
 
     std::vector<unsigned short> quantVerts(vertPool.size() * 3);
     for (size_t i = 0; i < vertPool.size(); ++i)
@@ -828,7 +1025,7 @@ bool NavMeshManager::BuildManualNavMesh(const std::vector<RoomArea*>& rooms)
 
     constexpr int kNvp = 4;
     std::vector<unsigned short> polys(polyIndices.size() * kNvp * 2, RC_MESH_NULL_IDX);
-    std::vector<unsigned char>  areas(polyIndices.size(), 0);
+    std::vector<unsigned char> areas(polyIndices.size(), 0);
     std::vector<unsigned short> flags(polyIndices.size(), 1);
     for (size_t i = 0; i < polyIndices.size(); ++i)
     {
@@ -855,7 +1052,10 @@ bool NavMeshManager::BuildManualNavMesh(const std::vector<RoomArea*>& rooms)
             int b = polyIndices[i][(e + 1) % kNvp];
             for (size_t j = 0; j < polyIndices.size() && polys[i * kNvp * 2 + kNvp + e] == RC_MESH_NULL_IDX; ++j)
             {
-                if (j == i) continue;
+                if (j == i)
+                {
+                    continue;
+                }
                 for (int e2 = 0; e2 < kNvp; ++e2)
                 {
                     int c = polyIndices[j][e2];
@@ -891,16 +1091,25 @@ bool NavMeshManager::BuildManualNavMesh(const std::vector<RoomArea*>& rooms)
     // still-free edge's midpoint sits closest (in XZ) to the other polygon's centroid, so a forced
     // link always lands on the most plausible side of the room even when the geometrically exact
     // edge was already claimed by an earlier link.
-    auto polyCentroidXZ = [&](int p) -> Math::Vector3 {
+    auto polyCentroidXZ = [&](int p) -> Math::Vector3
+    {
         Math::Vector3 c(0, 0, 0);
-        for (int k = 0; k < kNvp; ++k) c += vertPool[(size_t)polyIndices[(size_t)p][k]];
+        for (int k = 0; k < kNvp; ++k)
+        {
+            c += vertPool[(size_t)polyIndices[(size_t)p][k]];
+        }
         return c / (float)kNvp;
     };
-    auto bestFreeEdge = [&](int p, const Math::Vector3& towardXZ) -> int {
+    auto bestFreeEdge = [&](int p, const Math::Vector3& towardXZ) -> int
+    {
         int best = -1;
         float bestDistSq = FLT_MAX;
-        for (int e = 0; e < kNvp; ++e) {
-            if (polys[(size_t)p * kNvp * 2 + kNvp + e] != RC_MESH_NULL_IDX) continue;
+        for (int e = 0; e < kNvp; ++e)
+        {
+            if (polys[(size_t)p * kNvp * 2 + kNvp + e] != RC_MESH_NULL_IDX)
+            {
+                continue;
+            }
             const Math::Vector3& v0 = vertPool[(size_t)polyIndices[(size_t)p][e]];
             const Math::Vector3& v1 = vertPool[(size_t)polyIndices[(size_t)p][(e + 1) % kNvp]];
             float mx = (v0.x + v1.x) * 0.5f;
@@ -908,14 +1117,22 @@ bool NavMeshManager::BuildManualNavMesh(const std::vector<RoomArea*>& rooms)
             float dx = mx - towardXZ.x;
             float dz = mz - towardXZ.z;
             float distSq = dx * dx + dz * dz;
-            if (distSq < bestDistSq) { bestDistSq = distSq; best = e; }
+            if (distSq < bestDistSq)
+            {
+                bestDistSq = distSq;
+                best = e;
+            }
         }
         return best;
     };
-    auto forceLink = [&](int a, int b) -> bool {
+    auto forceLink = [&](int a, int b) -> bool
+    {
         int ea = bestFreeEdge(a, polyCentroidXZ(b));
         int eb = bestFreeEdge(b, polyCentroidXZ(a));
-        if (ea < 0 || eb < 0) return false;
+        if (ea < 0 || eb < 0)
+        {
+            return false;
+        }
         polys[(size_t)a * kNvp * 2 + kNvp + ea] = (unsigned short)b;
         polys[(size_t)b * kNvp * 2 + kNvp + eb] = (unsigned short)a;
         return true;
@@ -927,23 +1144,34 @@ bool NavMeshManager::BuildManualNavMesh(const std::vector<RoomArea*>& rooms)
     // perpendicular to the split axis (e.g. LivingRoom's JPRoomF1 link, when LivingRoom's west side
     // was the one split into two Z-bands) it's whichever sub-quad's range reaches that side's fixed
     // coordinate on the room's true outer boundary.
-    auto pickSubQuad = [&](size_t rectIdx, const ConnSide& cs) -> int {
+    auto pickSubQuad = [&](size_t rectIdx, const ConnSide& cs) -> int
+    {
         auto& subs = rectRoomPolys[rectIdx];
-        if (subs.size() == 1) return subs[0].polyIdx;
+        if (subs.size() == 1)
+        {
+            return subs[0].polyIdx;
+        }
         const RoomRect& rc = rects[rectIdx];
         bool splitAlongX = (rectSplitSide[rectIdx] == 0 || rectSplitSide[rectIdx] == 2);
         bool sideSpansX = (cs.side == 0 || cs.side == 2);
         float coord;
-        if (splitAlongX == sideSpansX) {
+        if (splitAlongX == sideSpansX)
+        {
             // This claim's own range is measured along the split axis - use its midpoint.
             coord = (cs.lo + cs.hi) * 0.5f;
-        } else {
+        }
+        else
+        {
             // This side's position along the split axis is fixed at the room's outer boundary.
             coord = splitAlongX ? ((cs.side == 3) ? rc.minX : rc.maxX)
-                                 : ((cs.side == 0) ? rc.minZ : rc.maxZ);
+                                : ((cs.side == 0) ? rc.minZ : rc.maxZ);
         }
-        for (auto& sq : subs) {
-            if (coord >= sq.lo - 0.01f && coord <= sq.hi + 0.01f) return sq.polyIdx;
+        for (auto& sq : subs)
+        {
+            if (coord >= sq.lo - 0.01f && coord <= sq.hi + 0.01f)
+            {
+                return sq.polyIdx;
+            }
         }
         return subs.front().polyIdx; // shouldn't happen; fall back rather than link nothing
     };
@@ -957,8 +1185,8 @@ bool NavMeshManager::BuildManualNavMesh(const std::vector<RoomArea*>& rooms)
             if (!ok)
             {
                 Logger::Instance().AddLog(Logger::LogLevel::Warning,
-                    "NavMesh (manual): connector link failed (poly %d <-> %s) - no free neighbor slot",
-                    cs.connIdx, rects[i].name.c_str());
+                                          "NavMesh (manual): connector link failed (poly %d <-> %s) - no free neighbor slot",
+                                          cs.connIdx, rects[i].name.c_str());
             }
         }
     }
@@ -973,12 +1201,21 @@ bool NavMeshManager::BuildManualNavMesh(const std::vector<RoomArea*>& rooms)
     // rect, then the nearest still-free edge on that specific sub-quad.
     for (size_t i = 0; i < rects.size(); ++i)
     {
-        if (!rects[i].isStair) continue;
+        if (!rects[i].isStair)
+        {
+            continue;
+        }
         int stairsPolyIdx = rectRoomPolys[i][0].polyIdx;
         for (size_t j = 0; j < rects.size(); ++j)
         {
-            if (j == i || rects[j].isStair) continue;
-            if (fabsf(rects[i].floorY - rects[j].floorY) > kSameFloorTolerance) continue;
+            if (j == i || rects[j].isStair)
+            {
+                continue;
+            }
+            if (fabsf(rects[i].floorY - rects[j].floorY) > kSameFloorTolerance)
+            {
+                continue;
+            }
 
             // 重なりは壁から内側へ寄せる前の実際の範囲(raw)で判定する。寄せた後の範囲だと、幅1.5mしかない
             // 階段は0.5mしか残らず、壁際に接している部屋(1階のLivingRoom)との重なりが0.4mになって
@@ -995,40 +1232,49 @@ bool NavMeshManager::BuildManualNavMesh(const std::vector<RoomArea*>& rooms)
                 {
                     Math::Vector3 stairsCentroid = polyCentroidXZ(stairsPolyIdx);
                     float bestDistSq = FLT_MAX;
-                    for (auto& sq : subs) {
+                    for (auto& sq : subs)
+                    {
                         Math::Vector3 c = polyCentroidXZ(sq.polyIdx);
                         float dx = c.x - stairsCentroid.x, dz = c.z - stairsCentroid.z;
                         float d = dx * dx + dz * dz;
-                        if (d < bestDistSq) { bestDistSq = d; targetPolyIdx = sq.polyIdx; }
+                        if (d < bestDistSq)
+                        {
+                            bestDistSq = d;
+                            targetPolyIdx = sq.polyIdx;
+                        }
                     }
                 }
                 bool ok = forceLink(stairsPolyIdx, targetPolyIdx);
                 Logger::Instance().AddLog(Logger::LogLevel::Info,
-                    "NavMesh (manual): overlap-link %s <-> %s (%s)",
-                    rects[i].name.c_str(), rects[j].name.c_str(), ok ? "ok" : "FAILED - no free neighbor slot");
+                                          "NavMesh (manual): overlap-link %s <-> %s (%s)",
+                                          rects[i].name.c_str(), rects[j].name.c_str(), ok ? "ok" : "FAILED - no free neighbor slot");
             }
         }
     }
 
     dtNavMeshCreateParams params;
     memset(&params, 0, sizeof(params));
-    params.verts     = quantVerts.data();
+    params.verts = quantVerts.data();
     params.vertCount = (int)vertPool.size();
-    params.polys     = polys.data();
+    params.polys = polys.data();
     params.polyAreas = areas.data();
     params.polyFlags = flags.data();
     params.polyCount = (int)polyIndices.size();
-    params.nvp       = kNvp;
+    params.nvp = kNvp;
     params.walkableHeight = 2.0f;
     params.walkableRadius = 0.25f;
-    params.walkableClimb  = 0.9f;
-    params.bmin[0] = bmin[0]; params.bmin[1] = bmin[1]; params.bmin[2] = bmin[2];
-    params.bmax[0] = bmax[0]; params.bmax[1] = bmax[1]; params.bmax[2] = bmax[2];
+    params.walkableClimb = 0.9f;
+    params.bmin[0] = bmin[0];
+    params.bmin[1] = bmin[1];
+    params.bmin[2] = bmin[2];
+    params.bmax[0] = bmax[0];
+    params.bmax[1] = bmax[1];
+    params.bmax[2] = bmax[2];
     params.cs = kCellSize;
     params.ch = kCellSize;
 
-    unsigned char* navData     = 0;
-    int            navDataSize = 0;
+    unsigned char* navData = 0;
+    int navDataSize = 0;
     if (!dtCreateNavMeshData(&params, &navData, &navDataSize))
     {
         Logger::Instance().AddLog(Logger::LogLevel::Error, "NavMesh (manual): dtCreateNavMeshData failed.");
@@ -1051,24 +1297,36 @@ bool NavMeshManager::BuildManualNavMesh(const std::vector<RoomArea*>& rooms)
     // drawing those looks like a stray diagonal ray through the middle of the house.
     for (size_t i = 0; i < polyIndices.size(); ++i)
     {
-        if (i >= stairBridgeRangeStart && i < stairBridgeRangeEnd) continue;
+        if (i >= stairBridgeRangeStart && i < stairBridgeRangeEnd)
+        {
+            continue;
+        }
         std::vector<Math::Vector3> poly;
         poly.reserve(4);
-        for (int k : polyIndices[i]) poly.push_back(vertPool[k]);
+        for (int k : polyIndices[i])
+        {
+            poly.push_back(vertPool[k]);
+        }
         m_manualPolygons.push_back(std::move(poly));
     }
 
     int totalRoomPolys = 0;
-    for (const auto& subs : rectRoomPolys) totalRoomPolys += (int)subs.size();
+    for (const auto& subs : rectRoomPolys)
+    {
+        totalRoomPolys += (int)subs.size();
+    }
     Logger::Instance().AddLog(Logger::LogLevel::Info,
-        "NavMesh (manual) built successfully! Rooms: %d Polys: %d (rooms=%d connectors=%d)",
-        (int)rects.size(), (int)polyIndices.size(), totalRoomPolys, (int)(polyIndices.size() - totalRoomPolys));
+                              "NavMesh (manual) built successfully! Rooms: %d Polys: %d (rooms=%d connectors=%d)",
+                              (int)rects.size(), (int)polyIndices.size(), totalRoomPolys, (int)(polyIndices.size() - totalRoomPolys));
     return true;
 }
 
 void NavMeshManager::DrawDebugMesh()
 {
-    if (!m_debugDrawEnabled) return;
+    if (!m_debugDrawEnabled)
+    {
+        return;
+    }
 
     if (!m_manualPolygons.empty())
     {
@@ -1078,23 +1336,31 @@ void NavMeshManager::DrawDebugMesh()
         {
             std::vector<Math::Vector3> lifted;
             lifted.reserve(poly.size());
-            for (const auto& v : poly) lifted.push_back(v + Math::Vector3(0, 0.05f, 0));
+            for (const auto& v : poly)
+            {
+                lifted.push_back(v + Math::Vector3(0, 0.05f, 0));
+            }
             CollisionManager::Instance().AddDebugPolyAlways(lifted, fillColorManual);
-            for (size_t j = 0; j < lifted.size(); ++j) {
+            for (size_t j = 0; j < lifted.size(); ++j)
+            {
                 CollisionManager::Instance().AddDebugLineAlways(lifted[j], lifted[(j + 1) % lifted.size()], edgeColorManual);
             }
         }
         return;
     }
 
-    if (!m_pmesh) return;
+    if (!m_pmesh)
+    {
+        return;
+    }
 
     const rcPolyMesh& mesh = *m_pmesh;
     const float cs = mesh.cs;
     const float ch = mesh.ch;
     const float* bmin = mesh.bmin;
 
-    auto toWorld = [&](int vertIdx) -> Math::Vector3 {
+    auto toWorld = [&](int vertIdx) -> Math::Vector3
+    {
         const unsigned short* v = &mesh.verts[vertIdx * 3];
         return Math::Vector3(
             bmin[0] + v[0] * cs,
@@ -1108,7 +1374,10 @@ void NavMeshManager::DrawDebugMesh()
 
     for (int i = 0; i < mesh.npolys; ++i)
     {
-        if (mesh.flags[i] == 0) continue; // Skip disabled polys (e.g. from seed filtering)
+        if (mesh.flags[i] == 0)
+        {
+            continue; // Skip disabled polys (e.g. from seed filtering)
+        }
 
         const unsigned short* p = &mesh.polys[i * mesh.nvp * 2];
 
@@ -1116,16 +1385,23 @@ void NavMeshManager::DrawDebugMesh()
         verts.reserve(mesh.nvp);
         for (int j = 0; j < mesh.nvp; ++j)
         {
-            if (p[j] == RC_MESH_NULL_IDX) break;
+            if (p[j] == RC_MESH_NULL_IDX)
+            {
+                break;
+            }
             Math::Vector3 v = toWorld(p[j]);
             // slightly lift off the floor to avoid z-fighting with the stage mesh
             v.y += 0.05f;
             verts.push_back(v);
         }
-        if (verts.size() < 3) continue;
+        if (verts.size() < 3)
+        {
+            continue;
+        }
 
         CollisionManager::Instance().AddDebugPolyAlways(verts, fillColor);
-        for (size_t j = 0; j < verts.size(); ++j) {
+        for (size_t j = 0; j < verts.size(); ++j)
+        {
             CollisionManager::Instance().AddDebugLineAlways(verts[j], verts[(j + 1) % verts.size()], edgeColor);
         }
     }
@@ -1137,7 +1413,10 @@ bool NavMeshManager::FindPath(
     std::vector<Math::Vector3>& outPath)
 {
     outPath.clear();
-    if (!m_navQuery || !m_navMesh) return false;
+    if (!m_navQuery || !m_navMesh)
+    {
+        return false;
+    }
 
     // FindPathは今やJobSystemのワーカースレッドで実行され得る(MoveToward参照)一方、
     // メインスレッドは引き続きIsReachable()等を自由に呼べる - どちらも同じdtNavMeshQueryを
@@ -1151,13 +1430,13 @@ bool NavMeshManager::FindPath(
     // *other* floor instead (e.g. Hunt targeting the player's position while both ghost and player
     // are vertically stacked one floor apart), producing a path that never actually uses the
     // stairs and instead just walks back and forth on the wrong floor above/below the real target.
-    float extents[3] = { 2.0f, 3.0f, 2.0f };
+    float extents[3] = {2.0f, 3.0f, 2.0f};
 
     dtPolyRef startRef = 0, endRef = 0;
-    float     startPt[3], endPt[3];
+    float startPt[3], endPt[3];
 
     m_navQuery->findNearestPoly(&start.x, extents, m_filter, &startRef, startPt);
-    m_navQuery->findNearestPoly(&end.x,   extents, m_filter, &endRef,   endPt);
+    m_navQuery->findNearestPoly(&end.x, extents, m_filter, &endRef, endPt);
 
     if (!startRef || !endRef)
     {
@@ -1165,23 +1444,23 @@ bool NavMeshManager::FindPath(
         if ((s_logCounter++ % 120) == 0) // throttle: only log occasionally, this can be called every frame
         {
             Logger::Instance().AddLog(Logger::LogLevel::Warning,
-                "NavMesh FindPath: no nearby polygon for %s point. start=(%.2f,%.2f,%.2f) end=(%.2f,%.2f,%.2f)",
-                (!startRef && !endRef) ? "start&end" : (!startRef ? "start" : "end"),
-                start.x, start.y, start.z, end.x, end.y, end.z);
+                                      "NavMesh FindPath: no nearby polygon for %s point. start=(%.2f,%.2f,%.2f) end=(%.2f,%.2f,%.2f)",
+                                      (!startRef && !endRef) ? "start&end" : (!startRef ? "start" : "end"),
+                                      start.x, start.y, start.z, end.x, end.y, end.z);
         }
         return false;
     }
 
     static const int MAX_POLYS = 256;
     dtPolyRef path[MAX_POLYS];
-    int       pathCount = 0;
+    int pathCount = 0;
     m_navQuery->findPath(startRef, endRef, startPt, endPt, m_filter, path, &pathCount, MAX_POLYS);
 
     if (pathCount <= 0)
     {
         Logger::Instance().AddLog(Logger::LogLevel::Warning,
-            "NavMesh FindPath: findPath returned 0 polys even though start/end refs were valid. start=(%.2f,%.2f,%.2f) end=(%.2f,%.2f,%.2f)",
-            start.x, start.y, start.z, end.x, end.y, end.z);
+                                  "NavMesh FindPath: findPath returned 0 polys even though start/end refs were valid. start=(%.2f,%.2f,%.2f) end=(%.2f,%.2f,%.2f)",
+                                  start.x, start.y, start.z, end.x, end.y, end.z);
         return false;
     }
 
@@ -1195,15 +1474,15 @@ bool NavMeshManager::FindPath(
         if ((s_partialLogCounter++ % 60) == 0)
         {
             Logger::Instance().AddLog(Logger::LogLevel::Warning,
-                "NavMesh FindPath: start and end are NOT connected (partial path only). start=(%.2f,%.2f,%.2f) end=(%.2f,%.2f,%.2f)",
-                start.x, start.y, start.z, end.x, end.y, end.z);
+                                      "NavMesh FindPath: start and end are NOT connected (partial path only). start=(%.2f,%.2f,%.2f) end=(%.2f,%.2f,%.2f)",
+                                      start.x, start.y, start.z, end.x, end.y, end.z);
         }
     }
 
-    float         straightPath[MAX_POLYS * 3];
+    float straightPath[MAX_POLYS * 3];
     unsigned char straightPathFlags[MAX_POLYS];
-    dtPolyRef     straightPathPolys[MAX_POLYS];
-    int           straightPathCount = 0;
+    dtPolyRef straightPathPolys[MAX_POLYS];
+    int straightPathCount = 0;
 
     m_navQuery->findStraightPath(
         startPt, endPt,
@@ -1231,8 +1510,14 @@ Math::Vector3 NavMeshManager::MoveToward(
     float nodeReachThreshold)
 {
     PathCache& cache = m_pathCache[entityID];
-    if (!cache.computing) cache.computing = std::make_shared<std::atomic<bool>>(false);
-    if (!cache.pending) cache.pending = std::make_shared<AsyncPathResult>();
+    if (!cache.computing)
+    {
+        cache.computing = std::make_shared<std::atomic<bool>>(false);
+    }
+    if (!cache.pending)
+    {
+        cache.pending = std::make_shared<AsyncPathResult>();
+    }
 
     // 新しく再計算を始めるか決める前に、完了しているバックグラウンド再計算があれば
     // 取り込む。再計算が進行中の間も、移動主体は*それまでの*cache.waypointsをそのまま
@@ -1286,7 +1571,8 @@ Math::Vector3 NavMeshManager::MoveToward(
         Math::Vector3 startCopy = current;
         Math::Vector3 targetCopy = target;
 
-        JobSystem::Instance().Execute([this, startCopy, targetCopy, pending, computing]() {
+        JobSystem::Instance().Execute([this, startCopy, targetCopy, pending, computing]()
+        {
             std::vector<Math::Vector3> result;
             FindPath(startCopy, targetCopy, result); // 内部でm_navQueryMutexをロックする
             m_asyncRecomputeCount.fetch_add(1, std::memory_order_relaxed);
@@ -1325,9 +1611,13 @@ Math::Vector3 NavMeshManager::GetMoveDirection(
         Math::Vector3 toNode = cache.waypoints[0] - current;
         toNode.y = 0;
         if (toNode.Length() < nodeReachThreshold)
+        {
             cache.waypoints.erase(cache.waypoints.begin());
+        }
         else
+        {
             break;
+        }
     }
 
     if (!cache.waypoints.empty())
@@ -1343,7 +1633,10 @@ Math::Vector3 NavMeshManager::GetMoveDirection(
 
     Math::Vector3 dir = target - current;
     dir.y = 0;
-    if (dir.LengthSquared() > 0.0f) dir.Normalize();
+    if (dir.LengthSquared() > 0.0f)
+    {
+        dir.Normalize();
+    }
     return dir;
 }
 
@@ -1357,11 +1650,16 @@ bool NavMeshManager::IsInRange(const Math::Vector3& from, const Math::Vector3& t
 float NavMeshManager::GetPathLength(const Math::Vector3& start, const Math::Vector3& end)
 {
     std::vector<Math::Vector3> path;
-    if (!FindPath(start, end, path)) return -1.0f;
+    if (!FindPath(start, end, path))
+    {
+        return -1.0f;
+    }
 
     float length = 0.0f;
     for (int i = 1; i < (int)path.size(); ++i)
+    {
         length += Math::Vector3::Distance(path[i - 1], path[i]);
+    }
 
     return length;
 }
@@ -1374,7 +1672,10 @@ bool NavMeshManager::IsReachable(const Math::Vector3& start, const Math::Vector3
     // closest to the goal, and FindPath()/MoveToward() happily follow that partial path (useful
     // for "walk toward but stop at the wall" behavior). For a yes/no reachability check we need
     // to explicitly verify the path actually terminates at the destination polygon.
-    if (!m_navQuery || !m_navMesh) return false;
+    if (!m_navQuery || !m_navMesh)
+    {
+        return false;
+    }
 
     // FindPath()のロックを参照 - 同じdtNavMeshQueryに、バックグラウンドの経路再計算
     // (MoveToward)とこの呼び出し(今も引き続きメインスレッド)が同時に触り得るようになった。
@@ -1382,28 +1683,30 @@ bool NavMeshManager::IsReachable(const Math::Vector3& start, const Math::Vector3
 
     // Kept in sync with FindPath()'s extents - see its comment for why the vertical component must
     // stay small relative to the floor-to-floor gap.
-    float extents[3] = { 2.0f, 3.0f, 2.0f };
+    float extents[3] = {2.0f, 3.0f, 2.0f};
     dtPolyRef startRef = 0, endRef = 0;
-    float     startPt[3], endPt[3];
+    float startPt[3], endPt[3];
 
     m_navQuery->findNearestPoly(&start.x, extents, m_filter, &startRef, startPt);
-    m_navQuery->findNearestPoly(&end.x,   extents, m_filter, &endRef,   endPt);
-    if (!startRef || !endRef) {
+    m_navQuery->findNearestPoly(&end.x, extents, m_filter, &endRef, endPt);
+    if (!startRef || !endRef)
+    {
         Logger::Instance().AddLog(Logger::LogLevel::Info,
-            "IsReachable: no nearby poly. start=(%.2f,%.2f,%.2f) startRef=%llu snappedStart=(%.2f,%.2f,%.2f) | end=(%.2f,%.2f,%.2f) endRef=%llu snappedEnd=(%.2f,%.2f,%.2f)",
-            start.x, start.y, start.z, (unsigned long long)startRef, startPt[0], startPt[1], startPt[2],
-            end.x, end.y, end.z, (unsigned long long)endRef, endPt[0], endPt[1], endPt[2]);
+                                  "IsReachable: no nearby poly. start=(%.2f,%.2f,%.2f) startRef=%llu snappedStart=(%.2f,%.2f,%.2f) | end=(%.2f,%.2f,%.2f) endRef=%llu snappedEnd=(%.2f,%.2f,%.2f)",
+                                  start.x, start.y, start.z, (unsigned long long)startRef, startPt[0], startPt[1], startPt[2],
+                                  end.x, end.y, end.z, (unsigned long long)endRef, endPt[0], endPt[1], endPt[2]);
         return false;
     }
 
     static const int MAX_POLYS = 256;
     dtPolyRef path[MAX_POLYS];
-    int       pathCount = 0;
+    int pathCount = 0;
     m_navQuery->findPath(startRef, endRef, startPt, endPt, m_filter, path, &pathCount, MAX_POLYS);
-    if (pathCount <= 0) {
+    if (pathCount <= 0)
+    {
         Logger::Instance().AddLog(Logger::LogLevel::Info,
-            "IsReachable: refs valid but findPath returned 0. snappedStart=(%.2f,%.2f,%.2f) snappedEnd=(%.2f,%.2f,%.2f)",
-            startPt[0], startPt[1], startPt[2], endPt[0], endPt[1], endPt[2]);
+                                  "IsReachable: refs valid but findPath returned 0. snappedStart=(%.2f,%.2f,%.2f) snappedEnd=(%.2f,%.2f,%.2f)",
+                                  startPt[0], startPt[1], startPt[2], endPt[0], endPt[1], endPt[2]);
         return false;
     }
 
@@ -1420,7 +1723,10 @@ bool NavMeshManager::IsReachable(const Math::Vector3& start, const Math::Vector3
 const std::vector<Math::Vector3>* NavMeshManager::GetCachedPath(int entityID) const
 {
     auto it = m_pathCache.find(entityID);
-    if (it == m_pathCache.end()) return nullptr;
+    if (it == m_pathCache.end())
+    {
+        return nullptr;
+    }
     return &it->second.waypoints;
 }
 
@@ -1446,13 +1752,19 @@ void NavMeshManager::ClearAllPaths()
 void NavMeshManager::DropPassedWaypoints(std::vector<Math::Vector3>& waypoints, const Math::Vector3& current)
 {
     const float kNearDist = 1.5f;
-    if (waypoints.size() < 2) return;
+    if (waypoints.size() < 2)
+    {
+        return;
+    }
 
     Math::Vector3 seg = waypoints[1] - waypoints[0];
     Math::Vector3 toCur = current - waypoints[0];
     seg.y = 0.0f;
     toCur.y = 0.0f;
-    if (toCur.LengthSquared() > kNearDist * kNearDist) return;
+    if (toCur.LengthSquared() > kNearDist * kNearDist)
+    {
+        return;
+    }
     if (seg.LengthSquared() < 1e-6f || toCur.Dot(seg) >= 0.0f)
     {
         waypoints.erase(waypoints.begin());
@@ -1466,7 +1778,10 @@ Math::Vector3 NavMeshManager::AdvanceAlongPath(
     float deltaTime,
     float nodeReachThreshold) const
 {
-    if (cache.waypoints.empty()) return current;
+    if (cache.waypoints.empty())
+    {
+        return current;
+    }
 
     Math::Vector3 pos = current;
     float distLeft = speed * deltaTime;

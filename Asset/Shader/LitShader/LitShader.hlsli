@@ -3,23 +3,22 @@
 
 // 16サンプルの Poisson Disk
 static const float2 g_poissonDisk16[16] = {
-    float2( -0.94201624, -0.39906216 ),
-    float2( 0.94558609, -0.76890725 ),
-    float2( -0.094184101, -0.92938870 ),
-    float2( 0.34495938, 0.29387760 ),
-    float2( -0.91588581, 0.45771432 ),
-    float2( -0.81544232, -0.87912464 ),
-    float2( -0.38277543, 0.27676845 ),
-    float2( 0.97484398, 0.75648379 ),
-    float2( 0.44323325, -0.97511554 ),
-    float2( 0.53742981, -0.47373420 ),
-    float2( -0.26496911, -0.41893023 ),
-    float2( 0.79197514, 0.19090188 ),
-    float2( -0.24188840, 0.99706507 ),
-    float2( -0.81409955, 0.91437590 ),
-    float2( 0.19984126, 0.78641367 ),
-    float2( 0.14383161, -0.14100790 )
-};
+    float2(-0.94201624, -0.39906216),
+    float2(0.94558609, -0.76890725),
+    float2(-0.094184101, -0.92938870),
+    float2(0.34495938, 0.29387760),
+    float2(-0.91588581, 0.45771432),
+    float2(-0.81544232, -0.87912464),
+    float2(-0.38277543, 0.27676845),
+    float2(0.97484398, 0.75648379),
+    float2(0.44323325, -0.97511554),
+    float2(0.53742981, -0.47373420),
+    float2(-0.26496911, -0.41893023),
+    float2(0.79197514, 0.19090188),
+    float2(-0.24188840, 0.99706507),
+    float2(-0.81409955, 0.91437590),
+    float2(0.19984126, 0.78641367),
+    float2(0.14383161, -0.14100790)};
 
 // インターリーブド・グラディエント・ノイズ
 float InterleavedGradientNoise(float2 screenPos)
@@ -42,20 +41,20 @@ cbuffer cbPerMaterial : register(b2)
     float g_occlusionStrength;
     float g_emissiveStrength;
     float3 g_emissiveFactor;
-    int g_alphaMode; // 0:Opaque, 1:Mask, 2:Blend
-    int g_proceduralType; // 0:None, 1:Blood, 2:Cobweb, 3:Glass, 4:Dissolve
+    int g_alphaMode;        // 0:Opaque, 1:Mask, 2:Blend
+    int g_proceduralType;   // 0:None, 1:Blood, 2:Cobweb, 3:Glass, 4:Dissolve
     float g_dissolveAmount; // Dissolve用: 0=通常表示, 1=完全に消滅
-    int g_reflectionSlot; // このメッシュが使う反射スロット(0〜2)。-1ならSSRフォールバック
+    int g_reflectionSlot;   // このメッシュが使う反射スロット(0〜2)。-1ならSSRフォールバック
 };
 
 // テクスチャ
-Texture2D g_baseMap_white : register(t0); // ベースカラーテクスチャ
-Texture2D g_normalMap_normal : register(t1); // 法線マップ
+Texture2D g_baseMap_white : register(t0);              // ベースカラーテクスチャ
+Texture2D g_normalMap_normal : register(t1);           // 法線マップ
 Texture2D g_metallicRoughnessMap_white : register(t2); // GLTF: G=Roughness, B=Metallic
-Texture2D g_emissiveMap_white : register(t3); // 発光マップ
-Texture2D g_occlusionMap_white : register(t4); // オクルージョンマップ (GLTF: R=Occlusion)
+Texture2D g_emissiveMap_white : register(t3);          // 発光マップ
+Texture2D g_occlusionMap_white : register(t4);         // オクルージョンマップ (GLTF: R=Occlusion)
 
-Texture2D g_opaqueDepth : register(t9); // Opaqueパスで書き込まれた深度バッファ
+Texture2D g_opaqueDepth : register(t9);    // Opaqueパスで書き込まれた深度バッファ
 Texture2D g_refractionMap : register(t10); // Opaqueパスのカラー結果（屈折用）
 // 平面反射パスのカラー結果。最大3枚(3窓)まで同時にアクティブにできる - 各メッシュが
 // cbPerMaterial.g_reflectionSlotでどれを使うか指定する(-1ならどれも使わずSSRフォールバック)。
@@ -80,11 +79,11 @@ Texture2D g_planarReflectionMap2 : register(t20);
 struct VSOutput
 {
     float4 Pos : SV_Position; // 射影座標
-    float2 UV : TEXCOORD0; // UV座標
-    float3 wT : TEXCOORD1; // ワールド接線
-    float3 wB : TEXCOORD2; // ワールド従法線
-    float3 wN : TEXCOORD3; // ワールド法線
-    float3 wPos : TEXCOORD5; // ワールド座標
+    float2 UV : TEXCOORD0;    // UV座標
+    float3 wT : TEXCOORD1;    // ワールド接線
+    float3 wB : TEXCOORD2;    // ワールド従法線
+    float3 wN : TEXCOORD3;    // ワールド法線
+    float3 wPos : TEXCOORD5;  // ワールド座標
 };
 
 // ピクセルシェーダーから出力するデータ
@@ -101,6 +100,6 @@ struct PSOutput
 struct ShadowCasterVSOutput
 {
     float4 Pos : SV_Position; // 射影座標
-    float2 UV : TEXCOORD0; // UV座標
+    float2 UV : TEXCOORD0;    // UV座標
     float4 wvpPos : TEXCOORD1;
 };

@@ -15,8 +15,12 @@ class IndexBuffer;
 class ResourceUploader
 {
 public:
-    ResourceUploader() {}
-    ~ResourceUploader() {}
+    ResourceUploader()
+    {
+    }
+    ~ResourceUploader()
+    {
+    }
 
     void Init(GraphicsDevice* pDevice);
     void Release();

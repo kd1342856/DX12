@@ -3,7 +3,8 @@
 #include "../../../../Framework/ECS/Components/Data/NativeScript.h"
 #include <string>
 
-class AutoMirrorComponent : public NativeScript {
+class AutoMirrorComponent : public NativeScript
+{
 public:
     void Start() override;
     void ImGuiUpdate() override;
@@ -13,7 +14,7 @@ public:
 
     // Keywords
     std::string m_targetKeywords = "Window,OldGrass,OldGlass";
-    Math::Vector3 m_localNormal = { 0.0f, 0.0f, 1.0f }; // Normal axis
-    
+    Math::Vector3 m_localNormal = {0.0f, 0.0f, 1.0f}; // Normal axis
+
     // Notes
 };

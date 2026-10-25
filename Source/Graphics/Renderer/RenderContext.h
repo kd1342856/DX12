@@ -3,17 +3,13 @@
 
 struct RenderContext
 {
-	Math::Matrix View;
-	Math::Matrix Projection;
+    Math::Matrix View;
+    Math::Matrix Projection;
 
-	Math::Matrix LightView;
-	Math::Matrix LightProjection;
+    Math::Matrix LightView;
+    Math::Matrix LightProjection;
 
-	void BindCamera(int slot = 0);
-	void BindLight(int slot);
-	void BindSystem(int slot);
+    void BindCamera(int slot = 0);
+    void BindLight(int slot);
+    void BindSystem(int slot);
 };
-
-
-
-

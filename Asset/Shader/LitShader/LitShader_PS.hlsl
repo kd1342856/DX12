@@ -20,38 +20,36 @@ float Noise2D(float2 p)
                 lerp(frac(sin(n + 57.0) * 43758.5453123), frac(sin(n + 58.0) * 43758.5453123), f.x), f.y);
 }
 
-float Noise1D(float x) 
-{ 
+float Noise1D(float x)
+{
     // 周波数を下げて砂嵐にならないようにする
-    return frac(sin(x * 12.71) * 437.585453); 
+    return frac(sin(x * 12.71) * 437.585453);
 }
 
 float ComputeCrackMask(float2 localUV, float randBase)
 {
     float dist = length(localUV);
     float angle = atan2(localUV.y, localUV.x);
-    
+
     // 角度を不規則に歪ませる（滑らかなNoise2Dを使用し、ピクセル間で値が飛ばないようにする）
     float angleWarp = (Noise2D(float2(angle * 2.0, randBase)) - 0.5) * 2.0;
     float warpedAngle = angle + angleWarp;
-    
+
     // 距離を不規則に歪ませる（滑らかなNoise2Dを使用）
     float distWarp = (Noise2D(float2(angle * 1.5, randBase + 10.0)) - 0.5) * 0.3;
     float warpedDist = dist + distWarp;
 
     // ① 放射状のひび(衝撃点から外へ)
     float spokes = lerp(40.0, 70.0, randBase);
-    float spokeNoise = (Noise2D(float2(warpedDist * 2.0, randBase * 10.0)) - 0.5) * 0.15; 
+    float spokeNoise = (Noise2D(float2(warpedDist * 2.0, randBase * 10.0)) - 0.5) * 0.15;
     float spokeFrac = frac(warpedAngle / (2.0 * 3.14159265) * spokes + spokeNoise);
     float spokeDist = min(spokeFrac, 1.0 - spokeFrac);
     // 綺麗な円形でフェードアウトしないように warpedDist を使う
     float outerFade = smoothstep(0.45, 0.05, warpedDist);
-    
+
     // 穴の形を激しく歪ませる（角度による大きな歪み＋UVによる細かいギザギザ）
-    float holeDist = dist 
-        + (Noise2D(float2(angle * 3.0, randBase * 5.0)) - 0.5) * 0.06 
-        + (Noise2D(localUV * 30.0) - 0.5) * 0.03;
-        
+    float holeDist = dist + (Noise2D(float2(angle * 3.0, randBase * 5.0)) - 0.5) * 0.06 + (Noise2D(localUV * 30.0) - 0.5) * 0.03;
+
     // 穴の縁(holeRadius=0.05付近)から自然にヒビが発生するようにする
     float innerFade = smoothstep(0.04, 0.07, holeDist);
     float radialFade = outerFade * innerFade;
@@ -60,16 +58,16 @@ float ComputeCrackMask(float2 localUV, float randBase)
 
     // ② 同心円状のひび(中心付近だけ細かく)
     float rings = lerp(20.0, 40.0, frac(randBase * 13.0));
-    float ringNoise = (Noise2D(float2(warpedAngle * 3.0, randBase * 7.0)) - 0.5) * 0.8; 
+    float ringNoise = (Noise2D(float2(warpedAngle * 3.0, randBase * 7.0)) - 0.5) * 0.8;
     float ringFrac = frac(warpedDist * rings - ringNoise);
     float ringDist = min(ringFrac, 1.0 - ringFrac);
     // こちらも線を少し太めに (0.02)
-    float ringCrack = smoothstep(0.02, 0.002, ringDist) * smoothstep(0.4, 0.0, warpedDist) * innerFade; 
+    float ringCrack = smoothstep(0.02, 0.002, ringDist) * smoothstep(0.4, 0.0, warpedDist) * innerFade;
 
     // ③ 全体のジャギーノイズ(線を汚す)
     float jitter = Noise2D(localUV * 5.0);
     float crack = saturate(radialCrack + ringCrack);
-    crack *= lerp(0.8, 1.0, jitter); 
+    crack *= lerp(0.8, 1.0, jitter);
 
     return crack;
 }
@@ -114,13 +112,22 @@ bool TraceSSR(float3 viewPos, float3 viewNormal, out float3 hitColor)
     for (int i = 0; i < kMaxSteps; i++)
     {
         rayPos += reflectDir * kStepSize;
-        if (rayPos.z <= 0.01) break; // カメラを通り過ぎた(視錐台の裏側に出た)
+        if (rayPos.z <= 0.01)
+        {
+            break; // カメラを通り過ぎた(視錐台の裏側に出た)
+        }
 
         float4 clip = mul(float4(rayPos, 1.0), g_mP);
-        if (clip.w <= 0.0001) break;
+        if (clip.w <= 0.0001)
+        {
+            break;
+        }
         float2 ndc = clip.xy / clip.w;
         float2 uv = ndc * float2(0.5, -0.5) + 0.5;
-        if (any(uv < 0.0) || any(uv > 1.0)) break;
+        if (any(uv < 0.0) || any(uv > 1.0))
+        {
+            break;
+        }
 
         float sceneViewZ = SampleOpaqueViewZ(uv);
 
@@ -141,7 +148,14 @@ bool TraceSSR(float3 viewPos, float3 viewNormal, out float3 hitColor)
                 float3 mid = (lo + hi) * 0.5;
                 float4 midClip = mul(float4(mid, 1.0), g_mP);
                 float2 midUV = saturate((midClip.xy / midClip.w) * float2(0.5, -0.5) + 0.5);
-                if (mid.z >= SampleOpaqueViewZ(midUV)) hi = mid; else lo = mid;
+                if (mid.z >= SampleOpaqueViewZ(midUV))
+                {
+                    hi = mid;
+                }
+                else
+                {
+                    lo = mid;
+                }
             }
             clip = mul(float4(hi, 1.0), g_mP);
             uv = (clip.xy / clip.w) * float2(0.5, -0.5) + 0.5;
@@ -149,7 +163,10 @@ bool TraceSSR(float3 viewPos, float3 viewNormal, out float3 hitColor)
             // 画面端でのブツ切れを避けるため、UVの端でフェードアウトさせる
             float2 edgeFade = saturate((0.5 - abs(uv - 0.5)) * 8.0);
             float fade = edgeFade.x * edgeFade.y;
-            if (fade <= 0.0) return false;
+            if (fade <= 0.0)
+            {
+                return false;
+            }
 
             hitColor = g_refractionMap.Sample(g_ss_linear_clamp, uv).rgb * fade;
             return true;
@@ -161,34 +178,36 @@ bool TraceSSR(float3 viewPos, float3 viewNormal, out float3 hitColor)
 // ピクセルシェーダ
 PSOutput main(VSOutput In) : SV_Target0
 {
-    PSOutput Out = (PSOutput) 0; //
+    PSOutput Out = (PSOutput)0; //
 
     // Dissolve用: ディゾルブの縁が発光する量(0=無し)。プロシージャル分岐内で設定し、
     // エミッシブと同じタイミングで加算する(影の中でも光って見えるように)。
     float dissolveEdgeGlow = 0;
-    
+
     // カメラへの方向
     float3 vCam = g_CamPos - In.wPos;
     float camDist = length(vCam); // カメラ - ピクセル距離
     vCam = normalize(vCam);
-    
+
     // 法線
     float3x3 mTBN =
-    {
-        normalize(In.wT),
-        normalize(In.wB),
-        normalize(In.wN)
-    };
-    
+        {
+            normalize(In.wT),
+            normalize(In.wB),
+            normalize(In.wN)};
+
     float3 wN = g_normalMap_normal.Sample(g_ss_aniso_wrap, In.UV).rgb;
     wN = wN * 2.0 - 1.0;
     wN = wN * float3(g_normalScale, g_normalScale, 1.0);
     wN = mul(wN, mTBN);
-    if (dot(wN, wN) < 0.0001) wN = float3(0, 1, 0);
+    if (dot(wN, wN) < 0.0001)
+    {
+        wN = float3(0, 1, 0);
+    }
     wN = normalize(wN);
 
     float NdotV = saturate(dot(wN, vCam));
-    
+
     //------------------------------------------
     // 材質色
     //------------------------------------------
@@ -211,12 +230,12 @@ PSOutput main(VSOutput In) : SV_Target0
     if (g_proceduralType == 1) // Blood
     {
         float2 uv = In.UV * 2.0 - 1.0; // -1..1に正規化
-        float n1 = Noise2D(uv * 3.0);   // 大きな染みの形
-        float n2 = Noise2D(uv * 14.0);  // 細かいにじみ
+        float n1 = Noise2D(uv * 3.0);  // 大きな染みの形
+        float n2 = Noise2D(uv * 14.0); // 細かいにじみ
         float mask = n1 * 0.55 + n2 * 0.45;
-        
+
         float alpha = smoothstep(0.45, 0.62, mask);
-        
+
         // Depth Fade
         float opaqueDepth = g_opaqueDepth.Load(int3(In.Pos.xy, 0)).r;
         float sceneZ = LinearizeDepth(opaqueDepth);
@@ -226,7 +245,7 @@ PSOutput main(VSOutput In) : SV_Target0
         alpha *= depthFade;
 
         float3 bColor = lerp(float3(0.05, 0.0, 0.0), float3(0.28, 0.02, 0.02), mask);
-        
+
         baseColor = float4(bColor, alpha);
         metallic = 0.2;
         roughness = 0.2; // 血痕は少しツヤがある
@@ -236,23 +255,23 @@ PSOutput main(VSOutput In) : SV_Target0
         float2 uv = In.UV * 2.0 - 1.0;
         float r = length(uv);
         float theta = atan2(uv.y, uv.x);
-        
+
         // 放射状の糸
         float spokes = 8.0;
         float spokeFrac = frac(theta / (2.0 * 3.14159265) * spokes);
         float spokeDist = min(spokeFrac, 1.0 - spokeFrac); // 0に近いほど糸の上
         float spokeMask = smoothstep(0.03, 0.0, spokeDist);
-        
+
         // 同心円の糸
         float rings = 4.0;
         float ringFrac = frac(r * rings);
         float ringDist = min(ringFrac, 1.0 - ringFrac);
         float ringMask = smoothstep(0.04, 0.0, ringDist);
-        
+
         float webMask = saturate(spokeMask + ringMask);
         webMask *= smoothstep(1.0, 0.8, r); // 外側をフェードアウト
-        webMask *= step(r, 1.0); // 円の外側は完全に切り捨て
-        
+        webMask *= step(r, 1.0);            // 円の外側は完全に切り捨て
+
         baseColor = float4(1.0, 1.0, 1.0, webMask * 0.8);
         metallic = 0.0;
         roughness = 0.8;
@@ -285,7 +304,7 @@ PSOutput main(VSOutput In) : SV_Target0
 
     // 最終的な色
     float3 color = 0;
-    
+
     // 平行光(月/太陽)の可視率。直射光だけでなく、Ambient/IBLの間接光にも使い、
     // 「光源が届かない場所は現実のように暗くなる」を実現する(g_IndirectShadowFloorが下限)。
     float moonVisibility = 1;
@@ -355,13 +374,12 @@ PSOutput main(VSOutput In) : SV_Target0
                     shadow += g_dirLightShadowMap.SampleCmpLevelZero(g_ss_comparison, uv + offset, z);
                 }
                 shadow /= 8.0;
-                
+
                 // 影の強度
                 shadow = lerp(1.0, shadow, g_DL_ShadowPower);
-
             }
         }
-        
+
         // 拡散光
         float3 diffuse = Diffuse_Burley(baseDiffuse, NdotL, NdotV, LdotH, roughness);
         // 反射光
@@ -374,11 +392,11 @@ PSOutput main(VSOutput In) : SV_Target0
         // 完全な真っ暗にはせず、現実のバウンス光程度の明るさを残す。
         moonVisibility = max(shadow, g_IndirectShadowFloor);
     }
-    
+
     //------------------
     // 環境光
     //------------------
-    
+
     //------------------
     // Spot Lights
     //------------------
@@ -387,24 +405,24 @@ PSOutput main(VSOutput In) : SV_Target0
         float3 L = g_SL[i].Pos - In.wPos;
         float d = length(L);
         L = L / d;
-        
+
         float attenuation = saturate(1.0 - (d / g_SL[i].Range));
         attenuation *= attenuation;
-        
+
         // Spotlight cone
         float cosAngle = dot(-L, normalize(g_SL[i].Dir));
         float coneAtt = saturate((cosAngle - g_SL[i].OuterCorn) / (g_SL[i].InnerCorn - g_SL[i].OuterCorn));
         // SpotShadow未使用のため常に1（影なし）
         float spotShadow = 1;
-        
+
         float NdotL_SL = saturate(dot(wN, L));
         float3 H_SL = normalize(L + vCam);
         float LdotH_SL = saturate(dot(L, H_SL));
         float NdotH_SL = saturate(dot(wN, H_SL));
-        
+
         float3 diff_SL = Diffuse_Burley(baseDiffuse, NdotL_SL, NdotV, LdotH_SL, roughness);
         float3 spec_SL = Specular_BRDF(roughness2, baseSpecular, NdotV, NdotL_SL, LdotH_SL, NdotH_SL);
-        
+
         color += NdotL_SL * g_SL[i].Color * (diff_SL + spec_SL) * attenuation * coneAtt * spotShadow;
     }
 
@@ -436,9 +454,18 @@ PSOutput main(VSOutput In) : SV_Target0
             float3 toPixel = In.wPos - g_PL[0].Pos;
             float3 absDir = abs(toPixel);
             int faceIndex;
-            if (absDir.x >= absDir.y && absDir.x >= absDir.z) faceIndex = toPixel.x > 0 ? 0 : 1;
-            else if (absDir.y >= absDir.z) faceIndex = toPixel.y > 0 ? 2 : 3;
-            else faceIndex = toPixel.z > 0 ? 4 : 5;
+            if (absDir.x >= absDir.y && absDir.x >= absDir.z)
+            {
+                faceIndex = toPixel.x > 0 ? 0 : 1;
+            }
+            else if (absDir.y >= absDir.z)
+            {
+                faceIndex = toPixel.y > 0 ? 2 : 3;
+            }
+            else
+            {
+                faceIndex = toPixel.z > 0 ? 4 : 5;
+            }
 
             float4 plPos = mul(float4(In.wPos, 1), g_PL0_ShadowVP[faceIndex]);
             plPos.xyz /= plPos.w;
@@ -467,12 +494,30 @@ PSOutput main(VSOutput In) : SV_Target0
                 {
                     float2 offset = mul(g_poissonDisk16[k], rot) * kFilterRadiusTexels / pxSize;
                     float2 sampleUV = uv + offset;
-                    if (faceIndex == 0) shadow_PL += g_pointLightShadowMapFace0.SampleCmpLevelZero(g_ss_comparison, sampleUV, z);
-                    else if (faceIndex == 1) shadow_PL += g_pointLightShadowMapFace1.SampleCmpLevelZero(g_ss_comparison, sampleUV, z);
-                    else if (faceIndex == 2) shadow_PL += g_pointLightShadowMapFace2.SampleCmpLevelZero(g_ss_comparison, sampleUV, z);
-                    else if (faceIndex == 3) shadow_PL += g_pointLightShadowMapFace3.SampleCmpLevelZero(g_ss_comparison, sampleUV, z);
-                    else if (faceIndex == 4) shadow_PL += g_pointLightShadowMapFace4.SampleCmpLevelZero(g_ss_comparison, sampleUV, z);
-                    else shadow_PL += g_pointLightShadowMapFace5.SampleCmpLevelZero(g_ss_comparison, sampleUV, z);
+                    if (faceIndex == 0)
+                    {
+                        shadow_PL += g_pointLightShadowMapFace0.SampleCmpLevelZero(g_ss_comparison, sampleUV, z);
+                    }
+                    else if (faceIndex == 1)
+                    {
+                        shadow_PL += g_pointLightShadowMapFace1.SampleCmpLevelZero(g_ss_comparison, sampleUV, z);
+                    }
+                    else if (faceIndex == 2)
+                    {
+                        shadow_PL += g_pointLightShadowMapFace2.SampleCmpLevelZero(g_ss_comparison, sampleUV, z);
+                    }
+                    else if (faceIndex == 3)
+                    {
+                        shadow_PL += g_pointLightShadowMapFace3.SampleCmpLevelZero(g_ss_comparison, sampleUV, z);
+                    }
+                    else if (faceIndex == 4)
+                    {
+                        shadow_PL += g_pointLightShadowMapFace4.SampleCmpLevelZero(g_ss_comparison, sampleUV, z);
+                    }
+                    else
+                    {
+                        shadow_PL += g_pointLightShadowMapFace5.SampleCmpLevelZero(g_ss_comparison, sampleUV, z);
+                    }
                 }
                 shadow_PL /= 4.0;
             }
@@ -490,7 +535,7 @@ PSOutput main(VSOutput In) : SV_Target0
     float ssao = g_ssaoMap.Sample(g_ss_linear_clamp, screenUV).r;
 
     color += g_AmbientLight * baseColor.rgb * baseColor.a * occlusion * ssao * moonVisibility;
-    
+
     //------------------
     // エミッシブ
     //------------------
@@ -503,13 +548,13 @@ PSOutput main(VSOutput In) : SV_Target0
         const float3 kDissolveEdgeColor = float3(1.0, 0.45, 0.08); // 焼け焦げるようなオレンジ
         color += kDissolveEdgeColor * dissolveEdgeGlow * 4.0;
     }
-    
+
     //------------------
     // IBL (Dummy Env)
     //------------------
     float3 skyColor = float3(0.5, 0.6, 0.8);
     float3 groundColor = float3(0.3, 0.25, 0.2);
-    
+
     // 拡散
     float envWeight = wN.y * 0.5 + 0.5;
     float3 envDiff = lerp(groundColor, skyColor, envWeight) * 1.5;
@@ -542,29 +587,47 @@ PSOutput main(VSOutput In) : SV_Target0
     if (g_DistanceFogDensity > 0)
     {
         float d = camDist * g_DistanceFogDensity;
-        
+
         // 持ちフォグ 1(近い)から0(遠い)
         float f = saturate(1.0 / exp(d * d));
         // 適用
         color = lerp(g_DistanceFogColor, color, f);
     }
-    
+
     //------------------------------------------
     // デバッグビュー切り替え
     //------------------------------------------
     if (g_DebugView != 0) // Final以外の時
     {
-        switch(g_DebugView)
+        switch (g_DebugView)
         {
-            case 1: color = baseColor.rgb; break; // Albedo
-            case 2: color = wN * 0.5 + 0.5; break; // Normal (WorldNormalと同じ扱い)
-            case 3: color = wN * 0.5 + 0.5; break; // WorldNormal
-            case 4: color = roughness.xxx; break; // Roughness
-            case 5: color = metallic.xxx; break; // Metallic
-            case 6: color = occTex.xxx; break; // AO
-            case 7: color = frac(camDist / 10.0).xxx; break; // Depth (簡易可視化)
-            case 8: color = frac(In.wPos / 10.0); break; // Position
-            case 9: color = emissiveColor * g_emissiveStrength; break; // Emissive
+        case 1:
+            color = baseColor.rgb;
+            break; // Albedo
+        case 2:
+            color = wN * 0.5 + 0.5;
+            break; // Normal (WorldNormalと同じ扱い)
+        case 3:
+            color = wN * 0.5 + 0.5;
+            break; // WorldNormal
+        case 4:
+            color = roughness.xxx;
+            break; // Roughness
+        case 5:
+            color = metallic.xxx;
+            break; // Metallic
+        case 6:
+            color = occTex.xxx;
+            break; // AO
+        case 7:
+            color = frac(camDist / 10.0).xxx;
+            break; // Depth (簡易可視化)
+        case 8:
+            color = frac(In.wPos / 10.0);
+            break; // Position
+        case 9:
+            color = emissiveColor * g_emissiveStrength;
+            break; // Emissive
         }
     }
 
@@ -577,58 +640,60 @@ PSOutput main(VSOutput In) : SV_Target0
         float gridSize = 3.0; // より大きくバリンと
         float3 gridId = floor(In.wPos / gridSize);
         float3 gridLocal = frac(In.wPos / gridSize) - 0.5;
-        
+
         // ランダムな中心位置の生成
         // 境界からはみ出さないように、ズレの最大幅を 0.4 に抑える (±0.2)
         // gridLocal は -0.5 ~ 0.5 なので、端までの最短距離は 0.3 になる
-        float3 p3_1 = frac((gridId + 1.0) * 0.1031); p3_1 += dot(p3_1, p3_1.yzx + 33.33);
-        float3 p3_2 = frac((gridId + 2.0) * 0.1031); p3_2 += dot(p3_2, p3_2.yzx + 33.33);
-        float3 p3_3 = frac((gridId + 3.0) * 0.1031); p3_3 += dot(p3_3, p3_3.yzx + 33.33);
-        
-        float3 center = float3(frac((p3_1.x + p3_1.y) * p3_1.z) - 0.5, 
-                               frac((p3_2.x + p3_2.y) * p3_2.z) - 0.5, 
-                               frac((p3_3.x + p3_3.y) * p3_3.z) - 0.5) * 0.4;
-                               
+        float3 p3_1 = frac((gridId + 1.0) * 0.1031);
+        p3_1 += dot(p3_1, p3_1.yzx + 33.33);
+        float3 p3_2 = frac((gridId + 2.0) * 0.1031);
+        p3_2 += dot(p3_2, p3_2.yzx + 33.33);
+        float3 p3_3 = frac((gridId + 3.0) * 0.1031);
+        p3_3 += dot(p3_3, p3_3.yzx + 33.33);
+
+        float3 center = float3(frac((p3_1.x + p3_1.y) * p3_1.z) - 0.5,
+                               frac((p3_2.x + p3_2.y) * p3_2.z) - 0.5,
+                               frac((p3_3.x + p3_3.y) * p3_3.z) - 0.5) *
+                        0.4;
+
         // 中心からの相対ベクトル
         float3 diff = gridLocal - center;
-        
+
         // 法線方向の成分を除去して平面上のベクトルにする
         float3 diffPlane = diff - dot(diff, wN) * wN;
-        
+
         // 接空間の2D座標に変換（In.wT, In.wBを使用）
         float2 crackUV = float2(dot(diffPlane, normalize(In.wT)), dot(diffPlane, normalize(In.wB)));
-        
+
         // スケール調整：1.0に戻す (ComputeCrackMask内で dist=0.4 で完全にフェードアウトする)
         // これでグリッドの境界(0.5)に到達する前にヒビが消滅するため、絶対にスパっと切れない
-        crackUV *= 1.0;  
-        
-        float3 p3_r = frac((gridId + 6.0) * 0.1031); p3_r += dot(p3_r, p3_r.yzx + 33.33);
+        crackUV *= 1.0;
+
+        float3 p3_r = frac((gridId + 6.0) * 0.1031);
+        p3_r += dot(p3_r, p3_r.yzx + 33.33);
         float randBase = frac((p3_r.x + p3_r.y) * p3_r.z);
 
         // --- 物理的な穴を開ける ---
         float holeRadius = 0.05;
         // ComputeCrackMask と全く同じ式で穴の形を激しく歪ませる
         float holeAngle = atan2(crackUV.y, crackUV.x);
-        float holeDist = length(crackUV) 
-            + (Noise2D(float2(holeAngle * 3.0, randBase * 5.0)) - 0.5) * 0.06 
-            + (Noise2D(crackUV * 30.0) - 0.5) * 0.03;
-            
+        float holeDist = length(crackUV) + (Noise2D(float2(holeAngle * 3.0, randBase * 5.0)) - 0.5) * 0.06 + (Noise2D(crackUV * 30.0) - 0.5) * 0.03;
+
         if (holeDist < holeRadius)
         {
             // 穴の中はガラスを描画しない（完全に透けさせる）
             clip(-1);
         }
-        
+
         // ひびマスクの生成
         float crackMask = ComputeCrackMask(crackUV, randBase);
-        
+
         // 法線をひびに沿って微妙にずらし、ハイライトが線を辿るようにする
         float2 crackGrad = float2(
             ComputeCrackMask(crackUV + float2(0.01, 0.0), randBase) - crackMask,
-            ComputeCrackMask(crackUV + float2(0.0, 0.01), randBase) - crackMask
-        );
+            ComputeCrackMask(crackUV + float2(0.0, 0.01), randBase) - crackMask);
         wN = normalize(wN + In.wT * crackGrad.x * 2.5 + In.wB * crackGrad.y * 2.5);
-        
+
         // ひび部分はざらつく(すりガラス化) - 汚れ感のためにラフネスをさらに上げる
         float currentRoughness = lerp(roughness, 0.85, crackMask);
 
@@ -643,22 +708,22 @@ PSOutput main(VSOutput In) : SV_Target0
         fresnel *= (1.0 - currentRoughness * 0.5);
 
         float2 screenUV = In.Pos.xy / float2(g_ScreenWidth, g_ScreenHeight);
-        
+
         // ノーマルとひび割れによる屈折オフセット
         float2 refractOffset = wN.xy * 0.05 * (1.0 - currentRoughness * 0.5);
-        
+
         float2 sampleUV = saturate(screenUV + refractOffset);
         float3 refractColor = g_refractionMap.Sample(g_ss_linear_clamp, sampleUV).rgb;
-        
+
         // ひび割れ部分は白濁する（ガラスの断面）
         float glassOpacity = currentRoughness * 0.8 + 0.15;
-        
+
         // 光の散乱で白っぽく見せる
         float3 glassColor = lerp(baseColor.rgb, float3(0.9, 0.92, 0.95), crackMask * 0.6);
-        
+
         // 透過色: 背景にガラス色を掛けたものと、ガラス自体のDiffuse色をブレンド
         float3 transColor = lerp(refractColor * glassColor, glassColor, glassOpacity);
-        
+
         // 平面反射色の取得(最大3枚=3窓まで同時アクティブ対応)
         // メインカメラのスクリーンUV(sampleUV)は別カメラ(反射カメラ)で描いた
         // g_planarReflectionMapNとは対応しないため使えない。
@@ -679,9 +744,18 @@ PSOutput main(VSOutput In) : SV_Target0
                 float2 reflNdc = reflClip.xy / reflClip.w;
                 float2 reflectionUV = reflNdc * float2(0.5, -0.5) + 0.5;
                 reflectionUV = saturate(reflectionUV);
-                if (g_reflectionSlot == 0) reflectionColor = g_planarReflectionMap0.Sample(g_ss_linear_clamp, reflectionUV).rgb;
-                else if (g_reflectionSlot == 1) reflectionColor = g_planarReflectionMap1.Sample(g_ss_linear_clamp, reflectionUV).rgb;
-                else reflectionColor = g_planarReflectionMap2.Sample(g_ss_linear_clamp, reflectionUV).rgb;
+                if (g_reflectionSlot == 0)
+                {
+                    reflectionColor = g_planarReflectionMap0.Sample(g_ss_linear_clamp, reflectionUV).rgb;
+                }
+                else if (g_reflectionSlot == 1)
+                {
+                    reflectionColor = g_planarReflectionMap1.Sample(g_ss_linear_clamp, reflectionUV).rgb;
+                }
+                else
+                {
+                    reflectionColor = g_planarReflectionMap2.Sample(g_ss_linear_clamp, reflectionUV).rgb;
+                }
             }
         }
         else if (g_EnableSSR != 0)
@@ -689,7 +763,7 @@ PSOutput main(VSOutput In) : SV_Target0
             // 平面反射(専用の反射カメラ設定が要る)が無い場合のフォールバック。
             // Opaqueパスの深度+カラーだけでレイマーチするSSRを試す。
             float3 viewPos = mul(float4(In.wPos, 1.0), g_mV).xyz;
-            float3 viewNormal = normalize(mul(wN, (float3x3) g_mV));
+            float3 viewNormal = normalize(mul(wN, (float3x3)g_mV));
             float3 ssrColor;
             if (TraceSSR(viewPos, viewNormal, ssrColor))
             {
@@ -700,7 +774,7 @@ PSOutput main(VSOutput In) : SV_Target0
         // 反射色と環境マップベースカラーをブレンド（環境マップはぼんやり全体に、平面反射はくっきり）
         // 完全な黒（反射対象がない部分）を避けるため
         float3 finalReflection = lerp(color, reflectionColor, 0.8);
-        
+
         // 透過色と反射色をフレネルでブレンド
         color = lerp(transColor, finalReflection, fresnel);
         baseColor.a = 1.0;
@@ -708,7 +782,7 @@ PSOutput main(VSOutput In) : SV_Target0
 
     // HDR ToneMapping and Gamma Correction are now handled in PostProcessShader.
     // We output linear HDR colors directly.
-    
+
     //------------------------------------------
     // 出力
     //------------------------------------------

@@ -8,7 +8,8 @@ class RenderTarget;
 #include "Octree.h"
 #include <map>
 
-struct RaycastHit {
+struct RaycastHit
+{
     bool hit = false;
     float distance = 0.0f;
     Math::Vector3 point;
@@ -17,9 +18,9 @@ struct RaycastHit {
     std::weak_ptr<CollisionShape> hitShape;
 };
 
-class CollisionManager {
+class CollisionManager
+{
 public:
-
     static CollisionManager& Instance();
 
     void Init();
@@ -47,12 +48,24 @@ public:
                                   const std::unordered_set<std::string>* skipNodeNames = nullptr);
 
     // 現在のシーンを設定
-    void SetScene(Scene* scene) { m_pCurrentScene = scene; }
-    Scene* GetCurrentScene() const { return m_pCurrentScene; }
+    void SetScene(Scene* scene)
+    {
+        m_pCurrentScene = scene;
+    }
+    Scene* GetCurrentScene() const
+    {
+        return m_pCurrentScene;
+    }
 
     // デバッグ描画の有効/無効
-    void SetDebugWireEnabled(bool enabled) { m_debugWireEnabled = enabled; }
-    bool IsDebugWireEnabled() const { return m_debugWireEnabled; }
+    void SetDebugWireEnabled(bool enabled)
+    {
+        m_debugWireEnabled = enabled;
+    }
+    bool IsDebugWireEnabled() const
+    {
+        return m_debugWireEnabled;
+    }
 
     // デバッグラインの追加
     void AddDebugLine(const Math::Vector3& start, const Math::Vector3& end, ImU32 color);
@@ -65,14 +78,16 @@ public:
     void DrawDebugWires(float screenX = 0.0f, float screenY = 0.0f, float screenW = 0.0f, float screenH = 0.0f, Entity cameraEntity = INVALID_ENTITY, struct ImDrawList* pDrawList = nullptr);
 
 private:
-    struct DebugLine {
+    struct DebugLine
+    {
         Math::Vector3 start;
         Math::Vector3 end;
         ImU32 color;
     };
     std::vector<DebugLine> m_debugLines;
 
-    struct DebugPoly {
+    struct DebugPoly
+    {
         std::vector<Math::Vector3> verts;
         ImU32 color;
     };
@@ -86,16 +101,27 @@ private:
     // models) can grow after registration, so we re-register when the AABB changes.
     std::map<const CollisionShape*, DirectX::BoundingBox> m_registeredStaticAABBs;
 
-    CollisionManager() {}
-    ~CollisionManager() {}
+    CollisionManager()
+    {
+    }
+    ~CollisionManager()
+    {
+    }
 
     bool m_debugWireEnabled = true;
     Scene* m_pCurrentScene = nullptr;
 
-    struct CollisionPair {
+    struct CollisionPair
+    {
         Entity a, b;
-        bool operator<(const CollisionPair& o) const { if (a != o.a) return a < o.a; return b < o.b; }
+        bool operator<(const CollisionPair& o) const
+        {
+            if (a != o.a)
+            {
+                return a < o.a;
+            }
+            return b < o.b;
+        }
     };
     std::set<CollisionPair> m_prevCollisionPairs;
 };
-

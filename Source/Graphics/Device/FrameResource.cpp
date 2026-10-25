@@ -6,14 +6,18 @@
 bool FrameResource::Init(GraphicsDevice* pDevice)
 {
     if (!pDevice)
+    {
         return false;
+    }
 
     auto device = pDevice->GetDevice();
 
     HRESULT hr = device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_pCommandAllocator));
 
     if (FAILED(hr))
+    {
         return false;
+    }
 
     m_pConstantBufferAllocator = std::make_unique<FrameConstantBufferAllocator>();
 
@@ -32,4 +36,3 @@ void FrameResource::BeginFrame()
         m_pConstantBufferAllocator->Reset();
     }
 }
-

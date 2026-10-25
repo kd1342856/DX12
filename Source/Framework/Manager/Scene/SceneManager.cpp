@@ -122,11 +122,16 @@ void SceneManager::Update()
 void SceneManager::DrawFade()
 {
     if (m_fadeState == FadeState::None || m_fadeAlpha <= 0.0f || !m_pFadeTexture)
+    {
         return;
+    }
 
     auto pGraphicsDevice = &GraphicsDevice::Instance();
     auto pSpriteBatch = pGraphicsDevice->GetSpriteBatch();
-    if (!pSpriteBatch) return;
+    if (!pSpriteBatch)
+    {
+        return;
+    }
 
     D3D12_VIEWPORT viewport = {};
     viewport.Width = 1280.0f;
@@ -152,8 +157,7 @@ void SceneManager::DrawFade()
         DirectX::XMFLOAT2(0, 0),
         scale,
         DirectX::SpriteEffects_None,
-        0.0f
-    );
+        0.0f);
 
     pSpriteBatch->End();
 }
@@ -161,10 +165,10 @@ void SceneManager::DrawFade()
 void SceneManager::ChangeScene(std::unique_ptr<SceneBase> nextScene, float fadeDuration)
 {
     Logger::Instance().AddLog(Logger::LogLevel::Info, "ChangeScene Called! fadeDuration=%.2f", fadeDuration);
-    if (m_fadeState != FadeState::None) 
+    if (m_fadeState != FadeState::None)
     {
         Logger::Instance().AddLog(Logger::LogLevel::Info, "ChangeScene Ignored (Already Fading)");
-        return; 
+        return;
     }
     m_nextScene = std::move(nextScene);
     m_fadeDuration = fadeDuration;
@@ -173,11 +177,7 @@ void SceneManager::ChangeScene(std::unique_ptr<SceneBase> nextScene, float fadeD
 }
 
 
-
-
-
 void SceneManager::SetCurrentSceneWithoutFade(std::unique_ptr<SceneBase> scene)
 {
     m_currentScene = std::move(scene);
 }
-

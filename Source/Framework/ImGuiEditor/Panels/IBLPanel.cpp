@@ -4,7 +4,10 @@
 
 void IBLPanel::Draw(EditorContext& ctx)
 {
-    if (!ctx.IBL || !ctx.Lighting) return;
+    if (!ctx.IBL || !ctx.Lighting)
+    {
+        return;
+    }
 
     if (ImGui::CollapsingHeader("IBL Settings", ImGuiTreeNodeFlags_DefaultOpen))
     {
@@ -13,10 +16,10 @@ void IBLPanel::Draw(EditorContext& ctx)
 
         iChanged |= ImGui::Checkbox("Enable IBL", &ctx.IBL->EnableIBL);
         iChanged |= ImGui::DragFloat("IBL Intensity", &ctx.IBL->IBLIntensity, 0.01f, 0.0f, 10.0f);
-        
+
         lChanged |= ImGui::ColorEdit3("Ambient Light", &ctx.Lighting->AmbientLight.x);
         lChanged |= ImGui::SliderFloat("Indirect Shadow Floor", &ctx.Lighting->IndirectShadowFloor, 0.0f, 1.0f,
-            "%.2f");
+                                       "%.2f");
         if (ImGui::IsItemHovered())
         {
             ImGui::SetTooltip("Ambient/IBL kept in areas the moon/sun shadow doesn't reach.\n0 = pitch black indoors, 1 = no darkening (old behavior).");
@@ -33,8 +36,14 @@ void IBLPanel::Draw(EditorContext& ctx)
             ImGui::SetTooltip(u8"RoomAreaの範囲をこの分だけ広げて判定する(境界上の壁・床も室内扱いにするため)。");
         }
 
-        if (iChanged) ctx.IBL->IsDirty = true;
-        if (lChanged) ctx.Lighting->IsDirty = true;
+        if (iChanged)
+        {
+            ctx.IBL->IsDirty = true;
+        }
+        if (lChanged)
+        {
+            ctx.Lighting->IsDirty = true;
+        }
     }
 
     if (ctx.SSAO && ImGui::CollapsingHeader("SSAO Settings", ImGuiTreeNodeFlags_DefaultOpen))

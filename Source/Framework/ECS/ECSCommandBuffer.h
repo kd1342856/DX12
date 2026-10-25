@@ -14,7 +14,7 @@ enum class ECSCommandType : uint8_t
     RemoveComponent
 };
 
-using ECSExecuteFn = void(*)(ECSCoordinator*, Entity, const void*);
+using ECSExecuteFn = void (*)(ECSCoordinator*, Entity, const void*);
 
 struct ECSCommandHeader
 {
@@ -42,10 +42,10 @@ public:
         WriteCommand(ECSCommandType::DestroyEntity, entity, nullptr, 0, nullptr);
     }
 
-    template<typename T>
+    template <typename T>
     void AddComponent(Entity entity, const T& component);
 
-    template<typename T>
+    template <typename T>
     void RemoveComponent(Entity entity);
 
     void Playback(ECSCoordinator* coordinator);

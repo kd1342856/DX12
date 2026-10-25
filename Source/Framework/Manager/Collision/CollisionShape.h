@@ -4,7 +4,8 @@
 
 class ModelData;
 
-enum CollisionTags {
+enum CollisionTags
+{
     Character = 0x01,
     StageObject = 0x02,
     All = 0xFFFFFFFF,
@@ -12,42 +13,54 @@ enum CollisionTags {
 
 class CollisionShape;
 
-struct CollisionResult {
-    std::weak_ptr<CollisionShape> other; 
-    bool isHit = false;     
-    Math::Vector3 pushVector;   
-    Math::Vector3 hitPos;    
-};
-
-struct RayInfo {
-    Math::Vector3 startPos = {};
-    Math::Vector3 rayDir = { 0,0,1 };
-    float range = 10.0f;
-    uint32_t collisionMask = CollisionTags::All; 
-
-    Entity m_ignoreEntity = INVALID_ENTITY; 
-};
-
-struct RayResult {
+struct CollisionResult
+{
     std::weak_ptr<CollisionShape> other;
     bool isHit = false;
-    float distance = 0; 
-    Math::Vector3 hitPos = {};    
-    Math::Vector3 hitNormal = {}; 
+    Math::Vector3 pushVector;
+    Math::Vector3 hitPos;
 };
 
-class CollisionShape : public std::enable_shared_from_this<CollisionShape> {
+struct RayInfo
+{
+    Math::Vector3 startPos = {};
+    Math::Vector3 rayDir = {0, 0, 1};
+    float range = 10.0f;
+    uint32_t collisionMask = CollisionTags::All;
+
+    Entity m_ignoreEntity = INVALID_ENTITY;
+};
+
+struct RayResult
+{
+    std::weak_ptr<CollisionShape> other;
+    bool isHit = false;
+    float distance = 0;
+    Math::Vector3 hitPos = {};
+    Math::Vector3 hitNormal = {};
+};
+
+class CollisionShape : public std::enable_shared_from_this<CollisionShape>
+{
 public:
-    enum ShapeId {
+    enum ShapeId
+    {
         Box,
         Sphere,
         Capsule,
         Mesh,
     };
 
-    CollisionShape() {}
-    CollisionShape(Entity owner) { m_entity = owner; }
-    virtual ~CollisionShape() {}
+    CollisionShape()
+    {
+    }
+    CollisionShape(Entity owner)
+    {
+        m_entity = owner;
+    }
+    virtual ~CollisionShape()
+    {
+    }
 
     virtual ShapeId GetShapeId() const = 0;
 
@@ -71,16 +84,23 @@ public:
     bool m_isTrigger = false;
 
     virtual void UpdateWorldAABB(const Math::Matrix& world) = 0;
-	virtual void DrawDebug(const Math::Matrix& worldMatrix, uint32_t color) = 0;
+    virtual void DrawDebug(const Math::Matrix& worldMatrix, uint32_t color) = 0;
 };
 
-class CollisionShapeBox : public CollisionShape {
+class CollisionShapeBox : public CollisionShape
+{
 public:
-    CollisionShapeBox() { m_name = "Box"; }
-    ShapeId GetShapeId() const override { return Box; }
+    CollisionShapeBox()
+    {
+        m_name = "Box";
+    }
+    ShapeId GetShapeId() const override
+    {
+        return Box;
+    }
 
     void UpdateWorldAABB(const Math::Matrix& world) override;
-	void DrawDebug(const Math::Matrix& worldMatrix, uint32_t color) override;
+    void DrawDebug(const Math::Matrix& worldMatrix, uint32_t color) override;
     bool RayCast(const RayInfo& ray, const Math::Matrix& world, RayResult& out) override;
 
     void Deserialize(const nlohmann::json& jsonObj) override;
@@ -93,13 +113,20 @@ public:
     void Editor_ImGui() override;
 };
 
-class CollisionShapeSphere : public CollisionShape {
+class CollisionShapeSphere : public CollisionShape
+{
 public:
-    CollisionShapeSphere() { m_name = "Sphere"; }
-    ShapeId GetShapeId() const override { return Sphere; }
+    CollisionShapeSphere()
+    {
+        m_name = "Sphere";
+    }
+    ShapeId GetShapeId() const override
+    {
+        return Sphere;
+    }
 
     void UpdateWorldAABB(const Math::Matrix& world) override;
-	void DrawDebug(const Math::Matrix& worldMatrix, uint32_t color) override;
+    void DrawDebug(const Math::Matrix& worldMatrix, uint32_t color) override;
     bool RayCast(const RayInfo& ray, const Math::Matrix& world, RayResult& out) override;
 
     void Deserialize(const nlohmann::json& jsonObj) override;
@@ -110,39 +137,53 @@ public:
     void Editor_ImGui() override;
 };
 
-class CollisionShapeCapsule : public CollisionShape {
+class CollisionShapeCapsule : public CollisionShape
+{
 public:
-    CollisionShapeCapsule() { m_name = "Capsule"; }
-    ShapeId GetShapeId() const override { return Capsule; }
+    CollisionShapeCapsule()
+    {
+        m_name = "Capsule";
+    }
+    ShapeId GetShapeId() const override
+    {
+        return Capsule;
+    }
 
     void UpdateWorldAABB(const Math::Matrix& world) override;
-	void DrawDebug(const Math::Matrix& worldMatrix, uint32_t color) override;
+    void DrawDebug(const Math::Matrix& worldMatrix, uint32_t color) override;
     bool RayCast(const RayInfo& ray, const Math::Matrix& world, RayResult& out) override;
 
     void Deserialize(const nlohmann::json& jsonObj) override;
     void Serialize(nlohmann::json& outJson) const override;
 
-    float radius = 1.0f; 
-    float height = 1.0f; 
+    float radius = 1.0f;
+    float height = 1.0f;
 
     void Editor_ImGui() override;
     void GetGeometry(const Math::Matrix& world, Math::Vector3& outP1, Math::Vector3& outP2, Math::Vector3& outUp, Math::Vector3& outRight, Math::Vector3& outForward) const;
 };
 
-class CollisionShapeMesh : public CollisionShape {
+class CollisionShapeMesh : public CollisionShape
+{
 public:
-    CollisionShapeMesh() { m_name = "Mesh"; }
-    ShapeId GetShapeId() const override { return Mesh; }
+    CollisionShapeMesh()
+    {
+        m_name = "Mesh";
+    }
+    ShapeId GetShapeId() const override
+    {
+        return Mesh;
+    }
 
     void UpdateWorldAABB(const Math::Matrix& world) override;
-	void DrawDebug(const Math::Matrix& worldMatrix, uint32_t color) override;
+    void DrawDebug(const Math::Matrix& worldMatrix, uint32_t color) override;
     bool RayCast(const RayInfo& ray, const Math::Matrix& world, RayResult& out) override;
 
     void Deserialize(const nlohmann::json& jsonObj) override;
     void Serialize(nlohmann::json& outJson) const override;
 
-    std::shared_ptr<ModelData> m_model; 
-    bool m_isBackfaceCulling = true;  
+    std::shared_ptr<ModelData> m_model;
+    bool m_isBackfaceCulling = true;
 
     void Editor_ImGui() override;
 };

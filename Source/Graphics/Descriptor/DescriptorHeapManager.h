@@ -10,10 +10,22 @@ public:
     bool Init(ID3D12Device* pDevice, UINT numRTV, UINT numDSV, UINT numCBVSRVUAV, UINT numSampler);
     void Release();
 
-    DescriptorAllocator* GetRTVAllocator() const { return m_upRTVAllocator.get(); }
-    DescriptorAllocator* GetDSVAllocator() const { return m_upDSVAllocator.get(); }
-    DescriptorAllocator* GetCBVSRVUAVAllocator() const { return m_upCBVSRVUAVAllocator.get(); }
-    DescriptorAllocator* GetSamplerAllocator() const { return m_upSamplerAllocator.get(); }
+    DescriptorAllocator* GetRTVAllocator() const
+    {
+        return m_upRTVAllocator.get();
+    }
+    DescriptorAllocator* GetDSVAllocator() const
+    {
+        return m_upDSVAllocator.get();
+    }
+    DescriptorAllocator* GetCBVSRVUAVAllocator() const
+    {
+        return m_upCBVSRVUAVAllocator.get();
+    }
+    DescriptorAllocator* GetSamplerAllocator() const
+    {
+        return m_upSamplerAllocator.get();
+    }
 
 private:
     std::unique_ptr<DescriptorAllocator> m_upRTVAllocator;

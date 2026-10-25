@@ -16,7 +16,12 @@ public:
     {
         m_elapsedTime += deltaTime;
 
-        struct Candidate { Math::Vector3 pos; float rangeSq; CBufferData::PointLight data; };
+        struct Candidate
+        {
+            Math::Vector3 pos;
+            float rangeSq;
+            CBufferData::PointLight data;
+        };
         std::vector<Candidate> candidates;
         candidates.reserve(m_entities.size());
 
@@ -24,7 +29,10 @@ public:
         {
             auto& trans = m_pCoordinator->GetComponent<TransformData>(entity);
             auto& light = m_pCoordinator->GetComponent<PointLightData>(entity);
-            if (!light.m_enabled) continue;
+            if (!light.m_enabled)
+            {
+                continue;
+            }
 
             Math::Vector3 pos = trans.m_worldMatrix.Translation();
 
@@ -34,20 +42,23 @@ public:
                 // 複数の高さの違う正弦波+ノイズ寄りのjitterを足して、機械的すぎない揺らぎにする。
                 float t = (m_elapsedTime + light.m_flickerSeed) * light.m_flickerSpeed;
                 float wave = sinf(t) * 0.6f + sinf(t * 2.7f + 1.3f) * 0.4f; // -1..1
-                float flicker = 0.5f + 0.5f * wave; // 0..1
+                float flicker = 0.5f + 0.5f * wave;                         // 0..1
                 intensityMul = 1.0f - light.m_flickerIntensity * (1.0f - flicker);
-                if (intensityMul < 0.0f) intensityMul = 0.0f;
+                if (intensityMul < 0.0f)
+                {
+                    intensityMul = 0.0f;
+                }
             }
 
             CBufferData::PointLight pl;
             pl.Pos = pos;
             pl.Range = light.m_range;
-            pl.Color = { light.m_color.x * light.m_intensity * intensityMul,
-                         light.m_color.y * light.m_intensity * intensityMul,
-                         light.m_color.z * light.m_intensity * intensityMul };
+            pl.Color = {light.m_color.x * light.m_intensity * intensityMul,
+                        light.m_color.y * light.m_intensity * intensityMul,
+                        light.m_color.z * light.m_intensity * intensityMul};
 
             float distSq = Math::Vector3::DistanceSquared(pos, viewerPos);
-            candidates.push_back({ pos, distSq, pl });
+            candidates.push_back({pos, distSq, pl});
 
             // エディタでの配置確認用ギズモ(常に描画しておいても、実際に画面に出るのは
             // RenderEditorのDebugDraw経由でエディタモードの時だけ)。
@@ -55,7 +66,8 @@ public:
         }
 
         std::sort(candidates.begin(), candidates.end(),
-            [](const Candidate& a, const Candidate& b) { return a.rangeSq < b.rangeSq; });
+                  [](const Candidate& a, const Candidate& b)
+        { return a.rangeSq < b.rangeSq; });
 
         constexpr int kMaxPointLights = 8;
         auto& lightData = ShaderManager::Instance().GetMutableLightData();
@@ -94,7 +106,10 @@ private:
         }
     }
 
-    static float saturate(float v) { return v < 0.0f ? 0.0f : (v > 1.0f ? 1.0f : v); }
+    static float saturate(float v)
+    {
+        return v < 0.0f ? 0.0f : (v > 1.0f ? 1.0f : v);
+    }
 };
 
 // SpotLightDataを持つエンティティを毎フレーム集めてShaderManagerへ送るシステム。
@@ -104,7 +119,11 @@ class SpotLightSystem : public SystemBase
 public:
     void Update(const Math::Vector3& viewerPos)
     {
-        struct Candidate { float distSq; CBufferData::SpotLight data; };
+        struct Candidate
+        {
+            float distSq;
+            CBufferData::SpotLight data;
+        };
         std::vector<Candidate> candidates;
         candidates.reserve(m_entities.size());
 
@@ -120,11 +139,17 @@ public:
                 pModel->m_glowMaterial = light.m_glowMaterial;
             }
 
-            if (!light.m_enabled || light.m_flickerOff) continue;
+            if (!light.m_enabled || light.m_flickerOff)
+            {
+                continue;
+            }
 
             Math::Vector3 pos = Math::Vector3::Transform(light.m_localOffset, trans.m_worldMatrix);
             Math::Vector3 dir = Math::Vector3::TransformNormal(light.m_localDirection, trans.m_worldMatrix);
-            if (dir.LengthSquared() < 1e-8f) continue;
+            if (dir.LengthSquared() < 1e-8f)
+            {
+                continue;
+            }
             dir.Normalize();
 
             // シェーダーは角度ではなくcosで比較する(InnerCorn > OuterCornである必要がある)
@@ -142,13 +167,14 @@ public:
             sl.EnableShadow = 0.0f;
             sl.mLightVP = Math::Matrix::Identity;
 
-            candidates.push_back({ Math::Vector3::DistanceSquared(pos, viewerPos), sl });
+            candidates.push_back({Math::Vector3::DistanceSquared(pos, viewerPos), sl});
 
             DrawGizmo(pos, dir, light.m_range, outerDeg * kDegToRad, light.m_color);
         }
 
         std::sort(candidates.begin(), candidates.end(),
-            [](const Candidate& a, const Candidate& b) { return a.distSq < b.distSq; });
+                  [](const Candidate& a, const Candidate& b)
+        { return a.distSq < b.distSq; });
 
         constexpr int kMaxSpotLights = 10;
         auto& lightData = ShaderManager::Instance().GetMutableLightData();
@@ -164,7 +190,8 @@ private:
     // 光源位置から照射方向への線と、Range先の円錐の縁(4本)を描く
     static void DrawGizmo(const Math::Vector3& pos, const Math::Vector3& dir, float range, float outerRad, const Math::Vector3& color)
     {
-        auto sat = [](float v) { return v < 0.0f ? 0.0f : (v > 1.0f ? 1.0f : v); };
+        auto sat = [](float v)
+        { return v < 0.0f ? 0.0f : (v > 1.0f ? 1.0f : v); };
         ImU32 col = IM_COL32((int)(sat(color.x) * 255), (int)(sat(color.y) * 255), (int)(sat(color.z) * 255), 255);
         auto& cm = CollisionManager::Instance();
 

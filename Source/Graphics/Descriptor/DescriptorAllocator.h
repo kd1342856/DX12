@@ -10,9 +10,18 @@ public:
     bool Init(ID3D12Device* pDevice, D3D12_DESCRIPTOR_HEAP_TYPE type, UINT numDescriptors, bool isShaderVisible);
     void Release();
 
-    ID3D12DescriptorHeap* GetHeap() const { return m_heap.Get(); }
-    UINT GetDescriptorSize() const { return m_descriptorSize; }
-    UINT GetCapacity() const { return m_capacity; }
+    ID3D12DescriptorHeap* GetHeap() const
+    {
+        return m_heap.Get();
+    }
+    UINT GetDescriptorSize() const
+    {
+        return m_descriptorSize;
+    }
+    UINT GetCapacity() const
+    {
+        return m_capacity;
+    }
 
     UINT Allocate();
     void Free(UINT index);
@@ -27,5 +36,5 @@ private:
 
     std::vector<UINT> m_freeIndices;
     UINT m_nextFreeIndex = 0;
-	std::mutex m_mutex;
+    std::mutex m_mutex;
 };

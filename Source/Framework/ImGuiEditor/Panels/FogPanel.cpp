@@ -5,7 +5,10 @@
 
 void FogPanel::Draw(EditorContext& ctx)
 {
-    if (!ctx.Fog) return;
+    if (!ctx.Fog)
+    {
+        return;
+    }
 
     if (ImGui::CollapsingHeader("Fog Settings", ImGuiTreeNodeFlags_DefaultOpen))
     {
@@ -28,6 +31,9 @@ void FogPanel::Draw(EditorContext& ctx)
 
         ImGui::TextDisabled(ShaderManager::Instance().IsHuntFogActive() ? "State: Hunting" : "State: Normal");
 
-        if (changed) ctx.Fog->IsDirty = true;
+        if (changed)
+        {
+            ctx.Fog->IsDirty = true;
+        }
     }
 }

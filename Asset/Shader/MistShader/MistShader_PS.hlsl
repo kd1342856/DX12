@@ -25,15 +25,15 @@ float noise(float2 p)
     return lerp(
         lerp(hash(i + float2(0.0, 0.0)), hash(i + float2(1.0, 0.0)), u.x),
         lerp(hash(i + float2(0.0, 1.0)), hash(i + float2(1.0, 1.0)), u.x),
-        u.y
-    );
+        u.y);
 }
 
 float fbm(float2 p)
 {
     float f = 0.0;
     float w = 0.5;
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 5; i++)
+    {
         f += w * noise(p);
         p *= 2.0;
         w *= 0.5;
@@ -52,17 +52,17 @@ float MistLayer(float2 uv, float t, float2 drift, float scale)
 
 float4 main(PSInput input) : SV_TARGET
 {
-    float2 uv = input.UV;   // (0,0) top-left, (1,1) bottom-right
+    float2 uv = input.UV; // (0,0) top-left, (1,1) bottom-right
     float t = g_Time;
 
     // Two layers drifting in different directions at different speeds give the mist some depth.
-    float back  = MistLayer(uv, t, float2(0.020, -0.012), 2.0);
+    float back = MistLayer(uv, t, float2(0.020, -0.012), 2.0);
     float front = MistLayer(uv + 5.0, t, float2(-0.035, 0.008), 3.0);
 
     // Cold, pale palette: near-black slate in the thin parts, blue-white where the mist is thick.
-    float3 deep  = float3(0.02, 0.03, 0.05);
-    float3 mid   = float3(0.18, 0.22, 0.28);
-    float3 pale  = float3(0.62, 0.68, 0.74);
+    float3 deep = float3(0.02, 0.03, 0.05);
+    float3 mid = float3(0.18, 0.22, 0.28);
+    float3 pale = float3(0.62, 0.68, 0.74);
     float3 col = lerp(deep, mid, smoothstep(0.2, 0.7, back));
     col = lerp(col, pale, smoothstep(0.45, 0.95, front) * 0.55);
 

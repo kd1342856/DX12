@@ -18,7 +18,10 @@ RoomVisibilityManager& RoomVisibilityManager::Instance()
 
 uint64_t RoomVisibilityManager::EdgeKey(int a, int b)
 {
-    if (a > b) std::swap(a, b);
+    if (a > b)
+    {
+        std::swap(a, b);
+    }
     return (static_cast<uint64_t>(static_cast<uint32_t>(a)) << 32) | static_cast<uint32_t>(b);
 }
 
@@ -39,7 +42,10 @@ void RoomVisibilityManager::RebuildRoomGraphIfNeeded()
     const auto& liveRooms = gs->GetRooms();
     // 軽い変化チェック - 部屋数が変わる（レベルの(再)ロード、エディタでの追加/削除）
     // 時だけ実際に再構築が必要になる。
-    if (m_graphBuilt && liveRooms.size() == m_rooms.size()) return;
+    if (m_graphBuilt && liveRooms.size() == m_rooms.size())
+    {
+        return;
+    }
 
     m_rooms = liveRooms;
     m_adjacency.assign(m_rooms.size(), {});
@@ -55,7 +61,10 @@ void RoomVisibilityManager::RebuildRoomGraphIfNeeded()
     m_paddedRoomBoxes.assign(m_rooms.size(), DirectX::BoundingBox());
     for (size_t i = 0; i < m_rooms.size(); ++i)
     {
-        if (!m_rooms[i]) continue;
+        if (!m_rooms[i])
+        {
+            continue;
+        }
         Math::Vector3 mn = m_rooms[i]->m_min - Math::Vector3(kTouchEpsilon, kTouchEpsilon, kTouchEpsilon);
         Math::Vector3 mx = m_rooms[i]->m_max + Math::Vector3(kTouchEpsilon, kTouchEpsilon, kTouchEpsilon);
         DirectX::BoundingBox::CreateFromPoints(m_paddedRoomBoxes[i], DirectX::XMLoadFloat3(&mn), DirectX::XMLoadFloat3(&mx));
@@ -63,10 +72,16 @@ void RoomVisibilityManager::RebuildRoomGraphIfNeeded()
 
     for (size_t i = 0; i < m_rooms.size(); ++i)
     {
-        if (!m_rooms[i]) continue;
+        if (!m_rooms[i])
+        {
+            continue;
+        }
         for (size_t j = i + 1; j < m_rooms.size(); ++j)
         {
-            if (!m_rooms[j]) continue;
+            if (!m_rooms[j])
+            {
+                continue;
+            }
             if (m_paddedRoomBoxes[i].Intersects(m_paddedRoomBoxes[j]))
             {
                 m_adjacency[i].push_back(static_cast<int>(j));
@@ -92,18 +107,32 @@ void RoomVisibilityManager::DiscoverDoorLinks()
     {
         auto* pModel = ecs.TryGetComponent<ModelRenderData>(entity);
         auto* pTransform = ecs.TryGetComponent<TransformData>(entity);
-        if (!pModel || !pTransform) continue;
-        if (!pModel->m_spModelData || !pModel->m_spModelData->IsLoaded()) continue;
+        if (!pModel || !pTransform)
+        {
+            continue;
+        }
+        if (!pModel->m_spModelData || !pModel->m_spModelData->IsLoaded())
+        {
+            continue;
+        }
 
         const auto& anims = pModel->m_spModelData->GetAnimations();
-        if (anims.empty()) continue;
+        if (anims.empty())
+        {
+            continue;
+        }
 
         for (int animIdx = 0; animIdx < static_cast<int>(anims.size()); ++animIdx)
         {
             const std::string& animName = anims[animIdx].name;
             if (animName.find("Door") == std::string::npos && animName.find("door") == std::string::npos)
+            {
                 continue;
-            if (anims[animIdx].channels.empty()) continue;
+            }
+            if (anims[animIdx].channels.empty())
+            {
+                continue;
+            }
 
             const std::string& doorNodeName = anims[animIdx].channels[0].nodeName;
             Math::Vector3 doorPos = pTransform->m_position;
@@ -120,11 +149,14 @@ void RoomVisibilityManager::DiscoverDoorLinks()
                     break;
                 }
             }
-            if (!foundNode) continue;
+            if (!foundNode)
+            {
+                continue;
+            }
 
             // ドアの位置を含む（パディング済み）部屋のAABBはどれか？ 共有する壁にある
             // ドアなら、両隣のパディング済みボックスの両方に入っているはず。
-            int roomsFound[2] = { -1, -1 };
+            int roomsFound[2] = {-1, -1};
             int roomCount = 0;
             for (size_t r = 0; r < m_paddedRoomBoxes.size() && roomCount < 2; ++r)
             {
@@ -150,20 +182,35 @@ bool RoomVisibilityManager::IsDoorOpen(const DoorLink& link) const
     auto& ecs = GameManager::Instance().GetECS();
 
     auto* pAnimComp = ecs.TryGetComponent<AnimationDataComponent>(link.entity);
-    if (!pAnimComp) return true; // まだ実行時アニメーション状態が無い - 通行可能とみなす
+    if (!pAnimComp)
+    {
+        return true; // まだ実行時アニメーション状態が無い - 通行可能とみなす
+    }
 
     auto it = pAnimComp->multiAnims.find(link.animIndex);
-    if (it == pAnimComp->multiAnims.end()) return true; // 一度も操作されていない - 部屋を永久に隠すよりは開いている扱いにする
+    if (it == pAnimComp->multiAnims.end())
+    {
+        return true; // 一度も操作されていない - 部屋を永久に隠すよりは開いている扱いにする
+    }
 
     auto* pModel = ecs.TryGetComponent<ModelRenderData>(link.entity);
-    if (!pModel || !pModel->m_spModelData) return true;
+    if (!pModel || !pModel->m_spModelData)
+    {
+        return true;
+    }
     const auto& anims = pModel->m_spModelData->GetAnimations();
-    if (link.animIndex < 0 || link.animIndex >= static_cast<int>(anims.size())) return true;
+    if (link.animIndex < 0 || link.animIndex >= static_cast<int>(anims.size()))
+    {
+        return true;
+    }
 
     // AnimationSystem自身の「全開」の定義（duration * 0.5、AnimationSystem.h参照）に
     // 合わせている - 半分以上開いていればドアは通行可能とみなす。
     float targetTime = anims[link.animIndex].duration * 0.5f;
-    if (targetTime <= 0.0f) return true;
+    if (targetTime <= 0.0f)
+    {
+        return true;
+    }
 
     constexpr float kOpenFraction = 0.5f;
     return it->second.ProgressTime >= targetTime * kOpenFraction;
@@ -198,13 +245,19 @@ void RoomVisibilityManager::UpdateVisibleRooms(const Math::Vector3& viewerPos)
     {
         auto it = m_edgeDoors.find(EdgeKey(currentRoom, adj));
         bool passable = (it == m_edgeDoors.end()) || IsDoorOpen(it->second);
-        if (passable) m_visibleRoomIndices.insert(adj);
+        if (passable)
+        {
+            m_visibleRoomIndices.insert(adj);
+        }
     }
 }
 
 bool RoomVisibilityManager::IsMeshInVisibleRoom(Mesh* pMesh, const Math::Matrix& meshWorldTransform)
 {
-    if (m_allVisible || m_rooms.empty()) return true;
+    if (m_allVisible || m_rooms.empty())
+    {
+        return true;
+    }
 
     auto it = m_meshRoomIndices.find(pMesh);
     if (it == m_meshRoomIndices.end())
@@ -223,11 +276,17 @@ bool RoomVisibilityManager::IsMeshInVisibleRoom(Mesh* pMesh, const Math::Matrix&
         it = m_meshRoomIndices.emplace(pMesh, std::move(rooms)).first;
     }
 
-    if (it->second.empty()) return true; // どの部屋にも属さなかった - 推測せず、カリングもしない
+    if (it->second.empty())
+    {
+        return true; // どの部屋にも属さなかった - 推測せず、カリングもしない
+    }
 
     for (int roomIdx : it->second)
     {
-        if (m_visibleRoomIndices.count(roomIdx) != 0) return true;
+        if (m_visibleRoomIndices.count(roomIdx) != 0)
+        {
+            return true;
+        }
     }
     return false;
 }

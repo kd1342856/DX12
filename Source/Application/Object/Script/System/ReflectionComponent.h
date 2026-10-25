@@ -2,7 +2,8 @@
 
 #include "../../../../Framework/ECS/Components/Data/NativeScript.h"
 
-class ReflectionComponent : public NativeScript {
+class ReflectionComponent : public NativeScript
+{
 public:
     void Serialize(nlohmann::json& out) const override;
     void Deserialize(const nlohmann::json& in) override;
@@ -10,14 +11,17 @@ public:
     void Update(float deltaTime) override;
     void PreDraw() override;
 
-    bool IsActive() const { return m_isActive; }
+    bool IsActive() const
+    {
+        return m_isActive;
+    }
 
-    Math::Vector3 m_planeNormal = { 0.0f, 0.0f, 1.0f };
-    Math::Vector3 m_planePoint = { 0.0f, 0.0f, 0.0f };
+    Math::Vector3 m_planeNormal = {0.0f, 0.0f, 1.0f};
+    Math::Vector3 m_planePoint = {0.0f, 0.0f, 0.0f};
 
     // Calculated World Plane
-    Math::Vector3 m_worldPlaneNormal = { 0.0f, 0.0f, 1.0f };
-    Math::Vector3 m_worldPlanePoint = { 0.0f, 0.0f, 0.0f };
+    Math::Vector3 m_worldPlaneNormal = {0.0f, 0.0f, 1.0f};
+    Math::Vector3 m_worldPlanePoint = {0.0f, 0.0f, 0.0f};
 
     // エディタ上で球の範囲を示すデバッグ描画用
     float m_debugSize = 2.0f;

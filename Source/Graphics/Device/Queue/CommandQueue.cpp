@@ -4,9 +4,7 @@
 #include <assert.h>
 
 CommandQueue::CommandQueue()
-    : m_type(D3D12_COMMAND_LIST_TYPE_DIRECT)
-    , m_fenceValue(0)
-    , m_fenceEvent(nullptr)
+    : m_type(D3D12_COMMAND_LIST_TYPE_DIRECT), m_fenceValue(0), m_fenceEvent(nullptr)
 {
 }
 
@@ -27,25 +25,34 @@ bool CommandQueue::Init(ID3D12Device* pDevice, D3D12_COMMAND_LIST_TYPE type)
 
     HRESULT hr = pDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&m_pCommandQueue));
     if (FAILED(hr))
+    {
         return false;
+    }
 
     hr = pDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_pFence));
     if (FAILED(hr))
+    {
         return false;
+    }
 
     m_fenceValue = 0;
     m_fenceEvent = CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS);
     if (!m_fenceEvent)
+    {
         return false;
+    }
 
     return true;
 }
 
 void CommandQueue::Shutdown()
 {
-	if (!m_pCommandQueue) return;
+    if (!m_pCommandQueue)
+    {
+        return;
+    }
 
-	Flush();
+    Flush();
 
     if (m_fenceEvent)
     {
@@ -59,36 +66,36 @@ void CommandQueue::Shutdown()
 
 void CommandQueue::Execute(CommandContext* pContext)
 {
-	Execute(pContext->GetCmdList());
+    Execute(pContext->GetCmdList());
 }
 
 void CommandQueue::Execute(ID3D12CommandList* pCmdList)
 {
-	std::lock_guard<std::recursive_mutex> lock(m_queueMutex);
-	ID3D12CommandList* ppCommandLists[] = { pCmdList };
-	m_pCommandQueue->ExecuteCommandLists(1, ppCommandLists);
+    std::lock_guard<std::recursive_mutex> lock(m_queueMutex);
+    ID3D12CommandList* ppCommandLists[] = {pCmdList};
+    m_pCommandQueue->ExecuteCommandLists(1, ppCommandLists);
 }
 
 void CommandQueue::ExecuteAndSignal(ID3D12CommandList* pCmdList, ID3D12Fence* pFence, uint64_t fenceValue)
 {
-	std::lock_guard<std::recursive_mutex> lock(m_queueMutex);
-	ID3D12CommandList* ppCommandLists[] = { pCmdList };
-	m_pCommandQueue->ExecuteCommandLists(1, ppCommandLists);
-	m_pCommandQueue->Signal(pFence, fenceValue);
+    std::lock_guard<std::recursive_mutex> lock(m_queueMutex);
+    ID3D12CommandList* ppCommandLists[] = {pCmdList};
+    m_pCommandQueue->ExecuteCommandLists(1, ppCommandLists);
+    m_pCommandQueue->Signal(pFence, fenceValue);
 }
 
 uint64_t CommandQueue::Signal()
 {
-	std::lock_guard<std::recursive_mutex> lock(m_queueMutex);
-	m_fenceValue++;
-	m_pCommandQueue->Signal(m_pFence.Get(), m_fenceValue);
-	return m_fenceValue;
+    std::lock_guard<std::recursive_mutex> lock(m_queueMutex);
+    m_fenceValue++;
+    m_pCommandQueue->Signal(m_pFence.Get(), m_fenceValue);
+    return m_fenceValue;
 }
 
 void CommandQueue::Signal(ID3D12Fence* pFence, uint64_t value)
 {
-	std::lock_guard<std::recursive_mutex> lock(m_queueMutex);
-	m_pCommandQueue->Signal(pFence, value);
+    std::lock_guard<std::recursive_mutex> lock(m_queueMutex);
+    m_pCommandQueue->Signal(pFence, value);
 }
 
 void CommandQueue::WaitForFence(uint64_t fenceValue)
@@ -104,11 +111,6 @@ void CommandQueue::Flush()
 {
     WaitForFence(Signal());
 }
-
-
-
-
-
 
 
 void CommandQueue::WaitQueue(CommandQueue* pWaitOnQueue, uint64_t fenceValue)

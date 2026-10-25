@@ -15,7 +15,7 @@ public:
 
     // 記録の開始
     void Begin(FrameResource& frameResource);
-    
+
     // CommandContext のインターフェース実装
     virtual void Begin() override; // 引数なし版（基本使わないがインターフェース用）
     virtual void Close() override;
@@ -24,4 +24,3 @@ public:
 private:
     ID3D12CommandAllocator* m_pCurrentAllocator = nullptr;
 };
-

@@ -9,9 +9,11 @@ class ScriptSystem : public SystemBase
 public:
     void Awake()
     {
-        for (auto const& entity : m_entities) {
+        for (auto const& entity : m_entities)
+        {
             auto& scriptData = m_pCoordinator->GetComponent<NativeScriptData>(entity);
-            if (scriptData.Instance) {
+            if (scriptData.Instance)
+            {
                 scriptData.Instance->Awake();
             }
         }
@@ -19,9 +21,11 @@ public:
 
     void Start()
     {
-        for (auto const& entity : m_entities) {
+        for (auto const& entity : m_entities)
+        {
             auto& scriptData = m_pCoordinator->GetComponent<NativeScriptData>(entity);
-            if (scriptData.Instance) {
+            if (scriptData.Instance)
+            {
                 scriptData.Instance->Start();
             }
         }
@@ -29,9 +33,11 @@ public:
 
     void Update(float deltaTime) override
     {
-        for (auto const& entity : m_entities) {
+        for (auto const& entity : m_entities)
+        {
             auto& scriptData = m_pCoordinator->GetComponent<NativeScriptData>(entity);
-            if (scriptData.Instance) {
+            if (scriptData.Instance)
+            {
                 // スクリプト種別ごとの内訳(RTTI型名)。ScriptSystem::Updateの合計時間の中で
                 // 実際にどのスクリプトがコストを使っているかを見られるようにする。
                 PROFILE_CPU_SCOPE(typeid(*scriptData.Instance).name());
@@ -42,9 +48,11 @@ public:
 
     void PostUpdate()
     {
-        for (auto const& entity : m_entities) {
+        for (auto const& entity : m_entities)
+        {
             auto& scriptData = m_pCoordinator->GetComponent<NativeScriptData>(entity);
-            if (scriptData.Instance) {
+            if (scriptData.Instance)
+            {
                 scriptData.Instance->PostUpdate();
             }
         }
@@ -52,9 +60,11 @@ public:
 
     void PreDraw()
     {
-        for (auto const& entity : m_entities) {
+        for (auto const& entity : m_entities)
+        {
             auto& scriptData = m_pCoordinator->GetComponent<NativeScriptData>(entity);
-            if (scriptData.Instance) {
+            if (scriptData.Instance)
+            {
                 scriptData.Instance->PreDraw();
             }
         }
@@ -62,9 +72,11 @@ public:
 
     void Draw()
     {
-        for (auto const& entity : m_entities) {
+        for (auto const& entity : m_entities)
+        {
             auto& scriptData = m_pCoordinator->GetComponent<NativeScriptData>(entity);
-            if (scriptData.Instance) {
+            if (scriptData.Instance)
+            {
                 scriptData.Instance->Draw();
             }
         }

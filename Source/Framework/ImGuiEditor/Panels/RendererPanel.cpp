@@ -14,7 +14,10 @@ namespace
     void RelaunchApplication()
     {
         wchar_t exePath[MAX_PATH];
-        if (GetModuleFileNameW(nullptr, exePath, MAX_PATH) == 0) return;
+        if (GetModuleFileNameW(nullptr, exePath, MAX_PATH) == 0)
+        {
+            return;
+        }
 
         // lpCurrentDirectoryをnullのままにして継承に任せるのではなく、このプロセスの
         // *現在の*作業ディレクトリを明示的に渡す。このプロセスはdxcompiler.dll等を
@@ -24,7 +27,7 @@ namespace
         DWORD cwdLen = GetCurrentDirectoryW(MAX_PATH, cwd);
         const wchar_t* pCwd = (cwdLen > 0 && cwdLen < MAX_PATH) ? cwd : nullptr;
 
-        STARTUPINFOW si = { sizeof(si) };
+        STARTUPINFOW si = {sizeof(si)};
         PROCESS_INFORMATION pi = {};
         if (CreateProcessW(exePath, nullptr, nullptr, nullptr, FALSE, 0, nullptr, pCwd, &si, &pi))
         {
@@ -47,23 +50,36 @@ void RendererPanel::Draw(EditorContext& ctx)
         {
             bool changed = false;
 
-            if (ImGui::Checkbox("Enable PBR", &ctx.Renderer->EnablePBR)) changed = true;
+            if (ImGui::Checkbox("Enable PBR", &ctx.Renderer->EnablePBR))
+            {
+                changed = true;
+            }
 
             ImGui::Separator();
             ImGui::Text("SSR (Screen Space Reflection)");
-            if (ImGui::Checkbox("Enable SSR", &ctx.Renderer->EnableSSR)) changed = true;
-            if (ImGui::SliderFloat("SSR Step Size", &ctx.Renderer->SSRStepSize, 0.05f, 1.5f, "%.2f")) changed = true;
+            if (ImGui::Checkbox("Enable SSR", &ctx.Renderer->EnableSSR))
+            {
+                changed = true;
+            }
+            if (ImGui::SliderFloat("SSR Step Size", &ctx.Renderer->SSRStepSize, 0.05f, 1.5f, "%.2f"))
+            {
+                changed = true;
+            }
             if (ImGui::IsItemHovered())
             {
                 ImGui::SetTooltip(u8"平面反射(専用の反射カメラ)が設定されていないガラス面のフォールバック。");
             }
-            if (ImGui::SliderFloat("SSR Opaque Intensity", &ctx.Renderer->SSROpaqueIntensity, 0.0f, 2.0f, "%.2f")) changed = true;
+            if (ImGui::SliderFloat("SSR Opaque Intensity", &ctx.Renderer->SSROpaqueIntensity, 0.0f, 2.0f, "%.2f"))
+            {
+                changed = true;
+            }
             if (ImGui::IsItemHovered())
             {
                 ImGui::SetTooltip(u8"床・タイル等のOpaque材質向けSSR(NormalPrepassの法線+深度を再利用)。\n粗さ/金属度は考慮しない鏡面反射の近似(非金属F0=0.04固定)。0で無効。");
             }
 
-            if (changed) {
+            if (changed)
+            {
                 ctx.Renderer->IsDirty = true;
             }
         }
@@ -108,12 +124,18 @@ void RendererPanel::Draw(EditorContext& ctx)
         }
 
         bool pendingChange = s_debugLayerRequested != GraphicsDevice::IsDebugLayerActive();
-        if (!pendingChange) ImGui::BeginDisabled();
+        if (!pendingChange)
+        {
+            ImGui::BeginDisabled();
+        }
         if (ImGui::Button("Apply & Restart"))
         {
             RelaunchApplication();
         }
-        if (!pendingChange) ImGui::EndDisabled();
+        if (!pendingChange)
+        {
+            ImGui::EndDisabled();
+        }
         if (pendingChange)
         {
             ImGui::SameLine();

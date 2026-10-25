@@ -25,13 +25,13 @@ float Noise2D(float2 p)
 PSOutput main(VSOutput In)
 {
     PSOutput Out = (PSOutput)0;
-    
+
     float4 color = g_diffuseTex.Sample(g_ss, In.uv) * g_baseColorFactor;
-    
+
     float4 mr = g_RoughnessMetallicTex.Sample(g_ss, In.uv);
     float metallic = mr.b * g_metallicFactor;
     float roughness = mr.g * g_roughnessFactor;
-    
+
     // Very simple output for now (just pass through color, normal, and mr)
     // Wait, let's also apply occlusion directly to base color as a simple fallback
     float occ = lerp(1.0, g_occlusionTex.Sample(g_ss, In.uv).r, g_occlusionStrength);
@@ -55,6 +55,6 @@ PSOutput main(VSOutput In)
     }
 
     Out.color = color;
-    
+
     return Out;
 }

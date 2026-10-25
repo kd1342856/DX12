@@ -3,151 +3,180 @@
 class Logger
 {
 public:
-	enum class LogLevel {
-		Info,
-		Warning,
-		Error
-	};
+    enum class LogLevel
+    {
+        Info,
+        Warning,
+        Error
+    };
 
-	static Logger& Instance();
+    static Logger& Instance();
 
-	void AddLog(LogLevel level, const std::string& message)
-	{
-		std::lock_guard<std::mutex> lock(m_mutex);
-		m_logs.push_back({ level, message });
-		m_scrollToBottom = true;
+    void AddLog(LogLevel level, const std::string& message)
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        m_logs.push_back({level, message});
+        m_scrollToBottom = true;
 
-		std::string debugStr = "[LOG] " + message + "\n";
-		OutputDebugStringA(debugStr.c_str());
+        std::string debugStr = "[LOG] " + message + "\n";
+        OutputDebugStringA(debugStr.c_str());
 
-		// 呼ぶたびにfopen/fcloseするのではなく、プロセスの生存期間中ファイルを開きっぱなしに
-		// する - あのペアはディスクI/O+OSハンドルの生成/破棄を毎回行うことになり、
-		// 何かが毎フレームログを出す(経路探索のクエリ、エンティティごとのデバッグ出力等)
-		// と非常に高くつく。fflushは変わらず行うので、プロセスがクラッシュしても
-		// 内容が失われないようにしている。
-		if (m_logFile) {
-			fwrite(debugStr.data(), 1, debugStr.size(), m_logFile);
-			fflush(m_logFile);
-		}
-	}
+        // 呼ぶたびにfopen/fcloseするのではなく、プロセスの生存期間中ファイルを開きっぱなしに
+        // する - あのペアはディスクI/O+OSハンドルの生成/破棄を毎回行うことになり、
+        // 何かが毎フレームログを出す(経路探索のクエリ、エンティティごとのデバッグ出力等)
+        // と非常に高くつく。fflushは変わらず行うので、プロセスがクラッシュしても
+        // 内容が失われないようにしている。
+        if (m_logFile)
+        {
+            fwrite(debugStr.data(), 1, debugStr.size(), m_logFile);
+            fflush(m_logFile);
+        }
+    }
 
-	void AddLog(LogLevel level, const char* format, ...)
-	{
-		char buffer[1024];
-		va_list args;
-		va_start(args, format);
-		vsnprintf(buffer, sizeof(buffer), format, args);
-		va_end(args);
+    void AddLog(LogLevel level, const char* format, ...)
+    {
+        char buffer[1024];
+        va_list args;
+        va_start(args, format);
+        vsnprintf(buffer, sizeof(buffer), format, args);
+        va_end(args);
 
-		AddLog(level, std::string(buffer));
-	}
+        AddLog(level, std::string(buffer));
+    }
 
-	std::string SjisToUtf8(const std::string& sjisStr)
-	{
-		if (sjisStr.empty()) return "";
-		int size = MultiByteToWideChar(932, 0, sjisStr.c_str(), -1, nullptr, 0);
-		std::wstring utf16Str(size, 0);
-		MultiByteToWideChar(932, 0, sjisStr.c_str(), -1, &utf16Str[0], size);
+    std::string SjisToUtf8(const std::string& sjisStr)
+    {
+        if (sjisStr.empty())
+        {
+            return "";
+        }
+        int size = MultiByteToWideChar(932, 0, sjisStr.c_str(), -1, nullptr, 0);
+        std::wstring utf16Str(size, 0);
+        MultiByteToWideChar(932, 0, sjisStr.c_str(), -1, &utf16Str[0], size);
 
-		size = WideCharToMultiByte(CP_UTF8, 0, utf16Str.c_str(), -1, nullptr, 0, nullptr, nullptr);
-		std::string utf8Str(size, 0);
-		WideCharToMultiByte(CP_UTF8, 0, utf16Str.c_str(), -1, &utf8Str[0], size, nullptr, nullptr);
+        size = WideCharToMultiByte(CP_UTF8, 0, utf16Str.c_str(), -1, nullptr, 0, nullptr, nullptr);
+        std::string utf8Str(size, 0);
+        WideCharToMultiByte(CP_UTF8, 0, utf16Str.c_str(), -1, &utf8Str[0], size, nullptr, nullptr);
 
-		if (!utf8Str.empty() && utf8Str.back() == '\0') {
-			utf8Str.pop_back();
-		}
-		return utf8Str;
-	}
+        if (!utf8Str.empty() && utf8Str.back() == '\0')
+        {
+            utf8Str.pop_back();
+        }
+        return utf8Str;
+    }
 
-	void DrawImGuiWindow(bool* pOpen = nullptr)
-	{
-		ImGui::SetNextWindowSize(ImVec2(500, 400), ImGuiCond_FirstUseEver);
-		if (!ImGui::Begin("Log Window", pOpen))
-		{
-			ImGui::End();
-			return;
-		}
+    void DrawImGuiWindow(bool* pOpen = nullptr)
+    {
+        ImGui::SetNextWindowSize(ImVec2(500, 400), ImGuiCond_FirstUseEver);
+        if (!ImGui::Begin("Log Window", pOpen))
+        {
+            ImGui::End();
+            return;
+        }
 
-		if (ImGui::Button("Clear")) {
-			Clear();
-		}
-		ImGui::SameLine();
-		bool copy = ImGui::Button("Copy");
+        if (ImGui::Button("Clear"))
+        {
+            Clear();
+        }
+        ImGui::SameLine();
+        bool copy = ImGui::Button("Copy");
 
-		std::lock_guard<std::mutex> lock(m_mutex);
+        std::lock_guard<std::mutex> lock(m_mutex);
 
-		// 常時表示の行(ログが流れたりClearされても消えない)
-		if (!m_pinnedLines.empty()) {
-			ImGui::Separator();
-			for (const auto& pair : m_pinnedLines) {
-				ImGui::TextColored(ImVec4(0.4f, 0.9f, 1.0f, 1.0f), "%s: %s", pair.first.c_str(), pair.second.c_str());
-			}
-		}
+        // 常時表示の行(ログが流れたりClearされても消えない)
+        if (!m_pinnedLines.empty())
+        {
+            ImGui::Separator();
+            for (const auto& pair : m_pinnedLines)
+            {
+                ImGui::TextColored(ImVec4(0.4f, 0.9f, 1.0f, 1.0f), "%s: %s", pair.first.c_str(), pair.second.c_str());
+            }
+        }
 
-		ImGui::Separator();
-		ImGui::BeginChild("scrolling", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
+        ImGui::Separator();
+        ImGui::BeginChild("scrolling", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
 
-		if (copy) {
-			ImGui::LogToClipboard();
-		}
+        if (copy)
+        {
+            ImGui::LogToClipboard();
+        }
 
-		for (const auto& log : m_logs)
-		{
-			ImVec4 color;
-			switch (log.level) {
-			case LogLevel::Info:    color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f); break; // White
-			case LogLevel::Warning: color = ImVec4(1.0f, 1.0f, 0.0f, 1.0f); break; // Yellow
-			case LogLevel::Error:   color = ImVec4(1.0f, 0.2f, 0.2f, 1.0f); break; // Red
-			}
-			ImGui::PushStyleColor(ImGuiCol_Text, color);
-			std::string utf8Msg = SjisToUtf8(log.message);
-			ImGui::TextUnformatted(utf8Msg.c_str());
-			ImGui::PopStyleColor();
-		}
+        for (const auto& log : m_logs)
+        {
+            ImVec4 color;
+            switch (log.level)
+            {
+            case LogLevel::Info:
+                color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+                break; // White
+            case LogLevel::Warning:
+                color = ImVec4(1.0f, 1.0f, 0.0f, 1.0f);
+                break; // Yellow
+            case LogLevel::Error:
+                color = ImVec4(1.0f, 0.2f, 0.2f, 1.0f);
+                break; // Red
+            }
+            ImGui::PushStyleColor(ImGuiCol_Text, color);
+            std::string utf8Msg = SjisToUtf8(log.message);
+            ImGui::TextUnformatted(utf8Msg.c_str());
+            ImGui::PopStyleColor();
+        }
 
-		if (m_scrollToBottom) {
-			ImGui::SetScrollHereY(1.0f);
-			m_scrollToBottom = false;
-		}
+        if (m_scrollToBottom)
+        {
+            ImGui::SetScrollHereY(1.0f);
+            m_scrollToBottom = false;
+        }
 
-		ImGui::EndChild();
-		ImGui::End();
-	}
+        ImGui::EndChild();
+        ImGui::End();
+    }
 
-	void Clear()
-	{
-		std::lock_guard<std::mutex> lock(m_mutex);
-		m_logs.clear();
-	}
+    void Clear()
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        m_logs.clear();
+    }
 
-	// Log Window上部に「key: text」を常時表示する(同じkeyなら上書き)。
-	// 文字列はASCIIのみ想定(ログ本文と違いSJIS変換はしない)。
-	void SetPinnedLine(const std::string& key, const std::string& text)
-	{
-		std::lock_guard<std::mutex> lock(m_mutex);
-		m_pinnedLines[key] = text;
-	}
+    // Log Window上部に「key: text」を常時表示する(同じkeyなら上書き)。
+    // 文字列はASCIIのみ想定(ログ本文と違いSJIS変換はしない)。
+    void SetPinnedLine(const std::string& key, const std::string& text)
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        m_pinnedLines[key] = text;
+    }
 
-	void RemovePinnedLine(const std::string& key)
-	{
-		std::lock_guard<std::mutex> lock(m_mutex);
-		m_pinnedLines.erase(key);
-	}
+    void RemovePinnedLine(const std::string& key)
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        m_pinnedLines.erase(key);
+    }
 
 private:
-	Logger() { fopen_s(&m_logFile, "debug_log.txt", "a"); }
-	~Logger() { if (m_logFile) { fclose(m_logFile); m_logFile = nullptr; } }
-	Logger(const Logger&) = delete;
-	Logger& operator=(const Logger&) = delete;
+    Logger()
+    {
+        fopen_s(&m_logFile, "debug_log.txt", "a");
+    }
+    ~Logger()
+    {
+        if (m_logFile)
+        {
+            fclose(m_logFile);
+            m_logFile = nullptr;
+        }
+    }
+    Logger(const Logger&) = delete;
+    Logger& operator=(const Logger&) = delete;
 
-	struct LogEntry {
-		LogLevel level;
-		std::string message;
-	};
+    struct LogEntry
+    {
+        LogLevel level;
+        std::string message;
+    };
 
-	std::vector<LogEntry> m_logs;
-	std::map<std::string, std::string> m_pinnedLines;
-	std::mutex m_mutex;
-	bool m_scrollToBottom = true;
-	FILE* m_logFile = nullptr;
+    std::vector<LogEntry> m_logs;
+    std::map<std::string, std::string> m_pinnedLines;
+    std::mutex m_mutex;
+    bool m_scrollToBottom = true;
+    FILE* m_logFile = nullptr;
 };

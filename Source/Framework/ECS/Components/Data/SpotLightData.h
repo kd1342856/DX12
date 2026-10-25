@@ -10,15 +10,15 @@
 // =============================================
 struct SpotLightData
 {
-    Math::Vector3 m_color = { 1.0f, 0.95f, 0.85f };
+    Math::Vector3 m_color = {1.0f, 0.95f, 0.85f};
     float m_intensity = 3.0f;
     float m_range = 10.0f;
     float m_innerAngle = 20.0f; // 中心からこの角度(度)までは最大の明るさ
     float m_outerAngle = 30.0f; // この角度(度)で0まで減衰する
-    bool  m_enabled = true;
+    bool m_enabled = true;
 
-    Math::Vector3 m_localOffset = { 0.0f, 0.0f, 0.0f };    // 光源位置(ローカル空間。エンティティのスケールも掛かる)
-    Math::Vector3 m_localDirection = { 0.0f, 0.0f, 1.0f }; // 照らす向き(ローカル空間)
+    Math::Vector3 m_localOffset = {0.0f, 0.0f, 0.0f};    // 光源位置(ローカル空間。エンティティのスケールも掛かる)
+    Math::Vector3 m_localDirection = {0.0f, 0.0f, 1.0f}; // 照らす向き(ローカル空間)
 
     // 同じエンティティのモデル自体の発光(Emissive)。点灯中だけ m_color * m_modelGlow で光らせ、
     // Bloomの閾値を超えさせて「光っている」見た目にする。0なら発光しない。
@@ -41,23 +41,39 @@ struct LightFlickerState
 {
     float timer = 0.0f;       // 残りの点滅時間
     float toggleTimer = 0.0f; // 次に点/消を切り替えるまでの時間
-    bool  lit = true;         // 点滅中の現在の見た目
+    bool lit = true;          // 点滅中の現在の見た目
 
     void Start(float duration)
     {
-        if (timer <= 0.0f) { toggleTimer = 0.0f; lit = true; } // 次のUpdateですぐ一度消える
+        if (timer <= 0.0f)
+        {
+            toggleTimer = 0.0f;
+            lit = true;
+        } // 次のUpdateですぐ一度消える
         timer = (std::max)(timer, duration);
     }
-    bool IsFlickering() const { return timer > 0.0f; }
+    bool IsFlickering() const
+    {
+        return timer > 0.0f;
+    }
 
     // 戻り値: 見た目上消えているならtrue
     bool Update(float deltaTime)
     {
-        if (timer <= 0.0f) return false;
+        if (timer <= 0.0f)
+        {
+            return false;
+        }
         timer -= deltaTime;
-        if (timer <= 0.0f) { timer = 0.0f; lit = true; return false; }
+        if (timer <= 0.0f)
+        {
+            timer = 0.0f;
+            lit = true;
+            return false;
+        }
         toggleTimer -= deltaTime;
-        if (toggleTimer <= 0.0f) {
+        if (toggleTimer <= 0.0f)
+        {
             lit = !lit;
             // 消えている時間は短め、点いている時間は不規則に
             toggleTimer = lit ? Random::Instance().Range(0.03f, 0.25f) : Random::Instance().Range(0.02f, 0.12f);

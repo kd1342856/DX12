@@ -24,7 +24,10 @@ public:
     }
 
 private:
-    Random() : m_mt(std::random_device{}()) {}
+    Random()
+        : m_mt(std::random_device{}())
+    {
+    }
     ~Random() = default;
     Random(const Random&) = delete;
     Random& operator=(const Random&) = delete;

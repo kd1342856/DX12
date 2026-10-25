@@ -24,10 +24,10 @@ class Mesh;
 struct TextureUploadData
 {
     std::vector<uint8_t> pixels;
-    UINT        width     = 0;
-    UINT        height    = 0;
-    UINT        rowPitch  = 0;
-    DXGI_FORMAT format    = DXGI_FORMAT_UNKNOWN;
+    UINT width = 0;
+    UINT height = 0;
+    UINT rowPitch = 0;
+    DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN;
 
     AssetHandle<Texture> targetHandle;
 };
@@ -38,8 +38,8 @@ struct TextureUploadData
 struct MeshUploadData
 {
     std::vector<MeshVertex> vertices;
-    std::vector<MeshFace>   faces;
-    Material                material;
+    std::vector<MeshFace> faces;
+    Material material;
 
     AssetHandle<Mesh> targetHandle;
 };
@@ -48,8 +48,7 @@ struct MeshUploadData
 using UploadData = std::variant<
     TextureUploadData,
     MeshUploadData,
-    std::function<void()>
->;
+    std::function<void()>>;
 
 struct UploadRequest
 {

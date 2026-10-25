@@ -10,10 +10,10 @@ void FogShader::Create(GraphicsDevice* pGraphicsDevice)
 
     PipelineDesc desc;
     desc.InputLayouts = {};
-    desc.Formats = { DXGI_FORMAT_R8G8B8A8_UNORM };
-    desc.BlendMode = BlendMode::None; 
+    desc.Formats = {DXGI_FORMAT_R8G8B8A8_UNORM};
+    desc.BlendMode = BlendMode::None;
     desc.CullMode = CullMode::None;
-    desc.IsDepth = false; 
+    desc.IsDepth = false;
 
     m_topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
     m_pPipelineState = ShaderManager::Instance().GetPipelineState(m_pProgram, desc);
@@ -21,7 +21,8 @@ void FogShader::Create(GraphicsDevice* pGraphicsDevice)
 
 void FogShader::Draw(float time)
 {
-    if (!m_pProgram || !m_pPipelineState) {
+    if (!m_pProgram || !m_pPipelineState)
+    {
         GraphicsDevice::Instance().ClearBackBuffer(0.0f, 0.0f, 1.0f, 1.0f); // BLUE means shader failed to load!
         return;
     }
@@ -29,17 +30,19 @@ void FogShader::Draw(float time)
     RenderContext context;
     Begin(context);
 
-    struct FogCBuffer {
+    struct FogCBuffer
+    {
         float time;
         float pad0, pad1, pad2;
     };
-    
+
     FogCBuffer cb;
     cb.time = time;
     cb.pad0 = cb.pad1 = cb.pad2 = 0.0f;
 
     int b0 = GetRootParameterIndex(ShaderBindingType::CBV, 0);
-    if (b0 != -1) {
+    if (b0 != -1)
+    {
         GDF::Instance().BindCBuffer(b0, cb);
     }
 

@@ -9,9 +9,9 @@ static void LogGPUProfilerHResultFailure(const char* what, HRESULT hr)
 {
     char msg[256] = {};
     FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, nullptr,
-        static_cast<DWORD>(hr), 0, msg, static_cast<DWORD>(sizeof(msg)), nullptr);
+                   static_cast<DWORD>(hr), 0, msg, static_cast<DWORD>(sizeof(msg)), nullptr);
     Logger::Instance().AddLog(Logger::LogLevel::Error,
-        "[Profiler] %s failed: 0x%08X (%s)", what, static_cast<unsigned>(hr), msg);
+                              "[Profiler] %s failed: 0x%08X (%s)", what, static_cast<unsigned>(hr), msg);
 }
 
 float Profiler::GetSystemRAMUsageMB() const
@@ -29,7 +29,10 @@ float Profiler::GetSystemRAMUsageMB() const
 // ---------------------------------------------------------------
 void Profiler::InitGPU(ID3D12Device* pDevice, ID3D12CommandQueue* pQueue, uint32_t frameCount)
 {
-    if (!pDevice || !pQueue || frameCount == 0) return;
+    if (!pDevice || !pQueue || frameCount == 0)
+    {
+        return;
+    }
 
     ShutdownGPU();
 
@@ -50,7 +53,7 @@ void Profiler::InitGPU(ID3D12Device* pDevice, ID3D12CommandQueue* pQueue, uint32
     if (freq == 0)
     {
         Logger::Instance().AddLog(Logger::LogLevel::Warning,
-            "[Profiler] GPU timestamp frequency is 0 - GPU pass timings will not be reported.");
+                                  "[Profiler] GPU timestamp frequency is 0 - GPU pass timings will not be reported.");
     }
 
     D3D12_QUERY_HEAP_DESC heapDesc = {};
@@ -84,7 +87,7 @@ void Profiler::InitGPU(ID3D12Device* pDevice, ID3D12CommandQueue* pQueue, uint32
     for (uint32_t i = 0; i < frameCount; ++i)
     {
         hr = pDevice->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &bufDesc,
-            D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&m_gpuReadbackBuffers[i]));
+                                              D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&m_gpuReadbackBuffers[i]));
         if (FAILED(hr))
         {
             LogGPUProfilerHResultFailure("CreateCommittedResource (GPU timing readback buffer)", hr);
@@ -92,7 +95,7 @@ void Profiler::InitGPU(ID3D12Device* pDevice, ID3D12CommandQueue* pQueue, uint32
     }
 
     Logger::Instance().AddLog(Logger::LogLevel::Info,
-        "[Profiler] GPU timing initialized. frequency=%llu Hz, frameCount=%u", m_gpuFrequency, frameCount);
+                              "[Profiler] GPU timing initialized. frequency=%llu Hz, frameCount=%u", m_gpuFrequency, frameCount);
 }
 
 void Profiler::ShutdownGPU()
@@ -110,12 +113,18 @@ void Profiler::ShutdownGPU()
 
 void Profiler::ReadGPUResultsForSlot(uint32_t slot)
 {
-    if (slot >= m_gpuReadbackBuffers.size() || !m_gpuReadbackBuffers[slot]) return;
+    if (slot >= m_gpuReadbackBuffers.size() || !m_gpuReadbackBuffers[slot])
+    {
+        return;
+    }
 
     uint32_t count = m_gpuScopeCountPerSlot[slot];
-    if (count == 0) return;
+    if (count == 0)
+    {
+        return;
+    }
 
-    D3D12_RANGE readRange = { 0, count * 2 * sizeof(uint64_t) };
+    D3D12_RANGE readRange = {0, count * 2 * sizeof(uint64_t)};
     uint64_t* pData = nullptr;
     HRESULT hr = m_gpuReadbackBuffers[slot]->Map(0, &readRange, reinterpret_cast<void**>(&pData));
     if (SUCCEEDED(hr))
@@ -131,7 +140,7 @@ void Profiler::ReadGPUResultsForSlot(uint32_t slot)
                 m_gpuTimings[name] = ms;
             }
         }
-        D3D12_RANGE writeRange = { 0, 0 };
+        D3D12_RANGE writeRange = {0, 0};
         m_gpuReadbackBuffers[slot]->Unmap(0, &writeRange);
     }
     else
@@ -142,7 +151,10 @@ void Profiler::ReadGPUResultsForSlot(uint32_t slot)
 
 void Profiler::BeginGPUFrame(ID3D12GraphicsCommandList* pCmdList)
 {
-    if (!m_spQueryHeap) return;
+    if (!m_spQueryHeap)
+    {
+        return;
+    }
 
     // これから(再)使おうとしているスロットは、kFrameCountフレーム前に最後に書き込まれた
     // ものであり、フレームリソースのフェンス管理のルールにより、GPUは既にそれを使い終えて
@@ -155,14 +167,17 @@ void Profiler::BeginGPUFrame(ID3D12GraphicsCommandList* pCmdList)
 
 void Profiler::EndGPUFrame(ID3D12GraphicsCommandList* pCmdList)
 {
-    if (!m_spQueryHeap || !pCmdList) return;
+    if (!m_spQueryHeap || !pCmdList)
+    {
+        return;
+    }
 
     uint32_t heapOffset = m_gpuCurrentSlot * kMaxGPUScopesPerFrame * 2;
     uint32_t queryCount = m_gpuScopeCounter * 2;
     if (queryCount > 0)
     {
         pCmdList->ResolveQueryData(m_spQueryHeap.Get(), D3D12_QUERY_TYPE_TIMESTAMP,
-            heapOffset, queryCount, m_gpuReadbackBuffers[m_gpuCurrentSlot].Get(), 0);
+                                   heapOffset, queryCount, m_gpuReadbackBuffers[m_gpuCurrentSlot].Get(), 0);
     }
     m_gpuScopeCountPerSlot[m_gpuCurrentSlot] = m_gpuScopeCounter;
 
@@ -171,7 +186,10 @@ void Profiler::EndGPUFrame(ID3D12GraphicsCommandList* pCmdList)
 
 uint32_t Profiler::BeginGPUScope(ID3D12GraphicsCommandList* pCmdList, const std::string& name)
 {
-    if (!m_spQueryHeap || !pCmdList || m_gpuScopeCounter >= kMaxGPUScopesPerFrame) return UINT32_MAX;
+    if (!m_spQueryHeap || !pCmdList || m_gpuScopeCounter >= kMaxGPUScopesPerFrame)
+    {
+        return UINT32_MAX;
+    }
 
     uint32_t index = m_gpuScopeCounter++;
     uint32_t heapIndex = m_gpuCurrentSlot * kMaxGPUScopesPerFrame * 2 + index * 2;
@@ -182,7 +200,10 @@ uint32_t Profiler::BeginGPUScope(ID3D12GraphicsCommandList* pCmdList, const std:
 
 void Profiler::EndGPUScope(ID3D12GraphicsCommandList* pCmdList, uint32_t scopeHandle)
 {
-    if (!m_spQueryHeap || !pCmdList || scopeHandle == UINT32_MAX) return;
+    if (!m_spQueryHeap || !pCmdList || scopeHandle == UINT32_MAX)
+    {
+        return;
+    }
 
     uint32_t heapIndex = m_gpuCurrentSlot * kMaxGPUScopesPerFrame * 2 + scopeHandle * 2 + 1;
     pCmdList->EndQuery(m_spQueryHeap.Get(), D3D12_QUERY_TYPE_TIMESTAMP, heapIndex);
@@ -233,7 +254,8 @@ void Profiler::BeginCPUFrame()
 void Profiler::ReportFrameSpike(float frameMs) const
 {
     std::vector<std::pair<std::string, float>> sorted(m_cpuTimings.begin(), m_cpuTimings.end());
-    std::sort(sorted.begin(), sorted.end(), [](const auto& a, const auto& b) { return a.second > b.second; });
+    std::sort(sorted.begin(), sorted.end(), [](const auto& a, const auto& b)
+    { return a.second > b.second; });
 
     // 区間は入れ子になっている(SceneManager::Updateの中にShadow等がある)ので合計は一致しない
     std::string detail;
@@ -246,5 +268,5 @@ void Profiler::ReportFrameSpike(float frameMs) const
     }
 
     Logger::Instance().AddLog(Logger::LogLevel::Warning,
-        "[Spike] frame %.1fms (avg %.1fms) : %s", frameMs, m_avgFrameMs, detail.c_str());
+                              "[Spike] frame %.1fms (avg %.1fms) : %s", frameMs, m_avgFrameMs, detail.c_str());
 }

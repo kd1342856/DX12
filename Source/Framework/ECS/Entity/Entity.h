@@ -22,6 +22,7 @@ using Signature = std::bitset<MAX_COMPONENTS>;
 class EntityManager
 {
     std::mutex m_mutex;
+
 public:
     EntityManager()
     {
@@ -31,7 +32,7 @@ public:
         }
     }
 
-        Entity AllocateEntity()
+    Entity AllocateEntity()
     {
         std::lock_guard<std::mutex> lock(m_mutex);
         assert(m_livingEntityCount < MAX_ENTITIES);
@@ -84,7 +85,10 @@ public:
 
     bool IsAlive(Entity entity) const
     {
-        if (entity >= MAX_ENTITIES) return false;
+        if (entity >= MAX_ENTITIES)
+        {
+            return false;
+        }
         return m_alive[entity];
     }
 

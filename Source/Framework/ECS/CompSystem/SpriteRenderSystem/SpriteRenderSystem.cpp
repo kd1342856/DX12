@@ -3,15 +3,23 @@
 #include "SpriteRenderSystem.h"
 #include <SpriteBatch.h>
 
-void SpriteRenderSystem::Update(float deltaTime) {
+void SpriteRenderSystem::Update(float deltaTime)
+{
 }
 
-void SpriteRenderSystem::Render() {
-    if (!m_pCoordinator) return;
+void SpriteRenderSystem::Render()
+{
+    if (!m_pCoordinator)
+    {
+        return;
+    }
 
     auto pGraphicsDevice = &GraphicsDevice::Instance();
     auto pSpriteBatch = pGraphicsDevice->GetSpriteBatch();
-    if (!pSpriteBatch) return;
+    if (!pSpriteBatch)
+    {
+        return;
+    }
 
     D3D12_VIEWPORT viewport = {};
     viewport.Width = 1280.0f;
@@ -29,20 +37,22 @@ void SpriteRenderSystem::Render() {
         auto& cTransform = m_pCoordinator->GetComponent<TransformData>(entity);
 
         // Request texture load if not loaded
-        if (!cSprite.m_spTexture && !cSprite.m_filePath.empty()) {
+        if (!cSprite.m_spTexture && !cSprite.m_filePath.empty())
+        {
             cSprite.m_spTexture = ResourceManager::Instance().LoadTextureAsync(cSprite.m_filePath);
         }
 
         // Skip if texture is not ready
-        if (!cSprite.m_spTexture || !cSprite.m_spTexture->m_resource) {
+        if (!cSprite.m_spTexture || !cSprite.m_spTexture->m_resource)
+        {
             continue;
         }
 
         // Get 2D position and scale from TransformData
         Math::Vector3 pos = cTransform.m_position;
         Math::Vector3 scale = cTransform.m_scale;
-        
-        float rotZ = 0.0f; 
+
+        float rotZ = 0.0f;
 
         auto desc = cSprite.m_spTexture->m_resource->GetDesc();
         DirectX::XMUINT2 texSize((uint32_t)desc.Width, (uint32_t)desc.Height);
@@ -50,27 +60,25 @@ void SpriteRenderSystem::Render() {
         // Calculate pivot (origin)
         DirectX::XMFLOAT2 origin(
             (float)desc.Width * cSprite.m_pivot.x,
-            (float)desc.Height * cSprite.m_pivot.y
-        );
+            (float)desc.Height * cSprite.m_pivot.y);
 
         // Calculate draw scale
         DirectX::XMFLOAT2 drawScale(
             (cSprite.m_size.x / (float)desc.Width) * scale.x,
-            (cSprite.m_size.y / (float)desc.Height) * scale.y
-        );
+            (cSprite.m_size.y / (float)desc.Height) * scale.y);
 
         // Screen position
         DirectX::XMFLOAT2 screenPos(pos.x, pos.y);
 
         pSpriteBatch->Draw(
             pGraphicsDevice->GetDescriptorHeapManager()->GetCBVSRVUAVAllocator()->GetGPUHandle(cSprite.m_spTexture->m_srvNumber), // Texture2D
-            texSize, // Get size
-            screenPos, // Position
-            nullptr, // Source Rect (null = full image)
-            cSprite.m_color, // Color
-            rotZ, // Rotation
-            origin, // Origin (Pivot)
-            drawScale, // Scale
+            texSize,                                                                                                              // Get size
+            screenPos,                                                                                                            // Position
+            nullptr,                                                                                                              // Source Rect (null = full image)
+            cSprite.m_color,                                                                                                      // Color
+            rotZ,                                                                                                                 // Rotation
+            origin,                                                                                                               // Origin (Pivot)
+            drawScale,                                                                                                            // Scale
             DirectX::SpriteEffects_None,
             (float)cSprite.m_orderInLayer / 100.0f // Layer Depth
         );
@@ -81,12 +89,21 @@ void SpriteRenderSystem::Render() {
 
 bool SpriteRenderSystem::IsMouseOver(Entity entity) const
 {
-    if (!m_pCoordinator || entity == INVALID_ENTITY) return false;
-    if (ImGui::GetIO().WantCaptureMouse) return false;
+    if (!m_pCoordinator || entity == INVALID_ENTITY)
+    {
+        return false;
+    }
+    if (ImGui::GetIO().WantCaptureMouse)
+    {
+        return false;
+    }
 
     auto* pSprite = m_pCoordinator->TryGetComponent<SpriteData>(entity);
     auto* pTransform = m_pCoordinator->TryGetComponent<TransformData>(entity);
-    if (!pSprite || !pTransform) return false;
+    if (!pSprite || !pTransform)
+    {
+        return false;
+    }
 
     // クライアント座標 -> Render()のビューポート(1280x720)座標へ変換
     auto& input = Input::Instance();
@@ -94,7 +111,10 @@ bool SpriteRenderSystem::IsMouseOver(Entity entity) const
     GetClientRect(input.GetHWnd(), &rc);
     float cw = (float)(rc.right - rc.left);
     float ch = (float)(rc.bottom - rc.top);
-    if (cw <= 0.0f || ch <= 0.0f) return false;
+    if (cw <= 0.0f || ch <= 0.0f)
+    {
+        return false;
+    }
     float mx = (float)input.GetMouseX() * (1280.0f / cw);
     float my = (float)input.GetMouseY() * (720.0f / ch);
 
@@ -102,7 +122,7 @@ bool SpriteRenderSystem::IsMouseOver(Entity entity) const
     float w = pSprite->m_size.x * pTransform->m_scale.x;
     float h = pSprite->m_size.y * pTransform->m_scale.y;
     float left = pTransform->m_position.x - w * pSprite->m_pivot.x;
-    float top  = pTransform->m_position.y - h * pSprite->m_pivot.y;
+    float top = pTransform->m_position.y - h * pSprite->m_pivot.y;
     return mx >= left && mx <= left + w && my >= top && my <= top + h;
 }
 
@@ -110,6 +130,3 @@ bool SpriteRenderSystem::IsClicked(Entity entity) const
 {
     return Input::Instance().IsMouseLeftTrigger() && IsMouseOver(entity);
 }
-
-
-

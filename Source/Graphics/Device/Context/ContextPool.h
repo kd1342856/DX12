@@ -5,12 +5,15 @@
 #include <memory>
 #include <mutex>
 
-template<class T>
+template <class T>
 class ContextPool
 {
 public:
     ContextPool() = default;
-    ~ContextPool() { Shutdown(); }
+    ~ContextPool()
+    {
+        Shutdown();
+    }
 
     void Init(ID3D12Device* pDevice)
     {
@@ -35,10 +38,10 @@ public:
         {
             return nullptr;
         }
-        
+
         T* pCtx = newCtx.get();
         m_contexts.push_back(std::move(newCtx));
-        
+
         pCtx->Begin();
         return pCtx;
     }
@@ -52,7 +55,7 @@ public:
     void Shutdown()
     {
         std::lock_guard<std::mutex> lock(m_mutex);
-        
+
         for (auto& ctx : m_contexts)
         {
             ctx->Shutdown();

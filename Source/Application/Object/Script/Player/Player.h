@@ -3,7 +3,8 @@
 #include "../../../../Framework/Manager/Audio/AudioManager.h"
 #include "../System/RoomArea.h"
 
-class Player : public NativeScript {
+class Player : public NativeScript
+{
 public:
     using Item = ItemType;
 
@@ -23,13 +24,28 @@ public:
     // Called by PickupItem. Sets the matching possession flag and auto-equips if not yet equipped.
     void AddItem(ItemType item);
     bool HasItem(ItemType item) const;
-    void SetFlashLightOn(bool on) { m_flashLightOn = on; }
-    bool IsFlashLightOn() const { return m_flashLightOn; }
+    void SetFlashLightOn(bool on)
+    {
+        m_flashLightOn = on;
+    }
+    bool IsFlashLightOn() const
+    {
+        return m_flashLightOn;
+    }
     // Ghost interference: makes the beam flicker for a while (stays on - only the look flickers).
-    void FlickerFlashLight(float duration) { m_flashLightFlicker.Start(duration); }
-    bool IsFlashLightFlickering() const { return m_flashLightFlicker.IsFlickering(); }
+    void FlickerFlashLight(float duration)
+    {
+        m_flashLightFlicker.Start(duration);
+    }
+    bool IsFlashLightFlickering() const
+    {
+        return m_flashLightFlicker.IsFlickering();
+    }
     // 点灯したフラッシュライトを手に持っている(装備中)か。ハント中のGhostはこれを目印に向かってくる
-    bool IsHoldingLitFlashLight() const { return m_flashLightOn && m_hasFlashLight && m_currentEquipped == Item::FlashLight; }
+    bool IsHoldingLitFlashLight() const
+    {
+        return m_flashLightOn && m_hasFlashLight && m_currentEquipped == Item::FlashLight;
+    }
     // G key: lightly tosses the equipped item from hand height along the camera's view, as a
     // PickupItem (spawned from Asset/Data/Prefab/<item>.json, see PickupItem::Launch), and equips
     // the next owned item, if any.
@@ -37,8 +53,14 @@ public:
 
     //しゃがみ具合(0=立ち,1=完全にしゃがみ)。Crouchアニメーションの実際の再生位置と同期しているので、
     // カメラの高さもこれに合わせるとアニメーションとズレない。
-    float GetCrouchAmount() const { return m_crouchBlend; }
-    bool IsCrouching() const { return m_isCrouching; }
+    float GetCrouchAmount() const
+    {
+        return m_crouchBlend;
+    }
+    bool IsCrouching() const
+    {
+        return m_isCrouching;
+    }
 
 private:
     // Fキーでドアを開閉する処理
@@ -48,8 +70,8 @@ private:
     // 足音は歩いている間ループ再生し、止まったら停止する。床の種類(FloorType)ごとに音を切り替える:
     // いる部屋(RoomArea)の床の種類、どの部屋にも入っていなければ家の外(土)とみなす
     std::unique_ptr<DirectX::SoundEffectInstance> m_footstepSounds[3]; // FloorTypeの順(木/畳/土)
-    float m_footstepVolumes[3] = { 0.6f, 0.6f, 0.6f };
-    float m_crouchFootstepScale = 0.4f;     // しゃがみ歩きの足音の音量倍率
+    float m_footstepVolumes[3] = {0.6f, 0.6f, 0.6f};
+    float m_crouchFootstepScale = 0.4f; // しゃがみ歩きの足音の音量倍率
     FloorType m_currentFloor = FloorType::Wood;
     FloorType DetectFloorType(const Math::Vector3& pos) const;
     float m_flashLightSoundVolume = 1.0f;
@@ -97,7 +119,7 @@ private:
     Entity m_incenseIconEntity = INVALID_ENTITY;
     Entity m_amuletIconEntity = INVALID_ENTITY;
     Entity m_flashLightIconEntity = INVALID_ENTITY;
-    Entity m_itemSlotEntities[kItemSlotCount] = { INVALID_ENTITY, INVALID_ENTITY, INVALID_ENTITY };
+    Entity m_itemSlotEntities[kItemSlotCount] = {INVALID_ENTITY, INVALID_ENTITY, INVALID_ENTITY};
 
     // 所持アイテムを拾った順に並べたもの。スロットN(とキーN)にはN番目に拾ったアイテムが入る。
     // AddItemで末尾に追加し、捨てたら詰める。シーンから読んだ初期所持品はSyncItemOrder()が既定順で補う。
@@ -124,12 +146,12 @@ private:
     // hand swings a lot at the end of a long bone chain. Instead, m_heldItemOffset is auto-calibrated
     // ONCE from the real Attach_RightHand bone's idle rest position (see CalibrateHeldItemOffset), so
     // it starts out actually at the hand, then stays perfectly fixed there for the rest of the session.
-    Math::Vector3 m_heldItemOffset = { 0.35f, 1.0f, 0.3f };
+    Math::Vector3 m_heldItemOffset = {0.35f, 1.0f, 0.3f};
     bool m_heldItemOffsetCalibrated = false;
     // Extra local rotation (degrees, X/Y/Z) applied on top of the player's yaw, to correct the held
     // model's own base orientation (e.g. a model's authored "up" not matching how it should sit
     // in-hand). Tunable live from ImGuiUpdate().
-    Math::Vector3 m_heldItemExtraRotationDeg = { 0.0f, 90.0f, 0.0f };
+    Math::Vector3 m_heldItemExtraRotationDeg = {0.0f, 90.0f, 0.0f};
     // Waits for the player to stand still holding the same item for a bit before calibrating, so
     // the UseItem_Idle "presenting" pose has actually taken effect (see UpdateHeldItemAttach).
     Entity m_calibWaitEntity = INVALID_ENTITY;
@@ -157,7 +179,13 @@ private:
     bool CalibrateHeldItemOffset(const Math::Vector3& playerPos, float playerYaw);
 
     // --- F-key interaction (doors + pickups) ---
-    enum class InteractKind { None, Door, Pickup, Stimulus };
+    enum class InteractKind
+    {
+        None,
+        Door,
+        Pickup,
+        Stimulus
+    };
     InteractKind m_interactKind = InteractKind::None;
     // Only meaningful when m_interactKind == Pickup/Stimulus: the targeted PickupItem's/StimulusSource's entity.
     Entity m_interactEntity = INVALID_ENTITY;
@@ -184,7 +212,12 @@ private:
     // ドアの蝶番は開閉時に平行移動せず(回転するだけ)、そのワールド位置は不変なので
     // 一度計算すれば十分 - 遅延キャッシュしておき、毎フレームは距離+向きの安い判定
     // だけを行うようにする。
-    struct DoorCandidate { Entity entity; int animIndex; Math::Vector3 worldPos; };
+    struct DoorCandidate
+    {
+        Entity entity;
+        int animIndex;
+        Math::Vector3 worldPos;
+    };
     mutable std::vector<DoorCandidate> m_doorCandidateCache;
     mutable bool m_doorCandidateCacheBuilt = false;
     void RebuildDoorCandidateCache() const;
@@ -196,7 +229,7 @@ private:
     std::string m_lastAnimClip; // 直近に再生要求したクリップ名(Crouchの再生し直し防止用)
 
     bool m_isCrouching = false;
-    float m_crouchBlend = 0.0f; // 0=立ち,1=完全にしゃがみ。毎フレーム目標値へ滑らかに近づける
+    float m_crouchBlend = 0.0f;      // 0=立ち,1=完全にしゃがみ。毎フレーム目標値へ滑らかに近づける
     float m_crouchBlendSpeed = 6.0f; // 大きいほど素早く追従する
     // Ctrlを押してからカメラが動き出すまでの遅延(秒)。
     // アニメーション側の動き出しのラグに合わせて調整する。
@@ -215,4 +248,3 @@ private:
     // (same condition UpdateHeldItem() uses to decide visibility).
     bool IsHoldingVisibleItem() const;
 };
-

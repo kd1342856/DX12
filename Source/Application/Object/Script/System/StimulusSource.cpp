@@ -15,10 +15,14 @@ void StimulusSource::Start()
 
 void StimulusSource::Update(float deltaTime)
 {
-    if (m_flickerTimer <= 0.0f) return;
+    if (m_flickerTimer <= 0.0f)
+    {
+        return;
+    }
 
     m_flickerTimer -= deltaTime;
-    if (m_flickerTimer <= 0.0f || !m_isActive) {
+    if (m_flickerTimer <= 0.0f || !m_isActive)
+    {
         // 点滅終了(または途中で消灯された): 本来の点灯状態に戻す
         m_flickerTimer = 0.0f;
         ApplyToLights();
@@ -26,7 +30,8 @@ void StimulusSource::Update(float deltaTime)
     }
 
     m_flickerToggleTimer -= deltaTime;
-    if (m_flickerToggleTimer <= 0.0f) {
+    if (m_flickerToggleTimer <= 0.0f)
+    {
         m_flickerLit = !m_flickerLit;
         // 消えている時間は短め、点いている時間は不規則にして電気が不安定な感じを出す
         m_flickerToggleTimer = m_flickerLit ? Random::Instance().Range(0.03f, 0.25f)
@@ -37,8 +42,12 @@ void StimulusSource::Update(float deltaTime)
 
 void StimulusSource::Flicker(float duration)
 {
-    if (m_type != StimulusType::Light || !m_isActive) return;
-    if (m_flickerTimer <= 0.0f) {
+    if (m_type != StimulusType::Light || !m_isActive)
+    {
+        return;
+    }
+    if (m_flickerTimer <= 0.0f)
+    {
         m_flickerToggleTimer = 0.0f; // 次のUpdateですぐ一度消える
         m_flickerLit = true;
     }
@@ -47,7 +56,10 @@ void StimulusSource::Flicker(float duration)
 
 void StimulusSource::SetActive(bool active)
 {
-    if (m_isActive == active) return;
+    if (m_isActive == active)
+    {
+        return;
+    }
     m_isActive = active;
     m_flickerTimer = 0.0f;
     ApplyToLights();
@@ -60,18 +72,25 @@ void StimulusSource::ApplyToLights()
 
 void StimulusSource::SetLightsEnabled(bool enabled)
 {
-    if (m_type != StimulusType::Light || !m_pGameObject) return;
+    if (m_type != StimulusType::Light || !m_pGameObject)
+    {
+        return;
+    }
 
     // ランプのモデル構成によってはライトが子オブジェクト側に付いているため、子階層も辿る
     auto& ecs = GameManager::Instance().GetECS();
-    std::function<void(GameObject*)> apply = [&](GameObject* obj) {
-        if (auto* pLight = ecs.TryGetComponent<PointLightData>(obj->GetEntityID())) {
+    std::function<void(GameObject*)> apply = [&](GameObject* obj)
+    {
+        if (auto* pLight = ecs.TryGetComponent<PointLightData>(obj->GetEntityID()))
+        {
             pLight->m_enabled = enabled;
         }
-        if (auto* pSpot = ecs.TryGetComponent<SpotLightData>(obj->GetEntityID())) {
+        if (auto* pSpot = ecs.TryGetComponent<SpotLightData>(obj->GetEntityID()))
+        {
             pSpot->m_enabled = enabled;
         }
-        for (auto& child : obj->GetChildren()) {
+        for (auto& child : obj->GetChildren())
+        {
             apply(child.get());
         }
     };
@@ -80,12 +99,14 @@ void StimulusSource::SetLightsEnabled(bool enabled)
 
 void StimulusSource::PlayToggleSound() const
 {
-    if (m_controlledBySwitch && m_ownerSwitch) {
+    if (m_controlledBySwitch && m_ownerSwitch)
+    {
         m_ownerSwitch->PlaySwitchSound();
         return;
     }
     const char* path = "Asset/Sound/SE/kabe_switch.wav"; // ラジカセ等(専用の音がまだない)
-    if (m_type == StimulusType::Light) {
+    if (m_type == StimulusType::Light)
+    {
         path = m_isActive ? "Asset/Sound/SE/keikoutou_on.wav" : "Asset/Sound/SE/keikoutou_off.wav";
     }
     AudioManager::Instance().PlaySEAt(path, GetWorldPosition(), m_soundVolume);
@@ -93,10 +114,16 @@ void StimulusSource::PlayToggleSound() const
 
 Math::Vector3 StimulusSource::GetWorldPosition() const
 {
-    if (!m_pGameObject) return Math::Vector3::Zero;
+    if (!m_pGameObject)
+    {
+        return Math::Vector3::Zero;
+    }
     auto& ecs = GameManager::Instance().GetECS();
     auto* pTrans = ecs.TryGetComponent<TransformData>(m_pGameObject->GetEntityID());
-    if (!pTrans) return Math::Vector3::Zero;
+    if (!pTrans)
+    {
+        return Math::Vector3::Zero;
+    }
     return pTrans->m_worldMatrix.Translation();
 }
 
@@ -106,12 +133,19 @@ StimulusSource* StimulusSource::FindNearestActive(StimulusType type, const Math:
     StimulusSource* best = nullptr;
     float bestDist = FLT_MAX;
 
-    for (auto& scriptData : ecs.GetComponentArray<NativeScriptData>()) {
+    for (auto& scriptData : ecs.GetComponentArray<NativeScriptData>())
+    {
         auto* src = dynamic_cast<StimulusSource*>(scriptData.Instance.get());
-        if (!src || !src->m_isActive || src->m_type != type) continue;
+        if (!src || !src->m_isActive || src->m_type != type)
+        {
+            continue;
+        }
 
         float dist = Math::Vector3::Distance(pos, src->GetWorldPosition());
-        if (dist > src->m_radius || dist >= bestDist) continue;
+        if (dist > src->m_radius || dist >= bestDist)
+        {
+            continue;
+        }
         best = src;
         bestDist = dist;
     }
@@ -121,40 +155,67 @@ StimulusSource* StimulusSource::FindNearestActive(StimulusType type, const Math:
 void StimulusSource::Serialize(nlohmann::json& out) const
 {
     out["StimulusType"] = static_cast<int>(m_type);
-    out["Active"]       = m_isActive;
-    out["Radius"]       = m_radius;
+    out["Active"] = m_isActive;
+    out["Radius"] = m_radius;
     out["Interactable"] = m_interactable;
-    out["RoomLight"]    = m_isRoomLight;
-    out["SoundVolume"]  = m_soundVolume;
+    out["RoomLight"] = m_isRoomLight;
+    out["SoundVolume"] = m_soundVolume;
 }
 
 void StimulusSource::Deserialize(const nlohmann::json& in)
 {
-    if (in.contains("StimulusType")) m_type = static_cast<StimulusType>((int)in["StimulusType"]);
-    if (in.contains("Active"))       m_isActive = in["Active"];
-    if (in.contains("Radius"))       m_radius = in["Radius"];
-    if (in.contains("Interactable")) m_interactable = in["Interactable"];
-    if (in.contains("RoomLight"))    m_isRoomLight = in["RoomLight"];
-    if (in.contains("SoundVolume"))  m_soundVolume = in["SoundVolume"];
+    if (in.contains("StimulusType"))
+    {
+        m_type = static_cast<StimulusType>((int)in["StimulusType"]);
+    }
+    if (in.contains("Active"))
+    {
+        m_isActive = in["Active"];
+    }
+    if (in.contains("Radius"))
+    {
+        m_radius = in["Radius"];
+    }
+    if (in.contains("Interactable"))
+    {
+        m_interactable = in["Interactable"];
+    }
+    if (in.contains("RoomLight"))
+    {
+        m_isRoomLight = in["RoomLight"];
+    }
+    if (in.contains("SoundVolume"))
+    {
+        m_soundVolume = in["SoundVolume"];
+    }
 }
 
 void StimulusSource::ImGuiUpdate()
 {
     int current = static_cast<int>(m_type);
-    const char* names[] = { "Light (Lamp)", "Sound (Radio)" };
-    if (ImGui::Combo("Stimulus Type", &current, names, IM_ARRAYSIZE(names))) {
+    const char* names[] = {"Light (Lamp)", "Sound (Radio)"};
+    if (ImGui::Combo("Stimulus Type", &current, names, IM_ARRAYSIZE(names)))
+    {
         m_type = static_cast<StimulusType>(current);
     }
     bool active = m_isActive;
-    if (ImGui::Checkbox("Active", &active)) {
+    if (ImGui::Checkbox("Active", &active))
+    {
         SetActive(active);
     }
     ImGui::DragFloat("Radius", &m_radius, 0.1f, 0.5f, 50.0f);
     ImGui::Checkbox("Interactable (F key)", &m_interactable);
     ImGui::SliderFloat("Sound Volume", &m_soundVolume, 0.0f, 1.0f);
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"本体(紐スイッチ)をon/offした時の音量。壁スイッチ接続中はスイッチ側の音量を使う");
-    if (m_type == StimulusType::Light) {
+    if (ImGui::IsItemHovered())
+    {
+        ImGui::SetTooltip(u8"本体(紐スイッチ)をon/offした時の音量。壁スイッチ接続中はスイッチ側の音量を使う");
+    }
+    if (m_type == StimulusType::Light)
+    {
         ImGui::Checkbox("Room Light", &m_isRoomLight);
-        if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"部屋の電気(天井照明等)か。ランプ等の小さな明かりはオフにする。\n影女の退治条件はオンの照明だけを数える。");
+        if (ImGui::IsItemHovered())
+        {
+            ImGui::SetTooltip(u8"部屋の電気(天井照明等)か。ランプ等の小さな明かりはオフにする。\n影女の退治条件はオンの照明だけを数える。");
+        }
     }
 }

@@ -44,15 +44,27 @@ public:
     // シェーダーリソーステーブルにセット
     void Set(int index);
 
-    int GetSRVNumber() const { return m_srvNumber; }
+    int GetSRVNumber() const
+    {
+        return m_srvNumber;
+    }
 
     // ----------------------------------------------------------
     // AssetState：描画前に IsReady() を確認すること
     // GPU アップロード前は m_resource == nullptr の可能性がある
     // ----------------------------------------------------------
-    AssetState GetState() const { return m_state; }
-    void SetState(AssetState state) { m_state = state; }
-    bool IsReady() const { return m_state == AssetState::Ready; }
+    AssetState GetState() const
+    {
+        return m_state;
+    }
+    void SetState(AssetState state)
+    {
+        m_state = state;
+    }
+    bool IsReady() const
+    {
+        return m_state == AssetState::Ready;
+    }
 
 public:
     int m_srvNumber = 0;

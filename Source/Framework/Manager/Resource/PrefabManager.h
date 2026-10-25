@@ -1,7 +1,8 @@
 #pragma once
 #include "../../../../Library/nlohmann/json.hpp"
 
-class PrefabManager {
+class PrefabManager
+{
 public:
     static PrefabManager& Instance();
 
@@ -15,4 +16,3 @@ private:
 
     std::unordered_map<std::string, nlohmann::json> m_prefabCache;
 };
-

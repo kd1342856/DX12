@@ -5,7 +5,10 @@
 
 void Material::Bind(GraphicsDevice* pDevice)
 {
-	if (!m_pProgram) return;
+    if (!m_pProgram)
+    {
+        return;
+    }
 
-	// In the future, this will map to PipelineState or Constant Buffer binding
+    // In the future, this will map to PipelineState or Constant Buffer binding
 }

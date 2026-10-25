@@ -1,24 +1,31 @@
 #pragma once
 
 class NativeScript;
-class ClassAssembly {
+class ClassAssembly
+{
 public:
     static ClassAssembly& Instance();
 
-    void RegisterComponentType(const std::string& className, std::function<std::shared_ptr<NativeScript>()> factory) {
+    void RegisterComponentType(const std::string& className, std::function<std::shared_ptr<NativeScript>()> factory)
+    {
         m_factories[className] = factory;
         m_registeredClasses.push_back(className);
     }
 
-    std::shared_ptr<NativeScript> Create(const std::string& className) {
+    std::shared_ptr<NativeScript> Create(const std::string& className)
+    {
         auto it = m_factories.find(className);
-        if (it != m_factories.end()) {
+        if (it != m_factories.end())
+        {
             return it->second();
         }
         return nullptr;
     }
 
-    const std::vector<std::string>& GetRegisteredClasses() const { return m_registeredClasses; }
+    const std::vector<std::string>& GetRegisteredClasses() const
+    {
+        return m_registeredClasses;
+    }
 
 private:
     std::unordered_map<std::string, std::function<std::shared_ptr<NativeScript>()>> m_factories;
@@ -26,9 +33,11 @@ private:
 };
 
 #define REGISTER_COMPONENT(Type) \
-    class Type##_Register { \
+    class Type##_Register \
+    { \
     public: \
-        Type##_Register() { \
+        Type##_Register() \
+        { \
             ClassAssembly::Instance().RegisterComponentType(#Type, []() { return std::make_shared<Type>(); }); \
         } \
     }; \

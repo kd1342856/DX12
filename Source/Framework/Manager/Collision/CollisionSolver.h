@@ -1,7 +1,8 @@
 #pragma once
 #include "CollisionShape.h"
 
-namespace CollisionSolver {
+namespace CollisionSolver
+{
 
     Math::Vector3 ClosestPointOnSegmentToPoint(const Math::Vector3& A, const Math::Vector3& B, const Math::Vector3& P);
 

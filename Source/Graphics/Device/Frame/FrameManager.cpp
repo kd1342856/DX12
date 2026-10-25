@@ -15,8 +15,8 @@ bool FrameManager::Init(GraphicsDevice* pDevice)
         }
     }
     m_frameIndex = 0;
-	m_pDevice = pDevice;
-	return true;
+    m_pDevice = pDevice;
+    return true;
 }
 
 void FrameManager::Shutdown()
@@ -26,16 +26,13 @@ void FrameManager::Shutdown()
 
 FrameResource& FrameManager::AcquireFrame()
 {
-	const int frameIdx = m_frameIndex % kFrameCount;
-	FrameResource& fr = m_frames[frameIdx];
-	m_pDevice->GetQueueManager()->GetGraphicsQueue()->WaitForFence(fr.GetFenceValue());
-	return fr;
+    const int frameIdx = m_frameIndex % kFrameCount;
+    FrameResource& fr = m_frames[frameIdx];
+    m_pDevice->GetQueueManager()->GetGraphicsQueue()->WaitForFence(fr.GetFenceValue());
+    return fr;
 }
 
 void FrameManager::MoveNextFrame()
 {
     m_frameIndex++;
 }
-
-
-

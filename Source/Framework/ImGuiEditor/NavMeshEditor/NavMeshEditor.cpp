@@ -29,17 +29,38 @@ void NavMeshEditor::Draw(EditorContext& ctx)
             "which is currently unused. \"Bake NavMesh\" below builds the room-based NavMesh "
             "instead, which ignores all of these.");
         ImGui::Separator();
-        if (ImGui::SliderFloat("Cell Size", &settings.cellSize, 0.05f, 1.0f, "%.2f")) settingsChanged = true;
-        if (ImGui::SliderFloat("Cell Height", &settings.cellHeight, 0.05f, 1.0f, "%.2f")) settingsChanged = true;
+        if (ImGui::SliderFloat("Cell Size", &settings.cellSize, 0.05f, 1.0f, "%.2f"))
+        {
+            settingsChanged = true;
+        }
+        if (ImGui::SliderFloat("Cell Height", &settings.cellHeight, 0.05f, 1.0f, "%.2f"))
+        {
+            settingsChanged = true;
+        }
         ImGui::Separator();
-        if (ImGui::SliderFloat("Agent Radius", &settings.agentRadius, 0.1f, 2.0f, "%.2f")) settingsChanged = true;
-        if (ImGui::SliderFloat("Agent Height", &settings.agentHeight, 0.5f, 5.0f, "%.2f")) settingsChanged = true;
-        if (ImGui::SliderFloat("Max Climb", &settings.agentMaxClimb, 0.0f, 2.0f, "%.2f")) settingsChanged = true;
-        if (ImGui::SliderFloat("Max Slope", &settings.agentMaxSlope, 0.0f, 90.0f, "%.1f")) settingsChanged = true;
-        
+        if (ImGui::SliderFloat("Agent Radius", &settings.agentRadius, 0.1f, 2.0f, "%.2f"))
+        {
+            settingsChanged = true;
+        }
+        if (ImGui::SliderFloat("Agent Height", &settings.agentHeight, 0.5f, 5.0f, "%.2f"))
+        {
+            settingsChanged = true;
+        }
+        if (ImGui::SliderFloat("Max Climb", &settings.agentMaxClimb, 0.0f, 2.0f, "%.2f"))
+        {
+            settingsChanged = true;
+        }
+        if (ImGui::SliderFloat("Max Slope", &settings.agentMaxSlope, 0.0f, 90.0f, "%.1f"))
+        {
+            settingsChanged = true;
+        }
+
         ImGui::Separator();
-        
-        if (ImGui::Checkbox("Use Seed Point", &settings.useSeedPoint)) settingsChanged = true;
+
+        if (ImGui::Checkbox("Use Seed Point", &settings.useSeedPoint))
+        {
+            settingsChanged = true;
+        }
         if (settings.useSeedPoint)
         {
             ImGui::Text("Seed Point: (%.2f, %.2f, %.2f)", settings.seedPoint.x, settings.seedPoint.y, settings.seedPoint.z);
@@ -65,7 +86,7 @@ void NavMeshEditor::Draw(EditorContext& ctx)
         if (!gs)
         {
             Logger::Instance().AddLog(Logger::LogLevel::Error,
-                "NavMesh Editor: Bake failed - GameSequence not initialized yet (rooms not loaded).");
+                                      "NavMesh Editor: Bake failed - GameSequence not initialized yet (rooms not loaded).");
         }
         else if (navMeshManager.BuildManualNavMesh(gs->GetRooms()))
         {
@@ -89,7 +110,10 @@ void NavMeshEditor::Draw(EditorContext& ctx)
                 for (auto& obj : scene->GetGameObjects())
                 {
                     camData = GameManager::Instance().GetECS().TryGetComponent<CameraData>(obj->GetEntityID());
-                    if (camData) break;
+                    if (camData)
+                    {
+                        break;
+                    }
                 }
 
                 if (camData)
@@ -99,13 +123,9 @@ void NavMeshEditor::Draw(EditorContext& ctx)
                     float screenW = ImGui::GetIO().DisplaySize.x;
                     float screenH = ImGui::GetIO().DisplaySize.y;
 
-                    Math::Vector3 nearPoint = Math::Viewport(0, 0, screenW, screenH).Unproject(
-                        Math::Vector3((float)mouseX, (float)mouseY, 0.0f),
-                        camData->m_projMatrix, camData->m_viewMatrix, Math::Matrix::Identity);
-                    Math::Vector3 farPoint = Math::Viewport(0, 0, screenW, screenH).Unproject(
-                        Math::Vector3((float)mouseX, (float)mouseY, 1.0f),
-                        camData->m_projMatrix, camData->m_viewMatrix, Math::Matrix::Identity);
-                    
+                    Math::Vector3 nearPoint = Math::Viewport(0, 0, screenW, screenH).Unproject(Math::Vector3((float)mouseX, (float)mouseY, 0.0f), camData->m_projMatrix, camData->m_viewMatrix, Math::Matrix::Identity);
+                    Math::Vector3 farPoint = Math::Viewport(0, 0, screenW, screenH).Unproject(Math::Vector3((float)mouseX, (float)mouseY, 1.0f), camData->m_projMatrix, camData->m_viewMatrix, Math::Matrix::Identity);
+
                     Math::Vector3 dir = farPoint - nearPoint;
                     dir.Normalize();
 
@@ -113,7 +133,7 @@ void NavMeshEditor::Draw(EditorContext& ctx)
                     if (hit.hit)
                     {
                         settings.seedPoint = hit.point;
-                        settingsChanged = true; // trigger update
+                        settingsChanged = true;  // trigger update
                         m_placementMode = false; // exit placement mode after clicking
                     }
                 }

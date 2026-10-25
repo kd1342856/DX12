@@ -1,7 +1,7 @@
-Texture2D g_tex : register(t0);      // シーンHDR (Bloom/GodRays系パスでは共通のsrcテクスチャとしても使う)
-Texture2D g_texBloom : register(t1); // Bloom合成結果 (最終合成パスのみ使用)
-Texture2D g_texDOF : register(t2);   // 被写界深度用: あらかじめぼかしたシーンのコピー (最終合成パスのみ使用)
-Texture2D g_texDepth : register(t3); // シーン深度 (最終合成パスのみ使用。DOFのCoC計算用)
+Texture2D g_tex : register(t0);        // シーンHDR (Bloom/GodRays系パスでは共通のsrcテクスチャとしても使う)
+Texture2D g_texBloom : register(t1);   // Bloom合成結果 (最終合成パスのみ使用)
+Texture2D g_texDOF : register(t2);     // 被写界深度用: あらかじめぼかしたシーンのコピー (最終合成パスのみ使用)
+Texture2D g_texDepth : register(t3);   // シーン深度 (最終合成パスのみ使用。DOFのCoC計算用)
 Texture2D g_texGodRays : register(t4); // God Rays(光条)の結果 (最終合成パスのみ使用)
 // 画面空間のパスなので線形+Clamp(s3)を使う。以前はs0(Wrap)だったため、ブラー/低解像度Bloom・DOFの
 // 補間/色収差で画面の端が反対側の端の色を拾い、左右端に赤/水色の線が出ていた。
@@ -17,7 +17,7 @@ cbuffer cbPostProcess : register(b0)
     //---------------------------------
     float g_Exposure;
     float g_Gamma;
-    uint  g_EnableHDR;
+    uint g_EnableHDR;
     float g_Time; // 経過時間(秒) - フィルムグレイン等アニメーションするエフェクト用
 
     //---------------------------------
@@ -46,7 +46,7 @@ cbuffer cbPostProcess : register(b0)
     //---------------------------------
     // Depth of Field
     //---------------------------------
-    uint  g_EnableDOF;
+    uint g_EnableDOF;
     float g_DOFFocusDistance;
     float g_DOFFocusRange;
 
@@ -60,14 +60,14 @@ cbuffer cbPostProcess : register(b0)
     //---------------------------------
     // God Rays
     //---------------------------------
-    float g_GodRaysDensity;   // サンプル間隔の広さ
-    float g_GodRaysDecay;     // サンプルごとの減衰率
-    float g_GodRaysWeight;    // 各サンプルの寄与
-    float g_GodRaysExposure;  // 最終的な強さ
+    float g_GodRaysDensity;  // サンプル間隔の広さ
+    float g_GodRaysDecay;    // サンプルごとの減衰率
+    float g_GodRaysWeight;   // 各サンプルの寄与
+    float g_GodRaysExposure; // 最終的な強さ
 
-    uint  g_GodRaysNumSamples; // ラジアルブラーのサンプル数
-    uint  g_EnableGodRays;     // 0/1 (光源がカメラの後ろにある等、無効な時も0)
-    float g_GodRaysIntensity;  // 最終合成時にシーンへ加算する強さ
+    uint g_GodRaysNumSamples; // ラジアルブラーのサンプル数
+    uint g_EnableGodRays;     // 0/1 (光源がカメラの後ろにある等、無効な時も0)
+    float g_GodRaysIntensity; // 最終合成時にシーンへ加算する強さ
     float g_PadPostProcess;
 };
 

@@ -30,7 +30,10 @@ public:
     void ChangeScene(std::unique_ptr<SceneBase> nextScene, float fadeDuration = 1.0f);
 
     // 現在のシーンへの参照（所有権は渡さない）
-    SceneBase* GetCurrentScene() const { return m_currentScene.get(); }
+    SceneBase* GetCurrentScene() const
+    {
+        return m_currentScene.get();
+    }
 
     // フェードなしで初期シーンを設定（起動時のみ使用）
     void SetCurrentSceneWithoutFade(std::unique_ptr<SceneBase> scene);
@@ -42,9 +45,9 @@ private:
     std::unique_ptr<SceneBase> m_currentScene;
     std::unique_ptr<SceneBase> m_nextScene;
 
-    FadeState m_fadeState   = FadeState::None;
-    float     m_fadeAlpha   = 0.0f;
-    float     m_fadeDuration = 1.0f;
+    FadeState m_fadeState = FadeState::None;
+    float m_fadeAlpha = 0.0f;
+    float m_fadeDuration = 1.0f;
 
     // フェード用テクスチャ（所有しない・借りるだけ）
     Texture* m_pFadeTexture = nullptr;

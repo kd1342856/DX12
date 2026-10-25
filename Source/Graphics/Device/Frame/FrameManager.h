@@ -21,12 +21,16 @@ public:
     // 現在のフレームインデックスを進める
     void MoveNextFrame();
 
-    FrameResource& GetCurrentFrameResource() { return m_frames[m_frameIndex % kFrameCount]; }
-    UINT GetFrameIndex() const { return m_frameIndex; }
+    FrameResource& GetCurrentFrameResource()
+    {
+        return m_frames[m_frameIndex % kFrameCount];
+    }
+    UINT GetFrameIndex() const
+    {
+        return m_frameIndex;
+    }
 
 private:
     std::vector<FrameResource> m_frames;
     UINT m_frameIndex = 0;
 };
-
-

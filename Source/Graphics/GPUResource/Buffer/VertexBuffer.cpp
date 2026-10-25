@@ -36,7 +36,10 @@ void VertexBuffer::Create(GraphicsDevice* pDevice, UINT vertexSize, UINT vertexC
         nullptr,
         IID_PPV_ARGS(&m_resource));
 
-    if (FAILED(hr)) return;
+    if (FAILED(hr))
+    {
+        return;
+    }
 
     m_view.BufferLocation = m_resource->GetGPUVirtualAddress();
     m_view.SizeInBytes = m_bufferSize;

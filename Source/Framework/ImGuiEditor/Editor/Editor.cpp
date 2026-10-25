@@ -14,7 +14,8 @@
 #include "../../../Graphics/Shader/ShaderManager/ShaderManager.h"
 
 // Resolve the GetCurrentScene issue
-static std::shared_ptr<Scene> GetCurrentScenePtr() {
+static std::shared_ptr<Scene> GetCurrentScenePtr()
+{
     return Editor::GetScene();
 }
 
@@ -35,7 +36,8 @@ bool Editor::s_showPreviewCamera = false;
 bool Editor::s_showSoundManager = false;
 bool Editor::s_previewCameraHovered = false;
 
-void Editor::Init() {
+void Editor::Init()
+{
     s_selectedObject = nullptr;
     s_scenePath.clear(); // 保存先は各シーンのInit()で設定する(前シーンのファイルを引き継がない)
     LoadEditorData();    // パスが空なのでフォルダ構成も空に戻る(前シーンのフォルダを引き継がない)
@@ -43,14 +45,21 @@ void Editor::Init() {
     s_scene->Init();
 }
 
-void Editor::Draw() 
+void Editor::Draw()
 {
-    if (Input::Instance().IsKeyTrigger(DirectX::Keyboard::Keys::F1)) {
+    if (Input::Instance().IsKeyTrigger(DirectX::Keyboard::Keys::F1))
+    {
         s_showEditor = !s_showEditor;
     }
 
-    if (!s_showEditor) return;
-    if (!s_editorMode) return;
+    if (!s_showEditor)
+    {
+        return;
+    }
+    if (!s_editorMode)
+    {
+        return;
+    }
 
     DrawDockSpace();
     DrawMenuBar();
@@ -60,15 +69,25 @@ void Editor::Draw()
     DrawAssetBrowser();
     DrawStatistics();
     DrawConsole();
-    if (s_showSoundManager) DrawSoundManager();
-    if (s_showPreviewCamera) DrawPreviewCamera();
-    else s_previewCameraHovered = false; // ウィンドウを閉じている間は右クリック操作を有効にしたままにしない
+    if (s_showSoundManager)
+    {
+        DrawSoundManager();
+    }
+    if (s_showPreviewCamera)
+    {
+        DrawPreviewCamera();
+    }
+    else
+    {
+        s_previewCameraHovered = false; // ウィンドウを閉じている間は右クリック操作を有効にしたままにしない
+    }
 
     static GameEditor gameEditor;
     static ShaderEditor shaderEditor;
     static NavMeshEditor navMeshEditor;
     static bool initialized = false;
-    if (!initialized) {
+    if (!initialized)
+    {
         gameEditor.Initialize();
         shaderEditor.Initialize();
         navMeshEditor.Initialize();
@@ -86,18 +105,31 @@ void Editor::Draw()
     ctx.Fog = &ShaderManager::Instance().GetFogSettings();
     ctx.SelectedObject = s_selectedObject.get();
 
-    if (s_showGameEditor) gameEditor.Draw(ctx);
-    if (s_showShaderEditor) shaderEditor.Draw(ctx);
-    if (s_showNavMeshEditor) navMeshEditor.Draw(ctx);
+    if (s_showGameEditor)
+    {
+        gameEditor.Draw(ctx);
+    }
+    if (s_showShaderEditor)
+    {
+        shaderEditor.Draw(ctx);
+    }
+    if (s_showNavMeshEditor)
+    {
+        navMeshEditor.Draw(ctx);
+    }
 }
 
 void Editor::DrawProfilerOverlay()
 {
-    if (Input::Instance().IsKeyTrigger(DirectX::Keyboard::Keys::F3)) {
+    if (Input::Instance().IsKeyTrigger(DirectX::Keyboard::Keys::F3))
+    {
         s_showProfilerOverlay = !s_showProfilerOverlay;
     }
 
-    if (!s_showProfilerOverlay) return;
+    if (!s_showProfilerOverlay)
+    {
+        return;
+    }
 
     // 呼び出し元はフルスクリーン/プレイヤー視点のレンダーパス(GameScene::Render())からのみ
     // ここに到達し、同じフレームでフルエディタUI(上のDraw()、独自のStatisticsウィンドウ

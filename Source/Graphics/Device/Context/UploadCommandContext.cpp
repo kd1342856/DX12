@@ -13,7 +13,10 @@ bool UploadCommandContext::Init(ID3D12Device* pDevice)
     HRESULT hr = pDevice->CreateCommandAllocator(
         D3D12_COMMAND_LIST_TYPE_COPY,
         IID_PPV_ARGS(&m_pCommandAllocator));
-    if (FAILED(hr)) return false;
+    if (FAILED(hr))
+    {
+        return false;
+    }
 
     // CommandList type must match the queue type it will be submitted to.
     hr = pDevice->CreateCommandList(
@@ -22,7 +25,10 @@ bool UploadCommandContext::Init(ID3D12Device* pDevice)
         m_pCommandAllocator.Get(),
         nullptr,
         IID_PPV_ARGS(&m_pCmdList));
-    if (FAILED(hr)) return false;
+    if (FAILED(hr))
+    {
+        return false;
+    }
 
     m_pCmdList->Close();
 

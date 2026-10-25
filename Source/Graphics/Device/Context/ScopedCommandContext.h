@@ -2,13 +2,12 @@
 
 #include "ContextPool.h"
 
-template<class T>
+template <class T>
 class ScopedCommandContext
 {
 public:
     ScopedCommandContext(ContextPool<T>* pool, T* ctx)
-        : m_pPool(pool)
-        , m_pContext(ctx)
+        : m_pPool(pool), m_pContext(ctx)
     {
     }
 
@@ -25,8 +24,7 @@ public:
     ScopedCommandContext& operator=(const ScopedCommandContext&) = delete;
 
     ScopedCommandContext(ScopedCommandContext&& other) noexcept
-        : m_pPool(other.m_pPool)
-        , m_pContext(other.m_pContext)
+        : m_pPool(other.m_pPool), m_pContext(other.m_pContext)
     {
         other.m_pPool = nullptr;
         other.m_pContext = nullptr;
@@ -48,9 +46,18 @@ public:
         return *this;
     }
 
-    T* operator->() const { return m_pContext; }
-    T& operator*() const { return *m_pContext; }
-    T* Get() const { return m_pContext; }
+    T* operator->() const
+    {
+        return m_pContext;
+    }
+    T& operator*() const
+    {
+        return *m_pContext;
+    }
+    T* Get() const
+    {
+        return m_pContext;
+    }
 
 private:
     ContextPool<T>* m_pPool = nullptr;

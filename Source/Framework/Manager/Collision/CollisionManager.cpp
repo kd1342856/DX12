@@ -6,7 +6,6 @@
 #include "../Scene/Scene.h"
 
 
-
 #include "../Collision/CollisionSolver.h"
 
 using namespace DirectX;
@@ -14,15 +13,18 @@ using namespace DirectX::SimpleMath;
 
 static CollisionManager* s_collisionSystem = nullptr;
 
-void CollisionManager::Init() {
+void CollisionManager::Init()
+{
     s_collisionSystem = this;
 }
 
-void CollisionManager::Shutdown() {
+void CollisionManager::Shutdown()
+{
     s_collisionSystem = nullptr;
 }
 
-void CollisionManager::ResetForSceneChange() {
+void CollisionManager::ResetForSceneChange()
+{
     // 静的オクトツリーは次のSolve()呼び出しで作り直される
     m_staticOctree.Clear();
     m_isStaticOctreeBuilt = false;
@@ -38,43 +40,63 @@ void CollisionManager::ResetForSceneChange() {
     ClearDebugLines();
 }
 
-void CollisionManager::NotifyDestroy(Entity entity) {
-    if (!m_pCurrentScene) return;
+void CollisionManager::NotifyDestroy(Entity entity)
+{
+    if (!m_pCurrentScene)
+    {
+        return;
+    }
 
     auto it = m_prevCollisionPairs.begin();
-    while (it != m_prevCollisionPairs.end()) {
-        if (it->a == entity || it->b == entity) {
+    while (it != m_prevCollisionPairs.end())
+    {
+        if (it->a == entity || it->b == entity)
+        {
             Entity otherEntity = (it->a == entity) ? it->b : it->a;
             auto otherObj = m_pCurrentScene->GetGameObject(otherEntity);
-            if (otherObj) {
+            if (otherObj)
+            {
                 auto destroyedObj = m_pCurrentScene->GetGameObject(entity);
-                if (destroyedObj) {
+                if (destroyedObj)
+                {
                     otherObj->NotifyTriggerExit(destroyedObj.get());
                     otherObj->NotifyCollisionExit(destroyedObj.get());
                 }
             }
             it = m_prevCollisionPairs.erase(it);
-        } else {
+        }
+        else
+        {
             ++it;
         }
     }
 }
 
-void CollisionManager::Solve(Scene* scene) {
-    if (!s_collisionSystem || !scene) return;
+void CollisionManager::Solve(Scene* scene)
+{
+    if (!s_collisionSystem || !scene)
+    {
+        return;
+    }
     auto& ecs = GameManager::Instance().GetECS();
 
-    auto getRootEntity = [&](Entity e) -> Entity {
+    auto getRootEntity = [&](Entity e) -> Entity
+    {
         auto obj = scene->GetGameObject(e);
-        if (!obj) return e;
+        if (!obj)
+        {
+            return e;
+        }
         GameObject* current = obj.get();
-        while (current->GetParent()) {
+        while (current->GetParent())
+        {
             current = current->GetParent();
         }
         return current->GetEntityID();
     };
 
-    if (!m_isStaticOctreeBuilt) {
+    if (!m_isStaticOctreeBuilt)
+    {
         m_staticOctree.Build(DirectX::BoundingBox(Math::Vector3::Zero, Math::Vector3(5000, 5000, 5000)), 6);
         m_isStaticOctreeBuilt = true;
     }
@@ -85,59 +107,96 @@ void CollisionManager::Solve(Scene* scene) {
     std::vector<Entity> allEntities;
     bool staticAABBChanged = false;
 
-    for (Entity entity = 0; entity < MAX_ENTITIES; ++entity) {
-        if (!ecs.IsAlive(entity)) continue;
-        if (ecs.TryGetComponent<TransformData>(entity) && ecs.TryGetComponent<ColliderData>(entity)) {
+    for (Entity entity = 0; entity < MAX_ENTITIES; ++entity)
+    {
+        if (!ecs.IsAlive(entity))
+        {
+            continue;
+        }
+        if (ecs.TryGetComponent<TransformData>(entity) && ecs.TryGetComponent<ColliderData>(entity))
+        {
             auto& colData = ecs.GetComponent<ColliderData>(entity);
             auto& transData = ecs.GetComponent<TransformData>(entity);
 
-            for (auto& shape : colData.m_shapes) {
-                if (shape) shape->UpdateWorldAABB(transData.m_worldMatrix);
+            for (auto& shape : colData.m_shapes)
+            {
+                if (shape)
+                {
+                    shape->UpdateWorldAABB(transData.m_worldMatrix);
+                }
             }
 
             allEntities.push_back(entity);
 
-            if (colData.m_isStatic) {
-                if (m_registeredStaticEntities.find(entity) == m_registeredStaticEntities.end()) {
-                    for (auto& shape : colData.m_shapes) {
-                        if (!shape) continue;
+            if (colData.m_isStatic)
+            {
+                if (m_registeredStaticEntities.find(entity) == m_registeredStaticEntities.end())
+                {
+                    for (auto& shape : colData.m_shapes)
+                    {
+                        if (!shape)
+                        {
+                            continue;
+                        }
                         m_staticOctree.Insert({entity, shape.get(), shape->m_worldAABB});
                         m_registeredStaticAABBs[shape.get()] = shape->m_worldAABB;
                     }
                     m_registeredStaticEntities.insert(entity);
-                } else {
+                }
+                else
+                {
                     // Mesh models load asynchronously, so the AABB seen at first registration may
                     // cover only the meshes uploaded so far - parts of the level outside it would
                     // never be tested for collision (walk-through walls). Detect growth/changes.
-                    for (auto& shape : colData.m_shapes) {
-                        if (!shape) continue;
+                    for (auto& shape : colData.m_shapes)
+                    {
+                        if (!shape)
+                        {
+                            continue;
+                        }
                         auto it = m_registeredStaticAABBs.find(shape.get());
                         const auto& a = shape->m_worldAABB;
                         if (it == m_registeredStaticAABBs.end() ||
                             Math::Vector3::DistanceSquared(Math::Vector3(it->second.Center), Math::Vector3(a.Center)) > 1e-6f ||
-                            Math::Vector3::DistanceSquared(Math::Vector3(it->second.Extents), Math::Vector3(a.Extents)) > 1e-6f) {
+                            Math::Vector3::DistanceSquared(Math::Vector3(it->second.Extents), Math::Vector3(a.Extents)) > 1e-6f)
+                        {
                             staticAABBChanged = true;
                         }
                     }
                 }
-            } else {
+            }
+            else
+            {
                 dynamicEntities.push_back(entity);
-                for (auto& shape : colData.m_shapes) {
-                    if (shape) m_dynamicOctree.Insert({entity, shape.get(), shape->m_worldAABB});
+                for (auto& shape : colData.m_shapes)
+                {
+                    if (shape)
+                    {
+                        m_dynamicOctree.Insert({entity, shape.get(), shape->m_worldAABB});
+                    }
                 }
             }
         }
     }
 
-    if (staticAABBChanged) {
+    if (staticAABBChanged)
+    {
         m_staticOctree.Clear();
         m_staticOctree.Build(DirectX::BoundingBox(Math::Vector3::Zero, Math::Vector3(5000, 5000, 5000)), 6);
         m_registeredStaticAABBs.clear();
-        for (Entity entity : allEntities) {
+        for (Entity entity : allEntities)
+        {
             auto& colData = ecs.GetComponent<ColliderData>(entity);
-            if (!colData.m_isStatic) continue;
-            for (auto& shape : colData.m_shapes) {
-                if (!shape) continue;
+            if (!colData.m_isStatic)
+            {
+                continue;
+            }
+            for (auto& shape : colData.m_shapes)
+            {
+                if (!shape)
+                {
+                    continue;
+                }
                 m_staticOctree.Insert({entity, shape.get(), shape->m_worldAABB});
                 m_registeredStaticAABBs[shape.get()] = shape->m_worldAABB;
             }
@@ -145,24 +204,37 @@ void CollisionManager::Solve(Scene* scene) {
     }
 
     ClearDebugLines();
-    if (m_debugWireEnabled) {
-        for (Entity entity : allEntities) {
+    if (m_debugWireEnabled)
+    {
+        for (Entity entity : allEntities)
+        {
             auto& trans = ecs.GetComponent<TransformData>(entity);
             auto& colData = ecs.GetComponent<ColliderData>(entity);
             ImU32 color = colData.m_isStatic ? IM_COL32(0, 255, 0, 255) : IM_COL32(255, 0, 0, 255);
-            for (auto& shape : colData.m_shapes) {
-                if (shape) shape->DrawDebug(trans.m_worldMatrix, color);
+            for (auto& shape : colData.m_shapes)
+            {
+                if (shape)
+                {
+                    shape->DrawDebug(trans.m_worldMatrix, color);
+                }
             }
         }
     }
 
     std::set<CollisionPair> currentCollisionPairs;
 
-    auto checkCollision = [&](Entity entityA, CollisionShape* shapeA, Entity entityB, CollisionShape* shapeB) {
-        if (entityA == entityB) return;
+    auto checkCollision = [&](Entity entityA, CollisionShape* shapeA, Entity entityB, CollisionShape* shapeB)
+    {
+        if (entityA == entityB)
+        {
+            return;
+        }
         Entity rootA = getRootEntity(entityA);
         Entity rootB = getRootEntity(entityB);
-        if (rootA == rootB) return;
+        if (rootA == rootB)
+        {
+            return;
+        }
 
         auto& transDataA = ecs.GetComponent<TransformData>(entityA);
         auto& transDataB = ecs.GetComponent<TransformData>(entityB);
@@ -173,41 +245,58 @@ void CollisionManager::Solve(Scene* scene) {
         bool isHit = false;
         bool swapped = false;
 
-        if (shapeA->GetShapeId() == CollisionShape::Mesh && shapeB->GetShapeId() != CollisionShape::Mesh) {
+        if (shapeA->GetShapeId() == CollisionShape::Mesh && shapeB->GetShapeId() != CollisionShape::Mesh)
+        {
             isHit = CollisionSolver::CheckCollisionShape(result, shapeB, transDataB.m_worldMatrix, shapeA, transDataA.m_worldMatrix);
             swapped = true;
-        } else if (shapeA->GetShapeId() != CollisionShape::Mesh && shapeB->GetShapeId() == CollisionShape::Mesh) {
+        }
+        else if (shapeA->GetShapeId() != CollisionShape::Mesh && shapeB->GetShapeId() == CollisionShape::Mesh)
+        {
             isHit = CollisionSolver::CheckCollisionShape(result, shapeA, transDataA.m_worldMatrix, shapeB, transDataB.m_worldMatrix);
             swapped = false;
-        } else {
+        }
+        else
+        {
             isHit = CollisionSolver::CheckCollisionShape(result, shapeA, transDataA.m_worldMatrix, shapeB, transDataB.m_worldMatrix);
             swapped = false;
         }
 
-        if (isHit) {
-            if (swapped) {
+        if (isHit)
+        {
+            if (swapped)
+            {
                 result.pushVector = -result.pushVector;
             }
 
             CollisionPair pair;
             pair.a = std::min(entityA, entityB);
             pair.b = std::max(entityA, entityB);
-            if (currentCollisionPairs.find(pair) != currentCollisionPairs.end()) return;
+            if (currentCollisionPairs.find(pair) != currentCollisionPairs.end())
+            {
+                return;
+            }
             currentCollisionPairs.insert(pair);
 
-            if (!shapeA->m_isTrigger && !shapeB->m_isTrigger) {
+            if (!shapeA->m_isTrigger && !shapeB->m_isTrigger)
+            {
                 auto* pRootTransA = ecs.TryGetComponent<TransformData>(rootA);
                 auto* pRootTransB = ecs.TryGetComponent<TransformData>(rootB);
-                if (pRootTransA && pRootTransB) {
+                if (pRootTransA && pRootTransB)
+                {
                     auto& rootTransA = *pRootTransA;
                     auto& rootTransB = *pRootTransB;
 
-                    if (!colDataA.m_isStatic && !colDataB.m_isStatic) {
+                    if (!colDataA.m_isStatic && !colDataB.m_isStatic)
+                    {
                         rootTransA.m_position += result.pushVector * 0.5f;
                         rootTransB.m_position -= result.pushVector * 0.5f;
-                    } else if (!colDataA.m_isStatic) {
+                    }
+                    else if (!colDataA.m_isStatic)
+                    {
                         rootTransA.m_position += result.pushVector;
-                    } else if (!colDataB.m_isStatic) {
+                    }
+                    else if (!colDataB.m_isStatic)
+                    {
                         rootTransB.m_position -= result.pushVector;
                     }
                 }
@@ -215,25 +304,37 @@ void CollisionManager::Solve(Scene* scene) {
 
             auto objA = scene->GetGameObject(entityA);
             auto objB = scene->GetGameObject(entityB);
-            if (!objA || !objB) return;
+            if (!objA || !objB)
+            {
+                return;
+            }
 
             bool aIsTrigger = shapeA->m_isTrigger;
             bool bIsTrigger = shapeB->m_isTrigger;
             bool wasColliding = m_prevCollisionPairs.find(pair) != m_prevCollisionPairs.end();
 
-            if (aIsTrigger || bIsTrigger) {
-                if (!wasColliding) {
+            if (aIsTrigger || bIsTrigger)
+            {
+                if (!wasColliding)
+                {
                     objA->NotifyTriggerEnter(objB.get());
                     objB->NotifyTriggerEnter(objA.get());
-                } else {
+                }
+                else
+                {
                     objA->NotifyTriggerStay(objB.get());
                     objB->NotifyTriggerStay(objA.get());
                 }
-            } else {
-                if (!wasColliding) {
+            }
+            else
+            {
+                if (!wasColliding)
+                {
                     objA->NotifyCollisionEnter(objB.get());
                     objB->NotifyCollisionEnter(objA.get());
-                } else {
+                }
+                else
+                {
                     objA->NotifyCollisionStay(objB.get());
                     objB->NotifyCollisionStay(objA.get());
                 }
@@ -241,38 +342,66 @@ void CollisionManager::Solve(Scene* scene) {
         }
     };
 
-    for (Entity entityA : dynamicEntities) {
+    for (Entity entityA : dynamicEntities)
+    {
         auto& colDataA = ecs.GetComponent<ColliderData>(entityA);
-        for (auto& shapeA : colDataA.m_shapes) {
-            if (!shapeA) continue;
+        for (auto& shapeA : colDataA.m_shapes)
+        {
+            if (!shapeA)
+            {
+                continue;
+            }
             std::vector<OctreeItem> potentialCollisions;
             m_staticOctree.GetPotentialCollisions(shapeA->m_worldAABB, potentialCollisions);
             m_dynamicOctree.GetPotentialCollisions(shapeA->m_worldAABB, potentialCollisions);
 
-            for (const auto& item : potentialCollisions) {
-                if (item.entity == entityA) continue;
+            for (const auto& item : potentialCollisions)
+            {
+                if (item.entity == entityA)
+                {
+                    continue;
+                }
                 checkCollision(entityA, shapeA.get(), item.entity, item.shape);
             }
         }
     }
 
-    for (const auto& pair : m_prevCollisionPairs) {
-        if (currentCollisionPairs.find(pair) == currentCollisionPairs.end()) {
+    for (const auto& pair : m_prevCollisionPairs)
+    {
+        if (currentCollisionPairs.find(pair) == currentCollisionPairs.end())
+        {
             auto objA = scene->GetGameObject(pair.a);
             auto objB = scene->GetGameObject(pair.b);
-            if (objA && objB) {
+            if (objA && objB)
+            {
                 auto pColA = ecs.TryGetComponent<ColliderData>(pair.a);
                 auto pColB = ecs.TryGetComponent<ColliderData>(pair.b);
-                if (pColA && pColB) {
+                if (pColA && pColB)
+                {
                     bool aIsTrigger = false;
-                    for (auto& s : pColA->m_shapes) if(s->m_isTrigger) aIsTrigger = true;
+                    for (auto& s : pColA->m_shapes)
+                    {
+                        if (s->m_isTrigger)
+                        {
+                            aIsTrigger = true;
+                        }
+                    }
                     bool bIsTrigger = false;
-                    for (auto& s : pColB->m_shapes) if(s->m_isTrigger) bIsTrigger = true;
+                    for (auto& s : pColB->m_shapes)
+                    {
+                        if (s->m_isTrigger)
+                        {
+                            bIsTrigger = true;
+                        }
+                    }
 
-                    if (aIsTrigger || bIsTrigger) {
+                    if (aIsTrigger || bIsTrigger)
+                    {
                         objA->NotifyTriggerExit(objB.get());
                         objB->NotifyTriggerExit(objA.get());
-                    } else {
+                    }
+                    else
+                    {
                         objA->NotifyCollisionExit(objB.get());
                         objB->NotifyCollisionExit(objA.get());
                     }
@@ -283,11 +412,15 @@ void CollisionManager::Solve(Scene* scene) {
 
     m_prevCollisionPairs = currentCollisionPairs;
 }
-RaycastHit CollisionManager::Raycast(const Math::Vector3& origin, const Math::Vector3& direction, float maxDistance, uint32_t collisionMask) {
+RaycastHit CollisionManager::Raycast(const Math::Vector3& origin, const Math::Vector3& direction, float maxDistance, uint32_t collisionMask)
+{
     RaycastHit hitResult;
     hitResult.distance = maxDistance;
 
-    if (!s_collisionSystem) return hitResult;
+    if (!s_collisionSystem)
+    {
+        return hitResult;
+    }
     auto& ecs = GameManager::Instance().GetECS();
 
     RayInfo rayInfo;
@@ -297,20 +430,33 @@ RaycastHit CollisionManager::Raycast(const Math::Vector3& origin, const Math::Ve
     rayInfo.range = maxDistance;
 
 
-    for (Entity entity = 0; entity < MAX_ENTITIES; ++entity) {
-        if (!ecs.IsAlive(entity)) continue;
+    for (Entity entity = 0; entity < MAX_ENTITIES; ++entity)
+    {
+        if (!ecs.IsAlive(entity))
+        {
+            continue;
+        }
         auto* pCol = ecs.TryGetComponent<ColliderData>(entity);
         auto* pTrans = ecs.TryGetComponent<TransformData>(entity);
-        if (!pCol || !pTrans) continue;
+        if (!pCol || !pTrans)
+        {
+            continue;
+        }
 
         auto& colData = ecs.GetComponent<ColliderData>(entity);
         auto& transData = ecs.GetComponent<TransformData>(entity);
 
-        for (const auto& shape : colData.m_shapes) {
-            if ((shape->m_tags & rayInfo.collisionMask) == 0) continue;
+        for (const auto& shape : colData.m_shapes)
+        {
+            if ((shape->m_tags & rayInfo.collisionMask) == 0)
+            {
+                continue;
+            }
             RayResult out;
-            if (shape->RayCast(rayInfo, transData.m_worldMatrix, out)) {
-                if (out.distance < hitResult.distance) {
+            if (shape->RayCast(rayInfo, transData.m_worldMatrix, out))
+            {
+                if (out.distance < hitResult.distance)
+                {
                     hitResult.hit = true;
                     hitResult.distance = out.distance;
                     hitResult.point = out.hitPos;
@@ -325,23 +471,33 @@ RaycastHit CollisionManager::Raycast(const Math::Vector3& origin, const Math::Ve
 }
 
 RaycastHit CollisionManager::RaycastAgainstMesh(const Math::Vector3& origin, const Math::Vector3& direction, float maxDistance, const std::string& targetName,
-                                                const std::unordered_set<std::string>* skipNodeNames) {
+                                                const std::unordered_set<std::string>* skipNodeNames)
+{
     RaycastHit hitResult;
     hitResult.distance = maxDistance;
 
-    if (!m_pCurrentScene) return hitResult;
+    if (!m_pCurrentScene)
+    {
+        return hitResult;
+    }
 
-    std::function<void(const std::shared_ptr<GameObject>&)> checkObj = [&](const std::shared_ptr<GameObject>& obj) {
-        if (!obj || !obj->IsActive()) return;
+    std::function<void(const std::shared_ptr<GameObject>&)> checkObj = [&](const std::shared_ptr<GameObject>& obj)
+    {
+        if (!obj || !obj->IsActive())
+        {
+            return;
+        }
 
         auto& ecs = GameManager::Instance().GetECS();
         auto* pModel = ecs.TryGetComponent<ModelRenderData>(obj->GetEntityID());
         auto* pTrans = ecs.TryGetComponent<TransformData>(obj->GetEntityID());
-        if (pModel && pTrans) {
+        if (pModel && pTrans)
+        {
             auto& modelData = *pModel;
             auto& transData = *pTrans;
 
-            if (modelData.m_spModelData) {
+            if (modelData.m_spModelData)
+            {
                 Math::Matrix worldMat = transData.m_worldMatrix;
                 Math::Matrix invWorld = worldMat.Invert();
 
@@ -350,14 +506,24 @@ RaycastHit CollisionManager::RaycastAgainstMesh(const Math::Vector3& origin, con
                 localDir.Normalize();
 
                 const auto& allNodes = modelData.m_spModelData->GetNodes();
-                for (const auto& node : allNodes) {
-                    if (skipNodeNames && !skipNodeNames->empty()) {
+                for (const auto& node : allNodes)
+                {
+                    if (skipNodeNames && !skipNodeNames->empty())
+                    {
                         // skip this node if it, or any of its ancestors, is in the skip set
                         bool skip = false;
-                        for (const auto* n = &node; n; n = (n->parentIndex >= 0 && n->parentIndex < (int)allNodes.size()) ? &allNodes[n->parentIndex] : nullptr) {
-                            if (skipNodeNames->count(n->name)) { skip = true; break; }
+                        for (const auto* n = &node; n; n = (n->parentIndex >= 0 && n->parentIndex < (int)allNodes.size()) ? &allNodes[n->parentIndex] : nullptr)
+                        {
+                            if (skipNodeNames->count(n->name))
+                            {
+                                skip = true;
+                                break;
+                            }
                         }
-                        if (skip) continue;
+                        if (skip)
+                        {
+                            continue;
+                        }
                     }
                     // アニメーション行列があれば逆行列を計算してレイを変換
                     Math::Matrix nodeTrans = node.animDeltaTransform;
@@ -366,20 +532,27 @@ RaycastHit CollisionManager::RaycastAgainstMesh(const Math::Vector3& origin, con
                     Math::Vector3 nodeLocalDir = Math::Vector3::TransformNormal(localDir, invNodeTrans);
                     nodeLocalDir.Normalize();
 
-                    for (const auto& meshHandle : node.meshes) {
+                    for (const auto& meshHandle : node.meshes)
+                    {
                         Mesh* mesh = MeshManager::Instance().Get(meshHandle);
-                        if (!mesh) continue;
+                        if (!mesh)
+                        {
+                            continue;
+                        }
                         auto& vertices = mesh->GetVertices();
                         auto& faces = mesh->GetFaces();
 
-                        for (const auto& face : faces) {
+                        for (const auto& face : faces)
+                        {
                             Math::Vector3 v0 = vertices[face.Idx[0]].Position;
                             Math::Vector3 v1 = vertices[face.Idx[1]].Position;
                             Math::Vector3 v2 = vertices[face.Idx[2]].Position;
 
                             float dist;
-                            if (DirectX::TriangleTests::Intersects(nodeLocalOrigin, nodeLocalDir, v0, v1, v2, dist)) {
-                                if (dist >= 0 && dist < hitResult.distance) {
+                            if (DirectX::TriangleTests::Intersects(nodeLocalOrigin, nodeLocalDir, v0, v1, v2, dist))
+                            {
+                                if (dist >= 0 && dist < hitResult.distance)
+                                {
                                     hitResult.hit = true;
                                     hitResult.distance = dist;
                                     hitResult.point = origin + direction * dist;
@@ -401,53 +574,73 @@ RaycastHit CollisionManager::RaycastAgainstMesh(const Math::Vector3& origin, con
             }
         }
 
-        for (const auto& child : obj->GetChildren()) {
+        for (const auto& child : obj->GetChildren())
+        {
             checkObj(child);
         }
     };
 
     // シーン内のオブジェクトから探す
     auto& gameObjects = m_pCurrentScene->GetGameObjects();
-    for (auto& obj : gameObjects) {
-        if (!targetName.empty()) {
+    for (auto& obj : gameObjects)
+    {
+        if (!targetName.empty())
+        {
             // 指定した名前のオブジェクトから一致判定処理を行う
-            if (obj->GetName() == targetName) {
+            if (obj->GetName() == targetName)
+            {
                 checkObj(obj);
             }
-        } else {
+        }
+        else
+        {
             checkObj(obj);
         }
     }
     return hitResult;
 }
-void CollisionManager::ClearDebugLines() {
+void CollisionManager::ClearDebugLines()
+{
     m_debugLines.clear();
     m_debugPolys.clear();
 }
 
-void CollisionManager::AddDebugLine(const Math::Vector3& start, const Math::Vector3& end, ImU32 color) {
-    if (!m_debugWireEnabled) return;
-    m_debugLines.push_back({ start, end, color });
+void CollisionManager::AddDebugLine(const Math::Vector3& start, const Math::Vector3& end, ImU32 color)
+{
+    if (!m_debugWireEnabled)
+    {
+        return;
+    }
+    m_debugLines.push_back({start, end, color});
 }
 
-void CollisionManager::AddDebugLineAlways(const Math::Vector3& start, const Math::Vector3& end, ImU32 color) {
-    m_debugLines.push_back({ start, end, color });
+void CollisionManager::AddDebugLineAlways(const Math::Vector3& start, const Math::Vector3& end, ImU32 color)
+{
+    m_debugLines.push_back({start, end, color});
 }
 
-void CollisionManager::AddDebugPolyAlways(const std::vector<Math::Vector3>& verts, ImU32 color) {
-    m_debugPolys.push_back({ verts, color });
+void CollisionManager::AddDebugPolyAlways(const std::vector<Math::Vector3>& verts, ImU32 color)
+{
+    m_debugPolys.push_back({verts, color});
 }
 
-void CollisionManager::DrawDebugWires(float screenX, float screenY, float screenW, float screenH, Entity cameraEntity, ImDrawList* pDrawList) {
+void CollisionManager::DrawDebugWires(float screenX, float screenY, float screenW, float screenH, Entity cameraEntity, ImDrawList* pDrawList)
+{
     // Note: no early-out on m_debugWireEnabled here - AddDebugLine() already gates on it when
     // lines are added, while AddDebugLineAlways()/AddDebugPolyAlways() (e.g. NavMesh visualization)
     // intentionally bypass that toggle and have their own independent on/off switch.
-    if (cameraEntity == INVALID_ENTITY) return;
+    if (cameraEntity == INVALID_ENTITY)
+    {
+        return;
+    }
 
     auto& ecs = GameManager::Instance().GetECS();
     auto* pCam = ecs.TryGetComponent<CameraData>(cameraEntity);
     auto* pTrans = ecs.TryGetComponent<TransformData>(cameraEntity);
-    if (!pCam || !pTrans) return;
+    if (!pCam || !pTrans)
+    {
+        return;
+    }
 
     auto& cameraData = ecs.GetComponent<CameraData>(cameraEntity);
     auto& cameraTrans = ecs.GetComponent<TransformData>(cameraEntity);
@@ -455,14 +648,19 @@ void CollisionManager::DrawDebugWires(float screenX, float screenY, float screen
     Math::Matrix viewMatrix = cameraTrans.m_worldMatrix.Invert();
     Math::Matrix projMatrix = cameraData.m_projMatrix;
 
-    if (!pDrawList) {
+    if (!pDrawList)
+    {
         pDrawList = ImGui::GetBackgroundDrawList();
     }
 
-        auto WorldToScreen = [&](const Math::Vector3& worldPos, ImVec2& outScreenPos) -> bool {
+    auto WorldToScreen = [&](const Math::Vector3& worldPos, ImVec2& outScreenPos) -> bool
+    {
         Math::Vector4 clipPos;
         Math::Vector3::Transform(worldPos, viewMatrix * projMatrix, clipPos);
-        if (clipPos.w < 0.1f) return false;
+        if (clipPos.w < 0.1f)
+        {
+            return false;
+        }
 
         float ndcX = clipPos.x / clipPos.w;
         float ndcY = -clipPos.y / clipPos.w;
@@ -474,84 +672,110 @@ void CollisionManager::DrawDebugWires(float screenX, float screenY, float screen
 
     // filled polygons first (e.g. NavMesh), so lines/wireframes draw on top of them
     std::vector<ImVec2> polyScreenPts;
-    for (const auto& poly : m_debugPolys) {
+    for (const auto& poly : m_debugPolys)
+    {
         polyScreenPts.clear();
         bool allVisible = true;
-        for (const auto& v : poly.verts) {
+        for (const auto& v : poly.verts)
+        {
             ImVec2 sp;
-            if (!WorldToScreen(v, sp)) { allVisible = false; break; }
+            if (!WorldToScreen(v, sp))
+            {
+                allVisible = false;
+                break;
+            }
             polyScreenPts.push_back(sp);
         }
-        if (allVisible && polyScreenPts.size() >= 3) {
+        if (allVisible && polyScreenPts.size() >= 3)
+        {
             pDrawList->AddConvexPolyFilled(polyScreenPts.data(), (int)polyScreenPts.size(), poly.color);
         }
     }
 
-    for (const auto& line : m_debugLines) {
+    for (const auto& line : m_debugLines)
+    {
         ImVec2 p1, p2;
-        if (WorldToScreen(line.start, p1) && WorldToScreen(line.end, p2)) {
+        if (WorldToScreen(line.start, p1) && WorldToScreen(line.end, p2))
+        {
             pDrawList->AddLine(p1, p2, line.color);
         }
     }
 
-    if (!s_collisionSystem) return;
+    if (!s_collisionSystem)
+    {
+        return;
+    }
 
-    for (Entity entity = 0; entity < MAX_ENTITIES; ++entity) {
-        if (!ecs.IsAlive(entity)) continue;
+    for (Entity entity = 0; entity < MAX_ENTITIES; ++entity)
+    {
+        if (!ecs.IsAlive(entity))
+        {
+            continue;
+        }
         auto* pCol = ecs.TryGetComponent<ColliderData>(entity);
         auto* pTrans = ecs.TryGetComponent<TransformData>(entity);
-        if (!pCol || !pTrans) continue;
+        if (!pCol || !pTrans)
+        {
+            continue;
+        }
         auto& colData = ecs.GetComponent<ColliderData>(entity);
         auto& transData = ecs.GetComponent<TransformData>(entity);
 
-        for (const auto& shape : colData.m_shapes) {
-                       ImU32 color = IM_COL32(0, 255, 0, 255);
-            if (shape->m_isTrigger) color = IM_COL32(255, 255, 0, 255);
+        for (const auto& shape : colData.m_shapes)
+        {
+            ImU32 color = IM_COL32(0, 255, 0, 255);
+            if (shape->m_isTrigger)
+            {
+                color = IM_COL32(255, 255, 0, 255);
+            }
 
             // Draw AABB for Mesh shapes (since they don't have a specific narrow-phase debug draw)
-            if (shape->GetShapeId() == CollisionShape::Mesh) {
+            if (shape->GetShapeId() == CollisionShape::Mesh)
+            {
                 Math::Vector3 cornersAABB[8];
                 shape->m_worldAABB.GetCorners(cornersAABB);
                 int edgesAABB[12][2] = {
-                    {0,1}, {1,2}, {2,3}, {3,0},
-                    {4,5}, {5,6}, {6,7}, {7,4},
-                    {0,4}, {1,5}, {2,6}, {3,7}
-                };
+                    {0, 1}, {1, 2}, {2, 3}, {3, 0}, {4, 5}, {5, 6}, {6, 7}, {7, 4}, {0, 4}, {1, 5}, {2, 6}, {3, 7}};
                 ImU32 colorAABB = IM_COL32(0, 255, 255, 128); // Cyan for AABB
-                for (int i = 0; i < 12; ++i) {
+                for (int i = 0; i < 12; ++i)
+                {
                     ImVec2 p1, p2;
-                    if (WorldToScreen(cornersAABB[edgesAABB[i][0]], p1) && WorldToScreen(cornersAABB[edgesAABB[i][1]], p2)) {
+                    if (WorldToScreen(cornersAABB[edgesAABB[i][0]], p1) && WorldToScreen(cornersAABB[edgesAABB[i][1]], p2))
+                    {
                         pDrawList->AddLine(p1, p2, colorAABB);
                     }
                 }
             }
 
-            if (shape->GetShapeId() == CollisionShape::Box) {
+            if (shape->GetShapeId() == CollisionShape::Box)
+            {
                 auto boxShape = std::static_pointer_cast<CollisionShapeBox>(shape);
                 Math::Vector3 center = Math::Vector3::Transform(boxShape->m_offset, transData.m_worldMatrix);
-                Math::Vector3 extents = { boxShape->m_width * 0.5f, boxShape->m_height * 0.5f, boxShape->m_depth * 0.5f };
+                Math::Vector3 extents = {boxShape->m_width * 0.5f, boxShape->m_height * 0.5f, boxShape->m_depth * 0.5f};
                 BoundingOrientedBox bob(center, extents, Quaternion::CreateFromRotationMatrix(transData.m_worldMatrix));
 
                 Math::Vector3 corners[8];
                 bob.GetCorners(corners);
 
                 int edges[12][2] = {
-                    {0,1}, {1,2}, {2,3}, {3,0},
-                    {4,5}, {5,6}, {6,7}, {7,4},
-                    {0,4}, {1,5}, {2,6}, {3,7}
-                };
+                    {0, 1}, {1, 2}, {2, 3}, {3, 0}, {4, 5}, {5, 6}, {6, 7}, {7, 4}, {0, 4}, {1, 5}, {2, 6}, {3, 7}};
 
-                for (int i = 0; i < 12; ++i) {
+                for (int i = 0; i < 12; ++i)
+                {
                     ImVec2 p1, p2;
-                    if (WorldToScreen(corners[edges[i][0]], p1) && WorldToScreen(corners[edges[i][1]], p2)) {
+                    if (WorldToScreen(corners[edges[i][0]], p1) && WorldToScreen(corners[edges[i][1]], p2))
+                    {
                         pDrawList->AddLine(p1, p2, color);
                     }
                 }
-            } else if (shape->GetShapeId() == CollisionShape::Sphere) {
+            }
+            else if (shape->GetShapeId() == CollisionShape::Sphere)
+            {
                 auto sphereShape = std::static_pointer_cast<CollisionShapeSphere>(shape);
                 Math::Vector3 center = Math::Vector3::Transform(sphereShape->m_offset, transData.m_worldMatrix);
                 ImVec2 p;
-                if (WorldToScreen(center, p)) {
+                if (WorldToScreen(center, p))
+                {
                     pDrawList->AddCircle(p, sphereShape->radius * screenW / 10.0f, color);
                 }
             }
@@ -564,4 +788,3 @@ CollisionManager& CollisionManager::Instance()
     static CollisionManager instance;
     return instance;
 }
-

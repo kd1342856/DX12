@@ -50,13 +50,13 @@ float V_SmithGGXCorrelated(float NdotV, float NdotL, float alpha)
 // マイクロファセットBRDF
 float3 Specular_BRDF(in float alpha, in float3 specularColor, in float NdotV, in float NdotL, in float LdotH, in float NdotH)
 {
-	// Specular D (ファイロファセット法線分布)
+    // Specular D (ファイロファセット法線分布)
     float specular_D = Specular_D_GGX(alpha, NdotH);
 
-	// Specular Fresnel
+    // Specular Fresnel
     float3 specular_F = Fresnel_Shlick(specularColor, 1, LdotH);
 
-	// Specular V (幾何減衰と分母の統合)
+    // Specular V (幾何減衰と分母の統合)
     float specular_V = V_SmithGGXCorrelated(NdotV, NdotL, alpha);
 
     return specular_D * specular_F * specular_V;
@@ -64,8 +64,7 @@ float3 Specular_BRDF(in float alpha, in float3 specularColor, in float NdotV, in
 
 // ポワソンサンプリング用
 static const float2 g_poissonDisk[4] = {
-  float2(-0.94201624, -0.39906216),
-  float2(0.94558609, -0.76890725),
-  float2(-0.094184101, -0.92938870),
-  float2(0.34495938, 0.29387760)
-};
+    float2(-0.94201624, -0.39906216),
+    float2(0.94558609, -0.76890725),
+    float2(-0.094184101, -0.92938870),
+    float2(0.34495938, 0.29387760)};

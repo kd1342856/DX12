@@ -5,23 +5,26 @@
 
 void LightingPanel::Draw(EditorContext& ctx)
 {
-    if (!ctx.Lighting) return;
+    if (!ctx.Lighting)
+    {
+        return;
+    }
 
     if (ImGui::CollapsingHeader("Lighting Settings", ImGuiTreeNodeFlags_DefaultOpen))
     {
         bool changed = false;
 
         ImGui::Text("Directional Light");
-        
+
         changed |= ImGui::DragFloat3("Direction", &ctx.Lighting->DirectionalLightDir.x, 0.01f, -1.0f, 1.0f);
         if (changed)
         {
             float length = std::sqrt(
                 ctx.Lighting->DirectionalLightDir.x * ctx.Lighting->DirectionalLightDir.x +
                 ctx.Lighting->DirectionalLightDir.y * ctx.Lighting->DirectionalLightDir.y +
-                ctx.Lighting->DirectionalLightDir.z * ctx.Lighting->DirectionalLightDir.z
-            );
-            if (length > 0.0001f) {
+                ctx.Lighting->DirectionalLightDir.z * ctx.Lighting->DirectionalLightDir.z);
+            if (length > 0.0001f)
+            {
                 ctx.Lighting->DirectionalLightDir.x /= length;
                 ctx.Lighting->DirectionalLightDir.y /= length;
                 ctx.Lighting->DirectionalLightDir.z /= length;

@@ -22,13 +22,19 @@ struct PSInput
 // 12方向の半球サンプルカーネル(あらかじめ正規化・ランダムな長さで分布させたもの)。
 // ランタイムで乱数生成する代わりに、決め打ちの方向セットを使う軽量版SSAO。
 static const float3 kKernel[12] =
-{
-    float3(0.070, 0.045, 0.045), float3(-0.060, 0.080, 0.060),
-    float3(0.090, -0.050, 0.090), float3(-0.080, -0.070, 0.050),
-    float3(0.030, 0.140, 0.080), float3(-0.030, -0.140, 0.070),
-    float3(0.160, 0.020, 0.030), float3(-0.160, 0.030, 0.050),
-    float3(0.050, 0.060, 0.220), float3(-0.050, -0.060, 0.200),
-    float3(0.190, -0.120, 0.140), float3(-0.190, 0.110, 0.160),
+    {
+        float3(0.070, 0.045, 0.045),
+        float3(-0.060, 0.080, 0.060),
+        float3(0.090, -0.050, 0.090),
+        float3(-0.080, -0.070, 0.050),
+        float3(0.030, 0.140, 0.080),
+        float3(-0.030, -0.140, 0.070),
+        float3(0.160, 0.020, 0.030),
+        float3(-0.160, 0.030, 0.050),
+        float3(0.050, 0.060, 0.220),
+        float3(-0.050, -0.060, 0.200),
+        float3(0.190, -0.120, 0.140),
+        float3(-0.190, 0.110, 0.160),
 };
 
 float3 ViewPosFromDepth(float2 uv, float depth)
@@ -49,7 +55,10 @@ float3 RandomRotation(float2 screenPos)
 float4 main(PSInput In) : SV_Target0
 {
     float depth = g_texDepth.Sample(g_ss_point_clamp, In.UV).r;
-    if (depth >= 0.9999) return float4(1, 1, 1, 1); // far平面(何も無い所)は遮蔽なし
+    if (depth >= 0.9999)
+    {
+        return float4(1, 1, 1, 1); // far平面(何も無い所)は遮蔽なし
+    }
 
     float3 viewPos = ViewPosFromDepth(In.UV, depth);
     float3 viewNormal = normalize(g_texNormal.Sample(g_ss_point_clamp, In.UV).rgb * 2.0 - 1.0);
@@ -69,7 +78,10 @@ float4 main(PSInput In) : SV_Target0
         offset.xyz /= offset.w;
         float2 sampleUV = offset.xy * float2(0.5, -0.5) + 0.5;
 
-        if (any(sampleUV < 0.0) || any(sampleUV > 1.0)) continue;
+        if (any(sampleUV < 0.0) || any(sampleUV > 1.0))
+        {
+            continue;
+        }
 
         float sampleDepthNdc = g_texDepth.Sample(g_ss_point_clamp, sampleUV).r;
         float3 sampleViewPos = ViewPosFromDepth(sampleUV, sampleDepthNdc);

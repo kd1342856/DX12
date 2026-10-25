@@ -15,7 +15,7 @@ struct PSOutput
 
 cbuffer cbCamera : register(b0)
 {
-    row_major matrix c_mView; 
+    row_major matrix c_mView;
     row_major matrix c_mInvView;
     row_major matrix c_mProj;
     row_major matrix c_mInvProj;
@@ -27,12 +27,12 @@ cbuffer cbCamera : register(b0)
 
 cbuffer cbWorld : register(b1)
 {
-    row_major matrix c_mWorld; 
+    row_major matrix c_mWorld;
 }
 
 cbuffer cbBones : register(b2)
 {
-    row_major matrix c_mBones[256]; 
+    row_major matrix c_mBones[256];
 }
 
 cbuffer cbPerMaterial : register(b3)

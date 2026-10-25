@@ -30,14 +30,14 @@ struct MaterialTexture
 struct AssetMaterialData
 {
     std::string name;
-    
+
     MaterialTexture baseColor;
     MaterialTexture normal;
     MaterialTexture metallicRoughness;
     MaterialTexture occlusion;
     MaterialTexture emissive;
 
-    Math::Vector4 baseColorFactor = { 1.0f, 1.0f, 1.0f, 1.0f };
+    Math::Vector4 baseColorFactor = {1.0f, 1.0f, 1.0f, 1.0f};
     float metallicFactor = 1.0f;
     float roughnessFactor = 1.0f;
     float normalScale = 1.0f;
@@ -47,7 +47,7 @@ struct AssetMaterialData
     float emissiveFactorY = 0.0f;
     float emissiveFactorZ = 0.0f;
 
-    int alphaMode = 0; // 0:Opaque, 1:Mask, 2:Blend
+    int alphaMode = 0;      // 0:Opaque, 1:Mask, 2:Blend
     int proceduralType = 0; // 0:None, 1:Blood, 2:Cobweb
 };
 

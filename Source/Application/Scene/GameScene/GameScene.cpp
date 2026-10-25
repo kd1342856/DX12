@@ -82,18 +82,23 @@ void GameScene::Init()
     // m_fullscreenGameがtrueでゲームを開始した場合、HandleModeSwitch()のF5トリガを通らないため
     // マウスモードがAbsoluteのままになる。PlayerはFPS視点で操作を開始するため、
     // ここでRelativeモードをセットしておく
-    if (m_fullscreenGame) {
+    if (m_fullscreenGame)
+    {
         Input::Instance().SetMouseModeRelative();
     }
 }
 
 void GameScene::HandleModeSwitch()
 {
-    if (Input::Instance().IsKeyTrigger(DirectX::Keyboard::Keys::F5)) {
+    if (Input::Instance().IsKeyTrigger(DirectX::Keyboard::Keys::F5))
+    {
         m_fullscreenGame = !m_fullscreenGame;
-        if (m_fullscreenGame) {
+        if (m_fullscreenGame)
+        {
             Input::Instance().SetMouseModeRelative();
-        } else {
+        }
+        else
+        {
             Input::Instance().SetMouseModeAbsolute();
             m_isCameraDragging = false;
         }
@@ -136,7 +141,8 @@ void GameScene::UpdateCamera()
     m_gameCameraEntity = INVALID_ENTITY;
     std::shared_ptr<GameObject> pEditorCameraObj = nullptr;
 
-    std::function<void(const std::shared_ptr<GameObject>&)> findCameras = [&](const std::shared_ptr<GameObject>& obj) {
+    std::function<void(const std::shared_ptr<GameObject>&)> findCameras = [&](const std::shared_ptr<GameObject>& obj)
+    {
         if (auto* pCam = ecs.TryGetComponent<CameraData>(obj->GetEntityID()))
         {
             // Debug Preview Cameraはデバッグ専用の独立したカメラ(GameScene::RenderDebugPreviewCamera
@@ -171,20 +177,27 @@ void GameScene::UpdateCamera()
         findCameras(obj);
     }
 
-    if (m_gameCameraEntity == INVALID_ENTITY) {
+    if (m_gameCameraEntity == INVALID_ENTITY)
+    {
         m_gameCameraEntity = m_editorCameraEntity;
     }
 
     // Relative Mouse Mode Toggle for Editor Free Cam
-    if (!m_fullscreenGame) {
-        if (Input::Instance().IsMouseRightTrigger() && !ImGui::GetIO().WantCaptureMouse) {
+    if (!m_fullscreenGame)
+    {
+        if (Input::Instance().IsMouseRightTrigger() && !ImGui::GetIO().WantCaptureMouse)
+        {
             Input::Instance().SetMouseModeRelative();
             m_isCameraDragging = true;
-        } else if (Input::Instance().IsMouseRightRelease() && m_isCameraDragging) {
+        }
+        else if (Input::Instance().IsMouseRightRelease() && m_isCameraDragging)
+        {
             Input::Instance().SetMouseModeAbsolute();
             m_isCameraDragging = false;
         }
-    } else {
+    }
+    else
+    {
         m_isCameraDragging = true; // In game mode, camera is always controlled
     }
 
@@ -206,8 +219,14 @@ void GameScene::UpdateCamera()
                 data.m_rotation.x += Input::Instance().GetMouseDeltaY() * rotSpeed;
 
                 float pitchLimit = DirectX::XMConvertToRadians(89.0f);
-                if (data.m_rotation.x > pitchLimit) data.m_rotation.x = pitchLimit;
-                if (data.m_rotation.x < -pitchLimit) data.m_rotation.x = -pitchLimit;
+                if (data.m_rotation.x > pitchLimit)
+                {
+                    data.m_rotation.x = pitchLimit;
+                }
+                if (data.m_rotation.x < -pitchLimit)
+                {
+                    data.m_rotation.x = -pitchLimit;
+                }
 
                 Math::Matrix mRot = Math::Matrix::CreateFromYawPitchRoll(data.m_rotation.y, data.m_rotation.x, data.m_rotation.z);
                 Math::Vector3 forward = Math::Vector3::TransformNormal(Math::Vector3(0, 0, 1), mRot);
@@ -218,12 +237,30 @@ void GameScene::UpdateCamera()
                 // m_moveSpeedは秒速(m/s)。フレーム単位で足すとFPSが上がるほど速くなるため、経過時間を掛ける
                 float moveSpeed = camData.m_moveSpeed * GameTimer::Instance().DeltaTime();
 
-                if (Input::Instance().IsKeyHold('W')) moveVec += forward;
-                if (Input::Instance().IsKeyHold('S')) moveVec -= forward;
-                if (Input::Instance().IsKeyHold('D')) moveVec += right;
-                if (Input::Instance().IsKeyHold('A')) moveVec -= right;
-                if (Input::Instance().IsKeyHold('E')) moveVec += up;
-                if (Input::Instance().IsKeyHold('Q')) moveVec -= up;
+                if (Input::Instance().IsKeyHold('W'))
+                {
+                    moveVec += forward;
+                }
+                if (Input::Instance().IsKeyHold('S'))
+                {
+                    moveVec -= forward;
+                }
+                if (Input::Instance().IsKeyHold('D'))
+                {
+                    moveVec += right;
+                }
+                if (Input::Instance().IsKeyHold('A'))
+                {
+                    moveVec -= right;
+                }
+                if (Input::Instance().IsKeyHold('E'))
+                {
+                    moveVec += up;
+                }
+                if (Input::Instance().IsKeyHold('Q'))
+                {
+                    moveVec -= up;
+                }
 
                 if (moveVec.LengthSquared() > 0.0f)
                 {
@@ -239,34 +276,54 @@ void GameScene::UpdateCamera()
         std::shared_ptr<GameObject> pPlayerObj = nullptr;
         std::shared_ptr<GameObject> pGameCamObj = nullptr;
 
-        std::function<void(const std::shared_ptr<GameObject>&)> findPlayer = [&](const std::shared_ptr<GameObject>& obj) {
-            if (obj->GetName() == "Player") pPlayerObj = obj;
-            if (obj->GetEntityID() == m_gameCameraEntity) pGameCamObj = obj;
-            for (const auto& child : obj->GetChildren()) findPlayer(child);
+        std::function<void(const std::shared_ptr<GameObject>&)> findPlayer = [&](const std::shared_ptr<GameObject>& obj)
+        {
+            if (obj->GetName() == "Player")
+            {
+                pPlayerObj = obj;
+            }
+            if (obj->GetEntityID() == m_gameCameraEntity)
+            {
+                pGameCamObj = obj;
+            }
+            for (const auto& child : obj->GetChildren())
+            {
+                findPlayer(child);
+            }
         };
-        for (auto const& obj : Editor::GetScene()->GetGameObjects()) {
+        for (auto const& obj : Editor::GetScene()->GetGameObjects())
+        {
             findPlayer(obj);
         }
 
         // エディタカメラ(MainCamera)がゲームカメラとして使われていない場合、またはゲームプレイ(全画面)中のみスナップする
         bool shouldSnap = (m_gameCameraEntity != m_editorCameraEntity) || m_fullscreenGame;
-        if (pPlayerObj && pGameCamObj && shouldSnap) {
+        if (pPlayerObj && pGameCamObj && shouldSnap)
+        {
             auto* pPData = ecs.TryGetComponent<TransformData>(pPlayerObj->GetEntityID());
             auto* pCData = ecs.TryGetComponent<TransformData>(pGameCamObj->GetEntityID());
             auto* pCamData = ecs.TryGetComponent<CameraData>(pGameCamObj->GetEntityID());
-            if (pPData && pCData && pCamData) {
+            if (pPData && pCData && pCamData)
+            {
                 auto& pData = *pPData;
                 auto& cData = *pCData;
                 auto& camData = *pCamData;
 
-                if (m_isCameraDragging || m_fullscreenGame) {
+                if (m_isCameraDragging || m_fullscreenGame)
+                {
                     float rotSpeed = 0.002f;
                     pData.m_rotation.y += Input::Instance().GetMouseDeltaX() * rotSpeed;
                     cData.m_rotation.x += Input::Instance().GetMouseDeltaY() * rotSpeed;
 
                     float pitchLimit = DirectX::XMConvertToRadians(89.0f);
-                    if (cData.m_rotation.x > pitchLimit) cData.m_rotation.x = pitchLimit;
-                    if (cData.m_rotation.x < -pitchLimit) cData.m_rotation.x = -pitchLimit;
+                    if (cData.m_rotation.x > pitchLimit)
+                    {
+                        cData.m_rotation.x = pitchLimit;
+                    }
+                    if (cData.m_rotation.x < -pitchLimit)
+                    {
+                        cData.m_rotation.x = -pitchLimit;
+                    }
                 }
 
                 Math::Matrix playerRot = Math::Matrix::CreateRotationY(pData.m_rotation.y);
@@ -279,29 +336,40 @@ void GameScene::UpdateCamera()
                 // しゃがみ量に応じてカメラを下げる
                 // (PlayerはNativeScriptでありECSに独立したComponent型として登録されていないため、
                 //  TryGetComponent<Player>()は使えない。NativeScriptData経由でdynamic_castする)
-                if (auto* pScriptData = ecs.TryGetComponent<NativeScriptData>(pPlayerObj->GetEntityID())) {
-                    if (auto* pPlayerScript = dynamic_cast<Player*>(pScriptData->Instance.get())) {
+                if (auto* pScriptData = ecs.TryGetComponent<NativeScriptData>(pPlayerObj->GetEntityID()))
+                {
+                    if (auto* pPlayerScript = dynamic_cast<Player*>(pScriptData->Instance.get()))
+                    {
                         const float kCrouchCameraLower = 0.5f; // 完全にしゃがんだ時にカメラを下げる量
                         pivotOffset.y -= pPlayerScript->GetCrouchAmount() * kCrouchCameraLower;
                     }
                 }
 
-                if (camData.m_cameraMode == CameraMode::FPS) {
-                    if (isChild) {
+                if (camData.m_cameraMode == CameraMode::FPS)
+                {
+                    if (isChild)
+                    {
                         cData.m_position = camData.m_fpsOffset + pivotOffset;
                         cData.m_rotation.y = 0;
-                    } else {
+                    }
+                    else
+                    {
                         Math::Vector3 offset = Math::Vector3::TransformNormal(camData.m_fpsOffset + pivotOffset, playerRot);
                         cData.m_position = pData.m_position + offset;
                         cData.m_rotation.y = pData.m_rotation.y;
                     }
-                } else if (camData.m_cameraMode == CameraMode::TPS) {
+                }
+                else if (camData.m_cameraMode == CameraMode::TPS)
+                {
                     Math::Matrix localRot = Math::Matrix::CreateRotationX(cData.m_rotation.x);
-                    if (isChild) {
+                    if (isChild)
+                    {
                         Math::Vector3 offset = Math::Vector3::TransformNormal(camData.m_targetOffset, localRot);
                         cData.m_position = pivotOffset + offset;
                         cData.m_rotation.y = 0;
-                    } else {
+                    }
+                    else
+                    {
                         Math::Vector3 offset = Math::Vector3::TransformNormal(camData.m_targetOffset, localRot * playerRot);
                         cData.m_position = pData.m_position + pivotOffset + offset;
                         cData.m_rotation.y = pData.m_rotation.y;
@@ -317,11 +385,17 @@ void GameScene::UpdateCamera()
     {
         auto& camArray = ecs.GetComponentArray<CameraData>();
         Entity previewEntity = INVALID_ENTITY;
-        for (size_t i = 0; i < camArray.GetSize(); ++i) {
-            if ((camArray.begin() + i)->m_isDebugPreview) { previewEntity = camArray.GetEntityFromIndex(i); break; }
+        for (size_t i = 0; i < camArray.GetSize(); ++i)
+        {
+            if ((camArray.begin() + i)->m_isDebugPreview)
+            {
+                previewEntity = camArray.GetEntityFromIndex(i);
+                break;
+            }
         }
 
-        if (previewEntity != INVALID_ENTITY && Editor::IsPreviewCameraHovered() && Input::Instance().IsMouseRightTrigger()) {
+        if (previewEntity != INVALID_ENTITY && Editor::IsPreviewCameraHovered() && Input::Instance().IsMouseRightTrigger())
+        {
             Input::Instance().SetMouseModeRelative();
             m_isPreviewCameraDragging = true;
         }
@@ -330,7 +404,8 @@ void GameScene::UpdateCamera()
         // 毎フレーム蓄積し続け、いつの間にか回転が異常な値(例: Y軸が-1530°等)まで暴走してしまう。
         // エッジイベントに頼らず、「今実際に右クリックが押されているか」を毎フレーム直接見て
         // 判定すれば、取りこぼしがあっても次のフレームで確実に自己修復する。
-        if (m_isPreviewCameraDragging && !Input::Instance().IsMouseRightHold()) {
+        if (m_isPreviewCameraDragging && !Input::Instance().IsMouseRightHold())
+        {
             Input::Instance().SetMouseModeAbsolute();
             m_isPreviewCameraDragging = false;
         }
@@ -349,8 +424,14 @@ void GameScene::UpdateCamera()
                 data.m_rotation.x += Input::Instance().GetMouseDeltaY() * rotSpeed;
 
                 float pitchLimit = DirectX::XMConvertToRadians(89.0f);
-                if (data.m_rotation.x > pitchLimit) data.m_rotation.x = pitchLimit;
-                if (data.m_rotation.x < -pitchLimit) data.m_rotation.x = -pitchLimit;
+                if (data.m_rotation.x > pitchLimit)
+                {
+                    data.m_rotation.x = pitchLimit;
+                }
+                if (data.m_rotation.x < -pitchLimit)
+                {
+                    data.m_rotation.x = -pitchLimit;
+                }
 
                 Math::Matrix mRot = Math::Matrix::CreateFromYawPitchRoll(data.m_rotation.y, data.m_rotation.x, data.m_rotation.z);
                 Math::Vector3 forward = Math::Vector3::TransformNormal(Math::Vector3(0, 0, 1), mRot);
@@ -361,12 +442,30 @@ void GameScene::UpdateCamera()
                 // m_moveSpeedは秒速(m/s)。フレーム単位で足すとFPSが上がるほど速くなるため、経過時間を掛ける
                 float moveSpeed = camData.m_moveSpeed * GameTimer::Instance().DeltaTime();
 
-                if (Input::Instance().IsKeyHold('W')) moveVec += forward;
-                if (Input::Instance().IsKeyHold('S')) moveVec -= forward;
-                if (Input::Instance().IsKeyHold('D')) moveVec += right;
-                if (Input::Instance().IsKeyHold('A')) moveVec -= right;
-                if (Input::Instance().IsKeyHold('E')) moveVec += up;
-                if (Input::Instance().IsKeyHold('Q')) moveVec -= up;
+                if (Input::Instance().IsKeyHold('W'))
+                {
+                    moveVec += forward;
+                }
+                if (Input::Instance().IsKeyHold('S'))
+                {
+                    moveVec -= forward;
+                }
+                if (Input::Instance().IsKeyHold('D'))
+                {
+                    moveVec += right;
+                }
+                if (Input::Instance().IsKeyHold('A'))
+                {
+                    moveVec -= right;
+                }
+                if (Input::Instance().IsKeyHold('E'))
+                {
+                    moveVec += up;
+                }
+                if (Input::Instance().IsKeyHold('Q'))
+                {
+                    moveVec -= up;
+                }
 
                 if (moveVec.LengthSquared() > 0.0f)
                 {
@@ -380,41 +479,65 @@ void GameScene::UpdateCamera()
 
 void GameScene::TryBuildNavMesh()
 {
-    if (NavMeshManager::Instance().IsBuilt()) return;
+    if (NavMeshManager::Instance().IsBuilt())
+    {
+        return;
+    }
 
     auto gs = GameSequence::GetInstance();
-    if (!gs) return; // GameSequence::Start() has not populated the room list yet, retry next frame
+    if (!gs)
+    {
+        return; // GameSequence::Start() has not populated the room list yet, retry next frame
+    }
 
     // 部屋同士のつながり(開口部)は家のモデルへのレイキャストとドアの位置から決めるので、家のモデルが
     // 読み込み終わるまで待つ。読み込めないままNavMesh無しになるのを避け、一定時間待ったら判定なしで作る。
     const float kMaxStageWait = 10.0f;
-    if (!NavMeshManager::IsStageCollisionReady() && m_navMeshWaitTime < kMaxStageWait) {
+    if (!NavMeshManager::IsStageCollisionReady() && m_navMeshWaitTime < kMaxStageWait)
+    {
         m_navMeshWaitTime += GameTimer::Instance().DeltaTime();
         return;
     }
 
-    for (RoomArea* room : gs->GetRooms()) {
-        if (!room) continue;
+    for (RoomArea* room : gs->GetRooms())
+    {
+        if (!room)
+        {
+            continue;
+        }
         auto pObj = room->GetGameObject();
         Logger::Instance().AddLog(Logger::LogLevel::Info,
-            "[GameScene] Room bounds: %s min=(%.2f,%.2f,%.2f) max=(%.2f,%.2f,%.2f)",
-            pObj ? pObj->GetName().c_str() : "?",
-            room->m_min.x, room->m_min.y, room->m_min.z,
-            room->m_max.x, room->m_max.y, room->m_max.z);
+                                  "[GameScene] Room bounds: %s min=(%.2f,%.2f,%.2f) max=(%.2f,%.2f,%.2f)",
+                                  pObj ? pObj->GetName().c_str() : "?",
+                                  room->m_min.x, room->m_min.y, room->m_min.z,
+                                  room->m_max.x, room->m_max.y, room->m_max.z);
     }
 
-    if (NavMeshManager::Instance().BuildManualNavMesh(gs->GetRooms())) {
+    if (NavMeshManager::Instance().BuildManualNavMesh(gs->GetRooms()))
+    {
         Logger::Instance().AddLog(Logger::LogLevel::Info, "[GameScene] NavMesh (manual, room-based) built.");
 
         // Log reachability between every room pair, so problems are visible immediately in the log
         const auto& rooms = gs->GetRooms();
-        for (size_t i = 0; i < rooms.size(); ++i) {
-            if (!rooms[i]) continue;
+        for (size_t i = 0; i < rooms.size(); ++i)
+        {
+            if (!rooms[i])
+            {
+                continue;
+            }
             std::string reachableNames;
-            for (size_t j = 0; j < rooms.size(); ++j) {
-                if (i == j || !rooms[j]) continue;
-                if (NavMeshManager::Instance().IsReachable(rooms[i]->GetCenter(), rooms[j]->GetCenter())) {
-                    if (!reachableNames.empty()) reachableNames += ", ";
+            for (size_t j = 0; j < rooms.size(); ++j)
+            {
+                if (i == j || !rooms[j])
+                {
+                    continue;
+                }
+                if (NavMeshManager::Instance().IsReachable(rooms[i]->GetCenter(), rooms[j]->GetCenter()))
+                {
+                    if (!reachableNames.empty())
+                    {
+                        reachableNames += ", ";
+                    }
                     auto pObj = rooms[j]->GetGameObject();
                     reachableNames += pObj ? pObj->GetName() : "?";
                 }
@@ -422,8 +545,8 @@ void GameScene::TryBuildNavMesh()
             auto pSelfObj = rooms[i]->GetGameObject();
             std::string selfName = pSelfObj ? pSelfObj->GetName() : "?";
             Logger::Instance().AddLog(Logger::LogLevel::Info,
-                "[GameScene] NavMesh room reachability: %s (y=%.1f) -> [%s]",
-                selfName.c_str(), rooms[i]->GetCenter().y, reachableNames.c_str());
+                                      "[GameScene] NavMesh room reachability: %s (y=%.1f) -> [%s]",
+                                      selfName.c_str(), rooms[i]->GetCenter().y, reachableNames.c_str());
         }
     }
 }
@@ -435,18 +558,22 @@ void GameScene::Render()
     auto* pCmdList = GraphicsDevice::Instance().GetCmdList();
 
     auto renderSystem = GameManager::Instance().GetRenderSystem();
-    if (renderSystem) {
+    if (renderSystem)
+    {
         PROFILE_CPU_SCOPE("Shadow");
         PROFILE_GPU_SCOPE(pCmdList, "Shadow");
         renderSystem->RenderShadow();
     }
 
-    if (m_fullscreenGame) {
+    if (m_fullscreenGame)
+    {
         RenderGame();
         Editor::DrawProfilerOverlay(); // F3で切り替え - エディタモードではRenderEditor()のフルUIで既に表示される
     }
     else
+    {
         RenderEditor();
+    }
 
     RenderDebugPreviewCamera();
 
@@ -456,10 +583,16 @@ void GameScene::Render()
 void GameScene::RenderDebugPreviewCamera()
 {
     auto renderSystem = GameManager::Instance().GetRenderSystem();
-    if (!renderSystem) return;
+    if (!renderSystem)
+    {
+        return;
+    }
 
     auto* pPreviewRT = Renderer::GetDebugPreviewRenderTarget();
-    if (!pPreviewRT) return;
+    if (!pPreviewRT)
+    {
+        return;
+    }
 
     // CameraData.m_isDebugPreviewを立てたカメラを探す。複数見つかった場合は「最後(＝Entity番号が
     // 一番大きい=一番新しく作られた)もの」を使う。過去にGameObjectを削除/親子関係変更した際、
@@ -473,11 +606,17 @@ void GameScene::RenderDebugPreviewCamera()
         if ((camArray.begin() + i)->m_isDebugPreview)
         {
             Entity e = camArray.GetEntityFromIndex(i);
-            if (previewCameraEntity == INVALID_ENTITY || e > previewCameraEntity) previewCameraEntity = e;
+            if (previewCameraEntity == INVALID_ENTITY || e > previewCameraEntity)
+            {
+                previewCameraEntity = e;
+            }
         }
     }
 
-    if (previewCameraEntity == INVALID_ENTITY) return;
+    if (previewCameraEntity == INVALID_ENTITY)
+    {
+        return;
+    }
 
     // RenderScene()は内部でRenderSystem::m_cameraEntityを書き換える(フラスタムカリング等が
     // 参照するため)。プレビュー描画のためにこれを一時的に差し替えたら、他の処理(ポストプロセス等)
@@ -515,7 +654,7 @@ void GameScene::RenderDebugPreviewCamera()
     viewport.Height = 720.0f;
     viewport.MinDepth = 0.0f;
     viewport.MaxDepth = 1.0f;
-    D3D12_RECT scissorRect = { 0, 0, 1280, 720 };
+    D3D12_RECT scissorRect = {0, 0, 1280, 720};
     auto* pCmdList = GraphicsDevice::Instance().GetCmdList();
     pCmdList->RSSetViewports(1, &viewport);
     pCmdList->RSSetScissorRects(1, &scissorRect);
@@ -525,7 +664,10 @@ void GameScene::RenderGame()
 {
     auto renderSystem = GameManager::Instance().GetRenderSystem();
     auto spriteRenderSystem = GameManager::Instance().GetSpriteRenderSystem();
-    if (!renderSystem || !spriteRenderSystem) return;
+    if (!renderSystem || !spriteRenderSystem)
+    {
+        return;
+    }
 
     if (m_gameCameraEntity != INVALID_ENTITY)
     {
@@ -540,7 +682,8 @@ void GameScene::RenderGame()
         // RenderReflection()が初期値(point=(0,0,0), normal=(0,0,1))のまま鏡を描画していた
         // (ゲームプレイ中の反射が実際の窓の位置・向きを無視していた原因)。
         auto scriptSystemPreDraw = GameManager::Instance().GetScriptSystem();
-        if (scriptSystemPreDraw) {
+        if (scriptSystemPreDraw)
+        {
             PROFILE_CPU_SCOPE("ScriptPreDraw");
             PROFILE_GPU_SCOPE(pCmdList, "ScriptPreDraw");
             scriptSystemPreDraw->PreDraw();
@@ -569,7 +712,8 @@ void GameScene::RenderGame()
         // Script Draw (Player UI, GameClear/Over 表示など)
         // ※ DebugWireはゲームモードでは非表示
         auto scriptSystem = GameManager::Instance().GetScriptSystem();
-        if (scriptSystem) {
+        if (scriptSystem)
+        {
             PROFILE_CPU_SCOPE("ScriptDraw");
             PROFILE_GPU_SCOPE(pCmdList, "ScriptDraw");
             scriptSystem->Draw();
@@ -587,7 +731,10 @@ void GameScene::RenderGame()
 void GameScene::UpdateLights(Entity cameraEntity)
 {
     auto lightSystem = GameManager::Instance().GetLightSystem();
-    if (!lightSystem) return;
+    if (!lightSystem)
+    {
+        return;
+    }
 
     Math::Vector3 camPos = Math::Vector3::Zero;
     auto& ecs = GameManager::Instance().GetECS();
@@ -614,20 +761,23 @@ void GameScene::UpdateLights(Entity cameraEntity)
             const float m = lighting.IndoorMargin;
             for (RoomArea* room : gs->GetRooms())
             {
-                if (!room) continue;
+                if (!room)
+                {
+                    continue;
+                }
                 if (indoorCount >= kMaxIndoorVolumes)
                 {
                     static bool s_warned = false;
                     if (!s_warned)
                     {
                         Logger::Instance().AddLog(Logger::LogLevel::Warning,
-                            "[GameScene] More than %d RoomAreas - the rest are not treated as indoor.", kMaxIndoorVolumes);
+                                                  "[GameScene] More than %d RoomAreas - the rest are not treated as indoor.", kMaxIndoorVolumes);
                         s_warned = true;
                     }
                     break;
                 }
-                lightData.IndoorMin[indoorCount] = { room->m_min.x - m, room->m_min.y - m, room->m_min.z - m, 0.0f };
-                lightData.IndoorMax[indoorCount] = { room->m_max.x + m, room->m_max.y + m, room->m_max.z + m, 0.0f };
+                lightData.IndoorMin[indoorCount] = {room->m_min.x - m, room->m_min.y - m, room->m_min.z - m, 0.0f};
+                lightData.IndoorMax[indoorCount] = {room->m_max.x + m, room->m_max.y + m, room->m_max.z + m, 0.0f};
                 ++indoorCount;
             }
         }
@@ -638,15 +788,17 @@ void GameScene::UpdateLights(Entity cameraEntity)
 void GameScene::UpdatePointLightShadow(Entity cameraEntity)
 {
     auto renderSystem = GameManager::Instance().GetRenderSystem();
-    if (!renderSystem) return;
+    if (!renderSystem)
+    {
+        return;
+    }
 
     const auto& lightData = ShaderManager::Instance().GetLightData();
     if (lightData.PL_Count <= 0)
     {
         Math::Matrix identity6[6] = {
             Math::Matrix::Identity, Math::Matrix::Identity, Math::Matrix::Identity,
-            Math::Matrix::Identity, Math::Matrix::Identity, Math::Matrix::Identity
-        };
+            Math::Matrix::Identity, Math::Matrix::Identity, Math::Matrix::Identity};
         ShaderManager::Instance().SetPointLightShadowData(identity6, 0.0f, false);
         return;
     }
@@ -661,7 +813,10 @@ void GameScene::UpdatePointLightShadow(Entity cameraEntity)
 void GameScene::RenderSSAO(Entity cameraEntity)
 {
     auto renderSystem = GameManager::Instance().GetRenderSystem();
-    if (!renderSystem || cameraEntity == INVALID_ENTITY) return;
+    if (!renderSystem || cameraEntity == INVALID_ENTITY)
+    {
+        return;
+    }
 
     auto& ssaoSettings = ShaderManager::Instance().GetSSAOSettings();
     auto* pSSAORaw = Renderer::GetSSAORenderTarget(0);
@@ -756,7 +911,7 @@ void GameScene::DoPostProcess(Entity cameraEntity, float clearR, float clearG, f
         GraphicsDevice::Instance().TransitionToSRV(pBloomResult);
         bloomShader.DrawBlur(pBloomResult, pBlurRT0, postProcessData, 1.0f, 0.0f); // Horizontal
         GraphicsDevice::Instance().TransitionToSRV(pBlurRT0);
-        bloomShader.DrawBlur(pBlurRT0, pBlurRT1, postProcessData, 0.0f, 1.0f);     // Vertical
+        bloomShader.DrawBlur(pBlurRT0, pBlurRT1, postProcessData, 0.0f, 1.0f); // Vertical
         pBloomResult = pBlurRT1;
     }
 
@@ -835,7 +990,10 @@ void GameScene::RenderEditor()
 {
     auto renderSystem = GameManager::Instance().GetRenderSystem();
     auto spriteRenderSystem = GameManager::Instance().GetSpriteRenderSystem();
-    if (!renderSystem || !spriteRenderSystem) return;
+    if (!renderSystem || !spriteRenderSystem)
+    {
+        return;
+    }
 
     auto* pSceneHDR = Renderer::GetSceneHDRRenderTarget();
     GraphicsDevice::Instance().SetRenderTarget(pSceneHDR);
@@ -853,7 +1011,8 @@ void GameScene::RenderEditor()
         // RenderReflection()より後に呼んでいると1フレーム遅れた(古い)平面情報を使ってしまうので、
         // 先に呼んでおく(以前はScriptDraw部分でRenderScene/Sprite描画より後に呼ばれていた)。
         auto scriptSystem = GameManager::Instance().GetScriptSystem();
-        if (scriptSystem) {
+        if (scriptSystem)
+        {
             PROFILE_CPU_SCOPE("ScriptPreDraw");
             PROFILE_GPU_SCOPE(pCmdList, "ScriptPreDraw");
             scriptSystem->PreDraw();
@@ -879,7 +1038,8 @@ void GameScene::RenderEditor()
         }
 
         // Script Draw (デバッグワイヤー等表示)
-        if (scriptSystem) {
+        if (scriptSystem)
+        {
             PROFILE_CPU_SCOPE("ScriptDraw");
             PROFILE_GPU_SCOPE(pCmdList, "ScriptDraw");
             scriptSystem->Draw();

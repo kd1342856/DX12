@@ -17,6 +17,7 @@ class ShaderEditor
 public:
     void Initialize();
     void Draw(EditorContext& ctx);
+
 private:
     std::vector<std::unique_ptr<IEditorPanel>> m_Panels;
 };

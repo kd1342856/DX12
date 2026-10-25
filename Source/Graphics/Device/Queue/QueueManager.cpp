@@ -11,7 +11,10 @@ bool QueueManager::Init(ID3D12Device* pDevice)
 
     OutputDebugStringA("Initializing CopyQueue...\n");
     m_upCopyQueue = std::make_unique<CommandQueue>();
-    if (m_upCopyQueue) OutputDebugStringA("CopyQueue allocated successfully!\n");
+    if (m_upCopyQueue)
+    {
+        OutputDebugStringA("CopyQueue allocated successfully!\n");
+    }
     if (!m_upCopyQueue->Init(pDevice, D3D12_COMMAND_LIST_TYPE_COPY))
     {
         return false;
@@ -33,8 +36,6 @@ void QueueManager::Shutdown()
         m_upGraphicsQueue.reset();
     }
 }
-
-
 
 
 void QueueManager::ExecuteGraphics(CommandContext* pContext)
@@ -71,5 +72,3 @@ void QueueManager::WaitQueueGraphics(CommandQueue* pWaitOnQueue, uint64_t fenceV
 {
     m_upGraphicsQueue->WaitQueue(pWaitOnQueue, fenceValue);
 }
-
-

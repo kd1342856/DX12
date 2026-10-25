@@ -24,7 +24,10 @@ public:
     static GameManager& Instance();
 
     // static 破棄後に false になる生存フラグ
-    static bool IsInstanceAlive() { return s_alive; }
+    static bool IsInstanceAlive()
+    {
+        return s_alive;
+    }
 
     // アプリ起動時に1回だけ呼ぶ
     // Component 型登録 + 全 System 登録 + Signature 設定
@@ -34,38 +37,67 @@ public:
 
 
     // ECS 取得
-    ECSCoordinator& GetECS() { return m_ecs; }
+    ECSCoordinator& GetECS()
+    {
+        return m_ecs;
+    }
 
     // ClassAssembly 取得（型登録の一本化）
-    ClassAssembly& GetClassAssembly() { return ClassAssembly::Instance(); }
+    ClassAssembly& GetClassAssembly()
+    {
+        return ClassAssembly::Instance();
+    }
 
     // System アクセサ（必要な場合のみ）
-    std::shared_ptr<RenderSystem>       GetRenderSystem()       const { return m_spRenderSystem; }
-    std::shared_ptr<SpriteRenderSystem> GetSpriteRenderSystem() const { return m_spSpriteRenderSystem; }
-    std::shared_ptr<CameraSystem>       GetCameraSystem()       const { return m_spCameraSystem; }
-    std::shared_ptr<ScriptSystem>       GetScriptSystem()       const { return m_spScriptSystem; }
-    std::shared_ptr<LightSystem>        GetLightSystem()        const { return m_spLightSystem; }
-    std::shared_ptr<SpotLightSystem>    GetSpotLightSystem()    const { return m_spSpotLightSystem; }
+    std::shared_ptr<RenderSystem> GetRenderSystem() const
+    {
+        return m_spRenderSystem;
+    }
+    std::shared_ptr<SpriteRenderSystem> GetSpriteRenderSystem() const
+    {
+        return m_spSpriteRenderSystem;
+    }
+    std::shared_ptr<CameraSystem> GetCameraSystem() const
+    {
+        return m_spCameraSystem;
+    }
+    std::shared_ptr<ScriptSystem> GetScriptSystem() const
+    {
+        return m_spScriptSystem;
+    }
+    std::shared_ptr<LightSystem> GetLightSystem() const
+    {
+        return m_spLightSystem;
+    }
+    std::shared_ptr<SpotLightSystem> GetSpotLightSystem() const
+    {
+        return m_spSpotLightSystem;
+    }
 
     void Shutdown();
 
 private:
-    GameManager() {}
-    ~GameManager() { s_alive = false; }
+    GameManager()
+    {
+    }
+    ~GameManager()
+    {
+        s_alive = false;
+    }
     GameManager(const GameManager&) = delete;
     GameManager& operator=(const GameManager&) = delete;
 
     ECSCoordinator m_ecs;
 
     // 常駐 System（Scene 切替後も生き続ける）
-    std::shared_ptr<ScriptSystem>       m_spScriptSystem;
-    std::shared_ptr<TransformSystem>    m_spTransformSystem;
-    std::shared_ptr<CameraSystem>       m_spCameraSystem;
-    std::shared_ptr<AnimationSystem>    m_spAnimationSystem;
-    std::shared_ptr<RenderSystem>       m_spRenderSystem;
+    std::shared_ptr<ScriptSystem> m_spScriptSystem;
+    std::shared_ptr<TransformSystem> m_spTransformSystem;
+    std::shared_ptr<CameraSystem> m_spCameraSystem;
+    std::shared_ptr<AnimationSystem> m_spAnimationSystem;
+    std::shared_ptr<RenderSystem> m_spRenderSystem;
     std::shared_ptr<SpriteRenderSystem> m_spSpriteRenderSystem;
-    std::shared_ptr<LightSystem>        m_spLightSystem;
-    std::shared_ptr<SpotLightSystem>    m_spSpotLightSystem;
+    std::shared_ptr<LightSystem> m_spLightSystem;
+    std::shared_ptr<SpotLightSystem> m_spSpotLightSystem;
 
     // シャットダウンの二重アクセス防止フラグ
     static bool s_alive;

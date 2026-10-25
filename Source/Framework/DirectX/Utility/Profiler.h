@@ -50,19 +50,66 @@ public:
         m_dispatchCount++;
     }
 
-    uint32_t GetDrawCallCount() const { return m_drawCallCount; }
-    uint32_t GetInstanceCount() const { return m_instanceCount; }
-    const std::unordered_map<std::string, uint32_t>& GetInstanceBreakdown() const { return m_instanceBreakdown; }
-    uint32_t GetDispatchCount() const { return m_dispatchCount; }
-    const std::unordered_map<std::string, uint32_t>& GetDrawCallBreakdown() const { return m_drawCallBreakdown; }
+    uint32_t GetDrawCallCount() const
+    {
+        return m_drawCallCount;
+    }
+    uint32_t GetInstanceCount() const
+    {
+        return m_instanceCount;
+    }
+    const std::unordered_map<std::string, uint32_t>& GetInstanceBreakdown() const
+    {
+        return m_instanceBreakdown;
+    }
+    uint32_t GetDispatchCount() const
+    {
+        return m_dispatchCount;
+    }
+    const std::unordered_map<std::string, uint32_t>& GetDrawCallBreakdown() const
+    {
+        return m_drawCallBreakdown;
+    }
 
     // フラスタムカリング統計(RenderSystem::RenderScene)、毎フレームリセットされる。
-    void AddEntityCullResult(bool culled) { if (culled) m_entitiesCulled++; else m_entitiesVisible++; }
-    void AddMeshCullResult(bool culled) { if (culled) m_meshesCulled++; else m_meshesVisible++; }
-    uint32_t GetEntitiesVisible() const { return m_entitiesVisible; }
-    uint32_t GetEntitiesCulled() const { return m_entitiesCulled; }
-    uint32_t GetMeshesVisible() const { return m_meshesVisible; }
-    uint32_t GetMeshesCulled() const { return m_meshesCulled; }
+    void AddEntityCullResult(bool culled)
+    {
+        if (culled)
+        {
+            m_entitiesCulled++;
+        }
+        else
+        {
+            m_entitiesVisible++;
+        }
+    }
+    void AddMeshCullResult(bool culled)
+    {
+        if (culled)
+        {
+            m_meshesCulled++;
+        }
+        else
+        {
+            m_meshesVisible++;
+        }
+    }
+    uint32_t GetEntitiesVisible() const
+    {
+        return m_entitiesVisible;
+    }
+    uint32_t GetEntitiesCulled() const
+    {
+        return m_entitiesCulled;
+    }
+    uint32_t GetMeshesVisible() const
+    {
+        return m_meshesVisible;
+    }
+    uint32_t GetMeshesCulled() const
+    {
+        return m_meshesCulled;
+    }
 
     // メモリ使用量の問い合わせ
     float GetSystemRAMUsageMB() const;
@@ -75,13 +122,18 @@ public:
         // 同じ名前が1フレームで複数回使われた場合(カメラごとに呼ばれる等)は加算していく。
         m_cpuTimings[name] += ms;
     }
-    const std::unordered_map<std::string, float>& GetCPUTimings() const { return m_cpuTimings; }
+    const std::unordered_map<std::string, float>& GetCPUTimings() const
+    {
+        return m_cpuTimings;
+    }
 
     class ScopedCPUTimer
     {
     public:
         explicit ScopedCPUTimer(std::string name)
-            : m_name(std::move(name)), m_start(std::chrono::high_resolution_clock::now()) {}
+            : m_name(std::move(name)), m_start(std::chrono::high_resolution_clock::now())
+        {
+        }
         ~ScopedCPUTimer()
         {
             auto end = std::chrono::high_resolution_clock::now();
@@ -90,6 +142,7 @@ public:
         }
         ScopedCPUTimer(const ScopedCPUTimer&) = delete;
         ScopedCPUTimer& operator=(const ScopedCPUTimer&) = delete;
+
     private:
         std::string m_name;
         std::chrono::high_resolution_clock::time_point m_start;
@@ -117,20 +170,25 @@ public:
     uint32_t BeginGPUScope(ID3D12GraphicsCommandList* pCmdList, const std::string& name);
     void EndGPUScope(ID3D12GraphicsCommandList* pCmdList, uint32_t scopeHandle);
 
-    const std::unordered_map<std::string, float>& GetGPUTimings() const { return m_gpuTimings; }
+    const std::unordered_map<std::string, float>& GetGPUTimings() const
+    {
+        return m_gpuTimings;
+    }
 
     class ScopedGPUTimer
     {
     public:
         ScopedGPUTimer(ID3D12GraphicsCommandList* pCmdList, std::string name)
-            : m_pCmdList(pCmdList)
-            , m_handle(Profiler::Instance().BeginGPUScope(pCmdList, name)) {}
+            : m_pCmdList(pCmdList), m_handle(Profiler::Instance().BeginGPUScope(pCmdList, name))
+        {
+        }
         ~ScopedGPUTimer()
         {
             Profiler::Instance().EndGPUScope(m_pCmdList, m_handle);
         }
         ScopedGPUTimer(const ScopedGPUTimer&) = delete;
         ScopedGPUTimer& operator=(const ScopedGPUTimer&) = delete;
+
     private:
         ID3D12GraphicsCommandList* m_pCmdList;
         uint32_t m_handle;
@@ -142,8 +200,14 @@ public:
     static constexpr int kFrameHistorySize = 120;
 
     void AddFrameTime(float ms);
-    const std::array<float, kFrameHistorySize>& GetFrameTimeHistory() const { return m_frameTimeHistory; }
-    int GetFrameTimeHistoryIndex() const { return m_frameTimeHistoryIdx; }
+    const std::array<float, kFrameHistorySize>& GetFrameTimeHistory() const
+    {
+        return m_frameTimeHistory;
+    }
+    int GetFrameTimeHistoryIndex() const
+    {
+        return m_frameTimeHistoryIdx;
+    }
 
     // フレームの先頭で1回呼ぶ。前フレームの所要時間を記録し、平均より極端に遅かったら
     // そのフレームのCPU区間計測をログに出してから、毎フレームのカウンタをリセットする。
@@ -179,8 +243,8 @@ private:
     uint32_t m_gpuScopeCounter = 0;
     Microsoft::WRL::ComPtr<ID3D12QueryHeap> m_spQueryHeap;
     std::vector<Microsoft::WRL::ComPtr<ID3D12Resource>> m_gpuReadbackBuffers; // フレームインフライトのスロットごとに1つ
-    std::vector<std::vector<std::string>> m_gpuScopeNamesPerSlot;            // 各スロットに記録されたスコープ名
-    std::vector<uint32_t> m_gpuScopeCountPerSlot;                            // 各スロットに記録されたスコープ数
+    std::vector<std::vector<std::string>> m_gpuScopeNamesPerSlot;             // 各スロットに記録されたスコープ名
+    std::vector<uint32_t> m_gpuScopeCountPerSlot;                             // 各スロットに記録されたスコープ数
     std::unordered_map<std::string, float> m_gpuTimings;
 
     // フレーム時間の履歴

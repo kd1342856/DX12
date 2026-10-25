@@ -43,14 +43,15 @@ void ResultScene::Init()
     ecs.FlushCommands();
 
     // クリア画面の背景はMistShader(青白い霧)で描くので、背景スプライトは作らない
-    if (!m_isClear) {
+    if (!m_isClear)
+    {
         m_deathEntity = ecs.CreateEntity();
         TransformData dTransform;
-        dTransform.m_position = { 640.0f, 360.0f, 0.0f };
+        dTransform.m_position = {640.0f, 360.0f, 0.0f};
         SpriteData dSprite;
         dSprite.m_filePath = "Asset/Texture/UI/Death.png";
-        dSprite.m_size = { 600.0f, 400.0f };
-        dSprite.m_color = { 1.0f, 1.0f, 1.0f, 0.0f }; // Start invisible
+        dSprite.m_size = {600.0f, 400.0f};
+        dSprite.m_color = {1.0f, 1.0f, 1.0f, 0.0f}; // Start invisible
         dSprite.m_orderInLayer = 50;
         ecs.AddComponent(m_deathEntity, dTransform);
         ecs.AddComponent(m_deathEntity, dSprite);
@@ -58,11 +59,11 @@ void ResultScene::Init()
 
     m_buttonEntity = ecs.CreateEntity();
     TransformData bTransform;
-    bTransform.m_position = { 640.0f, 600.0f, 0.0f };
+    bTransform.m_position = {640.0f, 600.0f, 0.0f};
     SpriteData bSprite;
     bSprite.m_filePath = "Asset/Texture/UI/BackToTitle.png";
-    bSprite.m_size = { 300.0f, 200.0f };
-    bSprite.m_color = { 1.0f, 1.0f, 1.0f, 0.0f }; // Start invisible
+    bSprite.m_size = {300.0f, 200.0f};
+    bSprite.m_color = {1.0f, 1.0f, 1.0f, 0.0f}; // Start invisible
     bSprite.m_orderInLayer = 10;
     ecs.AddComponent(m_buttonEntity, bTransform);
     ecs.AddComponent(m_buttonEntity, bSprite);
@@ -73,19 +74,21 @@ void ResultScene::Update(float deltaTime)
     m_time += deltaTime;
 
     auto& ecs = GameManager::Instance().GetECS();
-    
+
     // Animate UI visibility
     float uiAlpha = std::clamp(m_time - 3.0f, 0.0f, 1.0f);
-    if (m_buttonEntity != 0) {
+    if (m_buttonEntity != 0)
+    {
         auto& btnSprite = ecs.GetComponent<SpriteData>(m_buttonEntity);
         btnSprite.m_color.w = uiAlpha; // Fade in after 3 seconds
     }
-    
-    if (!m_isClear && m_deathEntity != 0) {
+
+    if (!m_isClear && m_deathEntity != 0)
+    {
         float deathAlpha = std::clamp(m_time / 3.0f, 0.0f, 1.0f);
         auto& deathSprite = ecs.GetComponent<SpriteData>(m_deathEntity);
         deathSprite.m_color.w = deathAlpha;
-        
+
         // Add vertical jitter
         auto& deathTransform = ecs.GetComponent<TransformData>(m_deathEntity);
         float offsetY = sinf(m_time * 2.0f) * 5.0f;
@@ -94,7 +97,7 @@ void ResultScene::Update(float deltaTime)
 
     Renderer::BeginFrame();
     GraphicsDevice::Instance().SetBackBuffer();
-    
+
     // 背景: ゲームオーバーは赤い霧(FogShader)、クリアは青白い霧(MistShader)
     auto* pCmdList = GraphicsDevice::Instance().GetCmdList();
 
@@ -112,27 +115,34 @@ void ResultScene::Update(float deltaTime)
     pCmdList->RSSetScissorRects(1, &scissorRect);
 
     GraphicsDevice::Instance().ClearBackBuffer(0.0f, 0.0f, 0.0f, 1.0f);
-    if (m_isClear) {
+    if (m_isClear)
+    {
         ShaderLibrary::Instance().Get<MistShader>().Draw(m_time);
-    } else {
+    }
+    else
+    {
         ShaderLibrary::Instance().Get<FogShader>().Draw(m_time);
     }
 
     auto spriteRenderSystem = GameManager::Instance().GetSpriteRenderSystem();
-    if (spriteRenderSystem) {
+    if (spriteRenderSystem)
+    {
         spriteRenderSystem->Render();
     }
 
-    if (m_isClear) {
+    if (m_isClear)
+    {
         DrawClearReport();
     }
 
     // Click directly on the BackToTitle sprite (hit-tested in the sprite's own 1280x720 space).
     // The old ImGui InvisibleButton used window-local SetCursorPos with screen-center coordinates
     // inside an auto-resizing window, so it never actually sat over the sprite.
-    if (uiAlpha > 0.5f) {
+    if (uiAlpha > 0.5f)
+    {
         auto spriteSys = GameManager::Instance().GetSpriteRenderSystem();
-        if (spriteSys && spriteSys->IsClicked(m_buttonEntity)) {
+        if (spriteSys && spriteSys->IsClicked(m_buttonEntity))
+        {
             SceneManager::Instance().ChangeScene(std::make_unique<TitleScene>(), 1.0f);
         }
     }
@@ -154,9 +164,18 @@ char ResultScene::CalcRank() const
     const float kRankA = 420.0f; // 7分
     const float kRankB = 600.0f; // 10分
     float score = m_timeTaken + kHuntPenalty * (float)m_huntsSurvived;
-    if (score <= kRankS) return 'S';
-    if (score <= kRankA) return 'A';
-    if (score <= kRankB) return 'B';
+    if (score <= kRankS)
+    {
+        return 'S';
+    }
+    if (score <= kRankA)
+    {
+        return 'A';
+    }
+    if (score <= kRankB)
+    {
+        return 'B';
+    }
     return 'C';
 }
 
@@ -170,16 +189,27 @@ void ResultScene::DrawClearReport()
     ImDrawList* dl = ImGui::GetBackgroundDrawList(); // スプライトの上、エディタのウィンドウより下
     // 筆文字フォント(GraphicsDeviceが"ResultFont"という名前で読み込む)。無ければ標準フォントで描く
     ImFont* font = ImGui::GetFont();
-    for (ImFont* f : ImGui::GetIO().Fonts->Fonts) {
-        if (strcmp(f->GetDebugName(), "ResultFont") == 0) { font = f; break; }
+    for (ImFont* f : ImGui::GetIO().Fonts->Fonts)
+    {
+        if (strcmp(f->GetDebugName(), "ResultFont") == 0)
+        {
+            font = f;
+            break;
+        }
     }
 
     // 時間差でフェードインさせる(start秒から0.6秒かけて)
-    auto fade = [&](float start) { return std::clamp((m_time - start) / 0.6f, 0.0f, 1.0f); };
-    auto toScreen = [&](float x, float y) { return ImVec2(vp->Pos.x + x * sx, vp->Pos.y + y * sy); };
+    auto fade = [&](float start)
+    { return std::clamp((m_time - start) / 0.6f, 0.0f, 1.0f); };
+    auto toScreen = [&](float x, float y)
+    { return ImVec2(vp->Pos.x + x * sx, vp->Pos.y + y * sy); };
     // align: 0=左揃え, 0.5=中央, 1=右揃え。影を付けて、明るい背景の上でも読めるようにする
-    auto text = [&](const char* str, float x, float y, float size, ImVec4 color, float alpha, float align = 0.0f) {
-        if (alpha <= 0.0f) return;
+    auto text = [&](const char* str, float x, float y, float size, ImVec4 color, float alpha, float align = 0.0f)
+    {
+        if (alpha <= 0.0f)
+        {
+            return;
+        }
         float px = size * sy;
         ImVec2 ts = font->CalcTextSizeA(px, FLT_MAX, 0.0f, str);
         ImVec2 pos = toScreen(x, y);
@@ -190,9 +220,9 @@ void ResultScene::DrawClearReport()
         dl->AddText(font, px, pos, ImGui::GetColorU32(ImVec4(color.x, color.y, color.z, color.w * alpha)), str);
     };
 
-    const ImVec4 kInk   = { 0.94f, 0.89f, 0.79f, 1.0f }; // 古い紙のような色
-    const ImVec4 kLabel = { 0.80f, 0.72f, 0.60f, 1.0f };
-    const ImVec4 kTitle = { 0.78f, 0.16f, 0.12f, 1.0f }; // 朱色
+    const ImVec4 kInk = {0.94f, 0.89f, 0.79f, 1.0f}; // 古い紙のような色
+    const ImVec4 kLabel = {0.80f, 0.72f, 0.60f, 1.0f};
+    const ImVec4 kTitle = {0.78f, 0.16f, 0.12f, 1.0f}; // 朱色
 
     // 見出し
     text(u8"除霊完了", 640.0f, 150.0f, 84.0f, kTitle, fade(0.2f), 0.5f);
@@ -200,7 +230,8 @@ void ResultScene::DrawClearReport()
     // ゴーストの正体
     const char* ghostName = u8"不明";
     const char* ghostDesc = "";
-    switch (m_ghostType) {
+    switch (m_ghostType)
+    {
     case (int)GhostAI::GhostType::Jibakurei:
         ghostName = u8"地縛霊";
         ghostDesc = u8"その場所に縛られた霊。刺激には反応しない。";
@@ -236,16 +267,25 @@ void ResultScene::DrawClearReport()
     // 評価ランク: 判子を押すように、大きい所から縮みながら現れる
     char rank = CalcRank();
     ImVec4 rankColor;
-    switch (rank) {
-    case 'S': rankColor = { 0.95f, 0.78f, 0.25f, 1.0f }; break; // 金
-    case 'A': rankColor = { 0.85f, 0.20f, 0.15f, 1.0f }; break; // 朱
-    case 'B': rankColor = { 0.85f, 0.80f, 0.70f, 1.0f }; break;
-    default:  rankColor = { 0.60f, 0.58f, 0.55f, 1.0f }; break;
+    switch (rank)
+    {
+    case 'S':
+        rankColor = {0.95f, 0.78f, 0.25f, 1.0f};
+        break; // 金
+    case 'A':
+        rankColor = {0.85f, 0.20f, 0.15f, 1.0f};
+        break; // 朱
+    case 'B':
+        rankColor = {0.85f, 0.80f, 0.70f, 1.0f};
+        break;
+    default:
+        rankColor = {0.60f, 0.58f, 0.55f, 1.0f};
+        break;
     }
     const float kStampStart = 2.4f;
     float stamp = std::clamp((m_time - kStampStart) / 0.25f, 0.0f, 1.0f);
     float stampScale = 1.0f + (1.0f - stamp) * 0.8f;
-    char rankStr[2] = { rank, '\0' };
+    char rankStr[2] = {rank, '\0'};
     text(u8"評価", 1010.0f, 265.0f, 30.0f, kLabel, fade(kStampStart - 0.3f), 0.5f);
     text(rankStr, 1010.0f, 390.0f, 160.0f * stampScale, rankColor, stamp, 0.5f);
 }
@@ -253,7 +293,16 @@ void ResultScene::DrawClearReport()
 void ResultScene::Unload()
 {
     auto& ecs = GameManager::Instance().GetECS();
-    if (m_bgEntity != 0) ecs.DestroyEntity(m_bgEntity);
-    if (m_deathEntity != 0) ecs.DestroyEntity(m_deathEntity);
-    if (m_buttonEntity != 0) ecs.DestroyEntity(m_buttonEntity);
+    if (m_bgEntity != 0)
+    {
+        ecs.DestroyEntity(m_bgEntity);
+    }
+    if (m_deathEntity != 0)
+    {
+        ecs.DestroyEntity(m_deathEntity);
+    }
+    if (m_buttonEntity != 0)
+    {
+        ecs.DestroyEntity(m_buttonEntity);
+    }
 }

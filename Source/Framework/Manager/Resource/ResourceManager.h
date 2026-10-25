@@ -1,7 +1,8 @@
 #pragma once
 #include "../../System/JobSystem/JobSystem.h"
 
-class ResourceManager {
+class ResourceManager
+{
 public:
     static ResourceManager& Instance();
 
@@ -11,7 +12,7 @@ public:
     // any mesh-less "empty" nodes (e.g. hand-attach sockets) that aren't part of a skin's joints.
     // Pass false for skinned/animated character models that rely on such named attach nodes.
     std::shared_ptr<ModelData> LoadModelAsync(const std::string& filepath, bool mergeMeshes = true);
-    
+
     // Get a model if it's already loaded or in progress. Returns nullptr if not known.
     std::shared_ptr<ModelData> GetModel(const std::string& filepath);
 

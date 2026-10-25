@@ -42,7 +42,10 @@ void GameManager::Init()
     // 各種static参照等)が無効になって「存在しないEntity」で落ちる原因になっていた
     // (シーン切り替え時にクラッシュしていた不具合の根本原因)。
     // 二重初期化を防ぐガード。
-    if (m_isInitialized) return;
+    if (m_isInitialized)
+    {
+        return;
+    }
     m_isInitialized = true;
 
     m_ecs.Init();
@@ -132,7 +135,7 @@ void GameManager::Init()
     }
 
     CollisionManager::Instance().Init();
-        JobSystem::Instance().Init();
+    JobSystem::Instance().Init();
 
     auto* pDevice = &GDF::Instance().GetGraphicsDevice();
     ShaderLibrary::Instance().Register<LitShader>(pDevice);
@@ -154,7 +157,10 @@ void GameManager::Update(float deltaTime, class Scene* pScene)
 {
     GetECS().FlushCommands();
 
-    if (!pScene) return;
+    if (!pScene)
+    {
+        return;
+    }
 
     {
         // Player/Ghost等のスクリプトロジック - GhostAIの経路探索(NavMeshクエリ)も含む。
@@ -169,8 +175,12 @@ void GameManager::Update(float deltaTime, class Scene* pScene)
 
     // Transform: ルートオブジェクトから階層更新
     std::vector<std::shared_ptr<class GameObject>> roots;
-    for (auto& obj : pScene->GetGameObjects()) {
-        if (!obj->GetParent()) roots.push_back(obj);
+    for (auto& obj : pScene->GetGameObjects())
+    {
+        if (!obj->GetParent())
+        {
+            roots.push_back(obj);
+        }
     }
     {
         PROFILE_CPU_SCOPE("TransformSystem::Update");
@@ -205,13 +215,14 @@ void GameManager::Update(float deltaTime, class Scene* pScene)
 
 void GameManager::Shutdown()
 {
-    if (!s_alive) return;
+    if (!s_alive)
+    {
+        return;
+    }
     s_alive = false;
-    
+
     // 全エンティティとコンポーネントを安全に破棄
     m_ecs.Shutdown();
-    
+
     JobSystem::Instance().Shutdown();
 }
-
-

@@ -7,8 +7,8 @@ class RenderTarget;
 class GodRaysShader : public GraphicsShader
 {
 public:
-	virtual void Create(GraphicsDevice* pDevice) override;
+    virtual void Create(GraphicsDevice* pDevice) override;
 
-	// pSrcRT: 光源を含む明るい部分のテクスチャ(Bloom結果の再利用を想定)
-	void Draw(RenderTarget* pSrcRT, RenderTarget* pDestRT, const CBufferData::PostProcess& postProcessData);
+    // pSrcRT: 光源を含む明るい部分のテクスチャ(Bloom結果の再利用を想定)
+    void Draw(RenderTarget* pSrcRT, RenderTarget* pDestRT, const CBufferData::PostProcess& postProcessData);
 };

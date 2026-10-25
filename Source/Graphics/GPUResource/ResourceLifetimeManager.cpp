@@ -5,12 +5,15 @@ void ResourceLifetimeManager::DeferDelete(
     Microsoft::WRL::ComPtr<ID3D12Resource> resource,
     uint64_t fenceValue)
 {
-    if (!resource) return;
+    if (!resource)
+    {
+        return;
+    }
 
     std::lock_guard<std::mutex> lock(m_mutex);
 
     PendingDelete entry;
-    entry.resource   = std::move(resource);
+    entry.resource = std::move(resource);
     entry.fenceValue = fenceValue;
     m_pendingDeletes.push_back(std::move(entry));
 }

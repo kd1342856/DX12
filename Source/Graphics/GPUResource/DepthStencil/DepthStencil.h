@@ -1,27 +1,36 @@
 ﻿#pragma once
 enum class DepthStencilFormat
 {
-	DepthLowQuality = DXGI_FORMAT_R16_TYPELESS,
-	DepthHighQuality = DXGI_FORMAT_R32_TYPELESS,
-	DepthHighQualityAndStencil = DXGI_FORMAT_R24G8_TYPELESS,
+    DepthLowQuality = DXGI_FORMAT_R16_TYPELESS,
+    DepthHighQuality = DXGI_FORMAT_R32_TYPELESS,
+    DepthHighQualityAndStencil = DXGI_FORMAT_R24G8_TYPELESS,
 };
 
 class DepthStencil : public GPUResource
 {
 public:
-	bool Create(GraphicsDevice* pGraphicsDevice, const Math::Vector2& resolution, DepthStencilFormat format = DepthStencilFormat::DepthHighQuality, bool bCreateSRV = false);
+    bool Create(GraphicsDevice* pGraphicsDevice, const Math::Vector2& resolution, DepthStencilFormat format = DepthStencilFormat::DepthHighQuality, bool bCreateSRV = false);
 
-	void ClearBuffer();
+    void ClearBuffer();
 
-	// リソースバリア遷移（状態管理付き）
+    // リソースバリア遷移（状態管理付き）
 
-	UINT GetDSVNumber() const { return m_dsvNumber; }
-	int GetSRVNumber() const { return m_srvNumber; }
-	ID3D12Resource* GetBuffer() const { return m_resource.Get(); }
+    UINT GetDSVNumber() const
+    {
+        return m_dsvNumber;
+    }
+    int GetSRVNumber() const
+    {
+        return m_srvNumber;
+    }
+    ID3D12Resource* GetBuffer() const
+    {
+        return m_resource.Get();
+    }
 
 private:
-	UINT m_dsvNumber = 0;
-	int m_srvNumber = -1;
+    UINT m_dsvNumber = 0;
+    int m_srvNumber = -1;
 
-	// 現在のリソースステート（Create直後はDEPTH_WRITE）
+    // 現在のリソースステート（Create直後はDEPTH_WRITE）
 };

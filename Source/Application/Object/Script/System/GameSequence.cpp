@@ -28,40 +28,41 @@ void GameSequence::Start()
 
     auto& ecs = GameManager::Instance().GetECS();
     GhostAI* ghost = nullptr;
-    for (auto& scriptData : ecs.GetComponentArray<NativeScriptData>()) 
+    for (auto& scriptData : ecs.GetComponentArray<NativeScriptData>())
     {
-        if (auto* room = dynamic_cast<RoomArea*>(scriptData.Instance.get())) 
+        if (auto* room = dynamic_cast<RoomArea*>(scriptData.Instance.get()))
         {
             m_rooms.push_back(room);
         }
         if (!ghost)
         {
-            if (auto* g = dynamic_cast<GhostAI*>(scriptData.Instance.get())) 
+            if (auto* g = dynamic_cast<GhostAI*>(scriptData.Instance.get()))
             {
                 ghost = g;
             }
         }
     }
 
-    if (ghost) 
+    if (ghost)
     {
         std::vector<RoomArea*> candidates;
-        for (RoomArea* room : m_rooms) 
+        for (RoomArea* room : m_rooms)
         {
-            if (room->m_isGhostRoomCandidate) 
+            if (room->m_isGhostRoomCandidate)
             {
                 candidates.push_back(room);
             }
         }
 
-        if (!candidates.empty()) {
+        if (!candidates.empty())
+        {
             // rand() with no srand() call anywhere in the project always starts from the same
             // default seed, so this picked the exact same candidate every single run - Random
             // seeds itself from std::random_device once at process start, giving real variety.
             int r = Random::Instance().Range(0, (int)candidates.size() - 1);
             RoomArea* targetRoom = candidates[r];
             ghost->SetTargetRoom(targetRoom);
-            
+
             // ゴーストを選ばれた部屋の中心に配置
             auto& gTrans = ecs.GetComponent<TransformData>(ghost->GetGameObject()->GetEntityID());
             gTrans.m_position = targetRoom->GetCenter();
@@ -70,20 +71,26 @@ void GameSequence::Start()
             // ログに現在指定されたルームを出す
             std::string roomName = targetRoom->GetGameObject()->GetName();
             Logger::Instance().AddLog(Logger::LogLevel::Info, "Ghost Room Selected: %s", roomName.c_str());
-        } else {
+        }
+        else
+        {
             Logger::Instance().AddLog(Logger::LogLevel::Error, "Ghost Room Selection Failed: No Candidate Rooms found! Did you check 'Ghost Room Candidate'?");
         }
-    } else {
+    }
+    else
+    {
         Logger::Instance().AddLog(Logger::LogLevel::Error, "Ghost Room Selection Failed: GhostAI not found in scene!");
     }
 }
 
 void GameSequence::Update(float deltaTime)
 {
-    if (m_currentState == State::Playing) {
+    if (m_currentState == State::Playing)
+    {
         m_playTimer += deltaTime;
     }
-    if (m_currentState == State::GameClear || m_currentState == State::GameOver) {
+    if (m_currentState == State::GameClear || m_currentState == State::GameOver)
+    {
         m_clearTimer += deltaTime;
     }
     UpdateResultSceneTransition(deltaTime);
@@ -91,19 +98,27 @@ void GameSequence::Update(float deltaTime)
 
 void GameSequence::UpdateResultSceneTransition(float deltaTime)
 {
-    if (m_currentState == State::Playing || m_resultSceneRequested) return;
+    if (m_currentState == State::Playing || m_resultSceneRequested)
+    {
+        return;
+    }
 
     // Let the brief in-scene "GAME CLEAR"/"GAME OVER" overlay (see Draw()) show for a moment
     // before cutting away, so the transition doesn't feel instantaneous/jarring.
-    if (m_clearTimer < kResultSceneDelay) return;
+    if (m_clearTimer < kResultSceneDelay)
+    {
+        return;
+    }
 
     m_resultSceneRequested = true;
     bool isClear = (m_currentState == State::GameClear);
 
     // 退治したゴーストの種類(リザルトで正体として表示する)
     int ghostType = -1;
-    for (auto& scriptData : GameManager::Instance().GetECS().GetComponentArray<NativeScriptData>()) {
-        if (auto* ghost = dynamic_cast<GhostAI*>(scriptData.Instance.get())) {
+    for (auto& scriptData : GameManager::Instance().GetECS().GetComponentArray<NativeScriptData>())
+    {
+        if (auto* ghost = dynamic_cast<GhostAI*>(scriptData.Instance.get()))
+        {
             ghostType = static_cast<int>(ghost->GetGhostType());
             break;
         }
@@ -138,13 +153,14 @@ void GameSequence::Deserialize(const nlohmann::json& in)
 
 void GameSequence::ImGuiUpdate()
 {
-    ImGui::Text("Current State: %s", m_currentState == State::Playing ? "Playing" : 
-                                     (m_currentState == State::GameClear ? "GameClear" : "GameOver"));
-    if (ImGui::Button("Debug Clear")) {
+    ImGui::Text("Current State: %s", m_currentState == State::Playing ? "Playing" : (m_currentState == State::GameClear ? "GameClear" : "GameOver"));
+    if (ImGui::Button("Debug Clear"))
+    {
         NotifyExorcised();
     }
     ImGui::SameLine();
-    if (ImGui::Button("Debug Over")) {
+    if (ImGui::Button("Debug Over"))
+    {
         NotifyGameOver();
     }
 }
@@ -159,7 +175,8 @@ void GameSequence::OnCollisionStay(GameObject* other)
 
 void GameSequence::NotifyExorcised()
 {
-    if (m_currentState == State::Playing) {
+    if (m_currentState == State::Playing)
+    {
         m_currentState = State::GameClear;
         m_clearTimer = 0.0f;
     }
@@ -167,7 +184,8 @@ void GameSequence::NotifyExorcised()
 
 void GameSequence::NotifyGameOver()
 {
-    if (m_currentState == State::Playing) {
+    if (m_currentState == State::Playing)
+    {
         m_currentState = State::GameOver;
         m_clearTimer = 0.0f;
     }

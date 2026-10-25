@@ -12,8 +12,8 @@ REGISTER_COMPONENT(ReflectionComponent);
 
 void ReflectionComponent::Serialize(nlohmann::json& out) const
 {
-    out["planeNormal"] = { m_planeNormal.x, m_planeNormal.y, m_planeNormal.z };
-    out["planePoint"] = { m_planePoint.x, m_planePoint.y, m_planePoint.z };
+    out["planeNormal"] = {m_planeNormal.x, m_planeNormal.y, m_planeNormal.z};
+    out["planePoint"] = {m_planePoint.x, m_planePoint.y, m_planePoint.z};
     out["debugSize"] = m_debugSize;
     out["roomName"] = m_roomName;
     out["activationDistance"] = m_activationDistance;
@@ -23,48 +23,73 @@ void ReflectionComponent::Serialize(nlohmann::json& out) const
 
 void ReflectionComponent::Deserialize(const nlohmann::json& in)
 {
-    if (in.contains("planeNormal")) {
+    if (in.contains("planeNormal"))
+    {
         auto arr = in["planeNormal"];
-        m_planeNormal = { arr[0], arr[1], arr[2] };
+        m_planeNormal = {arr[0], arr[1], arr[2]};
     }
-    if (in.contains("planePoint")) {
+    if (in.contains("planePoint"))
+    {
         auto arr = in["planePoint"];
-        m_planePoint = { arr[0], arr[1], arr[2] };
+        m_planePoint = {arr[0], arr[1], arr[2]};
     }
-    if (in.contains("debugSize")) {
+    if (in.contains("debugSize"))
+    {
         m_debugSize = in["debugSize"];
     }
-    if (in.contains("roomName")) {
+    if (in.contains("roomName"))
+    {
         m_roomName = in["roomName"].get<std::string>();
     }
-    if (in.contains("activationDistance")) {
+    if (in.contains("activationDistance"))
+    {
         m_activationDistance = in["activationDistance"];
     }
-    if (in.contains("useFixedCameraSource")) {
+    if (in.contains("useFixedCameraSource"))
+    {
         m_useFixedCameraSource = in["useFixedCameraSource"];
     }
-    if (in.contains("fixedCameraSourceUUID")) {
+    if (in.contains("fixedCameraSourceUUID"))
+    {
         m_fixedCameraSourceUUID = in["fixedCameraSourceUUID"];
     }
 }
 
 GameObject* ReflectionComponent::ResolveFixedCameraSource() const
 {
-    if (m_fixedCameraSourceUUID == 0) return nullptr;
+    if (m_fixedCameraSourceUUID == 0)
+    {
+        return nullptr;
+    }
     auto scene = Editor::GetScene();
-    if (!scene) return nullptr;
+    if (!scene)
+    {
+        return nullptr;
+    }
 
     std::function<GameObject*(const std::shared_ptr<GameObject>&)> find =
-        [&](const std::shared_ptr<GameObject>& obj) -> GameObject* {
-        if (obj->GetUUID() == m_fixedCameraSourceUUID) return obj.get();
-        for (auto& child : obj->GetChildren()) {
-            if (auto* found = find(child)) return found;
+        [&](const std::shared_ptr<GameObject>& obj) -> GameObject*
+    {
+        if (obj->GetUUID() == m_fixedCameraSourceUUID)
+        {
+            return obj.get();
+        }
+        for (auto& child : obj->GetChildren())
+        {
+            if (auto* found = find(child))
+            {
+                return found;
+            }
         }
         return nullptr;
     };
 
-    for (auto& obj : scene->GetGameObjects()) {
-        if (auto* found = find(obj)) return found;
+    for (auto& obj : scene->GetGameObjects())
+    {
+        if (auto* found = find(obj))
+        {
+            return found;
+        }
     }
     return nullptr;
 }
@@ -85,7 +110,8 @@ void ReflectionComponent::ImGuiUpdate()
     ImGui::Checkbox("Use Fixed Camera Source", &m_useFixedCameraSource);
     ImGui::SameLine();
     ImGui::TextDisabled("(?)");
-    if (ImGui::IsItemHovered()) {
+    if (ImGui::IsItemHovered())
+    {
         ImGui::SetTooltip(
             u8"ONにすると、プレイヤー/エディタカメラを鏡面で自動反射する代わりに、\n"
             u8"下で明示的に指定したカメラの映像をそのままこの鏡に映す\n"
@@ -109,7 +135,10 @@ void ReflectionComponent::ImGuiUpdate()
             {
                 Entity e = camArray.GetEntityFromIndex(i);
                 auto obj = scene ? scene->GetGameObject(e) : nullptr;
-                if (!obj) continue;
+                if (!obj)
+                {
+                    continue;
+                }
 
                 bool isSelected = (pResolved == obj.get());
                 std::string label = obj->GetName() + "##fixedcam" + std::to_string((uint32_t)e);
@@ -120,7 +149,8 @@ void ReflectionComponent::ImGuiUpdate()
             }
             ImGui::EndCombo();
         }
-        if (m_fixedCameraSourceUUID != 0 && ImGui::Button("Clear Fixed Camera")) {
+        if (m_fixedCameraSourceUUID != 0 && ImGui::Button("Clear Fixed Camera"))
+        {
             m_fixedCameraSourceUUID = 0;
         }
     }
@@ -132,20 +162,24 @@ void ReflectionComponent::Update(float deltaTime)
 {
     auto& ecs = GameManager::Instance().GetECS();
     Player* pPlayer = nullptr;
-    for (auto& scriptData : ecs.GetComponentArray<NativeScriptData>()) {
-        if (auto* pCandidate = dynamic_cast<Player*>(scriptData.Instance.get())) {
+    for (auto& scriptData : ecs.GetComponentArray<NativeScriptData>())
+    {
+        if (auto* pCandidate = dynamic_cast<Player*>(scriptData.Instance.get()))
+        {
             pPlayer = pCandidate;
             break;
         }
     }
 
-    if (!pPlayer || !pPlayer->GetGameObject()) {
+    if (!pPlayer || !pPlayer->GetGameObject())
+    {
         m_isActive = false;
         return;
     }
 
     auto* cPlayerTrans = ecs.TryGetComponent<TransformData>(pPlayer->GetGameObject()->GetEntityID());
-    if (!cPlayerTrans) {
+    if (!cPlayerTrans)
+    {
         m_isActive = false;
         return;
     }
@@ -154,8 +188,10 @@ void ReflectionComponent::Update(float deltaTime)
     // m_worldPlanePoint: Update() runs before PreDraw() each frame, so reading the cached value
     // here would always be one frame stale (harmless for a static mirror, but wrong in general).
     Math::Vector3 worldPlanePoint = m_planePoint;
-    if (m_pGameObject) {
-        if (auto* cTrans = ecs.TryGetComponent<TransformData>(m_pGameObject->GetEntityID())) {
+    if (m_pGameObject)
+    {
+        if (auto* cTrans = ecs.TryGetComponent<TransformData>(m_pGameObject->GetEntityID()))
+        {
             worldPlanePoint = Math::Vector3::Transform(m_planePoint, cTrans->m_worldMatrix);
         }
     }
@@ -167,16 +203,22 @@ void ReflectionComponent::Update(float deltaTime)
 void ReflectionComponent::PreDraw()
 {
     auto& ecs = GameManager::Instance().GetECS();
-    if (m_pGameObject) {
-        if (auto* cTrans = ecs.TryGetComponent<TransformData>(m_pGameObject->GetEntityID())) {
+    if (m_pGameObject)
+    {
+        if (auto* cTrans = ecs.TryGetComponent<TransformData>(m_pGameObject->GetEntityID()))
+        {
             m_worldPlanePoint = Math::Vector3::Transform(m_planePoint, cTrans->m_worldMatrix);
             m_worldPlaneNormal = Math::Vector3::TransformNormal(m_planeNormal, cTrans->m_worldMatrix);
             m_worldPlaneNormal.Normalize();
-        } else {
+        }
+        else
+        {
             m_worldPlanePoint = m_planePoint;
             m_worldPlaneNormal = m_planeNormal;
         }
-    } else {
+    }
+    else
+    {
         m_worldPlanePoint = m_planePoint;
         m_worldPlaneNormal = m_planeNormal;
     }

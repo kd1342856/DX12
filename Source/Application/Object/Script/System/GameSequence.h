@@ -2,9 +2,11 @@
 #include "RoomArea.h"
 #include <vector>
 
-class GameSequence : public NativeScript {
+class GameSequence : public NativeScript
+{
 public:
-    enum class State {
+    enum class State
+    {
         Playing,
         GameClear,
         GameOver
@@ -29,17 +31,32 @@ public:
     void NotifyExorcised();
     void NotifyGameOver();
     // GhostAIから、ハントが時間切れで終わった(=プレイヤーが生き延びた)時に呼ばれる。リザルトで表示する。
-    void NotifyHuntSurvived() { if (m_currentState == State::Playing) ++m_huntsSurvived; }
+    void NotifyHuntSurvived()
+    {
+        if (m_currentState == State::Playing)
+        {
+            ++m_huntsSurvived;
+        }
+    }
 
-    const std::vector<RoomArea*>& GetRooms() const { return m_rooms; }
+    const std::vector<RoomArea*>& GetRooms() const
+    {
+        return m_rooms;
+    }
 
-    static GameSequence* GetInstance() { return s_instance; }
+    static GameSequence* GetInstance()
+    {
+        return s_instance;
+    }
 
     // シーン切り替え時に呼ぶ。Scene::~Scene()はGameObjectのOnDestroy()を呼ばない
     // (中身のshared_ptr<GameObject>を解放するだけ)ため、s_instanceをそのままにすると
     // 破棄済みのシーンのGameSequenceを指すダングリングポインタが残ってしまう
     // (CollisionManagerの静的オクトツリーと同じ種類の不具合の原因になる)。
-    static void ResetInstance() { s_instance = nullptr; }
+    static void ResetInstance()
+    {
+        s_instance = nullptr;
+    }
 
 private:
     static GameSequence* s_instance;

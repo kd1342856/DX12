@@ -7,9 +7,9 @@
 class NormalPrepassShader : public GraphicsShader
 {
 public:
-	virtual void Create(GraphicsDevice* pGraphicsDevice) override;
-	virtual void Begin(RenderContext& context) override;
-	virtual void BeginNode(const ModelData::Node& node, const Math::Matrix& nodeWorld) override;
-	// SSR用に粗さ(マテリアル定数+MetallicRoughnessテクスチャ)をバインドする
-	virtual void BeforeDrawMesh(const Mesh& mesh, const Material& material) override;
+    virtual void Create(GraphicsDevice* pGraphicsDevice) override;
+    virtual void Begin(RenderContext& context) override;
+    virtual void BeginNode(const ModelData::Node& node, const Math::Matrix& nodeWorld) override;
+    // SSR用に粗さ(マテリアル定数+MetallicRoughnessテクスチャ)をバインドする
+    virtual void BeforeDrawMesh(const Mesh& mesh, const Material& material) override;
 };

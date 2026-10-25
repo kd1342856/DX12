@@ -13,20 +13,20 @@ class Texture;
 
 struct MaterialConstants
 {
-    Math::Vector4 baseColorFactor = { 1.0f, 1.0f, 1.0f, 1.0f };
+    Math::Vector4 baseColorFactor = {1.0f, 1.0f, 1.0f, 1.0f};
     float metallicFactor = 1.0f;
     float roughnessFactor = 1.0f;
     float normalScale = 1.0f;
     float occlusionStrength = 1.0f;
-    
+
     // Match alignment with HLSL completely
     float emissiveStrength = 1.0f;
     float emissiveFactorX = 0.0f;
     float emissiveFactorY = 0.0f;
     float emissiveFactorZ = 0.0f;
-    
-    int alphaMode = 0; // 0:Opaque, 1:Mask, 2:Blend
-    int proceduralType = 0; // 0:None, 1:Blood, 2:Cobweb, 3:Glass, 4:Dissolve
+
+    int alphaMode = 0;           // 0:Opaque, 1:Mask, 2:Blend
+    int proceduralType = 0;      // 0:None, 1:Blood, 2:Cobweb, 3:Glass, 4:Dissolve
     float dissolveAmount = 0.0f; // Dissolve用: 0=通常表示, 1=完全に消滅
 
     // 平面反射(窓ガラス等、proceduralType==3)がどの反射スロット(0〜2、最大3枚まで同時)を
@@ -37,7 +37,7 @@ struct MaterialConstants
     // 足元からのディゾルブ(proceduralType==5。今はSkinningShaderだけが対応 - 除霊されたゴースト等)。
     // ワールド座標のYがdissolveHeightより下を消し、その境界のすぐ上をdissolveEdgeColor(HDR)で光らせる。
     // HLSLのパッキングに合わせてfloat3を先に置く(16byte境界をまたがないように)。
-    Math::Vector3 dissolveEdgeColor = { 0.0f, 0.0f, 0.0f };
+    Math::Vector3 dissolveEdgeColor = {0.0f, 0.0f, 0.0f};
     float dissolveHeight = 0.0f;
     float dissolveEdgeWidth = 0.15f; // 光る帯の幅と、境界のギザギザの大きさ(m)
 };
@@ -45,25 +45,31 @@ struct MaterialConstants
 class Material
 {
 public:
-	std::string Name;
+    std::string Name;
 
-	MaterialTexture BaseColor;
-	MaterialTexture Normal;
-	MaterialTexture MetallicRoughness;
-	MaterialTexture Occlusion;
-	MaterialTexture Emissive;
+    MaterialTexture BaseColor;
+    MaterialTexture Normal;
+    MaterialTexture MetallicRoughness;
+    MaterialTexture Occlusion;
+    MaterialTexture Emissive;
 
-	MaterialConstants Constants;
+    MaterialConstants Constants;
 
-	// (Optional) Shader Handle for future pipeline state caching
-	// AssetHandle<Shader> ShaderHandle;
+    // (Optional) Shader Handle for future pipeline state caching
+    // AssetHandle<Shader> ShaderHandle;
 
-	void SetShader(ShaderProgram* pProgram) { m_pProgram = pProgram; }
-	ShaderProgram* GetShader() const { return m_pProgram; }
+    void SetShader(ShaderProgram* pProgram)
+    {
+        m_pProgram = pProgram;
+    }
+    ShaderProgram* GetShader() const
+    {
+        return m_pProgram;
+    }
 
-	// Binds the material properties to the current command list
-	virtual void Bind(GraphicsDevice* pDevice);
+    // Binds the material properties to the current command list
+    virtual void Bind(GraphicsDevice* pDevice);
 
 protected:
-	ShaderProgram* m_pProgram = nullptr;
+    ShaderProgram* m_pProgram = nullptr;
 };

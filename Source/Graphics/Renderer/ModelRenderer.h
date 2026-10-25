@@ -6,8 +6,9 @@
 
 class GraphicsShader;
 
-class ModelRenderer {
+class ModelRenderer
+{
 public:
-	// Transitional data container
-	const ModelData* pModelData = nullptr;
+    // Transitional data container
+    const ModelData* pModelData = nullptr;
 };

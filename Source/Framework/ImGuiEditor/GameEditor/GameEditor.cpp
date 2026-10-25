@@ -3,7 +3,6 @@
 
 void GameEditor::Initialize()
 {
-
 }
 
 void GameEditor::Draw(EditorContext& ctx)

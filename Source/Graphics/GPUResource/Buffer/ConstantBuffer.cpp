@@ -30,7 +30,10 @@ void ConstantBuffer::Create(GraphicsDevice* pDevice, UINT size)
         nullptr,
         IID_PPV_ARGS(&m_resource));
 
-    if (FAILED(hr)) return;
+    if (FAILED(hr))
+    {
+        return;
+    }
 
     m_resource->Map(0, nullptr, &m_pMappedData);
 }

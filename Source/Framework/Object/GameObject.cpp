@@ -2,18 +2,22 @@
 #include "GameObject.h"
 #include "../Manager/Scene/Scene.h"
 
-GameObject::~GameObject() {
-    if (m_entityId != INVALID_ENTITY && GameManager::IsInstanceAlive()) {
+GameObject::~GameObject()
+{
+    if (m_entityId != INVALID_ENTITY && GameManager::IsInstanceAlive())
+    {
         GameManager::Instance().GetECS().GetCommandBuffer().DestroyEntity(m_entityId);
         m_entityId = INVALID_ENTITY;
     }
 }
 
-void GameObject::Destroy() {
+void GameObject::Destroy()
+{
     ExecuteDestroy();
 }
 
-void GameObject::ExecuteDestroy() {
+void GameObject::ExecuteDestroy()
+{
     // Keep a strong reference alive for the whole function. Scene::RemoveGameObject() takes its
     // shared_ptr argument by value, so if this object had no other shared_ptr owner (the common
     // case for a scene-root object with no parent), the ref count would hit zero and `this` would
@@ -22,11 +26,14 @@ void GameObject::ExecuteDestroy() {
     std::shared_ptr<GameObject> self = shared_from_this();
 
     auto& ecs = GameManager::Instance().GetECS();
-    if (m_entityId != INVALID_ENTITY && GameManager::IsInstanceAlive()) {
+    if (m_entityId != INVALID_ENTITY && GameManager::IsInstanceAlive())
+    {
         CollisionManager::Instance().NotifyDestroy(m_entityId);
 
-        if (auto* pScript = ecs.TryGetComponent<NativeScriptData>(m_entityId)) {
-            if (pScript->Instance) {
+        if (auto* pScript = ecs.TryGetComponent<NativeScriptData>(m_entityId))
+        {
+            if (pScript->Instance)
+            {
                 pScript->Instance->OnDestroy();
             }
         }
@@ -39,86 +46,152 @@ void GameObject::ExecuteDestroy() {
     // lying on the floor, and deleting a parent in the editor left orphaned child components behind.
     // Iterate a copy: each child's ExecuteDestroy() erases itself from this m_children.
     auto children = m_children;
-    for (auto& child : children) {
-        if (child) child->ExecuteDestroy();
+    for (auto& child : children)
+    {
+        if (child)
+        {
+            child->ExecuteDestroy();
+        }
     }
     m_children.clear();
 
-    if (auto p = m_wpParent.lock()) {
+    if (auto p = m_wpParent.lock())
+    {
         auto it = std::find(p->m_children.begin(), p->m_children.end(), self);
-        if (it != p->m_children.end()) p->m_children.erase(it);
+        if (it != p->m_children.end())
+        {
+            p->m_children.erase(it);
+        }
     }
     // Also drop the scene's Entity -> GameObject entry for child objects (RemoveGameObject only
     // finds root objects in its list, but always erases the mapping), so nothing keeps them alive.
-    if (m_scene) {
+    if (m_scene)
+    {
         m_scene->RemoveGameObject(self);
     }
     m_wpParent.reset();
     m_scene = nullptr;
 
-    if (m_entityId != INVALID_ENTITY && GameManager::IsInstanceAlive()) {
+    if (m_entityId != INVALID_ENTITY && GameManager::IsInstanceAlive())
+    {
         GameManager::Instance().GetECS().GetCommandBuffer().DestroyEntity(m_entityId);
         m_entityId = INVALID_ENTITY;
     }
 }
 
-void GameObject::SetParent(std::shared_ptr<GameObject> parent) {
-    if (auto p = m_wpParent.lock()) {
+void GameObject::SetParent(std::shared_ptr<GameObject> parent)
+{
+    if (auto p = m_wpParent.lock())
+    {
         auto it = std::find(p->m_children.begin(), p->m_children.end(), shared_from_this());
-        if (it != p->m_children.end()) p->m_children.erase(it);
-    } else if (m_scene) {
+        if (it != p->m_children.end())
+        {
+            p->m_children.erase(it);
+        }
+    }
+    else if (m_scene)
+    {
         m_scene->RemoveGameObject(shared_from_this());
     }
 
     m_wpParent = parent;
 
-    if (parent) {
+    if (parent)
+    {
         parent->m_children.push_back(shared_from_this());
-    } else if (m_scene) {
+    }
+    else if (m_scene)
+    {
         m_scene->AddGameObject(shared_from_this());
     }
 }
 
-void GameObject::NotifyCollisionEnter(GameObject* other) {
-    if (m_entityId == INVALID_ENTITY || !GameManager::IsInstanceAlive()) return;
-    if (auto* pScript = GameManager::Instance().GetECS().TryGetComponent<NativeScriptData>(m_entityId)) {
-        if (pScript->Instance) pScript->Instance->OnCollisionEnter(other);
+void GameObject::NotifyCollisionEnter(GameObject* other)
+{
+    if (m_entityId == INVALID_ENTITY || !GameManager::IsInstanceAlive())
+    {
+        return;
+    }
+    if (auto* pScript = GameManager::Instance().GetECS().TryGetComponent<NativeScriptData>(m_entityId))
+    {
+        if (pScript->Instance)
+        {
+            pScript->Instance->OnCollisionEnter(other);
+        }
     }
 }
 
-void GameObject::NotifyCollisionStay(GameObject* other) {
-    if (m_entityId == INVALID_ENTITY || !GameManager::IsInstanceAlive()) return;
-    if (auto* pScript = GameManager::Instance().GetECS().TryGetComponent<NativeScriptData>(m_entityId)) {
-        if (pScript->Instance) pScript->Instance->OnCollisionStay(other);
+void GameObject::NotifyCollisionStay(GameObject* other)
+{
+    if (m_entityId == INVALID_ENTITY || !GameManager::IsInstanceAlive())
+    {
+        return;
+    }
+    if (auto* pScript = GameManager::Instance().GetECS().TryGetComponent<NativeScriptData>(m_entityId))
+    {
+        if (pScript->Instance)
+        {
+            pScript->Instance->OnCollisionStay(other);
+        }
     }
 }
 
-void GameObject::NotifyCollisionExit(GameObject* other) {
-    if (m_entityId == INVALID_ENTITY || !GameManager::IsInstanceAlive()) return;
-    if (auto* pScript = GameManager::Instance().GetECS().TryGetComponent<NativeScriptData>(m_entityId)) {
-        if (pScript->Instance) pScript->Instance->OnCollisionExit(other);
+void GameObject::NotifyCollisionExit(GameObject* other)
+{
+    if (m_entityId == INVALID_ENTITY || !GameManager::IsInstanceAlive())
+    {
+        return;
+    }
+    if (auto* pScript = GameManager::Instance().GetECS().TryGetComponent<NativeScriptData>(m_entityId))
+    {
+        if (pScript->Instance)
+        {
+            pScript->Instance->OnCollisionExit(other);
+        }
     }
 }
 
-void GameObject::NotifyTriggerEnter(GameObject* other) {
-    if (m_entityId == INVALID_ENTITY || !GameManager::IsInstanceAlive()) return;
-    if (auto* pScript = GameManager::Instance().GetECS().TryGetComponent<NativeScriptData>(m_entityId)) {
-        if (pScript->Instance) pScript->Instance->OnTriggerEnter(other);
+void GameObject::NotifyTriggerEnter(GameObject* other)
+{
+    if (m_entityId == INVALID_ENTITY || !GameManager::IsInstanceAlive())
+    {
+        return;
+    }
+    if (auto* pScript = GameManager::Instance().GetECS().TryGetComponent<NativeScriptData>(m_entityId))
+    {
+        if (pScript->Instance)
+        {
+            pScript->Instance->OnTriggerEnter(other);
+        }
     }
 }
 
-void GameObject::NotifyTriggerStay(GameObject* other) {
-    if (m_entityId == INVALID_ENTITY || !GameManager::IsInstanceAlive()) return;
-    if (auto* pScript = GameManager::Instance().GetECS().TryGetComponent<NativeScriptData>(m_entityId)) {
-        if (pScript->Instance) pScript->Instance->OnTriggerStay(other);
+void GameObject::NotifyTriggerStay(GameObject* other)
+{
+    if (m_entityId == INVALID_ENTITY || !GameManager::IsInstanceAlive())
+    {
+        return;
+    }
+    if (auto* pScript = GameManager::Instance().GetECS().TryGetComponent<NativeScriptData>(m_entityId))
+    {
+        if (pScript->Instance)
+        {
+            pScript->Instance->OnTriggerStay(other);
+        }
     }
 }
 
-void GameObject::NotifyTriggerExit(GameObject* other) {
-    if (m_entityId == INVALID_ENTITY || !GameManager::IsInstanceAlive()) return;
-    if (auto* pScript = GameManager::Instance().GetECS().TryGetComponent<NativeScriptData>(m_entityId)) {
-        if (pScript->Instance) pScript->Instance->OnTriggerExit(other);
+void GameObject::NotifyTriggerExit(GameObject* other)
+{
+    if (m_entityId == INVALID_ENTITY || !GameManager::IsInstanceAlive())
+    {
+        return;
+    }
+    if (auto* pScript = GameManager::Instance().GetECS().TryGetComponent<NativeScriptData>(m_entityId))
+    {
+        if (pScript->Instance)
+        {
+            pScript->Instance->OnTriggerExit(other);
+        }
     }
 }
-
-

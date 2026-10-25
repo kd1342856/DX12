@@ -6,7 +6,8 @@
 #include "../../System/JobSystem/JobSystem.h"
 
 // Resolve the GetCurrentScene issue
-static std::shared_ptr<Scene> GetCurrentScenePtr() {
+static std::shared_ptr<Scene> GetCurrentScenePtr()
+{
     return Editor::GetScene();
 }
 
@@ -14,13 +15,15 @@ static bool s_showCreateScriptPopup = false;
 static char s_newScriptName[256] = "";
 static char s_newScriptPath[256] = "Source/Application/Object/Script/";
 
-static void GenerateScriptFiles(const std::string& name, const std::string& path) {
+static void GenerateScriptFiles(const std::string& name, const std::string& path)
+{
     std::filesystem::create_directories(path);
     std::string hFile = path + name + ".h";
     std::string cppFile = path + name + ".cpp";
 
     std::ofstream hout(hFile);
-    if (hout.is_open()) {
+    if (hout.is_open())
+    {
         hout << "#pragma once\n";
         hout << "#include \"../../../Framework/ECS/Components/Data/NativeScriptData.h\"\n\n";
         hout << "class " << name << " : public NativeScript {\n";
@@ -32,7 +35,8 @@ static void GenerateScriptFiles(const std::string& name, const std::string& path
     }
 
     std::ofstream cout(cppFile);
-    if (cout.is_open()) {
+    if (cout.is_open())
+    {
         cout << "#include \"../../../Pch.h\"\n";
         cout << "#include \"" << name << ".h\"\n\n";
         cout << "void " << name << "::Start() {\n}\n\n";
@@ -42,46 +46,58 @@ static void GenerateScriptFiles(const std::string& name, const std::string& path
 }
 
 
-void Editor::DrawInspector() {
+void Editor::DrawInspector()
+{
     ImGui::Begin("Inspector");
-    if (s_selectedObject) 
+    if (s_selectedObject)
     {
         // Name Edit
         char nameBuffer[256];
         strcpy_s(nameBuffer, s_selectedObject->GetName().c_str());
-        if (ImGui::InputText("Name", nameBuffer, 256)) {
+        if (ImGui::InputText("Name", nameBuffer, 256))
+        {
             s_selectedObject->SetName(nameBuffer);
         }
 
         ImGui::SameLine();
-        if (ImGui::Button("Delete")) {
+        if (ImGui::Button("Delete"))
+        {
             s_selectedObject->Destroy();
             s_selectedObject = nullptr;
         }
 
-        if (s_selectedObject) {
+        if (s_selectedObject)
+        {
             ImGui::SameLine();
-            if (ImGui::Button("Save as Prefab")) {
+            if (ImGui::Button("Save as Prefab"))
+            {
                 ImGui::OpenPopup("SavePrefabPopup");
             }
 
-            if (ImGui::BeginPopup("SavePrefabPopup")) {
+            if (ImGui::BeginPopup("SavePrefabPopup"))
+            {
                 static char prefabName[256] = "";
-                if (prefabName[0] == '\0') {
+                if (prefabName[0] == '\0')
+                {
                     strcpy_s(prefabName, s_selectedObject->GetName().c_str());
                 }
                 ImGui::InputText("Filename", prefabName, 256);
                 ImGui::Text(".json will be appended");
-                if (ImGui::Button("Save")) {
+                if (ImGui::Button("Save"))
+                {
                     auto sceneObj = GetCurrentScenePtr();
-                    if (sceneObj) {
+                    if (sceneObj)
+                    {
                         nlohmann::json pj = sceneObj->SerializeGameObject(s_selectedObject);
                         std::string path = "Asset/Data/Prefab/" + std::string(prefabName) + ".json";
                         std::ofstream o(path);
-                        if (o.is_open()) {
+                        if (o.is_open())
+                        {
                             o << std::setw(4) << pj << std::endl;
                             Logger::Instance().AddLog(Logger::LogLevel::Info, ("Prefab saved: " + path).c_str());
-                        } else {
+                        }
+                        else
+                        {
                             Logger::Instance().AddLog(Logger::LogLevel::Error, ("Failed to save Prefab: " + path).c_str());
                         }
                     }
@@ -92,20 +108,23 @@ void Editor::DrawInspector() {
 
             ImGui::Separator();
 
-                        // Components
+            // Components
             auto entity = s_selectedObject->GetEntityID();
             auto& ecs = GameManager::Instance().GetECS();
 
-            if (auto* pTrans = ecs.TryGetComponent<TransformData>(entity)) {
-                if (ImGui::CollapsingHeader("TransformData", ImGuiTreeNodeFlags_DefaultOpen)) {
+            if (auto* pTrans = ecs.TryGetComponent<TransformData>(entity))
+            {
+                if (ImGui::CollapsingHeader("TransformData", ImGuiTreeNodeFlags_DefaultOpen))
+                {
                     auto& t = *pTrans;
                     ImGui::DragFloat3("Position", &t.m_position.x, 0.1f);
-                    
+
                     Math::Vector3 rotDeg = t.m_rotation;
                     rotDeg.x = DirectX::XMConvertToDegrees(rotDeg.x);
                     rotDeg.y = DirectX::XMConvertToDegrees(rotDeg.y);
                     rotDeg.z = DirectX::XMConvertToDegrees(rotDeg.z);
-                    if (ImGui::DragFloat3("Rotation", &rotDeg.x, 0.5f)) {
+                    if (ImGui::DragFloat3("Rotation", &rotDeg.x, 0.5f))
+                    {
                         t.m_rotation.x = DirectX::XMConvertToRadians(rotDeg.x);
                         t.m_rotation.y = DirectX::XMConvertToRadians(rotDeg.y);
                         t.m_rotation.z = DirectX::XMConvertToRadians(rotDeg.z);
@@ -114,22 +133,30 @@ void Editor::DrawInspector() {
                 }
             }
 
-            if (auto* pModel = ecs.TryGetComponent<ModelRenderData>(entity)) {
-                if (ImGui::CollapsingHeader("ModelRenderData", ImGuiTreeNodeFlags_DefaultOpen)) {
+            if (auto* pModel = ecs.TryGetComponent<ModelRenderData>(entity))
+            {
+                if (ImGui::CollapsingHeader("ModelRenderData", ImGuiTreeNodeFlags_DefaultOpen))
+                {
                     auto& m = *pModel;
                     ImGui::Text("File Path: %s", m.m_filePath.c_str());
-                    
+
                     int modelType = static_cast<int>(m.m_modelType);
-                    ImGui::RadioButton("Static", &modelType, 0); ImGui::SameLine();
+                    ImGui::RadioButton("Static", &modelType, 0);
+                    ImGui::SameLine();
                     ImGui::RadioButton("Dynamic", &modelType, 1);
                     m.m_modelType = static_cast<ModelType>(modelType);
                     ImGui::Checkbox("Per-Instance Animation", &m.m_perInstanceAnimation);
-                    if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"同じモデルを複数置いても、このオブジェクトだけ別々にアニメーションさせる(ノードアニメーションのみ)");
+                    if (ImGui::IsItemHovered())
+                    {
+                        ImGui::SetTooltip(u8"同じモデルを複数置いても、このオブジェクトだけ別々にアニメーションさせる(ノードアニメーションのみ)");
+                    }
                 }
             }
 
-            if (auto* pSprite = ecs.TryGetComponent<SpriteData>(entity)) {
-                if (ImGui::CollapsingHeader("SpriteData", ImGuiTreeNodeFlags_DefaultOpen)) {
+            if (auto* pSprite = ecs.TryGetComponent<SpriteData>(entity))
+            {
+                if (ImGui::CollapsingHeader("SpriteData", ImGuiTreeNodeFlags_DefaultOpen))
+                {
                     auto& s = *pSprite;
                     ImGui::Text("Texture Path: %s", s.m_filePath.c_str());
 
@@ -140,12 +167,15 @@ void Editor::DrawInspector() {
                 }
             }
 
-            if (auto* pCam = ecs.TryGetComponent<CameraData>(entity)) {
-                if (ImGui::CollapsingHeader("CameraData", ImGuiTreeNodeFlags_DefaultOpen)) {
+            if (auto* pCam = ecs.TryGetComponent<CameraData>(entity))
+            {
+                if (ImGui::CollapsingHeader("CameraData", ImGuiTreeNodeFlags_DefaultOpen))
+                {
                     auto& c = *pCam;
-                    const char* modes[] = { "EditorFree", "TPS", "FPS" };
+                    const char* modes[] = {"EditorFree", "TPS", "FPS"};
                     int modeInt = static_cast<int>(c.m_cameraMode);
-                    if (ImGui::Combo("Camera Mode", &modeInt, modes, IM_ARRAYSIZE(modes))) {
+                    if (ImGui::Combo("Camera Mode", &modeInt, modes, IM_ARRAYSIZE(modes)))
+                    {
                         c.m_cameraMode = static_cast<CameraMode>(modeInt);
                     }
                     ImGui::DragFloat3("TPS Offset", &c.m_targetOffset.x, 0.1f);
@@ -159,7 +189,8 @@ void Editor::DrawInspector() {
                     ImGui::Checkbox("Debug Preview Camera", &c.m_isDebugPreview);
                     ImGui::SameLine();
                     ImGui::TextDisabled("(?)");
-                    if (ImGui::IsItemHovered()) {
+                    if (ImGui::IsItemHovered())
+                    {
                         ImGui::SetTooltip(
                             u8"ONにすると、このカメラのTransform(位置・回転)から見た絵を毎フレーム\n"
                             u8"専用のプレビューRTに描画する。「Window > Preview Camera」で結果を確認できる。\n"
@@ -170,25 +201,41 @@ void Editor::DrawInspector() {
                 }
             }
 
-            if (auto* pCol = ecs.TryGetComponent<ColliderData>(entity)) {
-                if (ImGui::CollapsingHeader("ColliderData", ImGuiTreeNodeFlags_DefaultOpen)) {
+            if (auto* pCol = ecs.TryGetComponent<ColliderData>(entity))
+            {
+                if (ImGui::CollapsingHeader("ColliderData", ImGuiTreeNodeFlags_DefaultOpen))
+                {
                     auto& col = ecs.GetComponent<ColliderData>(entity);
                     ImGui::Checkbox("Is Static", &col.m_isStatic);
 
                     ImGui::TextDisabled("Shapes");
-                    if (ImGui::Button("Add Box")) { col.m_shapes.push_back(std::make_shared<CollisionShapeBox>()); } ImGui::SameLine();
-                    if (ImGui::Button("Add Sphere")) { col.m_shapes.push_back(std::make_shared<CollisionShapeSphere>()); } ImGui::SameLine();
-                    if (ImGui::Button("Add Capsule")) { col.m_shapes.push_back(std::make_shared<CollisionShapeCapsule>()); }
+                    if (ImGui::Button("Add Box"))
+                    {
+                        col.m_shapes.push_back(std::make_shared<CollisionShapeBox>());
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::Button("Add Sphere"))
+                    {
+                        col.m_shapes.push_back(std::make_shared<CollisionShapeSphere>());
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::Button("Add Capsule"))
+                    {
+                        col.m_shapes.push_back(std::make_shared<CollisionShapeCapsule>());
+                    }
 
-                    for (size_t i = 0; i < col.m_shapes.size(); ++i) {
+                    for (size_t i = 0; i < col.m_shapes.size(); ++i)
+                    {
                         ImGui::PushID((int)i);
                         auto& shape = col.m_shapes[i];
-                        if (ImGui::TreeNode(shape->m_name.c_str())) {
+                        if (ImGui::TreeNode(shape->m_name.c_str()))
+                        {
                             shape->Editor_ImGui();
                             ImGui::TreePop();
                         }
                         ImGui::SameLine();
-                        if (ImGui::Button("Remove")) {
+                        if (ImGui::Button("Remove"))
+                        {
                             col.m_shapes.erase(col.m_shapes.begin() + i);
                             --i;
                         }
@@ -196,47 +243,67 @@ void Editor::DrawInspector() {
                     }
                 }
             }
-            if (auto* pAnim = ecs.TryGetComponent<AnimationDataComponent>(entity)) {
-                if (ImGui::CollapsingHeader("AnimationDataComponent", ImGuiTreeNodeFlags_DefaultOpen)) {
+            if (auto* pAnim = ecs.TryGetComponent<AnimationDataComponent>(entity))
+            {
+                if (ImGui::CollapsingHeader("AnimationDataComponent", ImGuiTreeNodeFlags_DefaultOpen))
+                {
                     auto& animData = ecs.GetComponent<AnimationDataComponent>(entity);
-                    
-                    if (auto* pAnimModel = ecs.TryGetComponent<ModelRenderData>(entity)) {
+
+                    if (auto* pAnimModel = ecs.TryGetComponent<ModelRenderData>(entity))
+                    {
                         auto& modelData = ecs.GetComponent<ModelRenderData>(entity);
-                        if (modelData.m_spModelData) {
+                        if (modelData.m_spModelData)
+                        {
                             const auto& animations = modelData.m_spModelData->GetAnimations();
-                            if (!animations.empty()) {
+                            if (!animations.empty())
+                            {
                                 std::vector<const char*> animNames;
-                                for (const auto& anim : animations) {
+                                for (const auto& anim : animations)
+                                {
                                     animNames.push_back(anim.name.c_str());
                                 }
-                                
+
                                 int currentIdx = animData.currentAnim.AnimationIndex;
-                                if (currentIdx < 0) currentIdx = 0;
-                                if (currentIdx >= (int)animNames.size()) currentIdx = (int)animNames.size() - 1;
-                                
-                                if (ImGui::Combo("Animation", &currentIdx, animNames.data(), (int)animNames.size())) {
+                                if (currentIdx < 0)
+                                {
+                                    currentIdx = 0;
+                                }
+                                if (currentIdx >= (int)animNames.size())
+                                {
+                                    currentIdx = (int)animNames.size() - 1;
+                                }
+
+                                if (ImGui::Combo("Animation", &currentIdx, animNames.data(), (int)animNames.size()))
+                                {
                                     animData.currentAnim.AnimationIndex = currentIdx;
                                 }
-                            } else {
+                            }
+                            else
+                            {
                                 ImGui::Text("No animations in model.");
                             }
                         }
-                    } else {
+                    }
+                    else
+                    {
                         ImGui::InputInt("Animation Index", &animData.currentAnim.AnimationIndex);
                     }
 
                     ImGui::DragFloat("Progress Time", &animData.currentAnim.ProgressTime, 0.01f);
                     ImGui::DragFloat("Speed", &animData.currentAnim.Speed, 0.01f);
-                    
-                    if (ImGui::Button("Play")) {
+
+                    if (ImGui::Button("Play"))
+                    {
                         animData.currentAnim.IsPlaying = true;
                     }
                     ImGui::SameLine();
-                    if (ImGui::Button("Pause")) {
+                    if (ImGui::Button("Pause"))
+                    {
                         animData.currentAnim.IsPlaying = false;
                     }
                     ImGui::SameLine();
-                    if (ImGui::Button("Stop")) {
+                    if (ImGui::Button("Stop"))
+                    {
                         animData.currentAnim.IsPlaying = false;
                         animData.currentAnim.ProgressTime = 0.0f;
                     }
@@ -244,8 +311,10 @@ void Editor::DrawInspector() {
                     ImGui::Checkbox("Is Loop", &animData.currentAnim.IsLoop);
                 }
             }
-            if (auto* pLight = ecs.TryGetComponent<PointLightData>(entity)) {
-                if (ImGui::CollapsingHeader("PointLightData", ImGuiTreeNodeFlags_DefaultOpen)) {
+            if (auto* pLight = ecs.TryGetComponent<PointLightData>(entity))
+            {
+                if (ImGui::CollapsingHeader("PointLightData", ImGuiTreeNodeFlags_DefaultOpen))
+                {
                     auto& l = *pLight;
                     ImGui::Checkbox("Enabled", &l.m_enabled);
                     ImGui::ColorEdit3("Color", &l.m_color.x);
@@ -257,11 +326,16 @@ void Editor::DrawInspector() {
                     ImGui::DragFloat("Flicker Speed", &l.m_flickerSpeed, 0.1f, 0.0f, 60.0f);
                     ImGui::DragFloat("Flicker Intensity", &l.m_flickerIntensity, 0.01f, 0.0f, 1.0f);
                     ImGui::DragFloat("Flicker Seed", &l.m_flickerSeed, 0.1f);
-                    if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"同じ部屋に複数のフリッカーライトを置く時、位相をずらしてバラバラに明滅させたい場合に変える。");
+                    if (ImGui::IsItemHovered())
+                    {
+                        ImGui::SetTooltip(u8"同じ部屋に複数のフリッカーライトを置く時、位相をずらしてバラバラに明滅させたい場合に変える。");
+                    }
                 }
             }
-            if (auto* pSpot = ecs.TryGetComponent<SpotLightData>(entity)) {
-                if (ImGui::CollapsingHeader("SpotLightData", ImGuiTreeNodeFlags_DefaultOpen)) {
+            if (auto* pSpot = ecs.TryGetComponent<SpotLightData>(entity))
+            {
+                if (ImGui::CollapsingHeader("SpotLightData", ImGuiTreeNodeFlags_DefaultOpen))
+                {
                     auto& l = *pSpot;
                     ImGui::PushID("SpotLightData");
                     ImGui::Checkbox("Enabled", &l.m_enabled);
@@ -271,44 +345,68 @@ void Editor::DrawInspector() {
                     ImGui::DragFloat("Inner Angle", &l.m_innerAngle, 0.5f, 0.0f, 89.0f);
                     ImGui::DragFloat("Outer Angle", &l.m_outerAngle, 0.5f, 0.1f, 89.0f);
                     ImGui::DragFloat3("Local Offset", &l.m_localOffset.x, 0.01f);
-                    if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"光源位置(このオブジェクトのローカル空間。Scaleも掛かる)");
+                    if (ImGui::IsItemHovered())
+                    {
+                        ImGui::SetTooltip(u8"光源位置(このオブジェクトのローカル空間。Scaleも掛かる)");
+                    }
                     ImGui::DragFloat3("Local Direction", &l.m_localDirection.x, 0.01f, -1.0f, 1.0f);
-                    if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"照らす向き(このオブジェクトのローカル空間)");
+                    if (ImGui::IsItemHovered())
+                    {
+                        ImGui::SetTooltip(u8"照らす向き(このオブジェクトのローカル空間)");
+                    }
                     ImGui::DragFloat("Model Glow", &l.m_modelGlow, 0.1f, 0.0f, 100.0f);
-                    if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"点灯中にモデル自体を光らせる強さ(Color×この値のEmissive。Bloomで光って見える)");
+                    if (ImGui::IsItemHovered())
+                    {
+                        ImGui::SetTooltip(u8"点灯中にモデル自体を光らせる強さ(Color×この値のEmissive。Bloomで光って見える)");
+                    }
                     char glowMatBuf[64] = {};
                     strncpy_s(glowMatBuf, l.m_glowMaterial.c_str(), _TRUNCATE);
-                    if (ImGui::InputText("Glow Material", glowMatBuf, sizeof(glowMatBuf))) l.m_glowMaterial = glowMatBuf;
-                    if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"空なら全メッシュ。指定時はこの名前のマテリアルだけ光らせる");
+                    if (ImGui::InputText("Glow Material", glowMatBuf, sizeof(glowMatBuf)))
+                    {
+                        l.m_glowMaterial = glowMatBuf;
+                    }
+                    if (ImGui::IsItemHovered())
+                    {
+                        ImGui::SetTooltip(u8"空なら全メッシュ。指定時はこの名前のマテリアルだけ光らせる");
+                    }
                     ImGui::PopID();
                 }
             }
-            if (auto* pScript = ecs.TryGetComponent<NativeScriptData>(entity)) {
-                if (ImGui::CollapsingHeader("NativeScript", ImGuiTreeNodeFlags_DefaultOpen)) {
+            if (auto* pScript = ecs.TryGetComponent<NativeScriptData>(entity))
+            {
+                if (ImGui::CollapsingHeader("NativeScript", ImGuiTreeNodeFlags_DefaultOpen))
+                {
                     auto& scriptData = ecs.GetComponent<NativeScriptData>(entity);
                     ImGui::Text("Script: %s", scriptData.ScriptName.c_str());
-                    if (scriptData.Instance) {
+                    if (scriptData.Instance)
+                    {
                         scriptData.Instance->ImGuiUpdate();
                     }
                 }
             }
             ImGui::Separator();
-            if (ImGui::Button("Add Component", ImVec2(-1, 0))) {
+            if (ImGui::Button("Add Component", ImVec2(-1, 0)))
+            {
                 ImGui::OpenPopup("AddComponentPopup");
             }
 
-            if (ImGui::BeginPopup("AddComponentPopup")) {
-                if (ImGui::MenuItem("Create New Script...")) {
+            if (ImGui::BeginPopup("AddComponentPopup"))
+            {
+                if (ImGui::MenuItem("Create New Script..."))
+                {
                     s_showCreateScriptPopup = true;
                     s_newScriptName[0] = '\0';
                 }
                 ImGui::Separator();
 
                 ImGui::TextDisabled("--- Native Scripts ---");
-                for (const auto& name : ClassAssembly::Instance().GetRegisteredClasses()) {
-                    if (ImGui::MenuItem(name.c_str())) {
+                for (const auto& name : ClassAssembly::Instance().GetRegisteredClasses())
+                {
+                    if (ImGui::MenuItem(name.c_str()))
+                    {
                         auto newComp = ClassAssembly::Instance().Create(name);
-                        if (newComp) {
+                        if (newComp)
+                        {
                             NativeScriptData data;
                             data.ScriptName = name;
                             data.Instance = std::dynamic_pointer_cast<NativeScript>(newComp);
@@ -318,46 +416,74 @@ void Editor::DrawInspector() {
                     }
                 }
                 ImGui::Separator();
-                
+
                 ImGui::TextDisabled("--- ECS Components ---");
                 bool hasTrans = ecs.TryGetComponent<TransformData>(entity) != nullptr;
-                if (ImGui::MenuItem("TransformData", nullptr, false, !hasTrans)) ecs.AddComponent<TransformData>(entity, TransformData{});
-                
+                if (ImGui::MenuItem("TransformData", nullptr, false, !hasTrans))
+                {
+                    ecs.AddComponent<TransformData>(entity, TransformData{});
+                }
+
                 bool hasModel = ecs.TryGetComponent<ModelRenderData>(entity) != nullptr;
-                if (ImGui::MenuItem("ModelRenderData", nullptr, false, !hasModel)) ecs.AddComponent<ModelRenderData>(entity, ModelRenderData{});
+                if (ImGui::MenuItem("ModelRenderData", nullptr, false, !hasModel))
+                {
+                    ecs.AddComponent<ModelRenderData>(entity, ModelRenderData{});
+                }
 
                 bool hasSprite = ecs.TryGetComponent<SpriteData>(entity) != nullptr;
-                if (ImGui::MenuItem("SpriteData", nullptr, false, !hasSprite)) ecs.AddComponent<SpriteData>(entity, SpriteData{});
-                
+                if (ImGui::MenuItem("SpriteData", nullptr, false, !hasSprite))
+                {
+                    ecs.AddComponent<SpriteData>(entity, SpriteData{});
+                }
+
                 bool hasCam = ecs.TryGetComponent<CameraData>(entity) != nullptr;
-                if (ImGui::MenuItem("CameraData", nullptr, false, !hasCam)) ecs.AddComponent<CameraData>(entity, CameraData{});
-                
+                if (ImGui::MenuItem("CameraData", nullptr, false, !hasCam))
+                {
+                    ecs.AddComponent<CameraData>(entity, CameraData{});
+                }
+
                 bool hasCol = ecs.TryGetComponent<ColliderData>(entity) != nullptr;
-                if (ImGui::MenuItem("ColliderData", nullptr, false, !hasCol)) ecs.AddComponent<ColliderData>(entity, ColliderData{});
+                if (ImGui::MenuItem("ColliderData", nullptr, false, !hasCol))
+                {
+                    ecs.AddComponent<ColliderData>(entity, ColliderData{});
+                }
 
                 bool hasAnim = ecs.TryGetComponent<AnimationDataComponent>(entity) != nullptr;
-                if (ImGui::MenuItem("AnimationDataComponent", nullptr, false, !hasAnim)) ecs.AddComponent<AnimationDataComponent>(entity, AnimationDataComponent{});
+                if (ImGui::MenuItem("AnimationDataComponent", nullptr, false, !hasAnim))
+                {
+                    ecs.AddComponent<AnimationDataComponent>(entity, AnimationDataComponent{});
+                }
 
                 bool hasPointLight = ecs.TryGetComponent<PointLightData>(entity) != nullptr;
-                if (ImGui::MenuItem("PointLightData", nullptr, false, !hasPointLight)) ecs.AddComponent<PointLightData>(entity, PointLightData{});
+                if (ImGui::MenuItem("PointLightData", nullptr, false, !hasPointLight))
+                {
+                    ecs.AddComponent<PointLightData>(entity, PointLightData{});
+                }
 
                 bool hasSpotLight = ecs.TryGetComponent<SpotLightData>(entity) != nullptr;
-                if (ImGui::MenuItem("SpotLightData", nullptr, false, !hasSpotLight)) ecs.AddComponent<SpotLightData>(entity, SpotLightData{});
+                if (ImGui::MenuItem("SpotLightData", nullptr, false, !hasSpotLight))
+                {
+                    ecs.AddComponent<SpotLightData>(entity, SpotLightData{});
+                }
 
                 ImGui::EndPopup();
             }
 
-            if (s_showCreateScriptPopup) {
+            if (s_showCreateScriptPopup)
+            {
                 ImGui::OpenPopup("Create New Script Component");
             }
-            if (ImGui::BeginPopupModal("Create New Script Component", &s_showCreateScriptPopup, ImGuiWindowFlags_AlwaysAutoResize)) {
+            if (ImGui::BeginPopupModal("Create New Script Component", &s_showCreateScriptPopup, ImGuiWindowFlags_AlwaysAutoResize))
+            {
                 ImGui::InputText("Script Name", s_newScriptName, IM_ARRAYSIZE(s_newScriptName));
                 ImGui::InputText("Save Path", s_newScriptPath, IM_ARRAYSIZE(s_newScriptPath));
-                
-                if (ImGui::Button("Create", ImVec2(120, 0))) {
+
+                if (ImGui::Button("Create", ImVec2(120, 0)))
+                {
                     std::string name = s_newScriptName;
                     std::string path = s_newScriptPath;
-                    if (!name.empty()) {
+                    if (!name.empty())
+                    {
                         GenerateScriptFiles(name, path);
                     }
                     s_showCreateScriptPopup = false;
@@ -365,14 +491,17 @@ void Editor::DrawInspector() {
                 }
                 ImGui::SetItemDefaultFocus();
                 ImGui::SameLine();
-                if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+                if (ImGui::Button("Cancel", ImVec2(120, 0)))
+                {
                     s_showCreateScriptPopup = false;
                     ImGui::CloseCurrentPopup();
                 }
                 ImGui::EndPopup();
             }
-        } 
-    } else {
+        }
+    }
+    else
+    {
         ImGui::Text("Nothing Selected");
     }
     ImGui::End();

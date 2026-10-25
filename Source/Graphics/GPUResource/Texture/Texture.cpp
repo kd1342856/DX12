@@ -23,10 +23,10 @@ bool Texture::LoadCPU(const std::string& filePath, TextureUploadData& outData)
 
     const DirectX::Image* pImage = scratchImage.GetImage(0, 0, 0);
 
-    outData.width    = static_cast<UINT>(pImage->width);
-    outData.height   = static_cast<UINT>(pImage->height);
+    outData.width = static_cast<UINT>(pImage->width);
+    outData.height = static_cast<UINT>(pImage->height);
     outData.rowPitch = static_cast<UINT>(pImage->rowPitch);
-    outData.format   = pImage->format;
+    outData.format = pImage->format;
     outData.pixels.assign(pImage->pixels, pImage->pixels + pImage->slicePitch);
 
     m_state = AssetState::WaitingGPU;
@@ -48,10 +48,10 @@ bool Texture::LoadCPUFromMemory(const void* pData, size_t size, TextureUploadDat
 
     const DirectX::Image* pImage = scratchImage.GetImage(0, 0, 0);
 
-    outData.width    = static_cast<UINT>(pImage->width);
-    outData.height   = static_cast<UINT>(pImage->height);
+    outData.width = static_cast<UINT>(pImage->width);
+    outData.height = static_cast<UINT>(pImage->height);
     outData.rowPitch = static_cast<UINT>(pImage->rowPitch);
-    outData.format   = pImage->format;
+    outData.format = pImage->format;
     outData.pixels.assign(pImage->pixels, pImage->pixels + pImage->slicePitch);
 
     m_state = AssetState::WaitingGPU;
@@ -65,17 +65,17 @@ bool Texture::CreateGPU(GraphicsDevice* pDevice, const TextureUploadData& data)
     m_device = pDevice;
 
     D3D12_HEAP_PROPERTIES heapProp = {};
-    heapProp.Type                 = D3D12_HEAP_TYPE_DEFAULT;
-    heapProp.CPUPageProperty      = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+    heapProp.Type = D3D12_HEAP_TYPE_DEFAULT;
+    heapProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
     heapProp.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
 
     D3D12_RESOURCE_DESC recDesc = {};
-    recDesc.Dimension        = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-    recDesc.Format           = data.format;
-    recDesc.Width            = static_cast<UINT64>(data.width);
-    recDesc.Height           = data.height;
+    recDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+    recDesc.Format = data.format;
+    recDesc.Width = static_cast<UINT64>(data.width);
+    recDesc.Height = data.height;
     recDesc.DepthOrArraySize = 1;
-    recDesc.MipLevels        = 1;
+    recDesc.MipLevels = 1;
     recDesc.SampleDesc.Count = 1;
 
     // CopyキューはCOMMON状態のリソースを自動的にCOPY_DESTへプロモートするためCOMMONで作成する
@@ -111,17 +111,17 @@ bool Texture::CreateFromMemory(const void* data, int width, int height, DXGI_FOR
     m_device = &GraphicsDevice::Instance();
 
     D3D12_HEAP_PROPERTIES heapProp = {};
-    heapProp.Type                 = D3D12_HEAP_TYPE_DEFAULT;
-    heapProp.CPUPageProperty      = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+    heapProp.Type = D3D12_HEAP_TYPE_DEFAULT;
+    heapProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
     heapProp.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
 
     D3D12_RESOURCE_DESC recDesc = {};
-    recDesc.Dimension        = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-    recDesc.Format           = format;
-    recDesc.Width            = static_cast<UINT64>(width);
-    recDesc.Height           = static_cast<UINT>(height);
+    recDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+    recDesc.Format = format;
+    recDesc.Width = static_cast<UINT64>(width);
+    recDesc.Height = static_cast<UINT>(height);
     recDesc.DepthOrArraySize = 1;
-    recDesc.MipLevels        = 1;
+    recDesc.MipLevels = 1;
     recDesc.SampleDesc.Count = 1;
 
     // CopyキューはCOMMON状態のリソースを自動的にCOPY_DESTへプロモートするためCOMMONで作成する
@@ -136,7 +136,7 @@ bool Texture::CreateFromMemory(const void* data, int width, int height, DXGI_FOR
         return false;
     }
 
-    UINT rowPitch   = width * 4;
+    UINT rowPitch = width * 4;
     UINT slicePitch = rowPitch * height;
 
     m_device->GetResourceUploader()->Begin();
@@ -145,7 +145,7 @@ bool Texture::CreateFromMemory(const void* data, int width, int height, DXGI_FOR
     m_device->GetResourceUploader()->End();
 
     m_srvNumber = m_device->CreateSRV(m_resource.Get());
-    m_state     = AssetState::Ready;
+    m_state = AssetState::Ready;
     return true;
 }
 
