@@ -78,7 +78,23 @@ for (int sampleIndex = 0; sampleIndex < 4; sampleIndex++)
 | マクロ | 大文字のスネークケース | `PROFILE_GPU_SCOPE` |
 | HLSL | cbufferの変数とリソースは `g_` ＋ ローワーキャメルケース。ローカル変数はC++と同じ規則 | `g_DL_Dir` → `g_dirLightDir` |
 
+### コメントとメッセージの言語
+
+- コメント、`assert` のメッセージ、ログ・例外・エラーのメッセージ（`OutputDebugString`、`crash.log`・`exception.log` への出力など）は**日本語**で書く。C++もHLSLも同じ
+- 識別子（変数名・関数名など）は英語のまま。上の命名規則に従う
+- 既存の英語のコメントやメッセージは一括で書き換えない。命名と同じく、触った箇所から順に日本語にする
+
+```cpp
+// NG
+assert(Thread::IsMainThread() && "Texture::CreateGPU must be called on the main thread!");
+
+// OK
+// GPUリソースの生成はメインスレッドでしか行えない
+assert(Thread::IsMainThread() && "Texture::CreateGPU はメインスレッドから呼ぶこと");
+```
+
 ### ファイルの文字コード
 
 - 既存のソースには ASCII、UTF-8、UTF-8（BOM付き）、Shift_JIS（CP932）が混ざっている。**既存ファイルの文字コードと改行コードを変えない**こと。Shift_JISのファイルに日本語を書くときはShift_JISのまま保存する
 - 新しく作るファイルは UTF-8（BOM付き）にする（Visual StudioのMSVCがBOMなしUTF-8をShift_JISとして読むのを避けるため）
+- 例外：ASCIIだけのファイル、またはBOMなしUTF-8のファイルに日本語を書くときは、UTF-8（BOM付き）で保存する。BOMがないとMSVCが日本語をShift_JISとして読み、文字列（`assert` のメッセージなど）が文字化けする
