@@ -29,11 +29,11 @@ struct RendererSettings
     bool IsDirty = true;
     bool EnablePBR = true;
 
-    // SSR (スクリーンスペース反射)。平面反射(専用の反射カメラ設定)が無いガラス等の
-    // フォールバックとして、Opaqueパスの深度+カラーをレイマーチする。
+    // SSR (�X�N���[���X�y�[�X����)�B���ʔ���(��p�̔��˃J�����ݒ�)�������K���X����
+    // �t�H�[���o�b�N�Ƃ��āAOpaque�p�X�̐[�x+�J���[�����C�}�[�`����B
     bool  EnableSSR = true;
-    float SSRStepSize = 0.35f; // ビュー空間での1ステップの距離
-    float SSROpaqueIntensity = 0.5f; // Opaque材質向けSSR(床・タイル等)の強さ。ガラスのSSRとは別パラメータ
+    float SSRStepSize = 0.35f; // �r���[��Ԃł�1�X�e�b�v�̋���
+    float SSROpaqueIntensity = 0.5f; // Opaque�ގ�����SSR(���E�^�C����)�̋����B�K���X��SSR�Ƃ͕ʃp�����[�^
 };
 
 struct LightingSettings
@@ -44,8 +44,8 @@ struct LightingSettings
     float DirectionalLightIntensity = 1.0f;
     DirectX::XMFLOAT3 AmbientLight = { 0.35f, 0.35f, 0.35f };
 
-    // 平行光(月明かり等)のシャドウマップで遮られている場所に残す間接光の下限。
-    // 0 = 完全に光源が届かない場所は真っ黒、1 = 影の有無で環境光が変化しない(従来通り)。
+    // ���s��(�������蓙)�̃V���h�E�}�b�v�ŎՂ��Ă���ꏊ�Ɏc���Ԑڌ��̉����B
+    // 0 = ���S�Ɍ������͂��Ȃ��ꏊ�͐^�����A1 = �e�̗L���Ŋ������ω����Ȃ�(�]���ʂ�)�B
     float IndirectShadowFloor = 0.05f;
 
     // Indoor mask: pixels inside any RoomArea AABB never receive outside light (moon/ambient/sky),
@@ -78,12 +78,12 @@ struct PostProcessSettings
     float Exposure = 0.30f;
     float BrightnessGamma = 1.00f;
 
-    // Bloom - 半径・反復回数を上げてはじめて「ふわっと広がる」見た目になる。
-    // 閾値/強度だけいじっても変化が薄いのはこのため。
+    // Bloom - ���a�E�����񐔂��グ�Ă͂��߂āu�ӂ���ƍL����v�����ڂɂȂ�B
+    // 臒l/���x�����������Ă��ω��������̂͂��̂��߁B
     float BloomThreshold = 1.0f;
     float BloomIntensity = 1.0f;
-    float BloomRadius = 8.0f;     // 1回のBlurパスでのぼかし半径(テクセル)
-    int   BloomIterations = 3;    // Blur(横+縦)を何回繰り返すか。CPU側のみで使用(GPUには送らない)
+    float BloomRadius = 8.0f;     // 1���Blur�p�X�ł̂ڂ������a(�e�N�Z��)
+    int   BloomIterations = 3;    // Blur(��+�c)������J��Ԃ����BCPU���݂̂Ŏg�p(GPU�ɂ͑���Ȃ�)
 
     // Vignette
     bool  EnableVignette = true;
@@ -103,8 +103,8 @@ struct PostProcessSettings
     float DOFFocusDistance = 5.0f;
     float DOFFocusRange = 8.0f;
 
-    // God Rays (平行光の光条。既存の平行光/シャドウマップは使わず、Bloom結果を
-    // 光源のスクリーン座標からラジアルブラーする軽量な近似)
+    // God Rays (���s���̌����B�����̕��s��/�V���h�E�}�b�v�͎g�킸�ABloom���ʂ�
+    // �����̃X�N���[�����W���烉�W�A���u���[����y�ʂȋߎ�)
     bool  EnableGodRays = false;
     float GodRaysDensity = 0.9f;
     float GodRaysDecay = 0.96f;
