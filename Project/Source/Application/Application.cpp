@@ -12,6 +12,7 @@
 #include "../Framework/Manager/Scene/Scene.h"
 #include "../Framework/System/JobSystem/JobSystem.h"
 #include "../Framework/DirectX/Utility/Profiler.h"
+#include "../Framework/System/AppPaths/AppPaths.h"
 
 // ImGui の Win32 メッセージハンドラへ転送する
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -35,6 +36,9 @@ namespace Thread { std::thread::id g_mainThreadId; }
 
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
+	// 最初にパスを確定する(以降のファイル読み込み・DLL読み込み・ログ出力はすべてこれに依存する)
+	AppPaths::Initialize();
+
 	std::set_terminate(my_terminate_handler);
 
 	// Register the main thread ID first for thread safety assertions
@@ -133,13 +137,21 @@ void Application::Execute()
 
 void Application::SetDirectoryAndLoadDll()
 {
+	// assimpは遅延読み込み(DelayLoadDLLs)なので、最初に使われる前にフルパスで読み込んでおけば、
+	// 遅延読み込み側は読み込み済みのモジュールを名前で見つけて使う。
+	// 開発時は<root>/Library内のビルド結果を、配布時はProject/Bin(SetDllDirectory済み)を探す。
 #ifdef _DEBUG
-	SetDllDirectoryA("Library/assimp/build/lib/Debug");
-	LoadLibraryExA("assimp-vc143-mtd.dll", NULL, NULL);
+	const wchar_t* pConfigName = L"Debug";
+	const wchar_t* pAssimpDllName = L"assimp-vc143-mtd.dll";
 #else
-	SetDllDirectoryA("Library/assimp/build/lib/Release");
-	LoadLibraryExA("assimp-vc143-mt.dll", NULL, NULL);
+	const wchar_t* pConfigName = L"Release";
+	const wchar_t* pAssimpDllName = L"assimp-vc143-mt.dll";
 #endif
+	std::filesystem::path assimpDllPath = AppPaths::GetLibraryDir() / L"assimp" / L"build" / L"lib" / pConfigName / pAssimpDllName;
+	if (!LoadLibraryExW(assimpDllPath.c_str(), nullptr, LOAD_WITH_ALTERED_SEARCH_PATH))
+	{
+		LoadLibraryExW(pAssimpDllName, nullptr, 0);
+	}
 }
 Application& Application::Instance()
 {

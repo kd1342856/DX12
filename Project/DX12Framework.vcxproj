@@ -160,17 +160,6 @@
       <AdditionalDependencies>Recast.lib;Detour.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup>
-    <!-- dxcompiler.dll/dxil.dllは暗黙のリンク依存(ShaderCompiler.cppがdxcompiler.libを
-         リンクしている)だが、Windows SDKからexeの隣に配置されるわけではなく、リポジトリには
-         プロジェクトルートにしかコピーが無い。アプリのディレクトリはカレントディレクトリに
-         関係なく常にDLL検索順で最優先されるので、CWDベースの解決に頼らず、
-         ビルドのたびに出力ディレクトリへミラーリングしておく。 -->
-    <PostBuildEvent>
-      <Command>xcopy /y /d "$(ProjectDir)dxcompiler.dll" "$(OutDir)"
-xcopy /y /d "$(ProjectDir)dxil.dll" "$(OutDir)"</Command>
-    </PostBuildEvent>
-  </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Source\Application\Object\Script\Player\Player.h" />
     <ClInclude Include="Source\Application\Object\Script\Item\ItemTypes.h" />
@@ -244,6 +233,7 @@ xcopy /y /d "$(ProjectDir)dxil.dll" "$(OutDir)"</Command>
     <ClInclude Include="Source\Framework\Memory\LinearAllocator.h" />
     <ClInclude Include="Source\Framework\Memory\PoolAllocator.h" />
     <ClInclude Include="Source\Framework\System\JobSystem\JobSystem.h" />
+    <ClInclude Include="Source\Framework\System\AppPaths\AppPaths.h" />
     <ClInclude Include="Source\Framework\Manager\GameManager.h" />
     <ClInclude Include="Source\Framework\Object\GameObject.h" />
     <ClInclude Include="Source\Framework\Object\Object.h" />
@@ -391,6 +381,7 @@ xcopy /y /d "$(ProjectDir)dxil.dll" "$(OutDir)"</Command>
     <ClCompile Include="Source\Framework\Manager\Scene\Scene.cpp" />
     <ClCompile Include="Source\Framework\Manager\Scene\SceneManager.cpp" />
     <ClCompile Include="Source\Framework\System\JobSystem\JobSystem.cpp" />
+    <ClCompile Include="Source\Framework\System\AppPaths\AppPaths.cpp" />
     <ClCompile Include="Source\Framework\ECS\ComponentSerializerRegistration.cpp" />
     <ClCompile Include="Source\Framework\Manager\GameManager.cpp" />
     <ClCompile Include="Source\Framework\ECS\CompSystem\SpriteRenderSystem\SpriteRenderSystem.cpp" />

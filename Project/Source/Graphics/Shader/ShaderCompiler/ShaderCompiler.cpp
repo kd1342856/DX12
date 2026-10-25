@@ -1,7 +1,6 @@
 #include "../../../Pch.h"
 #include "ShaderCompiler.h"
-
-#pragma comment(lib, "dxcompiler.lib")
+#include "../../../Framework/System/AppPaths/AppPaths.h"
 
 Microsoft::WRL::ComPtr<IDxcUtils>          ShaderCompiler::s_pUtils;
 Microsoft::WRL::ComPtr<IDxcCompiler3>      ShaderCompiler::s_pCompiler;
@@ -11,24 +10,32 @@ Microsoft::WRL::ComPtr<IDxcValidator>      ShaderCompiler::s_pValidator;
 void ShaderCompiler::Initialize()
 {
     if (s_pCompiler) return;
-    HMODULE hDxc = LoadLibraryA("dxcompiler.dll");
-    if (hDxc)
+
+    // dxcompiler.dllはリンク時に結び付けず(exeの隣に置く必要が無いように)、Project/Binから実行時に読み込む。
+    // dxil.dllはdxcompiler.dllが名前で読み込むので、AppPaths::InitializeでBinをDLLの検索先に加えてある。
+    std::filesystem::path dxcompilerPath = AppPaths::GetBinDir() / L"dxcompiler.dll";
+    HMODULE hDxc = LoadLibraryW(dxcompilerPath.c_str());
+    if (!hDxc)
     {
-        typedef HRESULT(__stdcall* DxcCreateInstanceProc)(REFCLSID, REFIID, LPVOID*);
-        DxcCreateInstanceProc pfnDxcCreateInstance =
-            (DxcCreateInstanceProc)GetProcAddress(hDxc, "DxcCreateInstance");
-        if (pfnDxcCreateInstance)
-        {
-            pfnDxcCreateInstance(CLSID_DxcUtils,     IID_PPV_ARGS(&s_pUtils));
-            pfnDxcCreateInstance(CLSID_DxcCompiler,  IID_PPV_ARGS(&s_pCompiler));
-            pfnDxcCreateInstance(CLSID_DxcValidator, IID_PPV_ARGS(&s_pValidator));
-        }
+        // Binに無い場合は通常のDLL検索順(exeの隣など)で探す
+        hDxc = LoadLibraryW(L"dxcompiler.dll");
     }
-    else
+    if (!hDxc)
     {
-        DxcCreateInstance(CLSID_DxcUtils,     IID_PPV_ARGS(&s_pUtils));
-        DxcCreateInstance(CLSID_DxcCompiler,  IID_PPV_ARGS(&s_pCompiler));
-        DxcCreateInstance(CLSID_DxcValidator, IID_PPV_ARGS(&s_pValidator));
+        // 環境のコードページに左右されないよう、メッセージは英語にしておく
+        std::wstring message = L"dxcompiler.dll was not found.\nPlace dxcompiler.dll and dxil.dll in:\n" + dxcompilerPath.parent_path().wstring();
+        MessageBoxW(nullptr, message.c_str(), L"Shader Compiler", MB_OK | MB_ICONERROR);
+        return;
+    }
+
+    typedef HRESULT(__stdcall* DxcCreateInstanceProc)(REFCLSID, REFIID, LPVOID*);
+    DxcCreateInstanceProc pfnDxcCreateInstance =
+        (DxcCreateInstanceProc)GetProcAddress(hDxc, "DxcCreateInstance");
+    if (pfnDxcCreateInstance)
+    {
+        pfnDxcCreateInstance(CLSID_DxcUtils,     IID_PPV_ARGS(&s_pUtils));
+        pfnDxcCreateInstance(CLSID_DxcCompiler,  IID_PPV_ARGS(&s_pCompiler));
+        pfnDxcCreateInstance(CLSID_DxcValidator, IID_PPV_ARGS(&s_pValidator));
     }
 
     if (s_pUtils)

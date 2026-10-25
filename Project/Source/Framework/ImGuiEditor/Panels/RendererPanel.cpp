@@ -16,10 +16,8 @@ namespace
         wchar_t exePath[MAX_PATH];
         if (GetModuleFileNameW(nullptr, exePath, MAX_PATH) == 0) return;
 
-        // lpCurrentDirectoryをnullのままにして継承に任せるのではなく、このプロセスの
-        // *現在の*作業ディレクトリを明示的に渡す。このプロセスはdxcompiler.dll等を
-        // CWD相対の検索で解決しているので、今動けているそのCWDは確実に正しい -
-        // 子プロセスも同じになると仮定するのではなく、それを捕まえて使い回す。
+        // 子プロセスもAppPaths::Initializeで自分の場所からProjectフォルダを見つけ直すが、
+        // 念のため、このプロセスの現在の作業ディレクトリ(=Projectフォルダ)をそのまま渡す。
         wchar_t cwd[MAX_PATH];
         DWORD cwdLen = GetCurrentDirectoryW(MAX_PATH, cwd);
         const wchar_t* pCwd = (cwdLen > 0 && cwdLen < MAX_PATH) ? cwd : nullptr;

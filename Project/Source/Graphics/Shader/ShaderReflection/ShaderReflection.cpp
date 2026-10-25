@@ -1,5 +1,6 @@
 #include "../../../Pch.h"
 #include "ShaderReflection.h"
+#include "../ShaderCompiler/ShaderCompiler.h"
 
 #pragma comment(lib, "dxguid.lib")
 
@@ -8,8 +9,11 @@ std::vector<ShaderBinding> ShaderReflection::Reflect(Microsoft::WRL::ComPtr<IDxc
 	std::vector<ShaderBinding> bindings;
 	if (!pShaderBlob) return bindings;
 
-	Microsoft::WRL::ComPtr<IDxcUtils> pUtils;
-	if (FAILED(DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(&pUtils)))) return bindings;
+	IDxcUtils* pUtils = ShaderCompiler::GetUtils();
+	if (!pUtils)
+	{
+		return bindings;
+	}
 
 	DxcBuffer reflectionBuffer;
 	reflectionBuffer.Ptr = pShaderBlob->GetBufferPointer();

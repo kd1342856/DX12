@@ -181,6 +181,9 @@
     <Filter Include="Source\Framework\System\JobSystem">
       <UniqueIdentifier>{6DC3FD23-0E2E-409B-A7C0-3D14A1950060}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Framework\System\AppPaths">
+      <UniqueIdentifier>{3F6A2C1E-8B4D-4E7A-9C21-5D0B7E9A4F12}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source\Framework\Window">
       <UniqueIdentifier>{218CD20B-5F28-4E75-9306-335B25EA9A08}</UniqueIdentifier>
     </Filter>
@@ -473,6 +476,9 @@
     </ClCompile>
     <ClCompile Include="Source\Framework\System\JobSystem\JobSystem.cpp">
       <Filter>Source\Framework\System\JobSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Framework\System\AppPaths\AppPaths.cpp">
+      <Filter>Source\Framework\System\AppPaths</Filter>
     </ClCompile>
     <ClCompile Include="Source\Framework\ECS\ComponentSerializerRegistration.cpp">
       <Filter>Source\Framework\ECS</Filter>
@@ -901,6 +907,9 @@
     </ClInclude>
     <ClInclude Include="Source\Framework\System\JobSystem\JobSystem.h">
       <Filter>Source\Framework\System\JobSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\System\AppPaths\AppPaths.h">
+      <Filter>Source\Framework\System\AppPaths</Filter>
     </ClInclude>
     <ClInclude Include="Source\Framework\Manager\GameManager.h">
       <Filter>Source\Framework\Manager</Filter>
