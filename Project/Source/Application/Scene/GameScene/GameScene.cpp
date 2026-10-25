@@ -29,6 +29,7 @@
 #include "../../../Graphics/Renderer/MotionVectors.h"
 #include "../../../Graphics/Renderer/TemporalAA.h"
 #include "../../../Graphics/Renderer/AutoExposure.h"
+#include "../../../Graphics/Renderer/MotionBlur.h"
 #include "../../../Framework/Manager/Particle/ParticleManager.h"
 #include "../../../Framework/Manager/Audio/AudioManager.h"
 #include "../../UI/OptionMenu.h"
@@ -874,6 +875,18 @@ void GameScene::DoPostProcess(Entity cameraEntity, float clearR, float clearG, f
     // 0.5 TAA - ジッターで揺らして描いた絵を履歴と混ぜ、ジャギーとちらつきを抑える。
     // SSRまで足し終えたシーンに掛け、ブルームなどはその結果から作る
     TemporalAA::Instance().Resolve(pSceneHDR, postProcessSettings.TAACurrentWeight);
+
+    // 0.55 モーションブラー - シャッターが開いていた時間の分だけ、速度の方向にぼかす
+    if (postProcessSettings.EnableMotionBlur)
+    {
+        const float deltaTime = GameTimer::Instance().DeltaTime();
+        float shutterFraction = postProcessSettings.MotionBlurShutterAngle / 360.0f;
+        if (postProcessSettings.UseCameraSettings)
+        {
+            shutterFraction = (deltaTime > 0.0f) ? postProcessSettings.ShutterSpeed / deltaTime : 0.0f;
+        }
+        MotionBlur::Instance().Apply(pSceneHDR, shutterFraction, postProcessSettings.MotionBlurMaxPixels);
+    }
 
     // 0.6 自動露出 - このフレームの明るさを数え、数フレーム前に数えた結果から次のフレームの露出を決める
     {

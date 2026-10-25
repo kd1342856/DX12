@@ -573,6 +573,9 @@
     <ClCompile Include="Source\Graphics\Renderer\AutoExposure.cpp">
       <Filter>Source\Graphics\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Graphics\Renderer\MotionBlur.cpp">
+      <Filter>Source\Graphics\Renderer</Filter>
+    </ClCompile>
     <ClCompile Include="Source\Graphics\Shader\SSAOShader\SSAOShader.cpp">
       <Filter>Source\Graphics\Shader\SSAOShader</Filter>
     </ClCompile>
@@ -1049,6 +1052,9 @@
     <ClInclude Include="Source\Graphics\Renderer\AutoExposure.h">
       <Filter>Source\Graphics\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Graphics\Renderer\MotionBlur.h">
+      <Filter>Source\Graphics\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="Source\Graphics\Shader\SSAOShader\SSAOShader.h">
       <Filter>Source\Graphics\Shader\SSAOShader</Filter>
     </ClInclude>
@@ -1350,6 +1356,9 @@
       <Filter>Asset\Shader\Temporal</Filter>
     </None>
     <None Include="Asset\Shader\Temporal\AutoExposure_CS.hlsl">
+      <Filter>Asset\Shader\Temporal</Filter>
+    </None>
+    <None Include="Asset\Shader\Temporal\MotionBlur_CS.hlsl">
       <Filter>Asset\Shader\Temporal</Filter>
     </None>
     <None Include="Asset\Shader\SSAOShader\SSAO_VS.hlsl">

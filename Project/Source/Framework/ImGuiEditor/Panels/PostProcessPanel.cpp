@@ -4,6 +4,7 @@
 #include "../../../Graphics/Shader/PhotometricUnits.h"
 #include "../../../Graphics/Renderer/TemporalAA.h"
 #include "../../../Graphics/Renderer/AutoExposure.h"
+#include "../../../Graphics/Renderer/MotionBlur.h"
 
 void PostProcessPanel::Draw(EditorContext& ctx)
 {
@@ -65,6 +66,24 @@ void PostProcessPanel::Draw(EditorContext& ctx)
             }
             ImGui::SliderFloat("TAA Current Weight", &ctx.PostProcess->TAACurrentWeight, 0.03f, 0.5f, "%.2f");
             if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"今のフレームを混ぜる割合。小さいほど滑らかでちらつかないが、動いたときに残像が出やすい。");
+
+            ImGui::Separator();
+            ImGui::Text("Motion Blur");
+            ImGui::Checkbox("Enable Motion Blur", &ctx.PostProcess->EnableMotionBlur);
+            if (!MotionBlur::Instance().IsAvailable())
+            {
+                ImGui::SameLine();
+                ImGui::TextDisabled(u8"(このGPUでは使えません)");
+            }
+            if (ctx.PostProcess->UseCameraSettings)
+            {
+                ImGui::TextDisabled(u8"ぼけの長さはカメラのシャッター速度で決まる");
+            }
+            else
+            {
+                ImGui::SliderFloat("Shutter Angle", &ctx.PostProcess->MotionBlurShutterAngle, 0.0f, 360.0f, "%.0f deg");
+            }
+            ImGui::SliderFloat("Max Blur (px)", &ctx.PostProcess->MotionBlurMaxPixels, 4.0f, 128.0f, "%.0f");
 
             ImGui::Separator();
             ImGui::Text("Bloom");

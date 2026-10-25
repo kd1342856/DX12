@@ -6,6 +6,7 @@
 #include "../Shader/ShaderManager/ShaderManager.h"
 #include "MotionVectors.h"
 #include "TemporalAA.h"
+#include "MotionBlur.h"
 
 static RenderContext s_renderContext;
 
@@ -101,6 +102,7 @@ void Renderer::ResizeRenderTargets(int width, int height)
 	s_ssaoBlur->Resize(width / 2, height / 2);
 	MotionVectors::Instance().Resize(width, height);
 	TemporalAA::Instance().Resize(width, height);
+	MotionBlur::Instance().Resize(width, height);
 }
 
 void Renderer::InitializeRenderTargets(int width, int height)

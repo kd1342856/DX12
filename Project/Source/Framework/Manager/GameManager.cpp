@@ -20,6 +20,7 @@
 #include "../../Graphics/Renderer/MotionVectors.h"
 #include "../../Graphics/Renderer/TemporalAA.h"
 #include "../../Graphics/Renderer/AutoExposure.h"
+#include "../../Graphics/Renderer/MotionBlur.h"
 #include "Scene/Scene.h"
 #include "../Object/GameObject.h"
 #include "../ECS/CompSystem/Systems/RenderSystem.h"
@@ -161,6 +162,7 @@ void GameManager::Init()
     MotionVectors::Instance().Initialize(Renderer::GetRenderWidth(), Renderer::GetRenderHeight());
     TemporalAA::Instance().Initialize(Renderer::GetRenderWidth(), Renderer::GetRenderHeight());
     AutoExposure::Instance().Initialize();
+    MotionBlur::Instance().Initialize(Renderer::GetRenderWidth(), Renderer::GetRenderHeight());
 }
 
 void GameManager::Update(float deltaTime, class Scene* pScene)

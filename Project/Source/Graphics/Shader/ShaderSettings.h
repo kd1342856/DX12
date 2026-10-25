@@ -106,6 +106,12 @@ struct PostProcessSettings
     float AutoExposureSpeedUp = 3.0f;   // 明るい場面へ順応する速さ(1/秒)
     float AutoExposureSpeedDown = 1.0f; // 暗い場面へ順応する速さ(1/秒)。目と同じく暗さへの順応は遅い
 
+    // モーションブラー。ぼけの長さはシャッターが開いていた時間に連動する。
+    // UseCameraSettingsがtrueならシャッター速度とフレームの時間から、falseならシャッター角から決める
+    bool  EnableMotionBlur = false;
+    float MotionBlurShutterAngle = 180.0f; // 度。360で1フレームの間ずっと開いている
+    float MotionBlurMaxPixels = 32.0f;     // ぼけの長さの上限(ピクセル)
+
     // Bloom - 半径・反復回数を上げてはじめて「ふわっと広がる」見た目になる。
     // 閾値/強度だけいじっても変化が薄いのはこのため。
     float BloomThreshold = 1.0f;
