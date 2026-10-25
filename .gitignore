@@ -33,3 +33,6 @@ Library/*/build/
 
 #実行に必須なDLL(Project/Bin)は例外としてコミットする
 !Project/Bin/*.dll
+
+#Asset以下の.objはモデルなので例外としてコミットする
+!Project/Asset/**/*.obj
