@@ -24,8 +24,9 @@ VSOutput main(float3 pos : POSITION, float2 uv : TEXCOORD, float3 normal: NORMAL
     Out.uv = uv;
     
     Out.Color = color;
-    Out.Normal = normalize(normal);
-    Out.Tangent = normalize(tangent);
+    // ライティングはワールド空間で行うので、法線と接線もワールドへ移す(スケールは均一を前提にする)
+    Out.Normal = normalize(mul(normal, (float3x3) c_mWorld));
+    Out.Tangent = normalize(mul(tangent, (float3x3) c_mWorld));
     
     return Out;
 }

@@ -3,6 +3,7 @@
 
 #include "../../Renderer/ModelRenderer.h"
 #include "../../GDF/GDF.h"
+#include "../../Renderer/RenderContext.h"
 #include "../../../Framework/Manager/Asset/TextureManager.h"
 
 void SkinningShader::Create(GraphicsDevice* pGraphicsDevice)
@@ -38,6 +39,30 @@ void SkinningShader::Begin(RenderContext& context)
 	
 	int b0 = GetRootParameterIndex(ShaderBindingType::CBV, 0);
 	if (b0 != -1) context.BindCamera(b0);
+
+	// ライティング(LitShaderと同じ光源と露出)
+	int b3 = GetRootParameterIndex(ShaderBindingType::CBV, 3);
+	if (b3 != -1)
+	{
+		context.BindLight(b3);
+	}
+	int b4 = GetRootParameterIndex(ShaderBindingType::CBV, 4);
+	if (b4 != -1)
+	{
+		context.BindSystem(b4);
+	}
+
+	// 平行光のシャドウマップ(t7)
+	int t7 = GetRootParameterIndex(ShaderBindingType::SRV, 7);
+	if (t7 != -1)
+	{
+		auto* pShadowMap = m_pDevice->GetShadowMap();
+		if (pShadowMap && pShadowMap->GetSRVNumber() != -1)
+		{
+			auto handle = m_pDevice->GetDescriptorHeapManager()->GetCBVSRVUAVAllocator()->GetGPUHandle(pShadowMap->GetSRVNumber());
+			m_pDevice->GetCmdList()->SetGraphicsRootDescriptorTable(t7, handle);
+		}
+	}
 }
 
 void SkinningShader::BeginModel(const ModelData& model, const DrawContext& drawContext)
@@ -108,8 +133,12 @@ void SkinningShader::SetMaterial(const Material& material)
 		else GraphicsDevice::Instance().GetWhiteTex()->Set(t4);
 	}
 
-	int b3 = GetRootParameterIndex(ShaderBindingType::CBV, 3); // Check bindings! In LitShader it was b2. In Skinning b2 is Bones. Wait, let's just bind if b3 exists.
-	if (b3 != -1) GDF::Instance().BindCBuffer(b3, material.Constants);
+	// マテリアルはb5(b2は骨の行列、b3とb4はライトとシステム)
+	int b5 = GetRootParameterIndex(ShaderBindingType::CBV, 5);
+	if (b5 != -1)
+	{
+		GDF::Instance().BindCBuffer(b5, material.Constants);
+	}
 }
 
 void SkinningShader::BeginShadow(RenderContext& context)

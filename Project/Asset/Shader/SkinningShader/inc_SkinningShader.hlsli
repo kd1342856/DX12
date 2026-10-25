@@ -35,7 +35,8 @@ cbuffer cbBones : register(b2)
     row_major matrix c_mBones[256]; 
 }
 
-cbuffer cbPerMaterial : register(b3)
+// b3とb4はライトとシステムの定数バッファ(inc_LightData.hlsli)が使う
+cbuffer cbPerMaterial : register(b5)
 {
     float4 g_baseColorFactor;
     float g_metallicFactor;
