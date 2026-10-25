@@ -4,6 +4,8 @@
 #include "../../Graphics/Shader/ShaderManager/ShaderManager.h"
 #include "../../Framework/System/AppPaths/AppPaths.h"
 #include "../../Graphics/Renderer/QualitySettings.h"
+#include "../../Graphics/Renderer/TemporalAA.h"
+#include "../../Graphics/Renderer/MotionBlur.h"
 #include <imgui.h>
 #include <algorithm>
 
@@ -101,6 +103,14 @@ void OptionMenu::LoadSettings()
                 }
             }
         }
+        if (j.contains("antiAliasing"))
+        {
+            pp.EnableTAA = j["antiAliasing"].get<bool>();
+        }
+        if (j.contains("motionBlur"))
+        {
+            pp.EnableMotionBlur = j["motionBlur"].get<bool>();
+        }
     }
     catch (const std::exception& e) {
         Logger::Instance().AddLog(Logger::LogLevel::Warning, "OptionMenu: Failed to load %s (%s)", AppPaths::ToUtf8(settingsPath).c_str(), e.what());
@@ -114,6 +124,8 @@ void OptionMenu::SaveSettings()
     j["frameRateMode"] = ToSettingName(GraphicsDevice::Instance().GetFrameRateMode());
     j["frameRateLimit"] = GraphicsDevice::Instance().GetFrameRateLimit();
     j["qualityLevel"] = kQualityNames[static_cast<int>(QualitySettings::GetLevel())];
+    j["antiAliasing"] = ShaderManager::Instance().GetPostProcessSettings().EnableTAA;
+    j["motionBlur"] = ShaderManager::Instance().GetPostProcessSettings().EnableMotionBlur;
     std::filesystem::path settingsPath = AppPaths::GetSavedFilePath(kSettingsFileName);
     std::ofstream o(settingsPath);
     if (o.is_open()) {
@@ -265,6 +277,15 @@ void OptionMenu::DrawDisplayTab()
     {
         QualitySettings::Request(static_cast<QualityLevel>(quality));
     }
+
+    // アンチエイリアス(TAA)とモーションブラー。どちらもシェーダーモデル6.6に対応したGPUでだけ使える
+    auto& postProcess = ShaderManager::Instance().GetPostProcessSettings();
+    ImGui::BeginDisabled(!TemporalAA::Instance().IsAvailable());
+    ImGui::Checkbox(u8"アンチエイリアス(TAA)", &postProcess.EnableTAA);
+    ImGui::EndDisabled();
+    ImGui::BeginDisabled(!MotionBlur::Instance().IsAvailable());
+    ImGui::Checkbox(u8"モーションブラー", &postProcess.EnableMotionBlur);
+    ImGui::EndDisabled();
     ImGui::Spacing();
     ImGui::TextUnformatted(u8"フレームレートの上限");
 
