@@ -139,12 +139,12 @@ PSOutput main(VSOutput In)
     //------------------
     // 平行光(室内では届かない。LitShaderと同じ扱い)
     //------------------
-    float moonVisibility = g_IndirectShadowFloor;
+    float moonVisibility = 0;
     if (!IsIndoor(In.wPos))
     {
         float shadow = SampleDirectionalShadow(In.wPos, saturate(dot(wN, -g_DL_Dir)));
         color += EvaluateDirectLight(surface, -g_DL_Dir, g_DL_Color) * shadow;
-        moonVisibility = max(shadow, g_IndirectShadowFloor);
+        moonVisibility = shadow;
     }
 
     //------------------
@@ -170,13 +170,15 @@ PSOutput main(VSOutput In)
     }
 
     //------------------
-    // 環境光・ダミーIBL
+    // 環境光(LitShaderと同じ)
     //------------------
-    // 拡散の環境光: DDGIのプローブ(絶対の値なので露出を掛ける)。ボリュームの外は今までの環境光の定数
+    // 拡散: DDGIのプローブ(絶対の値なので露出を掛ける)。ボリュームの外は、環境光の輝度を一様な空の明るさとして使う
     float giCoverage;
     const float3 giIrradiance = SampleDDGIIrradiance(In.wPos, wN, vCam, g_ddgiIrradiance, g_ddgiDistance, g_ss, giCoverage);
-    color += lerp(g_AmbientLight * baseColor.rgb * moonVisibility, surface.diffuseColor * giIrradiance * g_Exposure, giCoverage) * occlusion;
-    color += EvaluateEnvironmentLighting(surface, occlusion, moonVisibility, giCoverage, g_ss);
+    const float3 skyRadiance = g_AmbientLight * moonVisibility;
+    color += lerp(surface.diffuseColor * skyRadiance, surface.diffuseColor * giIrradiance * g_Exposure, giCoverage) * occlusion;
+    // 鏡面: 反射プローブ
+    color += EvaluateEnvironmentSpecular(surface, occlusion, skyRadiance, g_ss);
 
     color = ApplyDistanceFog(color, camDist);
 

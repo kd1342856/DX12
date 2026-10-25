@@ -204,32 +204,17 @@ float4 SampleReflectionProbes(SurfaceData surface, SamplerState probeSampler)
     return float4(radiance, weightSum);
 }
 
-// 環境光(拡散と鏡面)。拡散と、反射プローブが無いところの鏡面は、ダミーIBL(空と地面の2色)を使う。
-// ダミーの拡散は、DDGIのボリュームの外だけに使う(giCoverageが1なら使わない)。2色の値1.0がg_IBLLuminance(nit×露出)になる。
-// dummyVisibilityはダミーの環境光だけに掛ける(月の影・室内。プローブは部屋の中の光を撮ってあるので掛けない)
-float3 EvaluateEnvironmentLighting(SurfaceData surface, float specularOcclusion, float dummyVisibility, float giCoverage, SamplerState probeSampler)
+// 鏡面の環境光。反射プローブから読み、どの部屋のプローブにも入らないところは
+// fallbackRadiance(一様な空の明るさ、前露出のnit)を使う
+float3 EvaluateEnvironmentSpecular(SurfaceData surface, float specularOcclusion, float3 fallbackRadiance, SamplerState probeSampler)
 {
-    const float3 skyColor = float3(0.5, 0.6, 0.8);
-    const float3 groundColor = float3(0.3, 0.25, 0.2);
-
-    // 拡散
-    const float envWeight = surface.normal.y * 0.5 + 0.5;
-    const float3 envDiff = lerp(groundColor, skyColor, envWeight) * 1.5 * g_IBLLuminance;
-    const float3 diffuse = envDiff * surface.diffuseColor / 3.141592 * dummyVisibility * (1.0 - giCoverage);
-
-    // 鏡面: 反射プローブ、無いところはダミー
-    const float3 vRef = reflect(-surface.viewDir, surface.normal);
-    // 粗い面ほど反射像がぼやけるので、反射方向のグラデーションを法線方向(拡散と同じ)へ寄せる
-    const float specWeight = lerp(vRef.y * 0.5 + 0.5, envWeight, surface.roughness);
-    const float3 dummySpecular = lerp(groundColor, skyColor, specWeight) * 2.0 * g_IBLLuminance * dummyVisibility;
     const float4 probe = SampleReflectionProbes(surface, probeSampler);
-    const float3 envSpec = probe.rgb + dummySpecular * (1.0 - probe.a);
+    const float3 radiance = probe.rgb + fallbackRadiance * (1.0 - probe.a);
 
     // 環境BRDF(スプリットサム近似)。粗さとフレネルで反射量を決める
     // (粗いほど正面の反射が弱まり、浅い角度ほど強まる)。マルチスキャッタの分も足す
     const float3 envBRDF = (surface.specularColor * surface.environmentBRDF.x + surface.environmentBRDF.y) * surface.energyCompensation;
-
-    return diffuse + envSpec * envBRDF * specularOcclusion;
+    return radiance * envBRDF * specularOcclusion;
 }
 
 //------------------------------------------

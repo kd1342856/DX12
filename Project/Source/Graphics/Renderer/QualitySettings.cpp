@@ -7,12 +7,12 @@
 
 const QualityPreset& QualitySettings::GetPreset(QualityLevel level)
 {
-    // 「高」は物理単位・影・プリパスを入れた時点の既定値と同じ
+    // 平面反射は、反射プローブを入れたので「高」では1枚・512に絞り、3枚・1024は「最高」だけにする
     static const QualityPreset kPresets[] = {
         // renderScale, 平行光の影, スポットの影, キューブの影, SSAO, SSR, 平面反射の数, 平面反射の解像度, ブルームの回数
         { 0.75f, 1024, 512, 256, false, false, 0, 512, 2 },   // 低
         { 1.0f, 2048, 1024, 512, true, false, 1, 512, 3 },    // 中
-        { 1.0f, 2048, 1024, 512, true, true, 3, 1024, 3 },    // 高
+        { 1.0f, 2048, 1024, 512, true, true, 1, 512, 3 },     // 高
         { 1.0f, 4096, 2048, 1024, true, true, 3, 1024, 4 },   // 最高
     };
     return kPresets[static_cast<int>(level)];

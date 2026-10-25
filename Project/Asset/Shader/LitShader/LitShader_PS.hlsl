@@ -299,11 +299,11 @@ PSOutput main(VSOutput In) : SV_Target0
     // 最終的な色
     float3 color = 0;
     
-    // 平行光(月/太陽)の可視率。直射光だけでなく、Ambient/IBLの間接光にも使い、
-    // 「光源が届かない場所は現実のように暗くなる」を実現する(g_IndirectShadowFloorが下限)。
+    // 平行光(月/太陽)の可視率。DDGIのボリュームの外で、環境光の定数(空の明るさ)にも掛ける
+    // (ボリュームの中の間接光は、DDGIがシャドウレイで遮られ方まで求めている)
     float moonVisibility = 1;
 
-    // 室内(RoomAreaの範囲内)は外の光が届かない。屋根/上階の床がシャドウマップで正しく
+    // 室内(RoomAreaの範囲内)には、直射の月光は届かない。屋根/上階の床がシャドウマップで正しく
     // 遮れているかに関係なく、常に月の影の中と同じ扱いにする。
     const bool indoor = IsIndoor(In.wPos);
 
@@ -312,7 +312,7 @@ PSOutput main(VSOutput In) : SV_Target0
     //------------------
     if (indoor)
     {
-        moonVisibility = g_IndirectShadowFloor;
+        moonVisibility = 0;
     }
     else
     {
@@ -374,9 +374,7 @@ PSOutput main(VSOutput In) : SV_Target0
         // 光を加算(g_DL_Colorは照度(lx)×露出)
         color += EvaluateDirectLight(surface, -g_DL_Dir, g_DL_Color) * shadow;
 
-        // 間接光(Ambient/IBL)側で使う可視率。下限をg_IndirectShadowFloorで確保し、
-        // 完全な真っ暗にはせず、現実のバウンス光程度の明るさを残す。
-        moonVisibility = max(shadow, g_IndirectShadowFloor);
+        moonVisibility = shadow;
     }
     
     //------------------
@@ -419,10 +417,12 @@ PSOutput main(VSOutput In) : SV_Target0
     float2 screenUV = In.Pos.xy / float2(g_ScreenWidth, g_ScreenHeight);
     float ssao = g_ssaoMap.Sample(g_ss_linear_clamp, screenUV).r;
 
-    // 拡散の環境光: DDGIのプローブ(絶対の値なので露出を掛ける)。ボリュームの外は今までの環境光の定数
+    // 拡散の環境光: DDGIのプローブ(絶対の値なので露出を掛ける)。
+    // ボリュームの外は、環境光の輝度を一様な空の明るさとして使う(月の影の中では届かない)
     float giCoverage;
     const float3 giIrradiance = SampleDDGIIrradiance(In.wPos, wN, vCam, g_ddgiIrradiance, g_ddgiDistance, g_ss_linear_clamp, giCoverage);
-    const float3 ambient = lerp(g_AmbientLight * baseColor.rgb * moonVisibility, baseDiffuse * giIrradiance * g_Exposure, giCoverage);
+    const float3 skyRadiance = g_AmbientLight * moonVisibility;
+    const float3 ambient = lerp(baseDiffuse * skyRadiance, baseDiffuse * giIrradiance * g_Exposure, giCoverage);
     color += ambient * baseColor.a * occlusion * ssao;
     
     //------------------
@@ -444,13 +444,13 @@ PSOutput main(VSOutput In) : SV_Target0
     }
     
     //------------------
-    // IBL (Dummy Env)
+    // 鏡面の環境光(反射プローブ)
     //------------------
     // スペキュラオクルージョン(Lagarde)。隅や隙間(AO/SSAO)では反射も遮られる
     float specAO = occlusion * ssao;
     float specOcclusion = saturate(pow(NdotV + specAO, exp2(-16.0 * roughness2 - 1.0)) - 1.0 + specAO);
 
-    color += EvaluateEnvironmentLighting(surface, specOcclusion, moonVisibility, giCoverage, g_ss_linear_clamp);
+    color += EvaluateEnvironmentSpecular(surface, specOcclusion, skyRadiance, g_ss_linear_clamp);
 
     //------------------------------------------
     // 距離フォグ

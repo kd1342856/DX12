@@ -11,21 +11,20 @@ void IBLPanel::Draw(EditorContext& ctx)
         bool iChanged = false;
         bool lChanged = false;
 
-        iChanged |= ImGui::Checkbox("Enable IBL", &ctx.IBL->EnableIBL);
-        iChanged |= ImGui::DragFloat("IBL Luminance (nit)", &ctx.IBL->IBLIntensity, 0.001f, 0.0f, 1000.0f, "%.3f");
-        
+        // ダミーIBL(空と地面の2色)と、影の中に残す間接光の下限(Indirect Shadow Floor)は、
+        // Step 5でDDGIと反射プローブに置き換えたため、もう使っていない
+        ImGui::TextDisabled(u8"拡散の環境光はDDGI、鏡面は反射プローブ(ダミーIBLは廃止)");
+
         lChanged |= ImGui::DragFloat3("Ambient Luminance (nit)", &ctx.Lighting->AmbientLight.x, 0.001f, 0.0f, 1000.0f, "%.3f");
-        lChanged |= ImGui::SliderFloat("Indirect Shadow Floor", &ctx.Lighting->IndirectShadowFloor, 0.0f, 1.0f,
-            "%.2f");
         if (ImGui::IsItemHovered())
         {
-            ImGui::SetTooltip("Ambient/IBL kept in areas the moon/sun shadow doesn't reach.\n0 = pitch black indoors, 1 = no darkening (old behavior).");
+            ImGui::SetTooltip(u8"DDGIのボリューム(家)の外で使う、一様な空の明るさ。拡散と鏡面の両方に使う。");
         }
 
         lChanged |= ImGui::Checkbox("Indoor Mask (RoomArea)", &ctx.Lighting->EnableIndoorMask);
         if (ImGui::IsItemHovered())
         {
-            ImGui::SetTooltip(u8"RoomAreaの範囲内は外の光(月明かり・環境光・空の反射光)を受けず、\n月の影の中と同じ扱い(Indirect Shadow Floorまで暗くなる)にする。");
+            ImGui::SetTooltip(u8"RoomAreaの範囲内には直射の月光が届かないものとして扱う\n(屋根のシャドウマップが届かないときの漏れを防ぐ)。間接光はDDGIが求める。");
         }
         lChanged |= ImGui::SliderFloat("Indoor Margin", &ctx.Lighting->IndoorMargin, 0.0f, 2.0f, "%.2f m");
         if (ImGui::IsItemHovered())
