@@ -49,14 +49,15 @@ void AutoExposure::Initialize()
     D3D12_HEAP_PROPERTIES defaultHeap = {};
     defaultHeap.Type = D3D12_HEAP_TYPE_DEFAULT;
     const D3D12_RESOURCE_DESC histogramDesc = MakeBufferDesc(kHistogramSize, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+    // バッファは作るときの状態の指定が無視され、常にCOMMONで作られる
     if (FAILED(device.GetDevice()->CreateCommittedResource(&defaultHeap, D3D12_HEAP_FLAG_NONE, &histogramDesc,
-        D3D12_RESOURCE_STATE_UNORDERED_ACCESS, nullptr, IID_PPV_ARGS(&m_cpHistogramBuffer))))
+        D3D12_RESOURCE_STATE_COMMON, nullptr, IID_PPV_ARGS(&m_cpHistogramBuffer))))
     {
         Logger::Instance().AddLog(Logger::LogLevel::Error, u8"[AutoExposure] ヒストグラムのバッファを作れませんでした");
         return;
     }
     m_cpHistogramBuffer->SetName(L"ExposureHistogram");
-    device.GetResourceStateTracker()->AddResourceState(m_cpHistogramBuffer.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+    device.GetResourceStateTracker()->AddResourceState(m_cpHistogramBuffer.Get(), D3D12_RESOURCE_STATE_COMMON);
 
     // シェーダーからはRWByteAddressBufferとして読み書きする
     auto* pAllocator = device.GetDescriptorHeapManager()->GetCBVSRVUAVAllocator();
