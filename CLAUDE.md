@@ -95,6 +95,10 @@ assert(Thread::IsMainThread() && "Texture::CreateGPU はメインスレッドか
 
 ### ファイルの文字コード
 
-- 既存のソースには ASCII、UTF-8、UTF-8（BOM付き）、Shift_JIS（CP932）が混ざっている。**既存ファイルの文字コードと改行コードを変えない**こと。Shift_JISのファイルに日本語を書くときはShift_JISのまま保存する
-- 新しく作るファイルは UTF-8（BOM付き）にする（Visual StudioのMSVCがBOMなしUTF-8をShift_JISとして読むのを避けるため）
-- 例外：ASCIIだけのファイル、またはBOMなしUTF-8のファイルに日本語を書くときは、UTF-8（BOM付き）で保存する。BOMがないとMSVCが日本語をShift_JISとして読み、文字列（`assert` のメッセージなど）が文字化けする
+- **ソースコード（`Source/` の `.cpp`・`.h`、`Asset/Shader/` の `.hlsl`・`.hlsli`）の文字コードは、すべて Shift_JIS（CP932）**。BOMは付けない。新しく作るファイルも CP932 で保存する
+- 改行コードは LF のまま変えない
+- CP932 にない文字（`≈`、絵文字、一部の記号など）は使わない。`≈` は `≒` にするなど、CP932 にある文字で書く
+- ImGui に渡す日本語の文字列は `u8"..."` にする。ImGui は UTF-8 を前提にしているため、`u8` なしの CP932 の文字列は画面で文字化けする（`Logger` など、最終的に ImGui に表示する文字列も同じ）
+- コメントや文字列の行末に、2バイト目が `\`（0x5C）の文字（`ソ`・`十`・`申`・`表`・`能`・`予`・`構`・`貼` など）を置かない。必要なら後ろに `。` などを付ける。MSVC は正しく読むが、clang-format・clang-tidy・シェーダーコンパイラ（DXC）は行の継続と読み、次の行までコメントとして扱ってしまう
+- `clang-format` をコマンドラインで使うときは、CP932 のまま渡すと上の 0x5C の問題が起きるため、Visual Studio の「ドキュメントのフォーマット」で整形する
+- 次のファイルは UTF-8 のまま（ツールやライブラリが UTF-8 を前提にしているため）：`CLAUDE.md`、`.clang-format`、`.clang-tidy`、`Asset/Data/` の JSON（nlohmann::json は UTF-8 のみ）、`.vcxproj` などのプロジェクトファイル、`Library/` 以下の外部ライブラリ
