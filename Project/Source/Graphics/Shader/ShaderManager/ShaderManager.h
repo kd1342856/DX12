@@ -42,8 +42,11 @@ public:
 	DebugSettings& GetDebugSettings() { return m_DebugSettings; }
 	FogSettings& GetFogSettings() { return m_FogSettings; }
 
-	// 露出(EV100から求める)。ライトの値はこれを掛けてからシェーダーへ送る(前露出)
+	// 露出(EV100から求める)。ライトの値はこれを掛けてからシェーダーへ送る(前露出)。
+	// 自動露出がオンなら、自動露出が決めたEV100を使う
 	float GetExposure() const;
+	// 手動の露出のEV100(設定のEV100、またはカメラの絞り・シャッター速度・ISO感度から求めたもの)
+	float GetManualEV100() const;
 
 	// 描画解像度(シーンを描くRTの大きさ)。シェーダーが画面のUVを求めるのに使う。Rendererが作り直すたびに呼ぶ
 	void SetScreenSize(int width, int height)

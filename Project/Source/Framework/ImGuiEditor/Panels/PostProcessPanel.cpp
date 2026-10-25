@@ -3,6 +3,7 @@
 #include "ImGui/imgui.h"
 #include "../../../Graphics/Shader/PhotometricUnits.h"
 #include "../../../Graphics/Renderer/TemporalAA.h"
+#include "../../../Graphics/Renderer/AutoExposure.h"
 
 void PostProcessPanel::Draw(EditorContext& ctx)
 {
@@ -31,6 +32,27 @@ void PostProcessPanel::Draw(EditorContext& ctx)
                 ImGui::SliderFloat("EV100", &ctx.PostProcess->EV100, -6.0f, 16.0f, "%.2f");
             }
             if (ImGui::SliderFloat("Gamma", &ctx.PostProcess->Gamma, 1.0f, 3.0f, "%.2f")) changed = true;
+
+            ImGui::Separator();
+            ImGui::Text("Auto Exposure");
+            // 自動露出もCPU側だけで使う設定なので、毎フレーム反映される
+            ImGui::Checkbox("Enable Auto Exposure", &ctx.PostProcess->EnableAutoExposure);
+            if (!AutoExposure::Instance().IsAvailable())
+            {
+                ImGui::SameLine();
+                ImGui::TextDisabled(u8"(このGPUでは使えません)");
+            }
+            if (ctx.PostProcess->EnableAutoExposure)
+            {
+                const AutoExposure& autoExposure = AutoExposure::Instance();
+                ImGui::Text("EV100 = %.2f (target %.2f)", autoExposure.GetEV100(), autoExposure.GetTargetEV100());
+                ImGui::SliderFloat("Exposure Compensation", &ctx.PostProcess->ExposureCompensation, -4.0f, 4.0f, "%+.2f EV");
+                ImGui::DragFloatRange2("EV100 Range", &ctx.PostProcess->AutoExposureMinEV100, &ctx.PostProcess->AutoExposureMaxEV100, 0.1f, -10.0f, 16.0f, "min %.1f", "max %.1f");
+                ImGui::DragFloatRange2("Histogram %", &ctx.PostProcess->AutoExposureLowPercent, &ctx.PostProcess->AutoExposureHighPercent, 0.5f, 0.0f, 100.0f, "low %.0f", "high %.0f");
+                if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"暗い方から数えてこの範囲の画素だけで平均の明るさを求める。真っ暗な影や光源そのものに露出が引っ張られないようにする。");
+                ImGui::SliderFloat("Speed Up", &ctx.PostProcess->AutoExposureSpeedUp, 0.1f, 10.0f, "%.1f");
+                ImGui::SliderFloat("Speed Down", &ctx.PostProcess->AutoExposureSpeedDown, 0.1f, 10.0f, "%.1f");
+            }
 
             ImGui::Separator();
             ImGui::Text("Anti-Aliasing");

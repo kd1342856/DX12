@@ -95,6 +95,17 @@ struct PostProcessSettings
     bool  EnableTAA = true;
     float TAACurrentWeight = 0.1f; // 今のフレームを混ぜる割合。小さいほど滑らかだが、動きに残像が出やすい
 
+    // 自動露出。オンのときは、EV100(とカメラの設定)の代わりに画面の明るさから露出を決める
+    bool  EnableAutoExposure = false;
+    // 暗い場面でもこれより明るくはしない(EV100が小さいほど明るく写る)。夜の暗さが残るよう、手動の既定値(6)から2段まで
+    float AutoExposureMinEV100 = 4.0f;
+    float AutoExposureMaxEV100 = 10.0f;
+    float ExposureCompensation = 0.0f;  // 露出の補正(段)。+で明るく
+    float AutoExposureLowPercent = 50.0f;  // 平均に使う範囲(暗い方から数えた割合%)。真っ暗な影に引っ張られないように
+    float AutoExposureHighPercent = 95.0f; // 光源そのものに引っ張られないように、明るい側も除く
+    float AutoExposureSpeedUp = 3.0f;   // 明るい場面へ順応する速さ(1/秒)
+    float AutoExposureSpeedDown = 1.0f; // 暗い場面へ順応する速さ(1/秒)。目と同じく暗さへの順応は遅い
+
     // Bloom - 半径・反復回数を上げてはじめて「ふわっと広がる」見た目になる。
     // 閾値/強度だけいじっても変化が薄いのはこのため。
     float BloomThreshold = 1.0f;

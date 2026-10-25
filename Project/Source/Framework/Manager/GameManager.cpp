@@ -19,6 +19,7 @@
 #include "../../Graphics/Renderer/Renderer.h"
 #include "../../Graphics/Renderer/MotionVectors.h"
 #include "../../Graphics/Renderer/TemporalAA.h"
+#include "../../Graphics/Renderer/AutoExposure.h"
 #include "Scene/Scene.h"
 #include "../Object/GameObject.h"
 #include "../ECS/CompSystem/Systems/RenderSystem.h"
@@ -159,6 +160,7 @@ void GameManager::Init()
     ComputeShader::InitializeShared(pDevice->GetDevice());
     MotionVectors::Instance().Initialize(Renderer::GetRenderWidth(), Renderer::GetRenderHeight());
     TemporalAA::Instance().Initialize(Renderer::GetRenderWidth(), Renderer::GetRenderHeight());
+    AutoExposure::Instance().Initialize();
 }
 
 void GameManager::Update(float deltaTime, class Scene* pScene)

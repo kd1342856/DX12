@@ -28,6 +28,7 @@
 #include "../../../Graphics/Shadow/LocalShadowManager.h"
 #include "../../../Graphics/Renderer/MotionVectors.h"
 #include "../../../Graphics/Renderer/TemporalAA.h"
+#include "../../../Graphics/Renderer/AutoExposure.h"
 #include "../../../Framework/Manager/Particle/ParticleManager.h"
 #include "../../../Framework/Manager/Audio/AudioManager.h"
 #include "../../UI/OptionMenu.h"
@@ -873,6 +874,17 @@ void GameScene::DoPostProcess(Entity cameraEntity, float clearR, float clearG, f
     // 0.5 TAA - ジッターで揺らして描いた絵を履歴と混ぜ、ジャギーとちらつきを抑える。
     // SSRまで足し終えたシーンに掛け、ブルームなどはその結果から作る
     TemporalAA::Instance().Resolve(pSceneHDR, postProcessSettings.TAACurrentWeight);
+
+    // 0.6 自動露出 - このフレームの明るさを数え、数フレーム前に数えた結果から次のフレームの露出を決める
+    {
+        auto& autoExposure = AutoExposure::Instance();
+        auto& shaderManager = ShaderManager::Instance();
+        if (postProcessSettings.EnableAutoExposure)
+        {
+            autoExposure.Dispatch(pSceneHDR, shaderManager.GetExposure());
+        }
+        autoExposure.Update(GameTimer::Instance().DeltaTime(), postProcessSettings, shaderManager.GetManualEV100());
+    }
 
     // 1. Bloom Extract (輝度が閾値を超えた部分だけ抽出)
     auto* pExtractRT = Renderer::GetBloomExtractRenderTarget();

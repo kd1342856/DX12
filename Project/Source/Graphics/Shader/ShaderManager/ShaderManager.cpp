@@ -2,6 +2,7 @@
 #include "ShaderManager.h"
 #include "../ShaderCompiler/ShaderCompiler.h"
 #include "../PhotometricUnits.h"
+#include "../../Renderer/AutoExposure.h"
 #include <algorithm>
 
 namespace
@@ -367,12 +368,18 @@ void ShaderManager::UpdateFogCB()
 	m_LightData.SkyLuminance = m_LightingSettings.SkyLuminance * exposure;
 }
 
-float ShaderManager::GetExposure() const
+float ShaderManager::GetManualEV100() const
 {
 	const PostProcessSettings& settings = m_PostProcessSettings;
-	const float ev100 = settings.UseCameraSettings
+	return settings.UseCameraSettings
 		? PhotometricUnits::ComputeEV100(settings.Aperture, settings.ShutterSpeed, settings.ISO)
 		: settings.EV100;
+}
+
+float ShaderManager::GetExposure() const
+{
+	const AutoExposure& autoExposure = AutoExposure::Instance();
+	const float ev100 = autoExposure.IsActive() ? autoExposure.GetEV100() : GetManualEV100();
 	return PhotometricUnits::ExposureFromEV100(ev100);
 }
 
