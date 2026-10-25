@@ -20,6 +20,10 @@ struct ModelRenderData
 	// Ghostの徘徊中の非表示切り替えなど、実行時のみの状態でシーンには保存しない。
 	bool m_isVisible = true;
 
+	// 実行時のみ(保存しない)。falseなら影を落とさない(一人称のプレイヤーの体や手に持った物。
+	// 手元から出る懐中電灯の光をさえぎってしまうため)
+	bool m_castShadow = true;
+
 	// Runtime-only (not saved) emissive override, used to make light fixtures glow (picked up by Bloom).
 	// Set every frame by SpotLightSystem (from SpotLightData on the same entity) or by scripts (held flashlight).
 	// m_glowColor is HDR (color * strength); zero = no override. m_glowMaterial: empty = every mesh,

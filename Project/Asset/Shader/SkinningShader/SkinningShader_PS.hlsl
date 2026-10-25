@@ -1,7 +1,4 @@
 #include "inc_SkinningShader.hlsli"
-#include "../Common/inc_LightData.hlsli"
-#include "../Common/inc_PBRCommon.hlsli"
-#include "../Common/inc_Lighting.hlsli"
 
 Texture2D g_diffuseTex : register(t0);
 Texture2D g_normalTex : register(t1);
@@ -11,8 +8,14 @@ Texture2D g_occlusionTex : register(t4);
 // 平行光のシャドウマップ(LitShaderと同じレジスタ)
 Texture2D g_dirLightShadowMap : register(t7);
 
+// サンプラーはLitShader(ShaderCore.hlsli)と同じレジスタ。影の関数(inc_Lighting.hlsli)が使うので先に宣言する
 SamplerState g_ss : register(s0);
+SamplerState g_ss_point_clamp : register(s5);
 SamplerComparisonState g_ss_comparison : register(s15);
+
+#include "../Common/inc_LightData.hlsli"
+#include "../Common/inc_PBRCommon.hlsli"
+#include "../Common/inc_Lighting.hlsli"
 
 float Hash2D(float2 p)
 {
@@ -144,15 +147,25 @@ PSOutput main(VSOutput In)
     }
 
     //------------------
-    // スポットライト・点光源(影なし)
+    // スポットライト・点光源(影はLitShaderと同じ)
     //------------------
     for (int spotIndex = 0; spotIndex < g_SL_Count; spotIndex++)
     {
-        color += EvaluateSpotLight(surface, g_SL[spotIndex]);
+        float3 spotLight = EvaluateSpotLight(surface, g_SL[spotIndex]);
+        if (any(spotLight > 0.0))
+        {
+            spotLight *= EvaluateSpotLightShadow(surface, g_SL[spotIndex], In.pos.xy);
+        }
+        color += spotLight;
     }
     for (int pointIndex = 0; pointIndex < g_PL_Count; pointIndex++)
     {
-        color += EvaluatePointLight(surface, g_PL[pointIndex]);
+        float3 pointLight = EvaluatePointLight(surface, g_PL[pointIndex]);
+        if (any(pointLight > 0.0))
+        {
+            pointLight *= EvaluatePointLightShadow(surface, g_PL[pointIndex], In.pos.xy);
+        }
+        color += pointLight;
     }
 
     //------------------

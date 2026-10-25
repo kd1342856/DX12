@@ -235,6 +235,12 @@
     <Filter Include="Source\Graphics\GPUResource\DepthStencil">
       <UniqueIdentifier>{8F40711F-2FF7-4FD0-BB28-D6B327C343DF}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Graphics\GPUResource\ShadowMap">
+      <UniqueIdentifier>{816ba8de-e4c4-4bfe-850a-6dad7cbb34f3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Graphics\Shadow">
+      <UniqueIdentifier>{fd71a658-7fd1-49e4-80d2-0015ec490d12}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source\Graphics\GPUResource\FrameConstantBufferAllocator">
       <UniqueIdentifier>{0CB1F532-D862-46FA-BD66-5911BA1AB8C0}</UniqueIdentifier>
     </Filter>
@@ -671,6 +677,12 @@
     </ClCompile>
     <ClCompile Include="Source\Graphics\GPUResource\DepthStencil\DepthStencil.cpp">
       <Filter>Source\Graphics\GPUResource\DepthStencil</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Graphics\GPUResource\ShadowMap\ShadowMapArray.cpp">
+      <Filter>Source\Graphics\GPUResource\ShadowMap</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Graphics\Shadow\LocalShadowManager.cpp">
+      <Filter>Source\Graphics\Shadow</Filter>
     </ClCompile>
     <ClCompile Include="Source\Graphics\GPUResource\FrameConstantBufferAllocator\FrameConstantBufferAllocator.cpp">
       <Filter>Source\Graphics\GPUResource\FrameConstantBufferAllocator</Filter>
@@ -1168,6 +1180,12 @@
     </ClInclude>
     <ClInclude Include="Source\Graphics\GPUResource\DepthStencil\DepthStencil.h">
       <Filter>Source\Graphics\GPUResource\DepthStencil</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Graphics\GPUResource\ShadowMap\ShadowMapArray.h">
+      <Filter>Source\Graphics\GPUResource\ShadowMap</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Graphics\Shadow\LocalShadowManager.h">
+      <Filter>Source\Graphics\Shadow</Filter>
     </ClInclude>
     <ClInclude Include="Source\Graphics\GPUResource\FrameConstantBufferAllocator\FrameConstantBufferAllocator.h">
       <Filter>Source\Graphics\GPUResource\FrameConstantBufferAllocator</Filter>

@@ -47,8 +47,28 @@ public:
 	}
 
 protected:
+	// 局所光源の影(t13: 狭いスポットの2D配列、t14: 点光源と広いスポットのキューブ配列)を束縛する。
+	// inc_Lighting.hlsliの影の関数を使うシェーダーのBegin()で呼ぶ
+	void BindLocalShadowMaps()
+	{
+		BindShadowMapArray(13, m_pDevice->GetSpotShadowMaps());
+		BindShadowMapArray(14, m_pDevice->GetCubeShadowMaps());
+	}
+
 	GraphicsDevice* m_pDevice = nullptr;
 	ShaderProgram* m_pProgram = nullptr;
 	ID3D12PipelineState* m_pPipelineState = nullptr;
 	D3D12_PRIMITIVE_TOPOLOGY m_topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+
+private:
+	void BindShadowMapArray(uint32_t bindPoint, const ShadowMapArray* pShadowMaps)
+	{
+		int rootIndex = GetRootParameterIndex(ShaderBindingType::SRV, bindPoint);
+		if (rootIndex == -1 || !pShadowMaps || pShadowMaps->GetSRVNumber() == -1)
+		{
+			return;
+		}
+		auto handle = m_pDevice->GetDescriptorHeapManager()->GetCBVSRVUAVAllocator()->GetGPUHandle(pShadowMaps->GetSRVNumber());
+		m_pDevice->GetCmdList()->SetGraphicsRootDescriptorTable(rootIndex, handle);
+	}
 };

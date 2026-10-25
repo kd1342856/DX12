@@ -5,6 +5,7 @@
 class DescriptorHeapManager;
 class FrameConstantBufferAllocator;
 class DepthStencil;
+class ShadowMapArray;
 class Texture;
 class ResourceUploader;
 class ResourceStateTracker;
@@ -67,11 +68,9 @@ public:
 	const FrameConstantBufferAllocator* GetFrameConstantBufferAllocator() const { return m_upFrameManager->GetCurrentFrameResource().GetConstantBufferAllocator(); }
 	DepthStencil* GetDepthStencil()const { return m_upDepthStencil.get(); } 
 	DepthStencil* GetShadowMap()const { return m_upShadowMap.get(); }
-	// 最も近いポイントライト1灯の全方位(キューブ)シャドウ。6面それぞれ独立したDepthStencil
-	// (TextureCubeリソースではなく、Texture2Dを6枚使う簡易実装 - 連続したディスクリプタ確保が
-	// 不要で、既存のShadowShader/DepthStencilの仕組みをそのまま6回使い回せる)。
-	// face: 0=+X, 1=-X, 2=+Y, 3=-Y, 4=+Z, 5=-Z (LitShader_PS.hlslの面選択と対応させること)
-	DepthStencil* GetPointLightShadowMapFace(int face)const { return m_upPointLightShadowMapFaces[face % 6].get(); }
+	// 局所光源の影。狭いスポットは2D配列(Texture2DArray)、点光源と広いスポットはキューブ配列(TextureCubeArray)
+	ShadowMapArray* GetSpotShadowMaps() const { return m_upSpotShadowMaps.get(); }
+	ShadowMapArray* GetCubeShadowMaps() const { return m_upCubeShadowMaps.get(); }
 	
 
 
@@ -171,7 +170,8 @@ public:
 
 	std::unique_ptr<DepthStencil>			m_upDepthStencil = nullptr;
 	std::unique_ptr<DepthStencil>			m_upShadowMap = nullptr;
-	std::array<std::unique_ptr<DepthStencil>, 6> m_upPointLightShadowMapFaces;
+	std::unique_ptr<ShadowMapArray>			m_upSpotShadowMaps = nullptr;
+	std::unique_ptr<ShadowMapArray>			m_upCubeShadowMaps = nullptr;
 	std::unique_ptr<ResourceStateTracker> m_upResourceStateTracker = nullptr;
 	std::unique_ptr<ResourceUploader> m_upResourceUploader = nullptr;
 	std::unique_ptr<ResourceLifetimeManager> m_upResourceLifetimeManager = nullptr;

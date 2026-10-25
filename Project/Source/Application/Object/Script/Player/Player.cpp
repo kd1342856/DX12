@@ -175,6 +175,32 @@ void Player::FindItemIconEntities()
     {
         if (obj && obj->GetName() == "HeldFlashLight") { m_heldFlashLightEntity = obj->GetEntityID(); break; }
     }
+
+    // 一人称の体と手に持つ物は影を落とさない。懐中電灯の光は手元(レンズ)から出るので、
+    // 体や手やライト本体が影を落とすと光をさえぎってしまう
+    std::function<void(GameObject*)> disableShadow = [&](GameObject* obj)
+    {
+        if (!obj)
+        {
+            return;
+        }
+        if (auto* pModel = ecs.TryGetComponent<ModelRenderData>(obj->GetEntityID()))
+        {
+            pModel->m_castShadow = false;
+        }
+        for (auto& child : obj->GetChildren())
+        {
+            disableShadow(child.get());
+        }
+    };
+    disableShadow(GetGameObject());
+    for (Entity heldEntity : { m_heldIncenseEntity, m_heldAmuletEntity, m_heldFlashLightEntity })
+    {
+        if (heldEntity != INVALID_ENTITY)
+        {
+            disableShadow(scene->GetGameObject(heldEntity).get());
+        }
+    }
 }
 
 void Player::UpdateItemIcons()
@@ -307,6 +333,7 @@ void Player::CreateFlashLightBeam()
     light.m_color = { 1.0f, 1.0f, 1.0f };
     light.m_temperature = 5000.0f;
     light.m_intensity = 1000.0f;
+    light.m_sourceRadius = 0.015f; // LEDと反射鏡の大きさ程度
     light.m_range = 15.0f;
     light.m_innerAngle = 12.0f;
     light.m_outerAngle = 22.0f;

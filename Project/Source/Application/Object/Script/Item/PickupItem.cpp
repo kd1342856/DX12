@@ -49,6 +49,7 @@ void PickupItem::SyncLight(float deltaTime)
         light.m_color = { 1.0f, 1.0f, 1.0f };
         light.m_temperature = 5000.0f;
         light.m_intensity = 1000.0f;
+        light.m_sourceRadius = 0.015f; // LEDと反射鏡の大きさ程度
         light.m_modelGlow = 3000.0f; // レンズの発光の輝度(nit)
         light.m_range = 15.0f;
         light.m_innerAngle = 12.0f;

@@ -387,8 +387,13 @@ PSOutput main(VSOutput In) : SV_Target0
     //------------------
     for (int i = 0; i < g_SL_Count; i++)
     {
-        // スポットの影は未対応(Step 2で入れる)
-        color += EvaluateSpotLight(surface, g_SL[i]);
+        float3 spotLight = EvaluateSpotLight(surface, g_SL[i]);
+        // 届いていない(コーンの外・範囲外・裏向き)ピクセルでは影を調べない
+        if (any(spotLight > 0.0))
+        {
+            spotLight *= EvaluateSpotLightShadow(surface, g_SL[i], In.Pos.xy);
+        }
+        color += spotLight;
     }
 
     //------------------
@@ -396,64 +401,13 @@ PSOutput main(VSOutput In) : SV_Target0
     //------------------
     for (int j = 0; j < g_PL_Count; j++)
     {
-        float3 L_PL = g_PL[j].Pos - In.wPos;
-        float d_PL = length(L_PL);
-        L_PL = L_PL / max(d_PL, 0.0001);
-
-        // 影のスロープスケールバイアスに使う
-        float NdotL_PL = saturate(dot(wN, L_PL));
-
-        // 影(最も近い1灯[j==0]のみ)。6面キューブシャドウ(Texture2D×6の簡易実装)。
-        // ライトからこのピクセルへのベクトルの主軸から、6面のうちどれに属するかを判定する。
-        float shadow_PL = 1;
-        if (j == 0 && g_PL0_ShadowEnabled != 0)
+        float3 pointLight = EvaluatePointLight(surface, g_PL[j]);
+        // 届いていない(範囲外・裏向き)ピクセルでは影を調べない
+        if (any(pointLight > 0.0))
         {
-            float3 toPixel = In.wPos - g_PL[0].Pos;
-            float3 absDir = abs(toPixel);
-            int faceIndex;
-            if (absDir.x >= absDir.y && absDir.x >= absDir.z) faceIndex = toPixel.x > 0 ? 0 : 1;
-            else if (absDir.y >= absDir.z) faceIndex = toPixel.y > 0 ? 2 : 3;
-            else faceIndex = toPixel.z > 0 ? 4 : 5;
-
-            float4 plPos = mul(float4(In.wPos, 1), g_PL0_ShadowVP[faceIndex]);
-            plPos.xyz /= plPos.w;
-            if (plPos.w > 0 && abs(plPos.x) <= 1 && abs(plPos.y) <= 1 && plPos.z <= 1)
-            {
-                float2 uv = plPos.xy * float2(1, -1) * 0.5 + 0.5;
-                // 斜めの面ほど深度の変化が急になり、固定バイアスだけだと縞状のアクネが出るので、
-                // 光と法線のなす角に応じてバイアスを増やす(スロープスケールバイアス)。
-                float slopeBias = g_PL0_ShadowBias * lerp(1.0, 8.0, 1.0 - saturate(NdotL_PL));
-                float z = plPos.z - slopeBias;
-
-                // GraphicsDevice側で各面768x768固定で作っているので、GetDimensionsで
-                // 面ごとに切り替える手間を避けて定数のまま使う。
-                const float2 pxSize = float2(768.0, 768.0);
-
-                float noise = InterleavedGradientNoise(In.Pos.xy + 7.0);
-                float s = sin(noise * 6.28318530718);
-                float c = cos(noise * 6.28318530718);
-                float2x2 rot = float2x2(c, -s, s, c);
-
-                // 深度バッファ精度の粗さ由来の縞状バンディングを目立たなくするため、
-                // フィルタ半径を数texel分に広げてぼかす。
-                const float kFilterRadiusTexels = 4.0;
-                shadow_PL = 0;
-                for (int k = 0; k < 4; k++)
-                {
-                    float2 offset = mul(g_poissonDisk16[k], rot) * kFilterRadiusTexels / pxSize;
-                    float2 sampleUV = uv + offset;
-                    if (faceIndex == 0) shadow_PL += g_pointLightShadowMapFace0.SampleCmpLevelZero(g_ss_comparison, sampleUV, z);
-                    else if (faceIndex == 1) shadow_PL += g_pointLightShadowMapFace1.SampleCmpLevelZero(g_ss_comparison, sampleUV, z);
-                    else if (faceIndex == 2) shadow_PL += g_pointLightShadowMapFace2.SampleCmpLevelZero(g_ss_comparison, sampleUV, z);
-                    else if (faceIndex == 3) shadow_PL += g_pointLightShadowMapFace3.SampleCmpLevelZero(g_ss_comparison, sampleUV, z);
-                    else if (faceIndex == 4) shadow_PL += g_pointLightShadowMapFace4.SampleCmpLevelZero(g_ss_comparison, sampleUV, z);
-                    else shadow_PL += g_pointLightShadowMapFace5.SampleCmpLevelZero(g_ss_comparison, sampleUV, z);
-                }
-                shadow_PL /= 4.0;
-            }
+            pointLight *= EvaluatePointLightShadow(surface, g_PL[j], In.Pos.xy);
         }
-
-        color += EvaluatePointLight(surface, g_PL[j]) * shadow_PL;
+        color += pointLight;
     }
 
     // オクルージョン (R channel: マテリアルのベイク済みAOマップ)

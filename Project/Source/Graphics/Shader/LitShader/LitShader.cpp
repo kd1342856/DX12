@@ -122,19 +122,8 @@ void LitShader::Begin(RenderContext& context)
 		}
 	}
 
-	// Bind Point Light Shadow Cube faces to t13..t18
-	for (int face = 0; face < 6; ++face)
-	{
-		int tFace = GetRootParameterIndex(ShaderBindingType::SRV, 13 + face);
-		if (tFace != -1) {
-			auto* pPLShadowMap = m_pDevice->GetPointLightShadowMapFace(face);
-			if (pPLShadowMap && pPLShadowMap->GetSRVNumber() != -1)
-			{
-				auto handle = m_pDevice->GetDescriptorHeapManager()->GetCBVSRVUAVAllocator()->GetGPUHandle(pPLShadowMap->GetSRVNumber());
-				m_pDevice->GetCmdList()->SetGraphicsRootDescriptorTable(tFace, handle);
-			}
-		}
-	}
+	// 局所光源の影: t13に狭いスポットの2D配列、t14に点光源と広いスポットのキューブ配列
+	BindLocalShadowMaps();
 }
 
 void LitShader::BeginNode(const ModelData::Node& node, const Math::Matrix& nodeWorld)

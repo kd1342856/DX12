@@ -25,6 +25,7 @@
 #include "../../../Graphics/Shader/SSROpaqueShader/SSROpaqueShader.h"
 #include "../../../Framework/DirectX/Utility/Profiler.h"
 #include "../../../Framework/ECS/CompSystem/Systems/LightSystem.h"
+#include "../../../Graphics/Shadow/LocalShadowManager.h"
 #include "../../../Framework/Manager/Particle/ParticleManager.h"
 #include "../../../Framework/Manager/Audio/AudioManager.h"
 #include "../../UI/OptionMenu.h"
@@ -635,7 +636,7 @@ void GameScene::RenderGame()
         auto* pCmdList = GraphicsDevice::Instance().GetCmdList();
 
         UpdateLights(m_gameCameraEntity);
-        UpdatePointLightShadow(m_gameCameraEntity);
+        RenderLocalLightShadows();
         RenderSSAO(m_gameCameraEntity);
 
         // ReflectionComponent::PreDraw()がここで平面の位置/法線をワールド空間へ変換する。
@@ -698,6 +699,8 @@ void GameScene::UpdateLights(Entity cameraEntity)
     {
         camPos = pTrans->m_worldMatrix.Translation();
     }
+    // 局所光源の影の枠は、この後のライトのシステムが近い順に要求する
+    LocalShadowManager::Instance().BeginFrame();
     lightSystem->Update(GameTimer::Instance().DeltaTime(), camPos);
 
     if (auto spotLightSystem = GameManager::Instance().GetSpotLightSystem())
@@ -738,27 +741,13 @@ void GameScene::UpdateLights(Entity cameraEntity)
     lightData.IndoorCount = indoorCount;
 }
 
-void GameScene::UpdatePointLightShadow(Entity cameraEntity)
+void GameScene::RenderLocalLightShadows()
 {
-    auto renderSystem = GameManager::Instance().GetRenderSystem();
-    if (!renderSystem) return;
-
-    const auto& lightData = ShaderManager::Instance().GetLightData();
-    if (lightData.PL_Count <= 0)
+    // 影の枠はUpdateLights()の中でライトのシステムが割り当て済み。中身が古い枠だけを描き直す
+    if (auto renderSystem = GameManager::Instance().GetRenderSystem())
     {
-        Math::Matrix identity6[6] = {
-            Math::Matrix::Identity, Math::Matrix::Identity, Math::Matrix::Identity,
-            Math::Matrix::Identity, Math::Matrix::Identity, Math::Matrix::Identity
-        };
-        ShaderManager::Instance().SetPointLightShadowData(identity6, 0.0f, false);
-        return;
+        renderSystem->RenderLocalLightShadows();
     }
-
-    // g_PL[0]はLightSystemが視点に近い順でソート済みなので、そのまま最も近いライトを使う。
-    Math::Vector3 lightPos = lightData.PL[0].Pos;
-    float range = lightData.PL[0].Range;
-
-    renderSystem->RenderPointLightShadowCube(lightPos, range);
 }
 
 void GameScene::RenderSSAO(Entity cameraEntity)
@@ -949,7 +938,7 @@ void GameScene::RenderEditor()
     if (m_editorCameraEntity != INVALID_ENTITY)
     {
         UpdateLights(m_editorCameraEntity);
-        UpdatePointLightShadow(m_editorCameraEntity);
+        RenderLocalLightShadows();
         RenderSSAO(m_editorCameraEntity);
 
         // ReflectionComponent::PreDraw()がここで平面の位置/法線をワールド空間へ変換する。

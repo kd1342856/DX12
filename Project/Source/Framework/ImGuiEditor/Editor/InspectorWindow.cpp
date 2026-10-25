@@ -254,6 +254,9 @@ void Editor::DrawInspector() {
                     ImGui::DragFloat(u8"光束 (lm)", &l.m_intensity, 1.0f, 0.0f, 100000.0f, "%.1f");
                     if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"ろうそく約12 lm、60W相当の電球約800 lm");
                     ImGui::DragFloat(u8"届く距離", &l.m_range, 0.1f, 0.1f, 100.0f);
+                    ImGui::Checkbox(u8"影を落とす", &l.m_castShadow);
+                    ImGui::DragFloat(u8"光源の半径 (m)", &l.m_sourceRadius, 0.001f, 0.001f, 0.5f, "%.3f");
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"大きいほど影の輪郭がぼける。ろうそくの炎約0.01m、電球約0.03m");
                     ImGui::Separator();
                     ImGui::Text(u8"明滅");
                     ImGui::Checkbox(u8"明滅させる", &l.m_flickerEnabled);
@@ -274,6 +277,9 @@ void Editor::DrawInspector() {
                     ImGui::DragFloat(u8"光度 (cd)", &l.m_intensity, 1.0f, 0.0f, 100000.0f, "%.1f");
                     if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"中心方向の明るさ。小型のLEDライト約1000 cd、60W相当の電球を下向きに約130 cd");
                     ImGui::DragFloat(u8"届く距離", &l.m_range, 0.1f, 0.1f, 100.0f);
+                    ImGui::Checkbox(u8"影を落とす", &l.m_castShadow);
+                    ImGui::DragFloat(u8"光源の半径 (m)", &l.m_sourceRadius, 0.001f, 0.001f, 0.5f, "%.3f");
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"大きいほど影の輪郭がぼける。ろうそくの炎約0.01m、電球約0.03m");
                     ImGui::DragFloat(u8"内側の角度", &l.m_innerAngle, 0.5f, 0.0f, 89.0f);
                     ImGui::DragFloat(u8"外側の角度", &l.m_outerAngle, 0.5f, 0.1f, 89.0f);
                     ImGui::DragFloat3(u8"光源の位置", &l.m_localOffset.x, 0.01f);

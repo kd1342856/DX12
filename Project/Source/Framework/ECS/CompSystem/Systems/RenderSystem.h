@@ -10,6 +10,8 @@
 #include "../../../../Graphics/Renderer/Renderer.h"
 #include "../../../../Graphics/Renderer/RenderManager.h"
 #include "../../../../Graphics/Shader/ShaderManager/ShaderManager.h"
+#include "../../../../Graphics/Shader/ShaderCompiler/ShaderCompiler.h"
+#include "../../../../Graphics/Shadow/LocalShadowManager.h"
 #include "../../../../Graphics/Descriptor/DescriptorHeapManager.h"
 #include "../../../Manager/Asset/MeshManager.h"
 #include "../../../DirectX/Utility/Logger.h"
@@ -199,119 +201,65 @@ public:
 		}
 	}
 
-	// 最も近いポイントライト1灯だけの、真の6面キューブシャドウ。TextureCubeリソースではなく、
-	// Texture2Dを6枚(GraphicsDevice::GetPointLightShadowMapFace)使う簡易実装。
-	// face順は 0=+X,1=-X,2=+Y,3=-Y,4=+Z,5=-Z (LitShader_PS.hlslの面選択ロジックと対応させること)。
-	// lightPos: 光源のワールド座標。range: ライトの減衰距離(そのままシャドウ投影のFar面にする)。
-	void RenderPointLightShadowCube(const Math::Vector3& lightPos, float range)
+	// 局所光源(スポットライト・点光源)の影。LocalShadowManagerが割り当てた枠のうち、
+	// 中身が古いもの(ライトが動いた・範囲内で影を落とす物が動いた・まだ描いていない)だけを描き直す。
+	// 動かないライトの影はこれでキャッシュされ、範囲内で何も動かなければ描かない
+	void RenderLocalLightShadows()
 	{
 		if (!m_pCoordinator) return;
 
 		auto* pGraphicsDevice = &GDF::Instance().GetGraphicsDevice();
 		auto* pCmdList = pGraphicsDevice->GetCmdList();
+		auto* pGraphicsContext = pGraphicsDevice->GetContextManager()->GetGraphicsContext();
+		PROFILE_CPU_SCOPE("LocalLightShadows");
+		PROFILE_GPU_SCOPE(pCmdList, "LocalLightShadows");
 
-		static const Math::Vector3 kFaceDirs[6] = {
-			{  1,  0,  0 }, { -1,  0,  0 },
-			{  0,  1,  0 }, {  0, -1,  0 },
-			{  0,  0,  1 }, {  0,  0, -1 },
-		};
-		// +Y/-Y面はdirとupが平行にならないよう、Z軸をupに使う(標準的なキューブマップの規約)
-		static const Math::Vector3 kFaceUps[6] = {
-			{ 0, 1, 0 }, { 0, 1, 0 },
-			{ 0, 0, -1 }, { 0, 0, 1 },
-			{ 0, 1, 0 }, { 0, 1, 0 },
-		};
+		UpdateShadowCasterChanges();
 
 		RenderContext& context = Renderer::GetContext();
-		Math::Matrix oldView = context.View;
-		Math::Matrix oldProj = context.Projection;
+		const Math::Matrix oldView = context.View;
+		const Math::Matrix oldProjection = context.Projection;
 
-		auto& shadowShader = ShaderLibrary::Instance().Get<ShadowShader>();
-		auto& skinningShader = ShaderLibrary::Instance().Get<SkinningShader>();
-
-		Math::Matrix faceVP[6];
-		float farPlane = std::max(range, 1.0f);
-
-		for (int face = 0; face < 6; ++face)
+		auto renderSlots = [&](std::vector<LocalShadowManager::Slot>& slots, ShadowMapArray* pShadowMaps)
 		{
-			auto* pShadowMap = pGraphicsDevice->GetPointLightShadowMapFace(face);
-			if (!pShadowMap) continue;
-
-			auto desc = pShadowMap->GetBuffer()->GetDesc();
-			D3D12_VIEWPORT shadowViewport = {};
-			shadowViewport.Width = (float)desc.Width;
-			shadowViewport.Height = (float)desc.Height;
-			shadowViewport.MinDepth = 0.0f;
-			shadowViewport.MaxDepth = 1.0f;
-			D3D12_RECT shadowScissor = { 0, 0, (LONG)desc.Width, (LONG)desc.Height };
-			pCmdList->RSSetViewports(1, &shadowViewport);
-			pCmdList->RSSetScissorRects(1, &shadowScissor);
-
-			pGraphicsDevice->GetContextManager()->GetGraphicsContext()->TransitionResource(pShadowMap->GetResource(), D3D12_RESOURCE_STATE_DEPTH_WRITE);
-			pGraphicsDevice->GetContextManager()->GetGraphicsContext()->FlushResourceBarriers();
-			pShadowMap->ClearBuffer();
-			auto dsvH = pGraphicsDevice->GetDescriptorHeapManager()->GetDSVAllocator()->GetCPUHandle(pShadowMap->GetDSVNumber());
-			pCmdList->OMSetRenderTargets(0, nullptr, false, &dsvH);
-
-			// 各面は90度FOVのちょうど1/6球(立方体の1面分)をカバーする
-			Math::Matrix mLightView = Math::Matrix::CreateLookAt(lightPos, lightPos + kFaceDirs[face], kFaceUps[face]);
-			Math::Matrix mLightProj = DirectX::XMMatrixPerspectiveFovLH(
-				DirectX::XMConvertToRadians(90.0f), 1.0f, 0.05f, farPlane);
-			faceVP[face] = mLightView * mLightProj;
-
-			context.View = mLightView;
-			context.Projection = mLightProj;
-
-			for (auto const& entity : m_entities)
+			if (!pShadowMaps)
 			{
-				auto& cTransform = m_pCoordinator->GetComponent<TransformData>(entity);
-				auto& cModel = m_pCoordinator->GetComponent<ModelRenderData>(entity);
-				if (cModel.m_isVisible && cModel.m_spModelData && cModel.m_spModelData->IsLoaded())
-				{
-					bool isSkinned = (cModel.m_modelType == ModelType::Dynamic);
-					if (isSkinned) {
-						skinningShader.BeginShadow(context);
-						DrawContext drawCtx;
-						const auto& boneMatrices = cModel.m_spModelData->GetBoneMatrices();
-						drawCtx.BoneMatrices = &boneMatrices;
-						skinningShader.BeginModel(*cModel.m_spModelData, drawCtx);
-					} else {
-						shadowShader.Begin(context);
-					}
-
-					Math::Matrix world = cTransform.m_worldMatrix;
-					const auto& nodes = cModel.m_spModelData->GetNodes();
-					for (const auto& node : nodes) {
-						if (isSkinned) {
-							skinningShader.BeginNode(node, world);
-						} else {
-							Math::Matrix nodeWorld = cModel.GetNodeAnimDelta(&node - cModel.m_spModelData->GetNodes().data(), node) * world;
-							shadowShader.BeginNode(node, nodeWorld);
-						}
-
-						for (const auto& meshHandle : node.meshes) {
-							Mesh* pMesh = MeshManager::Instance().Get(meshHandle);
-							if (pMesh && pMesh->IsReady()) {
-								if (isSkinned) skinningShader.BeforeDrawMesh(*pMesh, pMesh->GetMaterial());
-								else shadowShader.BeforeDrawMesh(*pMesh, pMesh->GetMaterial());
-
-								pMesh->DrawInstanced(pMesh->GetInstanceCount());
-							}
-						}
-					}
-				}
+				return;
 			}
-
-			pGraphicsDevice->GetContextManager()->GetGraphicsContext()->TransitionResource(pShadowMap->GetResource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-			pGraphicsDevice->GetContextManager()->GetGraphicsContext()->FlushResourceBarriers();
-		}
+			const UINT faceCount = pShadowMaps->IsCube() ? 6 : 1;
+			bool isWriting = false;
+			for (size_t slotIndex = 0; slotIndex < slots.size(); ++slotIndex)
+			{
+				LocalShadowManager::Slot& slot = slots[slotIndex];
+				if (!slot.isRequested)
+				{
+					continue;
+				}
+				if (slot.isValid && !IsShadowCasterChangedNear(slot.position, slot.range))
+				{
+					continue;
+				}
+				if (!isWriting)
+				{
+					pGraphicsContext->TransitionResource(pShadowMaps->GetResource(), D3D12_RESOURCE_STATE_DEPTH_WRITE);
+					pGraphicsContext->FlushResourceBarriers();
+					isWriting = true;
+				}
+				for (UINT faceIndex = 0; faceIndex < faceCount; ++faceIndex)
+				{
+					RenderShadowFace(pShadowMaps, static_cast<UINT>(slotIndex) * faceCount + faceIndex, slot.view[faceIndex], slot.projection);
+				}
+				slot.isValid = true;
+			}
+			// 描き直さなかったフレームも、シェーダーから読める状態にしておく
+			pGraphicsContext->TransitionResource(pShadowMaps->GetResource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+			pGraphicsContext->FlushResourceBarriers();
+		};
+		renderSlots(LocalShadowManager::Instance().GetSpotSlots(), pGraphicsDevice->GetSpotShadowMaps());
+		renderSlots(LocalShadowManager::Instance().GetCubeSlots(), pGraphicsDevice->GetCubeShadowMaps());
 
 		context.View = oldView;
-		context.Projection = oldProj;
-
-		// LitShader_PS.hlsl側でNdotLに応じてこの値を最大8倍まで広げる(スロープスケールバイアス)ので、
-		// ここはまっすぐ光を受ける面での最小値だけ決めればよい。
-		ShaderManager::Instance().SetPointLightShadowData(faceVP, 0.0015f, true);
+		context.Projection = oldProjection;
 	}
 
 	// 最大3枚(3窓)まで同時にアクティブな平面反射をサポートする。各アクティブな
@@ -913,6 +861,207 @@ public:
 	}
 
 private:
+	// 影の1面(2D配列の1枚、またはキューブの1面)を描く
+	void RenderShadowFace(ShadowMapArray* pShadowMaps, UINT faceIndex, const Math::Matrix& view, const Math::Matrix& projection)
+	{
+		auto* pGraphicsDevice = &GDF::Instance().GetGraphicsDevice();
+		auto* pCmdList = pGraphicsDevice->GetCmdList();
+
+		const float resolution = static_cast<float>(pShadowMaps->GetResolution());
+		D3D12_VIEWPORT viewport = { 0.0f, 0.0f, resolution, resolution, 0.0f, 1.0f };
+		D3D12_RECT scissor = { 0, 0, static_cast<LONG>(resolution), static_cast<LONG>(resolution) };
+		pCmdList->RSSetViewports(1, &viewport);
+		pCmdList->RSSetScissorRects(1, &scissor);
+
+		pShadowMaps->ClearFace(faceIndex);
+		auto dsvHandle = pGraphicsDevice->GetDescriptorHeapManager()->GetDSVAllocator()->GetCPUHandle(pShadowMaps->GetDSVNumber(faceIndex));
+		pCmdList->OMSetRenderTargets(0, nullptr, false, &dsvHandle);
+
+		RenderContext& context = Renderer::GetContext();
+		context.View = view;
+		context.Projection = projection;
+
+		// この面の視錐台に入る物だけを描く
+		DirectX::BoundingFrustum frustum;
+		DirectX::BoundingFrustum::CreateFromMatrix(frustum, projection);
+		frustum.Transform(frustum, view.Invert());
+		DrawShadowCasters(frustum);
+	}
+
+	// 影を落とす物を、今のcontextのView/Projectionで深度だけ描く
+	void DrawShadowCasters(const DirectX::BoundingFrustum& frustum)
+	{
+		RenderContext& context = Renderer::GetContext();
+		auto& shadowShader = ShaderLibrary::Instance().Get<ShadowShader>();
+		auto& skinningShader = ShaderLibrary::Instance().Get<SkinningShader>();
+
+		for (auto const& entity : m_entities)
+		{
+			auto& cTransform = m_pCoordinator->GetComponent<TransformData>(entity);
+			auto& cModel = m_pCoordinator->GetComponent<ModelRenderData>(entity);
+			if (!IsShadowCaster(cModel))
+			{
+				continue;
+			}
+			DirectX::BoundingBox localBounds;
+			if (cModel.m_spModelData->TryGetLocalBounds(localBounds))
+			{
+				DirectX::BoundingBox worldBounds;
+				localBounds.Transform(worldBounds, cTransform.m_worldMatrix);
+				if (!frustum.Intersects(worldBounds))
+				{
+					continue;
+				}
+			}
+
+			const bool isSkinned = (cModel.m_modelType == ModelType::Dynamic);
+			if (isSkinned)
+			{
+				skinningShader.BeginShadow(context);
+				DrawContext drawContext;
+				const auto& boneMatrices = cModel.m_spModelData->GetBoneMatrices();
+				drawContext.BoneMatrices = &boneMatrices;
+				skinningShader.BeginModel(*cModel.m_spModelData, drawContext);
+			}
+			else
+			{
+				shadowShader.Begin(context);
+			}
+
+			const Math::Matrix& world = cTransform.m_worldMatrix;
+			const auto& nodes = cModel.m_spModelData->GetNodes();
+			for (size_t nodeIndex = 0; nodeIndex < nodes.size(); ++nodeIndex)
+			{
+				const auto& node = nodes[nodeIndex];
+				if (isSkinned)
+				{
+					skinningShader.BeginNode(node, world);
+				}
+				else
+				{
+					shadowShader.BeginNode(node, cModel.GetNodeAnimDelta(nodeIndex, node) * world);
+				}
+				for (const auto& meshHandle : node.meshes)
+				{
+					Mesh* pMesh = MeshManager::Instance().Get(meshHandle);
+					if (!pMesh || !pMesh->IsReady())
+					{
+						continue;
+					}
+					// 半透明(ガラスなど)は影を落とさない。電球のガラスが光源を囲んで光を全部さえぎらないように
+					if (pMesh->GetMaterial().Constants.alphaMode == 2)
+					{
+						continue;
+					}
+					if (isSkinned)
+					{
+						skinningShader.BeforeDrawMesh(*pMesh, pMesh->GetMaterial());
+					}
+					else
+					{
+						shadowShader.BeforeDrawMesh(*pMesh, pMesh->GetMaterial());
+					}
+					pMesh->DrawInstanced(pMesh->GetInstanceCount());
+				}
+			}
+		}
+	}
+
+	static bool IsShadowCaster(const ModelRenderData& model)
+	{
+		return model.m_isVisible && model.m_castShadow && model.m_modelType != ModelType::Sky &&
+			model.m_spModelData && model.m_spModelData->IsLoaded();
+	}
+
+	// 影を落とす物のうち、前のフレームから動いた(または現れた・消えた)物の範囲を集める。
+	// 局所光源の影の枠は、この範囲がライトの届く範囲に重なったときだけ描き直す
+	void UpdateShadowCasterChanges()
+	{
+		++m_shadowCasterFrame;
+		m_changedShadowCasterBounds.clear();
+
+		for (auto const& entity : m_entities)
+		{
+			auto& cTransform = m_pCoordinator->GetComponent<TransformData>(entity);
+			auto& cModel = m_pCoordinator->GetComponent<ModelRenderData>(entity);
+			if (!IsShadowCaster(cModel))
+			{
+				continue;
+			}
+
+			DirectX::BoundingSphere bounds(cTransform.m_worldMatrix.Translation(), 2.0f);
+			DirectX::BoundingBox localBounds;
+			if (cModel.m_spModelData->TryGetLocalBounds(localBounds))
+			{
+				DirectX::BoundingBox worldBounds;
+				localBounds.Transform(worldBounds, cTransform.m_worldMatrix);
+				DirectX::BoundingSphere::CreateFromBoundingBox(bounds, worldBounds);
+			}
+
+			// ワールド行列と、ノードのアニメーション(扉の開閉など)の差分行列から変化を調べる
+			uint64_t signature = ShaderCompiler::HashBytes(&cTransform.m_worldMatrix, sizeof(Math::Matrix));
+			const auto& nodes = cModel.m_spModelData->GetNodes();
+			for (size_t nodeIndex = 0; nodeIndex < nodes.size(); ++nodeIndex)
+			{
+				signature = ShaderCompiler::HashBytes(&cModel.GetNodeAnimDelta(nodeIndex, nodes[nodeIndex]), sizeof(Math::Matrix), signature);
+			}
+			// スキニングのモデルは骨のアニメーションで毎フレーム形が変わるので、常に動いたものとして扱う
+			const bool isSkinned = (cModel.m_modelType == ModelType::Dynamic);
+
+			auto it = m_shadowCasterStates.find(entity);
+			if (it == m_shadowCasterStates.end())
+			{
+				m_changedShadowCasterBounds.push_back(bounds);
+				m_shadowCasterStates[entity] = { signature, bounds, m_shadowCasterFrame };
+				continue;
+			}
+			ShadowCasterState& state = it->second;
+			if (isSkinned || state.signature != signature)
+			{
+				m_changedShadowCasterBounds.push_back(state.bounds);
+				m_changedShadowCasterBounds.push_back(bounds);
+			}
+			state = { signature, bounds, m_shadowCasterFrame };
+		}
+
+		// このフレームで見つからなかった物(非表示になった・削除された)は、前の位置の影が消えるので変化として扱う
+		for (auto it = m_shadowCasterStates.begin(); it != m_shadowCasterStates.end();)
+		{
+			if (it->second.lastSeenFrame != m_shadowCasterFrame)
+			{
+				m_changedShadowCasterBounds.push_back(it->second.bounds);
+				it = m_shadowCasterStates.erase(it);
+			}
+			else
+			{
+				++it;
+			}
+		}
+	}
+
+	bool IsShadowCasterChangedNear(const Math::Vector3& lightPosition, float range) const
+	{
+		const DirectX::BoundingSphere lightBounds(lightPosition, range);
+		for (const DirectX::BoundingSphere& changed : m_changedShadowCasterBounds)
+		{
+			if (lightBounds.Intersects(changed))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	struct ShadowCasterState
+	{
+		uint64_t signature = 0;
+		DirectX::BoundingSphere bounds;
+		uint64_t lastSeenFrame = 0;
+	};
+	std::unordered_map<Entity, ShadowCasterState> m_shadowCasterStates;
+	std::vector<DirectX::BoundingSphere> m_changedShadowCasterBounds;
+	uint64_t m_shadowCasterFrame = 0;
+
 	Entity m_cameraEntity = INVALID_ENTITY;
 	Math::Vector3 m_lightDirection = Math::Vector3(0.5f, -1.0f, 0.5f);
 	// デバッグ: 1フレーム目のみログを出力するためのカウンタ

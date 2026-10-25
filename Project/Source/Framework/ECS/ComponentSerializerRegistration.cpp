@@ -241,6 +241,8 @@ void RegisterComponentSerializers() {
             PointLightData d;
             if (cj.contains("Color")) { d.m_color = {cj["Color"][0], cj["Color"][1], cj["Color"][2]}; }
             if (cj.contains("Temperature")) d.m_temperature = cj["Temperature"];
+            if (cj.contains("CastShadow")) d.m_castShadow = cj["CastShadow"];
+            if (cj.contains("SourceRadius")) d.m_sourceRadius = cj["SourceRadius"];
             if (cj.contains("Intensity")) d.m_intensity = cj["Intensity"];
             if (cj.contains("Range")) d.m_range = cj["Range"];
             if (cj.contains("Enabled")) d.m_enabled = cj["Enabled"];
@@ -255,6 +257,8 @@ void RegisterComponentSerializers() {
             if (auto* p_d = ecs.TryGetComponent<PointLightData>(e)) {
                 cj["Color"] = {p_d->m_color.x, p_d->m_color.y, p_d->m_color.z};
                 cj["Temperature"] = p_d->m_temperature;
+                cj["CastShadow"] = p_d->m_castShadow;
+                cj["SourceRadius"] = p_d->m_sourceRadius;
                 cj["Intensity"] = p_d->m_intensity;
                 cj["Range"] = p_d->m_range;
                 cj["Enabled"] = p_d->m_enabled;
@@ -273,6 +277,8 @@ void RegisterComponentSerializers() {
             SpotLightData d;
             if (cj.contains("Color")) { d.m_color = {cj["Color"][0], cj["Color"][1], cj["Color"][2]}; }
             if (cj.contains("Temperature")) d.m_temperature = cj["Temperature"];
+            if (cj.contains("CastShadow")) d.m_castShadow = cj["CastShadow"];
+            if (cj.contains("SourceRadius")) d.m_sourceRadius = cj["SourceRadius"];
             if (cj.contains("Intensity")) d.m_intensity = cj["Intensity"];
             if (cj.contains("Range")) d.m_range = cj["Range"];
             if (cj.contains("InnerAngle")) d.m_innerAngle = cj["InnerAngle"];
@@ -290,6 +296,8 @@ void RegisterComponentSerializers() {
             if (auto* p_d = ecs.TryGetComponent<SpotLightData>(e)) {
                 cj["Color"] = {p_d->m_color.x, p_d->m_color.y, p_d->m_color.z};
                 cj["Temperature"] = p_d->m_temperature;
+                cj["CastShadow"] = p_d->m_castShadow;
+                cj["SourceRadius"] = p_d->m_sourceRadius;
                 cj["Intensity"] = p_d->m_intensity;
                 cj["Range"] = p_d->m_range;
                 cj["InnerAngle"] = p_d->m_innerAngle;

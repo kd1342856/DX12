@@ -3,6 +3,7 @@
 #include <vector>
 #include "../../../../Graphics/Shader/ShaderManager/ShaderManager.h"
 #include "../../../../Graphics/Shader/PhotometricUnits.h"
+#include "../../../../Graphics/Shadow/LocalShadowManager.h"
 #include "../../../Manager/Collision/CollisionManager.h"
 
 // PointLightDataを持つエンティティを毎フレーム集めてShaderManagerへ送るシステム。
@@ -17,7 +18,7 @@ public:
     {
         m_elapsedTime += deltaTime;
 
-        struct Candidate { Math::Vector3 pos; float rangeSq; CBufferData::PointLight data; };
+        struct Candidate { Math::Vector3 pos; float rangeSq; CBufferData::PointLight data; Entity entity; bool castShadow; };
         std::vector<Candidate> candidates;
         // 前露出: 物理単位の値に露出を掛けてから送る
         const float exposure = ShaderManager::Instance().GetExposure();
@@ -42,15 +43,19 @@ public:
                 if (intensityMul < 0.0f) intensityMul = 0.0f;
             }
 
-            CBufferData::PointLight pl;
+            CBufferData::PointLight pl = {};
             pl.Pos = pos;
             pl.Range = light.m_range;
             // 光束(lm)を光度(cd)に直す。シェーダーで逆二乗を掛けると照度(lx)になる
             const float candela = PhotometricUnits::LumensToCandela(light.m_intensity);
             pl.Color = PhotometricUnits::MakeLightColor(light.m_color, light.m_temperature) * (candela * intensityMul * exposure);
 
+            pl.ShadowCubeIndex = -1.0f;
+            pl.SourceRadius = light.m_sourceRadius;
+            pl.ShadowBias = 1.0f;
+
             float distSq = Math::Vector3::DistanceSquared(pos, viewerPos);
-            candidates.push_back({ pos, distSq, pl });
+            candidates.push_back({ pos, distSq, pl, entity, light.m_castShadow });
 
             // エディタでの配置確認用ギズモ(常に描画しておいても、実際に画面に出るのは
             // RenderEditorのDebugDraw経由でエディタモードの時だけ)。
@@ -65,7 +70,13 @@ public:
         int count = (std::min)((int)candidates.size(), kMaxPointLights);
         for (int i = 0; i < count; ++i)
         {
-            lightData.PL[i] = candidates[i].data;
+            CBufferData::PointLight& pl = candidates[i].data;
+            // 近い順に、空いているキューブの影の枠を割り当てる(LocalShadowManager::BeginFrameの後に呼ばれる前提)
+            if (candidates[i].castShadow)
+            {
+                pl.ShadowCubeIndex = static_cast<float>(LocalShadowManager::Instance().RequestCubeShadow(candidates[i].entity, pl.Pos, pl.Range));
+            }
+            lightData.PL[i] = pl;
         }
         lightData.PL_Count = count;
     }
@@ -107,7 +118,7 @@ class SpotLightSystem : public SystemBase
 public:
     void Update(const Math::Vector3& viewerPos)
     {
-        struct Candidate { float distSq; CBufferData::SpotLight data; };
+        struct Candidate { float distSq; CBufferData::SpotLight data; Entity entity; bool castShadow; float outerRadians; };
         std::vector<Candidate> candidates;
         // 前露出: 物理単位の値に露出を掛けてから送る
         const float exposure = ShaderManager::Instance().GetExposure();
@@ -150,10 +161,13 @@ public:
             sl.Color = PhotometricUnits::MakeLightColor(light.m_color, light.m_temperature) * (light.m_intensity * exposure);
             sl.InnerCorn = cosf(innerDeg * kDegToRad);
             sl.OuterCorn = cosf(outerDeg * kDegToRad);
-            sl.EnableShadow = 0.0f;
+            sl.ShadowIndex = -1.0f;
+            sl.ShadowCubeIndex = -1.0f;
+            sl.ShadowBias = 1.0f;
+            sl.SourceRadius = light.m_sourceRadius;
             sl.mLightVP = Math::Matrix::Identity;
 
-            candidates.push_back({ Math::Vector3::DistanceSquared(pos, viewerPos), sl });
+            candidates.push_back({ Math::Vector3::DistanceSquared(pos, viewerPos), sl, entity, light.m_castShadow, outerDeg * kDegToRad });
 
             DrawGizmo(pos, dir, light.m_range, outerDeg * kDegToRad, light.m_color);
         }
@@ -166,7 +180,21 @@ public:
         int count = (std::min)((int)candidates.size(), kMaxSpotLights);
         for (int i = 0; i < count; ++i)
         {
-            lightData.SL[i] = candidates[i].data;
+            CBufferData::SpotLight& sl = candidates[i].data;
+            // 近い順に影の枠を割り当てる。狭いスポットは2D配列、広いスポットは解像度が足りないのでキューブ配列
+            if (candidates[i].castShadow)
+            {
+                auto& shadowManager = LocalShadowManager::Instance();
+                if (candidates[i].outerRadians <= LocalShadowManager::kMaxSpotShadowOuterAngle * (3.14159265f / 180.0f))
+                {
+                    sl.ShadowIndex = static_cast<float>(shadowManager.RequestSpotShadow(candidates[i].entity, sl.Pos, sl.Dir, candidates[i].outerRadians, sl.Range, sl.mLightVP));
+                }
+                else
+                {
+                    sl.ShadowCubeIndex = static_cast<float>(shadowManager.RequestCubeShadow(candidates[i].entity, sl.Pos, sl.Range));
+                }
+            }
+            lightData.SL[i] = sl;
         }
         lightData.SL_Count = count;
     }

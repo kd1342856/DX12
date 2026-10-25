@@ -317,6 +317,8 @@
     <ClInclude Include="Source\Graphics\GPUResource\Buffer\VertexBuffer.h" />
     <ClInclude Include="Source\Graphics\GPUResource\CBufferData\CBufferData.h" />
     <ClInclude Include="Source\Graphics\GPUResource\DepthStencil\DepthStencil.h" />
+    <ClInclude Include="Source\Graphics\GPUResource\ShadowMap\ShadowMapArray.h" />
+    <ClInclude Include="Source\Graphics\Shadow\LocalShadowManager.h" />
     <ClInclude Include="Source\Graphics\GPUResource\FrameConstantBufferAllocator\FrameConstantBufferAllocator.h" />
     <ClInclude Include="Source\Graphics\GPUResource\Material\Material.h" />
     <ClInclude Include="Source\Graphics\GPUResource\RenderTarget\RenderTarget.h" />
@@ -455,6 +457,8 @@
     <ClCompile Include="Source\Graphics\GPUResource\Buffer\IndexBuffer.cpp" />
     <ClCompile Include="Source\Graphics\GPUResource\Buffer\VertexBuffer.cpp" />
     <ClCompile Include="Source\Graphics\GPUResource\DepthStencil\DepthStencil.cpp" />
+    <ClCompile Include="Source\Graphics\GPUResource\ShadowMap\ShadowMapArray.cpp" />
+    <ClCompile Include="Source\Graphics\Shadow\LocalShadowManager.cpp" />
     <ClCompile Include="Source\Graphics\GPUResource\FrameConstantBufferAllocator\FrameConstantBufferAllocator.cpp" />
     <ClCompile Include="Source\Graphics\GPUResource\Material\Material.cpp" />
     <ClCompile Include="Source\Graphics\GPUResource\RenderTarget\RenderTarget.cpp" />

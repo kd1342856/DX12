@@ -13,6 +13,8 @@ struct PointLightData
     float m_intensity = 12.0f;     // 光束 lm(ろうそく1本で約12 lm)
     float m_range = 5.0f;          // 光の届く範囲。減衰は逆二乗で、ここで滑らかに0にする
     bool  m_enabled = true;
+    bool  m_castShadow = true;     // 影を落とすか(近い順に、空いている影の枠があれば割り当てる)
+    float m_sourceRadius = 0.01f;  // 光源の半径(m)。大きいほど影の輪郭がぼける(ろうそくの炎で約1cm)
 
     // フリッカー(明滅) - 電球の揺らぎ/ろうそくの炎等
     bool  m_flickerEnabled = false;

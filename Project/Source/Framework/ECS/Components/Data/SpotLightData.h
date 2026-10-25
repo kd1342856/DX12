@@ -18,6 +18,8 @@ struct SpotLightData
     float m_innerAngle = 20.0f; // 中心からこの角度(度)までは最大の明るさ
     float m_outerAngle = 30.0f; // この角度(度)で0まで減衰する
     bool  m_enabled = true;
+    bool  m_castShadow = true;     // 影を落とすか(近い順に、空いている影の枠があれば割り当てる)
+    float m_sourceRadius = 0.03f;  // 光源の半径(m)。大きいほど影の輪郭がぼける(電球で約3cm)
 
     Math::Vector3 m_localOffset = { 0.0f, 0.0f, 0.0f };    // 光源位置(ローカル空間。エンティティのスケールも掛かる)
     Math::Vector3 m_localDirection = { 0.0f, 0.0f, 1.0f }; // 照らす向き(ローカル空間)

@@ -39,7 +39,7 @@ float3 EvaluateDirectLight(SurfaceData surface, float3 lightDir, float3 illumina
     return NdotL * illuminance * (diffuse + specular);
 }
 
-// スポットライト(影なし)。light.Colorは光度(cd)×露出
+// スポットライト(影は含まない。EvaluateSpotLightShadowを掛ける)。light.Colorは光度(cd)×露出
 float3 EvaluateSpotLight(SurfaceData surface, SpotLight light)
 {
     float3 L = light.Pos - surface.position;
@@ -51,7 +51,7 @@ float3 EvaluateSpotLight(SurfaceData surface, SpotLight light)
     return EvaluateDirectLight(surface, L, light.Color * (attenuation * coneAttenuation));
 }
 
-// 点光源(影なし。影は呼び出し側で掛ける)。light.Colorは光束(lm)を光度(cd)に直したもの×露出
+// 点光源(影は含まない。EvaluatePointLightShadowを掛ける)。light.Colorは光束(lm)を光度(cd)に直したもの×露出
 float3 EvaluatePointLight(SurfaceData surface, PointLight light)
 {
     float3 L = light.Pos - surface.position;
@@ -88,6 +88,225 @@ float3 EvaluateDummyIBL(SurfaceData surface, float specularOcclusion)
     const float3 envBRDF = surface.specularColor * envAB.x + envAB.y;
 
     return diffuse + envSpec * envBRDF * specularOcclusion;
+}
+
+//------------------------------------------
+// 局所光源(スポット・点光源)の影
+//------------------------------------------
+// 読み込む側で g_ss_comparison(s15) と g_ss_point_clamp(s5) を宣言しておくこと
+Texture2DArray g_spotShadowMaps : register(t13);   // 狭いスポット(1枚に1灯)
+TextureCubeArray g_cubeShadowMaps : register(t14); // 点光源と広いスポット(6面で1灯)
+
+// C++のLocalShadowManagerと合わせる
+static const float kShadowNear = 0.05;
+static const float kSpotShadowFovMargin = 0.0349066; // 2度
+
+static const float2 kShadowDisk[16] = {
+    float2(-0.94201624, -0.39906216), float2(0.94558609, -0.76890725),
+    float2(-0.094184101, -0.92938870), float2(0.34495938, 0.29387760),
+    float2(-0.91588581, 0.45771432), float2(-0.81544232, -0.87912464),
+    float2(-0.38277543, 0.27676845), float2(0.97484398, 0.75648379),
+    float2(0.44323325, -0.97511554), float2(0.53742981, -0.47373420),
+    float2(-0.26496911, -0.41893023), float2(0.79197514, 0.19090188),
+    float2(-0.24188840, 0.99706507), float2(-0.81409955, 0.91437590),
+    float2(0.19984126, 0.78641367), float2(0.14383161, -0.14100790)
+};
+
+// サンプルの並びをピクセルごとに回し、少ないサンプル数でも縞にならないようにする
+float2x2 ShadowSampleRotation(float2 screenPos)
+{
+    const float3 magic = float3(0.06711056, 0.00583715, 52.9829189);
+    const float angle = frac(magic.z * frac(dot(screenPos, magic.xy))) * 6.28318530718;
+    const float s = sin(angle);
+    const float c = cos(angle);
+    return float2x2(c, -s, s, c);
+}
+
+// 透視投影の深度(0..1)を、光源からの距離(視点空間のZ)に戻す
+float ShadowDepthToViewZ(float depthNdc, float nearZ, float farZ)
+{
+    return nearZ * farZ / max(farZ - depthNdc * (farZ - nearZ), 1e-6);
+}
+
+// 深度の比較に使うバイアス(視点空間の長さ)。テクセル1つ分の大きさを基本に、
+// 面が光に対して斜めなほど、またPCFでぼかす範囲が広いほど大きくする
+float ShadowWorldBias(float texelWorldSize, float filterWorldRadius, float NdotL, float biasScale)
+{
+    const float cosTheta = max(NdotL, 0.05);
+    const float tanTheta = sqrt(1.0 - cosTheta * cosTheta) / cosTheta;
+    return (texelWorldSize * 1.5 + filterWorldRadius * min(tanTheta, 4.0)) * biasScale;
+}
+
+// スポットの影(2D配列)。PCSS(Fernando 2005):
+//   1) 光源の円板と受け手を結ぶ範囲で、受け手より手前にある遮蔽物の平均の距離を求める
+//   2) 半影の幅 = 光源の直径 × (受け手の距離 - 遮蔽物の距離) / 遮蔽物の距離
+//   3) その幅でPCFする
+float SampleSpotShadow(SpotLight light, float3 worldPos, float NdotL, float2 screenPos)
+{
+    const float4 lightClip = mul(float4(worldPos, 1.0), light.mLightVP);
+    if (lightClip.w <= kShadowNear)
+    {
+        return 1.0;
+    }
+    const float3 ndc = lightClip.xyz / lightClip.w;
+    if (abs(ndc.x) > 1.0 || abs(ndc.y) > 1.0 || ndc.z > 1.0)
+    {
+        return 1.0;
+    }
+    const float2 uv = ndc.xy * float2(0.5, -0.5) + 0.5;
+    const float slice = light.ShadowIndex;
+    const float nearZ = kShadowNear;
+    const float farZ = max(light.Range, kShadowNear * 2.0);
+    const float receiverZ = lightClip.w; // 透視投影(LH)ではwが光源からの視点空間のZ
+
+    float2 texSize;
+    float elements;
+    g_spotShadowMaps.GetDimensions(texSize.x, texSize.y, elements);
+    const float tanHalfFov = tan(acos(light.OuterCorn) + kSpotShadowFovMargin);
+    // 受け手の深さで、1mがシャドウマップのUVでいくつになるか
+    const float uvPerMeter = 1.0 / (2.0 * receiverZ * tanHalfFov);
+    const float texelWorldSize = 1.0 / (uvPerMeter * texSize.x);
+    // 視点空間の長さを、受け手の深さでの深度(0..1)の差に直す係数
+    const float ndcPerMeter = nearZ * farZ / ((farZ - nearZ) * receiverZ * receiverZ);
+    const float lightRadius = max(light.SourceRadius, 0.001);
+    const float2x2 rotation = ShadowSampleRotation(screenPos);
+
+    // 1) 遮蔽物の探索。光源の円板が手前の面(near)に作る範囲を、受け手の位置から見た広さ
+    const float searchRadiusUV = clamp(lightRadius * (receiverZ - nearZ) / receiverZ / (2.0 * nearZ * tanHalfFov), 2.0 / texSize.x, 0.05);
+    const float searchBias = ShadowWorldBias(texelWorldSize, searchRadiusUV / uvPerMeter, NdotL, light.ShadowBias) * ndcPerMeter;
+    float blockerSum = 0.0;
+    float blockerCount = 0.0;
+    [unroll]
+    for (int searchIndex = 0; searchIndex < 16; searchIndex++)
+    {
+        const float2 sampleUV = uv + mul(kShadowDisk[searchIndex], rotation) * searchRadiusUV;
+        const int2 texel = clamp(int2(sampleUV * texSize), int2(0, 0), int2(texSize) - 1);
+        const float depthNdc = g_spotShadowMaps.Load(int4(texel, slice, 0)).r;
+        if (depthNdc < ndc.z - searchBias)
+        {
+            blockerSum += ShadowDepthToViewZ(depthNdc, nearZ, farZ);
+            blockerCount += 1.0;
+        }
+    }
+    if (blockerCount <= 0.0)
+    {
+        return 1.0;
+    }
+    const float blockerZ = blockerSum / blockerCount;
+
+    // 2) 半影の幅(受け手の位置での長さ)
+    const float penumbraWorld = 2.0 * lightRadius * (receiverZ - blockerZ) / max(blockerZ, nearZ);
+    const float filterRadiusUV = clamp(penumbraWorld * 0.5 * uvPerMeter, 1.5 / texSize.x, 0.03);
+
+    // 3) PCF
+    const float compareBias = ShadowWorldBias(texelWorldSize, filterRadiusUV / uvPerMeter, NdotL, light.ShadowBias) * ndcPerMeter;
+    float lit = 0.0;
+    [unroll]
+    for (int filterIndex = 0; filterIndex < 16; filterIndex++)
+    {
+        const float2 sampleUV = uv + mul(kShadowDisk[filterIndex], rotation) * filterRadiusUV;
+        lit += g_spotShadowMaps.SampleCmpLevelZero(g_ss_comparison, float3(sampleUV, slice), ndc.z - compareBias);
+    }
+    return lit / 16.0;
+}
+
+// 点光源(と広いスポット)の影(キューブ配列)。PCSSの考え方は2Dと同じで、ずらす量を方向の角度(tan)で扱う
+float SampleCubeShadow(float3 lightPos, float range, float cubeIndex, float sourceRadius, float biasScale,
+    float3 worldPos, float NdotL, float2 screenPos)
+{
+    const float3 toPixel = worldPos - lightPos;
+    const float distanceToLight = length(toPixel);
+    if (distanceToLight <= kShadowNear)
+    {
+        return 1.0;
+    }
+    const float3 direction = toPixel / distanceToLight;
+    const float nearZ = kShadowNear;
+    const float farZ = max(range, 1.0); // LocalShadowManager::GetCubeFarと同じ
+    // 面の視点空間のZは、方向の主軸の成分
+    const float3 absToPixel = abs(toPixel);
+    const float receiverZ = max(absToPixel.x, max(absToPixel.y, absToPixel.z));
+    const float receiverNdc = farZ / (farZ - nearZ) - nearZ * farZ / ((farZ - nearZ) * receiverZ);
+
+    float faceSize;
+    float faceHeight;
+    float elements;
+    g_cubeShadowMaps.GetDimensions(faceSize, faceHeight, elements);
+    // 90度の面なので、受け手の深さでのテクセル1つの大きさは 2Z/解像度
+    const float texelWorldSize = 2.0 * receiverZ / faceSize;
+    const float texelAngle = 2.0 / faceSize;
+    const float ndcPerMeter = nearZ * farZ / ((farZ - nearZ) * receiverZ * receiverZ);
+    const float lightRadius = max(sourceRadius, 0.001);
+
+    // 方向をずらすための、方向に垂直な2軸
+    const float3 axisA = normalize(cross(direction, abs(direction.y) < 0.99 ? float3(0, 1, 0) : float3(1, 0, 0)));
+    const float3 axisB = cross(direction, axisA);
+    const float2x2 rotation = ShadowSampleRotation(screenPos);
+
+    // 1) 遮蔽物の探索。受け手との距離の1/4より近い遮蔽物までを対象にする
+    const float searchAngle = clamp(lightRadius * 3.0 / distanceToLight, texelAngle * 2.0, 0.1);
+    const float searchBias = ShadowWorldBias(texelWorldSize, searchAngle * receiverZ, NdotL, biasScale) * ndcPerMeter;
+    float blockerSum = 0.0;
+    float blockerCount = 0.0;
+    [unroll]
+    for (int searchIndex = 0; searchIndex < 16; searchIndex++)
+    {
+        const float2 offset = mul(kShadowDisk[searchIndex], rotation) * searchAngle;
+        const float3 sampleDir = direction + axisA * offset.x + axisB * offset.y;
+        const float depthNdc = g_cubeShadowMaps.SampleLevel(g_ss_point_clamp, float4(sampleDir, cubeIndex), 0).r;
+        if (depthNdc < receiverNdc - searchBias)
+        {
+            blockerSum += ShadowDepthToViewZ(depthNdc, nearZ, farZ);
+            blockerCount += 1.0;
+        }
+    }
+    if (blockerCount <= 0.0)
+    {
+        return 1.0;
+    }
+    const float blockerZ = blockerSum / blockerCount;
+
+    // 2) 半影の幅を、光源から見た角度にする
+    const float penumbraWorld = 2.0 * lightRadius * (receiverZ - blockerZ) / max(blockerZ, nearZ);
+    const float filterAngle = clamp(penumbraWorld * 0.5 / receiverZ, texelAngle * 1.5, 0.06);
+
+    // 3) PCF
+    const float compareBias = ShadowWorldBias(texelWorldSize, filterAngle * receiverZ, NdotL, biasScale) * ndcPerMeter;
+    float lit = 0.0;
+    [unroll]
+    for (int filterIndex = 0; filterIndex < 16; filterIndex++)
+    {
+        const float2 offset = mul(kShadowDisk[filterIndex], rotation) * filterAngle;
+        const float3 sampleDir = direction + axisA * offset.x + axisB * offset.y;
+        lit += g_cubeShadowMaps.SampleCmpLevelZero(g_ss_comparison, float4(sampleDir, cubeIndex), receiverNdc - compareBias);
+    }
+    return lit / 16.0;
+}
+
+// スポットライトの影(影が割り当てられていなければ1)
+float EvaluateSpotLightShadow(SurfaceData surface, SpotLight light, float2 screenPos)
+{
+    const float NdotL = saturate(dot(surface.normal, normalize(light.Pos - surface.position)));
+    if (light.ShadowIndex >= 0.0)
+    {
+        return SampleSpotShadow(light, surface.position, NdotL, screenPos);
+    }
+    if (light.ShadowCubeIndex >= 0.0)
+    {
+        return SampleCubeShadow(light.Pos, light.Range, light.ShadowCubeIndex, light.SourceRadius, light.ShadowBias, surface.position, NdotL, screenPos);
+    }
+    return 1.0;
+}
+
+// 点光源の影(影が割り当てられていなければ1)
+float EvaluatePointLightShadow(SurfaceData surface, PointLight light, float2 screenPos)
+{
+    if (light.ShadowCubeIndex < 0.0)
+    {
+        return 1.0;
+    }
+    const float NdotL = saturate(dot(surface.normal, normalize(light.Pos - surface.position)));
+    return SampleCubeShadow(light.Pos, light.Range, light.ShadowCubeIndex, light.SourceRadius, light.ShadowBias, surface.position, NdotL, screenPos);
 }
 
 // 距離フォグ(g_DistanceFogColorは霧が返す光の輝度×露出)

@@ -8,6 +8,7 @@
 #include "GraphicsDevice.h"
 #include "../Shader/ShaderCompiler/ShaderCompiler.h"
 #include "../Shader/ShaderManager/ShaderManager.h"
+#include "../Shadow/LocalShadowManager.h"
 #include <ResourceUploadBatch.h>
 #include <RenderTargetState.h>
 #include <CommonStates.h>
@@ -82,14 +83,16 @@ bool GraphicsDevice::Init(HWND  hWnd, int w, int h)
 	m_upShadowMap = std::make_unique<DepthStencil>();
 	if(!m_upShadowMap->Create(this, Math::Vector2(2048.0f, 2048.0f), DepthStencilFormat::DepthHighQuality, true)) return false;
 
-	// Point light shadow (nearest/strongest point light only): a true 6-face cube shadow,
-	// implemented as 6 independent 2D depth maps (one per cube face) rather than a native
-	// TextureCube resource - reuses the exact same ShadowShader/DepthStencil machinery as the
-	// directional light shadow, just run 6 times with a 90-degree FOV aimed down each axis.
-	for (int face = 0; face < 6; ++face)
+	// 局所光源の影。狭いスポットは2D配列、点光源と広いスポットはキューブ配列(LocalShadowManagerが枠を割り当てる)
+	m_upSpotShadowMaps = std::make_unique<ShadowMapArray>();
+	if (!m_upSpotShadowMaps->Create(this, LocalShadowManager::kSpotShadowResolution, LocalShadowManager::kSpotShadowCount, false))
 	{
-		m_upPointLightShadowMapFaces[face] = std::make_unique<DepthStencil>();
-		if (!m_upPointLightShadowMapFaces[face]->Create(this, Math::Vector2(768.0f, 768.0f), DepthStencilFormat::DepthHighQuality, true)) return false;
+		return false;
+	}
+	m_upCubeShadowMaps = std::make_unique<ShadowMapArray>();
+	if (!m_upCubeShadowMaps->Create(this, LocalShadowManager::kCubeShadowResolution, LocalShadowManager::kCubeShadowCount, true))
+	{
+		return false;
 	}
 
 	if (!CreateSwapChainRTV()) return false;

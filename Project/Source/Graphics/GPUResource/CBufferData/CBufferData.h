@@ -52,10 +52,12 @@ namespace CBufferData
 		float InnerCorn;
 		Math::Vector3 Pos;
 		float OuterCorn;
-		float EnableShadow;
-		float ShadowBias;
-		float padding[2];
-		Math::Matrix mLightVP;
+		// 影(LocalShadowManagerが割り当てる)。番号は-1なら影なし
+		float ShadowIndex;     // 2D配列の枚の番号(狭いスポット)
+		float ShadowBias;      // 影のバイアスの倍率(1で標準)
+		float ShadowCubeIndex; // キューブ配列の個の番号(広いスポット)
+		float SourceRadius;    // 光源の半径(m)。PCSSの半影の広さに使う
+		Math::Matrix mLightVP; // 2D配列の影の行列
 	};
 
 	struct PointLight
@@ -63,7 +65,10 @@ namespace CBufferData
 		Math::Vector3 Pos;
 		float Range;
 		Math::Vector3 Color;
-		float pad;
+		float ShadowCubeIndex; // キューブ配列の個の番号。-1なら影なし
+		float SourceRadius;    // 光源の半径(m)。PCSSの半影の広さに使う
+		float ShadowBias;      // 影のバイアスの倍率(1で標準)
+		float pad[2];
 	};
 
 	struct Light
@@ -88,12 +93,6 @@ namespace CBufferData
 		int PL_Count;
 		Math::Vector3 dummyPL;
 		PointLight PL[8]; // ロウソク/裸電球等、フリッカー付きの点光源(LightSystemが毎フレーム更新)
-
-		// ポイント光の影(最も近い1灯のみ、6面キューブシャドウ。Texture2D×6の簡易実装)
-		Math::Matrix PL0_ShadowVP[6];
-		float PL0_ShadowBias;
-		int32_t PL0_ShadowEnabled;
-		float PadPL0Shadow[2];
 
 		// 室内判定(RoomAreaのAABB、xyzのみ使用)。範囲内のピクセルは外の光(月明かり・環境光・
 		// 空の反射光)を受けず、月の影の中と同じ扱いになる(GameScene::UpdateLightsが毎フレーム更新)。

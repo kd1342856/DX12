@@ -53,15 +53,6 @@ public:
 
 	void SetDirectionalLightMatrix(const Math::Matrix& m) { m_LightData.DL_mLightVP[0] = m; }
 
-	// 最も近いポイントライト(g_PL[0])の6面キューブシャドウ用データ。
-	// enabled=falseの時はシェーダー側で影計算そのものをスキップする。
-	void SetPointLightShadowData(const Math::Matrix(&vp)[6], float bias, bool enabled)
-	{
-		for (int i = 0; i < 6; ++i) m_LightData.PL0_ShadowVP[i] = vp[i];
-		m_LightData.PL0_ShadowBias = bias;
-		m_LightData.PL0_ShadowEnabled = enabled ? 1 : 0;
-	}
-
 	// Increments/decrements the count of ghosts currently hunting. While the count is > 0
 	// the fog density and screen darkening both blend toward their "hunt" values (a counter,
 	// not a bool, so overlapping hunts from multiple ghosts are still tracked correctly).

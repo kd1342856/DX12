@@ -17,9 +17,12 @@ struct SpotLight
     float3 Pos; // 座標
     float OuterCorn; // 外側の角度
 
-    float EnableShadow;
-    float ShadowBias;
-    row_major float4x4 mLightVP;
+    // 影(C++のLocalShadowManagerが割り当てる)。番号は-1なら影なし
+    float ShadowIndex;     // 2D配列(g_spotShadowMaps)の枚の番号。狭いスポット
+    float ShadowBias;      // 影のバイアスの倍率(1で標準)
+    float ShadowCubeIndex; // キューブ配列(g_cubeShadowMaps)の個の番号。広いスポット
+    float SourceRadius;    // 光源の半径(m)。PCSSの半影の広さに使う
+    row_major float4x4 mLightVP; // 2D配列の影の行列
 };
 
 // ポイントライトのデータ (ロウソク/裸電球等。フリッカーはC++側(LightSystem)で
@@ -29,7 +32,10 @@ struct PointLight
     float3 Pos; // 座標
     float Range; // 減衰距離
     float3 Color; // 色
-    float pad;
+    float ShadowCubeIndex; // キューブ配列(g_cubeShadowMaps)の個の番号。-1なら影なし
+    float SourceRadius;    // 光源の半径(m)。PCSSの半影の広さに使う
+    float ShadowBias;      // 影のバイアスの倍率(1で標準)
+    float2 pad;
 };
 
 cbuffer cbLight : register(b3)
@@ -76,16 +82,6 @@ cbuffer cbLight : register(b3)
     int g_PL_Count;
     float3 g_dummyPL;
     PointLight g_PL[8];
-
-    //-------------------------
-    // ポイント光の影 (最も近い1灯のみ、6面キューブシャドウ。TextureCubeではなく
-    // Texture2Dを6枚使う簡易実装 - 面の選択はピクセルシェーダー側でLight->Pixelベクトルの
-    // 主軸から判定する。face: 0=+X,1=-X,2=+Y,3=-Y,4=+Z,5=-Z)
-    //-------------------------
-    row_major float4x4 g_PL0_ShadowVP[6];
-    float g_PL0_ShadowBias;
-    int   g_PL0_ShadowEnabled;
-    float2 g_PadPL0Shadow;
 
     //-------------------------
     // 室内判定 (RoomAreaのAABB、xyzのみ使用)。範囲内のピクセルは外の光(月明かり・環境光・

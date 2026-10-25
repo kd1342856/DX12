@@ -22,6 +22,7 @@
 
 // ê[ìx
 #include "GPUResource/DepthStencil/DepthStencil.h"
+#include "GPUResource/ShadowMap/ShadowMapArray.h"
 
 // ÉÇÉfÉã
 #include "Geometry/Model/Model.h"

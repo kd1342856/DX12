@@ -63,6 +63,9 @@ void SkinningShader::Begin(RenderContext& context)
 			m_pDevice->GetCmdList()->SetGraphicsRootDescriptorTable(t7, handle);
 		}
 	}
+
+	// 局所光源の影(t13・t14)
+	BindLocalShadowMaps();
 }
 
 void SkinningShader::BeginModel(const ModelData& model, const DrawContext& drawContext)
@@ -147,16 +150,8 @@ void SkinningShader::BeginShadow(RenderContext& context)
 	if (m_pProgram && m_pProgram->pRootSignature) m_pDevice->GetCmdList()->SetGraphicsRootSignature(m_pProgram->pRootSignature->GetRootSignature());
 	m_pDevice->GetCmdList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	D3D12_VIEWPORT viewport = {};
-	D3D12_RECT rect = {};
-	viewport.Width = 4096.0f; // ShadowMapの解像度
-	viewport.Height = 4096.0f;
-	viewport.MinDepth = 0.0f;
-	viewport.MaxDepth = 1.0f;
-	rect.right = 4096;
-	rect.bottom = 4096;
-	m_pDevice->GetCmdList()->RSSetViewports(1, &viewport);
-	m_pDevice->GetCmdList()->RSSetScissorRects(1, &rect);
+	// ビューポートは呼び出し側(影の描画)が描き込む深度テクスチャの大きさで設定済み。
+	// (以前はここで4096に固定していたため、2048の平行光の影ではスキニングのモデルだけ縮尺がずれていた)
 
 	int b0 = GetRootParameterIndex(ShaderBindingType::CBV, 0);
 	if (b0 != -1) context.BindCamera(b0);

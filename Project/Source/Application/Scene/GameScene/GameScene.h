@@ -31,7 +31,8 @@ private:
     void UpdateLights(Entity cameraEntity);
     // 最も近いポイントライトの簡易シャドウ(単一パースペクティブ)を描画する。UpdateLights()の後、
     // RenderScene()より前に呼ぶ必要がある(LitShaderが読むシャドウマップ/行列をここで確定させるため)。
-    void UpdatePointLightShadow(Entity cameraEntity);
+    // 局所光源(スポットライト・点光源)の影を描く(UpdateLightsの後に呼ぶ)
+    void RenderLocalLightShadows();
     // 法線プリパス+SSAOの計算。RenderScene呼び出し前に呼ぶ必要がある
     // (LitShaderが読むg_ssaoMapをここで確定させるため)。
     void RenderSSAO(Entity cameraEntity);
