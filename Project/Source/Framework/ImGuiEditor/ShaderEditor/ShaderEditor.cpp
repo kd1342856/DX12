@@ -1,5 +1,5 @@
 #include "ShaderEditor.h"
-#include "../../../../Library/ImGui/imgui.h"
+#include "ImGui/imgui.h"
 
 void ShaderEditor::Initialize()
 {

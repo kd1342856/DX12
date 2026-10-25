@@ -1,6 +1,6 @@
 #include "../../../Pch.h"
 #include "NavMeshEditor.h"
-#include "../../../../Library/ImGui/imgui.h"
+#include "ImGui/imgui.h"
 #include "../../Manager/NavMesh/NavMeshManager.h"
 #include "../Editor/Editor.h"
 #include "../../Manager/Scene/Scene.h"

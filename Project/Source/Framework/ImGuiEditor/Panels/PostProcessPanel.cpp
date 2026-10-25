@@ -1,6 +1,6 @@
 ﻿#include "PostProcessPanel.h"
 #include "../EditorContext.h"
-#include "../../../../Library/ImGui/imgui.h"
+#include "ImGui/imgui.h"
 
 void PostProcessPanel::Draw(EditorContext& ctx)
 {

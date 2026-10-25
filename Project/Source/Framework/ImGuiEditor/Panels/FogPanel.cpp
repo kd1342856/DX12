@@ -1,6 +1,6 @@
 #include "FogPanel.h"
 #include "../EditorContext.h"
-#include "../../../../Library/ImGui/imgui.h"
+#include "ImGui/imgui.h"
 #include "../../../Graphics/Shader/ShaderManager/ShaderManager.h"
 
 void FogPanel::Draw(EditorContext& ctx)

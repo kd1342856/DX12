@@ -1,6 +1,6 @@
 #include "ShadowPanel.h"
 #include "../EditorContext.h"
-#include "../../../../Library/ImGui/imgui.h"
+#include "ImGui/imgui.h"
 
 void ShadowPanel::Draw(EditorContext& ctx)
 {

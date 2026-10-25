@@ -3,7 +3,9 @@
 packages/
 .vs
 x64
-project
+Win32
+Saved/
+Dist/
 
 #共通無視拡張子
 *.tlog
@@ -20,9 +22,14 @@ project
 
 imgui.ini
 EngineSettings.ini
+debug_log.txt
+*.vcxproj.user
 
 #バイナリ・ビルド成果物
 *.dll
 *.blend
 *.blend1
 Library/*/build/
+
+#実行に必須なDLL(Project/Bin)は例外としてコミットする
+!Project/Bin/*.dll

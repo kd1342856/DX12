@@ -70,9 +70,9 @@
 #include<Keyboard.h>
 #include<Mouse.h>
 
-#include "../Library/ImGui/imgui.h"
-#include "../Library/ImGui/imgui_impl_dx12.h"
-#include "../Library/ImGui/imgui_impl_win32.h"
+#include "ImGui/imgui.h"
+#include "ImGui/imgui_impl_dx12.h"
+#include "ImGui/imgui_impl_win32.h"
 
 //	DirectXTex
 #pragma comment(lib, "DirectXTex.lib")

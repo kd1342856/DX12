@@ -1,5 +1,5 @@
 #pragma once
-#include "../../../../Library/nlohmann/json.hpp"
+#include "nlohmann/json.hpp"
 #include "../../Object/Object.h"
 #include "../../Object/GameObject.h"
 #include "./SceneBase.h"

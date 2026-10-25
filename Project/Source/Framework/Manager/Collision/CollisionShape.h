@@ -1,6 +1,6 @@
 #pragma once
 #include <DirectXCollision.h>
-#include "../../../../Library/nlohmann/json.hpp"
+#include "nlohmann/json.hpp"
 
 class ModelData;
 

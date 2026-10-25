@@ -306,31 +306,31 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Library\ImGui\imgui.cpp">
+    <ClCompile Include="..\Library\ImGui\imgui.cpp">
       <Filter>Library\ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="Library\ImGui\ImGuizmo.cpp">
+    <ClCompile Include="..\Library\ImGui\ImGuizmo.cpp">
       <Filter>Library\ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="Library\ImGui\imgui_demo.cpp">
+    <ClCompile Include="..\Library\ImGui\imgui_demo.cpp">
       <Filter>Library\ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="Library\ImGui\imgui_draw.cpp">
+    <ClCompile Include="..\Library\ImGui\imgui_draw.cpp">
       <Filter>Library\ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="Library\ImGui\imgui_impl_dx12.cpp">
+    <ClCompile Include="..\Library\ImGui\imgui_impl_dx12.cpp">
       <Filter>Library\ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="Library\ImGui\imgui_impl_win32.cpp">
+    <ClCompile Include="..\Library\ImGui\imgui_impl_win32.cpp">
       <Filter>Library\ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="Library\ImGui\imgui_stdlib.cpp">
+    <ClCompile Include="..\Library\ImGui\imgui_stdlib.cpp">
       <Filter>Library\ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="Library\ImGui\imgui_tables.cpp">
+    <ClCompile Include="..\Library\ImGui\imgui_tables.cpp">
       <Filter>Library\ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="Library\ImGui\imgui_widgets.cpp">
+    <ClCompile Include="..\Library\ImGui\imgui_widgets.cpp">
       <Filter>Library\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="Source\Application\Object\Script\Player\Player.cpp">

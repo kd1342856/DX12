@@ -1,6 +1,6 @@
 ﻿#include "DebugPanel.h"
 #include "../EditorContext.h"
-#include "../../../../Library/ImGui/imgui.h"
+#include "ImGui/imgui.h"
 
 void DebugPanel::Draw(EditorContext& ctx)
 {

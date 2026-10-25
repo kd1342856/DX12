@@ -1,6 +1,6 @@
 ﻿#include "RendererPanel.h"
 #include "../EditorContext.h"
-#include "../../../../Library/ImGui/imgui.h"
+#include "ImGui/imgui.h"
 #include "../../../Graphics/Device/GraphicsDevice.h"
 #include "../../ECS/CompSystem/Systems/RenderSystem.h"
 

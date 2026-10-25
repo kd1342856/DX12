@@ -2,7 +2,7 @@
 #include <string>
 #include <unordered_map>
 #include <functional>
-#include "../../../Library/nlohmann/json.hpp"
+#include "nlohmann/json.hpp"
 #include "ECS.h"
 
 class ComponentSerializerRegistry {
