@@ -1,9 +1,10 @@
 ﻿#include "../../../Pch.h"
 #include "RenderTarget.h"
-bool RenderTarget::Create(int width, int height, DXGI_FORMAT format)
+bool RenderTarget::Create(int width, int height, DXGI_FORMAT format, bool hasDepth)
 {
 	m_device = &GraphicsDevice::Instance();
 	m_format = format;
+	m_hasDepth = hasDepth;
 	if (!CreateResources(width, height))
 	{
 		return false;
@@ -14,8 +15,11 @@ bool RenderTarget::Create(int width, int height, DXGI_FORMAT format)
 	m_rtvIndex = m_device->GetDescriptorHeapManager()->GetRTVAllocator()->Allocate();
 	m_srvIndex = m_device->GetDescriptorHeapManager()->GetCBVSRVUAVAllocator()->Allocate();
 	m_imGuiSrvIndex = m_device->AllocateImGuiSRVIndex();
-	m_dsvIndex = m_device->GetDescriptorHeapManager()->GetDSVAllocator()->Allocate();
-	m_depthSrvIndex = m_device->GetDescriptorHeapManager()->GetCBVSRVUAVAllocator()->Allocate();
+	if (m_hasDepth)
+	{
+		m_dsvIndex = m_device->GetDescriptorHeapManager()->GetDSVAllocator()->Allocate();
+		m_depthSrvIndex = m_device->GetDescriptorHeapManager()->GetCBVSRVUAVAllocator()->Allocate();
+	}
 	WriteDescriptors();
 	return true;
 }
@@ -29,7 +33,10 @@ bool RenderTarget::Resize(int width, int height)
 	// 呼び出し側でGPUの処理が終わるのを待ってから呼ぶので、古いリソースはすぐに解放してよい
 	auto* pTracker = m_device->GetResourceStateTracker();
 	pTracker->RemoveResourceState(m_resource.Get());
-	pTracker->RemoveResourceState(m_pDepthBuffer.Get());
+	if (m_pDepthBuffer)
+	{
+		pTracker->RemoveResourceState(m_pDepthBuffer.Get());
+	}
 	m_resource.Reset();
 	m_pDepthBuffer.Reset();
 	if (!CreateResources(width, height))
@@ -65,6 +72,11 @@ bool RenderTarget::CreateResources(int width, int height)
 		&heapProp, D3D12_HEAP_FLAG_NONE, &resDesc,
 		D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, &clearValue, IID_PPV_ARGS(&m_resource));
 	if (FAILED(hr)) return false;
+	m_device->GetResourceStateTracker()->AddResourceState(m_resource.Get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	if (!m_hasDepth)
+	{
+		return true;
+	}
 	// DepthStencil。SRVからも読めるように(DOF/SSAO/SSR等)、DSVと同じ理由でTypelessにしておき、
 	// DSV側はD32_FLOAT、SRV側はR32_FLOATとしてそれぞれ見る(DepthStencilクラスと同じ手法)。
 	D3D12_RESOURCE_DESC depthResDesc = resDesc;
@@ -78,9 +90,7 @@ bool RenderTarget::CreateResources(int width, int height)
 		D3D12_RESOURCE_STATE_DEPTH_WRITE, &depthClearValue, IID_PPV_ARGS(&m_pDepthBuffer));
 	if (FAILED(hr)) return false;
 
-	auto* pTracker = m_device->GetResourceStateTracker();
-	pTracker->AddResourceState(m_resource.Get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-	pTracker->AddResourceState(m_pDepthBuffer.Get(), D3D12_RESOURCE_STATE_DEPTH_WRITE);
+	m_device->GetResourceStateTracker()->AddResourceState(m_pDepthBuffer.Get(), D3D12_RESOURCE_STATE_DEPTH_WRITE);
 	return true;
 }
 
@@ -103,6 +113,10 @@ void RenderTarget::WriteDescriptors()
 	imGuiHandle.ptr += static_cast<SIZE_T>(pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV)) * m_imGuiSrvIndex;
 	pDevice->CreateShaderResourceView(m_resource.Get(), &srvDesc, imGuiHandle);
 
+	if (!m_hasDepth)
+	{
+		return;
+	}
 	D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
 	dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
 	dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
@@ -128,7 +142,10 @@ void RenderTarget::Clear(float r, float g, float b, float a)
 	auto dsvH = m_device->GetDescriptorHeapManager()->GetDSVAllocator()->GetCPUHandle(m_dsvIndex);
 	float clearColor[] = { r, g, b, a };
 	m_device->GetCmdList()->ClearRenderTargetView(rtvH, clearColor, 0, nullptr);
-	m_device->GetCmdList()->ClearDepthStencilView(dsvH, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+	if (m_hasDepth)
+	{
+		m_device->GetCmdList()->ClearDepthStencilView(dsvH, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+	}
 }
 
 

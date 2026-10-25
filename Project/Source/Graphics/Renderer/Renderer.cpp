@@ -111,7 +111,7 @@ void Renderer::InitializeRenderTargets(int width, int height)
 
 	// Opaque Copy for Refraction
 	s_sceneOpaqueCopy = std::make_unique<RenderTarget>();
-	s_sceneOpaqueCopy->Create(width, height, DXGI_FORMAT_R16G16B16A16_FLOAT);
+	s_sceneOpaqueCopy->Create(width, height, DXGI_FORMAT_R16G16B16A16_FLOAT, false);
 
 	// Planar Reflection (1024x1024 fixed or scaled, we use screen width/height for now or fixed 1024)。
 	// 最大3枚(3窓)まで同時にアクティブな鏡をサポートするため、スロットごとに1枚ずつ持つ。
@@ -124,24 +124,24 @@ void Renderer::InitializeRenderTargets(int width, int height)
 	// Intensityをいじってもほぼ変化が無かった。1/4解像度化＋可変半径＋複数回ブラーの
 	// 組み合わせで、ちゃんと画面全体に広がる"ふわっと漏れる光"にする。
 	s_bloomExtract = std::make_unique<RenderTarget>();
-	s_bloomExtract->Create(width / 4, height / 4, DXGI_FORMAT_R16G16B16A16_FLOAT);
+	s_bloomExtract->Create(width / 4, height / 4, DXGI_FORMAT_R16G16B16A16_FLOAT, false);
 
 	// Bloom Blur Ping-Pong (1/4解像度)
 	s_bloomBlur[0] = std::make_unique<RenderTarget>();
-	s_bloomBlur[0]->Create(width / 4, height / 4, DXGI_FORMAT_R16G16B16A16_FLOAT);
+	s_bloomBlur[0]->Create(width / 4, height / 4, DXGI_FORMAT_R16G16B16A16_FLOAT, false);
 	s_bloomBlur[1] = std::make_unique<RenderTarget>();
-	s_bloomBlur[1]->Create(width / 4, height / 4, DXGI_FORMAT_R16G16B16A16_FLOAT);
+	s_bloomBlur[1]->Create(width / 4, height / 4, DXGI_FORMAT_R16G16B16A16_FLOAT, false);
 
 	// Depth of Field用: シーン全体(閾値なし)をコピーしてぼかしたバッファ。
 	// BloomExtract/Blurのパスをそのまま(閾値0で)使い回すので専用シェーダーは不要。
 	s_dofBlur[0] = std::make_unique<RenderTarget>();
-	s_dofBlur[0]->Create(width / 4, height / 4, DXGI_FORMAT_R16G16B16A16_FLOAT);
+	s_dofBlur[0]->Create(width / 4, height / 4, DXGI_FORMAT_R16G16B16A16_FLOAT, false);
 	s_dofBlur[1] = std::make_unique<RenderTarget>();
-	s_dofBlur[1]->Create(width / 4, height / 4, DXGI_FORMAT_R16G16B16A16_FLOAT);
+	s_dofBlur[1]->Create(width / 4, height / 4, DXGI_FORMAT_R16G16B16A16_FLOAT, false);
 
 	// God Rays(光条)結果 (1/4解像度。ラジアルブラーなので低解像度でも十分)
 	s_godRays = std::make_unique<RenderTarget>();
-	s_godRays->Create(width / 4, height / 4, DXGI_FORMAT_R16G16B16A16_FLOAT);
+	s_godRays->Create(width / 4, height / 4, DXGI_FORMAT_R16G16B16A16_FLOAT, false);
 
 	// SSAO/SSR用のビュー空間法線プリパス(等倍解像度。深度はこのRT自身の専用DepthBufferを使う)
 	s_normalPrepass = std::make_unique<RenderTarget>();
@@ -151,9 +151,9 @@ void Renderer::InitializeRenderTargets(int width, int height)
 	// フォーマットはBloomのブラーパイプライン(DrawBlur)をそのまま流用するため、
 	// BloomShaderのPSOと同じR16G16B16A16_FLOATに合わせてある。
 	s_ssao = std::make_unique<RenderTarget>();
-	s_ssao->Create(width / 2, height / 2, DXGI_FORMAT_R16G16B16A16_FLOAT);
+	s_ssao->Create(width / 2, height / 2, DXGI_FORMAT_R16G16B16A16_FLOAT, false);
 	s_ssaoBlur = std::make_unique<RenderTarget>();
-	s_ssaoBlur->Create(width / 2, height / 2, DXGI_FORMAT_R16G16B16A16_FLOAT);
+	s_ssaoBlur->Create(width / 2, height / 2, DXGI_FORMAT_R16G16B16A16_FLOAT, false);
 
 	// Debug Preview Camera用: CameraData.m_isDebugPreviewを立てたカメラのTransformから見た絵を
 	// 毎フレーム描く専用RT。CameraSystemのProjectionが16:9固定(1280/720)なので、アスペクトを

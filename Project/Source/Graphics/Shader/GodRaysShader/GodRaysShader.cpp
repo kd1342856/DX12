@@ -13,6 +13,8 @@ void GodRaysShader::Create(GraphicsDevice* pGraphicsDevice)
 	PipelineDesc desc;
 	desc.InputLayouts = {};
 	desc.Formats = { DXGI_FORMAT_R16G16B16A16_FLOAT };
+	// 全画面の三角形を描くだけなので深度は使わない(BloomShaderと同じ理由)
+	desc.IsDepth = false;
 
 	m_topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	m_pPipelineState = ShaderManager::Instance().GetPipelineState(m_pProgram, desc);

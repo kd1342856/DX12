@@ -807,6 +807,12 @@ void GraphicsDevice::SetRenderTarget(RenderTarget* pRT)
 	m_upContextManager->GetGraphicsContext()->TransitionResource(pRT->GetResource(), D3D12_RESOURCE_STATE_RENDER_TARGET);
 	m_upContextManager->GetGraphicsContext()->FlushResourceBarriers();
 	auto rtvH = m_upDescriptorHeapManager->GetRTVAllocator()->GetCPUHandle(pRT->GetRTVIndex());
+	// 深度を持たないRT(ポストのRTなど)では深度を外す
+	if (pRT->GetDSVIndex() < 0)
+	{
+		m_upContextManager->GetGraphicsContext()->GetCmdList()->OMSetRenderTargets(1, &rtvH, false, nullptr);
+		return;
+	}
 	auto dsvH = m_upDescriptorHeapManager->GetDSVAllocator()->GetCPUHandle(pRT->GetDSVIndex());
 	m_upContextManager->GetGraphicsContext()->GetCmdList()->OMSetRenderTargets(1, &rtvH, false, &dsvH);
 }

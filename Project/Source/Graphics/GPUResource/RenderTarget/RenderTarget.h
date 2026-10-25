@@ -6,7 +6,8 @@ public:
 	RenderTarget() {}
 	~RenderTarget() {}
 
-	bool Create(int width, int height, DXGI_FORMAT format = DXGI_FORMAT_R8G8B8A8_UNORM);
+	// hasDepth: 専用の深度を持つか。ポストなど深度を使わないRTはfalseにしてメモリを節約する
+	bool Create(int width, int height, DXGI_FORMAT format = DXGI_FORMAT_R8G8B8A8_UNORM, bool hasDepth = true);
 	// 大きさだけを変えて作り直す。ディスクリプタの番号は変わらない。GPUの処理が終わってから呼ぶこと
 	bool Resize(int width, int height);
 
@@ -32,6 +33,7 @@ private:
 	void WriteDescriptors();
 
 	DXGI_FORMAT m_format = DXGI_FORMAT_UNKNOWN;
+	bool m_hasDepth = true;
 	int m_width = 0;
 	int m_height = 0;
 

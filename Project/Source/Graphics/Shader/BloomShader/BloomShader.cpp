@@ -14,6 +14,9 @@ void BloomShader::Create(GraphicsDevice* pGraphicsDevice)
 	PipelineDesc desc;
 	desc.InputLayouts = {};
 	desc.Formats = { DXGI_FORMAT_R16G16B16A16_FLOAT }; // Bloom targets are HDR
+	// 全画面の三角形を描くだけなので深度は使わない。以前は深度テストが有効のまま(LESS・書き込みあり)で、
+	// クリアされない深度に0が書かれた後は「0 < 0」で弾かれ、2回目以降は何も描かれていなかった
+	desc.IsDepth = false;
 	
 	m_topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	
