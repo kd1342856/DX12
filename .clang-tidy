@@ -1,0 +1,74 @@
+# DX12Framework の命名規則チェック（規則の説明は CLAUDE.md）
+# 違反は警告として出すだけ。名前の自動変更はしないので --fix / --fix-errors は使わない
+# （命名は Visual Studio の名前の変更機能で、触ったファイルから順に直す）
+#
+# clang-tidy では型ごとの接頭辞（unique_ptr は up、shared_ptr は sp、weak_ptr は wp、
+# ComPtr は cp）を判定できないため、生ポインタの p 以外はレビューで確認する。
+---
+Checks: >
+  -*,
+  readability-identifier-naming,
+  readability-identifier-length
+WarningsAsErrors: ''
+# Source/ 以下のヘッダーだけ。Library/ の外部ライブラリは対象外
+HeaderFilterRegex: '.*[/\\]Source[/\\].*'
+FormatStyle: none
+CheckOptions:
+  # ---- 決定済み ----
+  # 関数・クラス・構造体・enum はパスカルケース
+  readability-identifier-naming.FunctionCase: CamelCase
+  readability-identifier-naming.MethodCase: CamelCase
+  readability-identifier-naming.ClassCase: CamelCase
+  readability-identifier-naming.StructCase: CamelCase
+  readability-identifier-naming.UnionCase: CamelCase
+  readability-identifier-naming.EnumCase: CamelCase
+  # ローカル変数・引数はローワーキャメルケース
+  readability-identifier-naming.LocalVariableCase: camelBack
+  readability-identifier-naming.ParameterCase: camelBack
+  # 生ポインタは p ＋ 大文字始まり（pMesh）。p の後ろを CamelCase として判定する
+  readability-identifier-naming.LocalPointerPrefix: p
+  readability-identifier-naming.LocalPointerCase: CamelCase
+  readability-identifier-naming.LocalConstantPointerPrefix: p
+  readability-identifier-naming.LocalConstantPointerCase: CamelCase
+  readability-identifier-naming.PointerParameterPrefix: p
+  readability-identifier-naming.PointerParameterCase: CamelCase
+  readability-identifier-naming.ConstantPointerParameterPrefix: p
+  readability-identifier-naming.ConstantPointerParameterCase: CamelCase
+  # メンバー変数は m_ ＋ ローワーキャメルケース（m_frameCount、m_pDevice、m_cpSwapChain）
+  readability-identifier-naming.PrivateMemberPrefix: m_
+  readability-identifier-naming.PrivateMemberCase: camelBack
+  readability-identifier-naming.ProtectedMemberPrefix: m_
+  readability-identifier-naming.ProtectedMemberCase: camelBack
+
+  # ---- 提案（ユーザー未確認） ----
+  # データだけの構造体の公開フィールドは m_ なしのローワーキャメル
+  #（clang-tidy では「データだけの構造体」を区別できないため、公開メンバー全般に適用）
+  readability-identifier-naming.PublicMemberCase: camelBack
+  # 静的メンバーは s_、グローバル変数は g_ ＋ ローワーキャメル
+  readability-identifier-naming.ClassMemberPrefix: s_
+  readability-identifier-naming.ClassMemberCase: camelBack
+  readability-identifier-naming.GlobalVariablePrefix: g_
+  readability-identifier-naming.GlobalVariableCase: camelBack
+  readability-identifier-naming.GlobalPointerPrefix: g_p
+  readability-identifier-naming.GlobalPointerCase: CamelCase
+  # 定数は k ＋ パスカルケース（kMaxGPUScopesPerFrame）
+  readability-identifier-naming.ConstexprVariablePrefix: k
+  readability-identifier-naming.ConstexprVariableCase: CamelCase
+  readability-identifier-naming.GlobalConstantPrefix: k
+  readability-identifier-naming.GlobalConstantCase: CamelCase
+  readability-identifier-naming.StaticConstantPrefix: k
+  readability-identifier-naming.StaticConstantCase: CamelCase
+  readability-identifier-naming.ClassConstantPrefix: k
+  readability-identifier-naming.ClassConstantCase: CamelCase
+  # マクロは大文字のスネークケース
+  readability-identifier-naming.MacroDefinitionCase: UPPER_CASE
+
+  # ---- 1文字の名前 ----
+  # 1文字は避ける。ループのカウンターの i・j だけ許可
+  readability-identifier-length.MinimumVariableNameLength: 2
+  readability-identifier-length.MinimumParameterNameLength: 2
+  readability-identifier-length.MinimumLoopCounterNameLength: 2
+  readability-identifier-length.IgnoredLoopCounterNames: '^[ij]$'
+  readability-identifier-length.IgnoredVariableNames: ''
+  readability-identifier-length.IgnoredParameterNames: ''
+...

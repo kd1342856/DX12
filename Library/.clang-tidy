@@ -1,0 +1,4 @@
+# 外部ライブラリは命名チェックの対象外。
+# Checks を空にすると clang-tidy が「no checks enabled」で失敗するため、
+# 命名チェックだけを有効にし、規則（CheckOptions）は何も設定しない（何も警告しない）
+Checks: '-*,readability-identifier-naming'
