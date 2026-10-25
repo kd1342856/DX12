@@ -287,7 +287,6 @@ void ShaderManager::UpdatePostProcessCB()
 		m_PostProcessData.VignetteIntensity = m_PostProcessSettings.EnableVignette ? m_PostProcessSettings.VignetteIntensity : 0.0f;
 		m_PostProcessData.VignetteSmoothness = m_PostProcessSettings.VignetteSmoothness;
 
-		m_PostProcessData.FilmGrainIntensity = m_PostProcessSettings.EnableFilmGrain ? m_PostProcessSettings.FilmGrainIntensity : 0.0f;
 
 		m_PostProcessData.ChromaticAberrationIntensity = m_PostProcessSettings.EnableChromaticAberration ? m_PostProcessSettings.ChromaticAberrationIntensity : 0.0f;
 
@@ -307,6 +306,12 @@ void ShaderManager::UpdatePostProcessCB()
 
 		m_PostProcessSettings.IsDirty = false;
 	}
+
+	// フィルムグレインはISO感度に連動する(感度を上げるほど粒が荒れる。ISO 800で設定の強さ)。
+	// カメラの設定はIsDirtyを立てずに変わるので、毎フレーム求める
+	m_PostProcessData.FilmGrainIntensity = m_PostProcessSettings.EnableFilmGrain
+		? m_PostProcessSettings.FilmGrainIntensity * std::sqrt((std::max)(m_PostProcessSettings.ISO, 1.0f) / 800.0f)
+		: 0.0f;
 
 	// フィルムグレインのアニメーション用に経過時間を毎フレーム進める(IsDirtyに関係なく)。
 	m_PostProcessData.Time += GameTimer::Instance().DeltaTime();

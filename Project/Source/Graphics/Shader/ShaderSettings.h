@@ -125,12 +125,13 @@ struct PostProcessSettings
 
     // Vignette
     bool  EnableVignette = true;
-    float VignetteIntensity = 1.4f;
+    // 自然な周辺減光(cos^4則)の効き。1で画角どおり、0で無し
+    float VignetteIntensity = 1.0f;
     float VignetteSmoothness = 0.6f;
 
     // Film Grain
     bool  EnableFilmGrain = false;
-    float FilmGrainIntensity = 0.035f;
+    float FilmGrainIntensity = 0.035f; // ISO 800での強さ。ISO感度の平方根に比例して強くなる
 
     // Chromatic Aberration
     bool  EnableChromaticAberration = true;

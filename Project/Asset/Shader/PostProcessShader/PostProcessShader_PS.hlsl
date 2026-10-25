@@ -95,6 +95,32 @@ float4 main(PSInput In) : SV_Target0
     }
 
     //------------------------------------------
+    // 周辺減光(ビネット)。レンズの自然な口径食で、像の明るさは光線とレンズの軸のなす角θのcos^4に比例する。
+    // 画角からθを求めるので、広角ほど強く効く。光の量の話なので、トーンマップの前のリニアで掛ける
+    //------------------------------------------
+    if (g_VignetteIntensity > 0.0001)
+    {
+        const float2 tanAngle = (In.UV * 2.0 - 1.0) * float2(g_TanHalfFovX, g_TanHalfFovY);
+        const float tanSq = dot(tanAngle, tanAngle);
+        const float cos4 = 1.0 / ((1.0 + tanSq) * (1.0 + tanSq));
+        sceneColor *= pow(cos4, g_VignetteIntensity);
+    }
+
+    //------------------------------------------
+    // フィルムグレイン(センサーのノイズ)。光の粒の数のゆらぎ(ショットノイズ)なので、ゆらぎの大きさは
+    // 明るさの平方根に比例する(暗いところほど粒の量は小さいが、明るさに対しては目立つ)。
+    // 強さはISO感度に連動する(C++で求める)。トーンマップの前のリニアで足す
+    //------------------------------------------
+    if (g_FilmGrainIntensity > 0.0001)
+    {
+        const float2 seed = In.UV * float2(1920.0, 1080.0) + frac(g_Time) * 173.0;
+        // 一様な乱数を3つ足して、平均0の山形の分布にする
+        const float noise = (Hash(seed) + Hash(seed + 17.31) + Hash(seed + 41.77) - 1.5) * 2.0;
+        const float luminance = dot(sceneColor, float3(0.2126, 0.7152, 0.0722));
+        sceneColor = max(sceneColor + noise * g_FilmGrainIntensity * sqrt(max(luminance, 0.0)), 0.0);
+    }
+
+    //------------------------------------------
     // ToneMapping
     //------------------------------------------
     if (g_EnableHDR != 0)
@@ -103,30 +129,10 @@ float4 main(PSInput In) : SV_Target0
         sceneColor = ACESFilmicToneMapping(sceneColor);
     }
 
-    // ここまではリニア。ここから先(ビネット・グレイン・明るさ)は表示用のsRGBの値で扱う
+    // ここまではリニア。ここから先(明るさ)は表示用のsRGBの値で扱う
     sceneColor = LinearToSrgb(saturate(sceneColor));
     // 表示ガンマの微調整(既定の1.0では何もしない)。sRGBへのエンコードは上で済んでいる
     sceneColor = pow(sceneColor, 1.0f / g_Gamma);
-
-    //------------------------------------------
-    // ビネット(周辺減光)
-    //------------------------------------------
-    if (g_VignetteIntensity > 0.0001)
-    {
-        float2 uv = In.UV - 0.5;
-        float dist = length(uv) * g_VignetteIntensity;
-        float vignette = 1.0 - smoothstep(g_VignetteSmoothness, 1.0, dist);
-        sceneColor *= vignette;
-    }
-
-    //------------------------------------------
-    // フィルムグレイン(粒状ノイズ)
-    //------------------------------------------
-    if (g_FilmGrainIntensity > 0.0001)
-    {
-        float grain = Hash(In.UV * float2(1920.0, 1080.0) + frac(g_Time) * 173.0);
-        sceneColor += (grain - 0.5) * g_FilmGrainIntensity;
-    }
 
     sceneColor = pow(saturate(sceneColor), 1.0 / max(g_BrightnessGamma, 0.01));
 

@@ -69,6 +69,11 @@ cbuffer cbPostProcess : register(b0)
     uint  g_EnableGodRays;     // 0/1 (光源がカメラの後ろにある等、無効な時も0)
     float g_GodRaysIntensity;  // 最終合成時にシーンへ加算する強さ
     float g_BrightnessGamma;
+
+    // 画角(ビネットのcos^4則に使う)
+    float g_TanHalfFovX;
+    float g_TanHalfFovY;
+    float2 g_PadLens;
 };
 
 struct PSInput

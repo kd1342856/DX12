@@ -175,5 +175,10 @@ namespace CBufferData
 		uint32_t EnableGodRays;
 		float GodRaysIntensity;
 		float BrightnessGamma;
+
+		// 画角(ビネットのcos^4則に使う)。投影行列の1 / _11、1 / _22
+		float TanHalfFovX;
+		float TanHalfFovY;
+		float PadLens[2];
 	};
 }

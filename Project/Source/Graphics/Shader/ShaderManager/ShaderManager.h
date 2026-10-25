@@ -106,6 +106,13 @@ public:
 		m_PostProcessData.CameraFar = farZ;
 	}
 
+	// ビネット(cos^4則)に使う画角を、実際に描画に使ったカメラの投影行列から求める
+	void SetCameraProjection(const Math::Matrix& projection)
+	{
+		m_PostProcessData.TanHalfFovX = 1.0f / (std::max)(projection._11, 1e-4f);
+		m_PostProcessData.TanHalfFovY = 1.0f / (std::max)(projection._22, 1e-4f);
+	}
+
 	// God Raysの光源スクリーン座標。GameScene側で平行光の方向とカメラ行列から毎フレーム計算する。
 	// isValid=false(光源がカメラの後ろ等)の時はGodRays設定が有効でも今フレームは描画しない。
 	// EnableGodRaysもここで確定させる(UpdateConstantBuffers()はDoPostProcessより前に走るため、

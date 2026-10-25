@@ -97,12 +97,13 @@ void PostProcessPanel::Draw(EditorContext& ctx)
             ImGui::Text("Vignette");
             if (ImGui::Checkbox("Enable Vignette", &ctx.PostProcess->EnableVignette)) changed = true;
             if (ImGui::SliderFloat("Vignette Intensity", &ctx.PostProcess->VignetteIntensity, 0.0f, 3.0f, "%.2f")) changed = true;
-            if (ImGui::SliderFloat("Vignette Smoothness", &ctx.PostProcess->VignetteSmoothness, 0.0f, 1.0f, "%.2f")) changed = true;
+            if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"レンズの自然な周辺減光(cos^4則)。画角から求め、1で物理どおり。");
 
             ImGui::Separator();
             ImGui::Text("Film Grain");
             if (ImGui::Checkbox("Enable Film Grain", &ctx.PostProcess->EnableFilmGrain)) changed = true;
             if (ImGui::SliderFloat("Film Grain Intensity", &ctx.PostProcess->FilmGrainIntensity, 0.0f, 0.3f, "%.3f")) changed = true;
+            if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"ISO 800での強さ。ISO感度(Use Camera SettingsのISO)の平方根に比例して強くなり、暗いところほど粒の量は小さい。");
 
             ImGui::Separator();
             ImGui::Text("Chromatic Aberration");

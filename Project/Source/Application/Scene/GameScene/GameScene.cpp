@@ -942,6 +942,7 @@ void GameScene::DoPostProcess(Entity cameraEntity, float clearR, float clearG, f
         if (auto* pCamData = ecs.TryGetComponent<CameraData>(cameraEntity))
         {
             ShaderManager::Instance().SetCameraNearFar(pCamData->m_nearZ, pCamData->m_farZ);
+            ShaderManager::Instance().SetCameraProjection(pCamData->m_projMatrix);
         }
     }
 
