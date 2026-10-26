@@ -143,6 +143,18 @@ void UpdateIrradiance(uint3 groupId : SV_GroupID, uint3 groupThreadId : SV_Group
     RWTexture2D<float4> irradianceTex = ResourceDescriptorHeap[g_constants.IrradianceUAVIndex];
 
     const float3 texelDirection = DDGIOctahedralDecode((float2(groupThreadId.xy) + 0.5) / float(kDDGIIrradianceTexels) * 2.0 - 1.0);
+    const uint2 pixel = DDGITexelPosition(probeIndex, groupThreadId.xy, kDDGIIrradianceTexels);
+    const bool isReset = (g_constants.ResetHistory != 0);
+    const float4 previous = irradianceTex[pixel];
+
+    // 1本のレイの明るさの上限。前の値の何倍までにして、小さく明るい物(電球のかさの発光など)に
+    // レイがたまたま当たったフレームだけ値が跳ねる(ちらつく)のを抑える。照明を点けたときなどは、
+    // 毎フレーム上限が上がっていくので数フレームで追いつく。kMinRayLuminanceは真っ暗な所から明るくなるときの下限(nit)
+    const float kRayLuminanceRatio = 8.0;
+    const float kMinRayLuminance = 1.0;
+    const float3 kLuminanceWeights = float3(0.2126, 0.7152, 0.0722);
+    const float maxRayLuminance = max(dot(previous.rgb, kLuminanceWeights) * kRayLuminanceRatio, kMinRayLuminance);
+
     float3 radianceSum = 0.0;
     float weightSum = 0.0;
     uint backfaceCount = 0;
@@ -154,17 +166,25 @@ void UpdateIrradiance(uint3 groupId : SV_GroupID, uint3 groupThreadId : SV_Group
             ++backfaceCount;
         }
         const float weight = saturate(dot(texelDirection, RayDirection(rayIndex, g_constants.RaysPerProbe)));
-        radianceSum += data.rgb * weight;
+        float3 radiance = data.rgb;
+        const float rayLuminance = dot(radiance, kLuminanceWeights);
+        if (!isReset && rayLuminance > maxRayLuminance)
+        {
+            // 色合いは保ったまま明るさだけを抑える
+            radiance *= maxRayLuminance / rayLuminance;
+        }
+        radianceSum += radiance * weight;
         weightSum += weight;
     }
     const float3 irradiance = (weightSum > 0.0) ? radianceSum / weightSum : 0.0;
-    // レイの4分の1以上が裏側に当たるプローブは、壁や物の中にあるので使わない
+    // レイの4分の1以上が裏側に当たるプローブは、壁や物の中にあるので使わない。
+    // 壁の近くでは割合がしきい値をまたいで毎フレーム入れ替わり、まわりの明るさがパッと変わるので、前の値と混ぜて滑らかに変える
     const float validity = (backfaceCount * 4 < g_constants.RaysPerProbe) ? 1.0 : 0.0;
+    const float kValidityHysteresis = 0.9;
 
-    const uint2 pixel = DDGITexelPosition(probeIndex, groupThreadId.xy, kDDGIIrradianceTexels);
-    const float hysteresis = (g_constants.ResetHistory != 0) ? 0.0 : g_constants.Hysteresis;
-    const float3 previous = irradianceTex[pixel].rgb;
-    irradianceTex[pixel] = float4(lerp(irradiance, previous, hysteresis), validity);
+    const float hysteresis = isReset ? 0.0 : g_constants.Hysteresis;
+    const float validityHysteresis = isReset ? 0.0 : kValidityHysteresis;
+    irradianceTex[pixel] = float4(lerp(irradiance, previous.rgb, hysteresis), lerp(validity, previous.a, validityHysteresis));
 }
 
 //--------------------------------
