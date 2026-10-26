@@ -2,6 +2,7 @@
 #include "../SceneBase.h"
 #include "../../../Framework/Manager/Scene/Scene.h"
 #include "../../../Graphics/GPUResource/RenderTarget/RenderTarget.h"
+#include "../../../Graphics/Renderer/RenderGraph.h"
 
 class GameScene : public SceneBase
 {
@@ -22,6 +23,8 @@ private:
     void Render();
     void RenderGame();
     void RenderEditor();
+    // 1フレームの描画をレンダーグラフに組み立てて実行する(ゲームとエディターで共通。違いはisEditorの条件だけ)
+    void RenderFrame(Entity cameraEntity, bool isEditor);
     // Bloom/DOF/ToneMapping等の画面全体エフェクト一式。RenderGame/RenderEditor共通処理として
     // まとめてある(2箇所に同じロジックをコピペしていると、片方だけ直して食い違う事故が起きるため)。
     // 結果は常にバックバッファへ合成する。clearR/G/B: 合成前にバックバッファをクリアする色。
@@ -62,5 +65,7 @@ private:
 
     // TAAの履歴を捨てるかの判定用(カメラの切り替え・瞬間移動)
     Entity m_temporalCameraEntity = INVALID_ENTITY;
+    // 1フレームの描画の組み立て(毎フレーム組み立て直す)
+    RenderGraph m_renderGraph;
     Math::Vector3 m_temporalCameraPosition = Math::Vector3::Zero;
 };

@@ -629,76 +629,108 @@ void GameScene::RenderDebugPreviewCamera()
 
 void GameScene::RenderGame()
 {
+    RenderFrame(m_gameCameraEntity, false);
+}
+
+void GameScene::RenderFrame(Entity cameraEntity, bool isEditor)
+{
     auto renderSystem = GameManager::Instance().GetRenderSystem();
     auto spriteRenderSystem = GameManager::Instance().GetSpriteRenderSystem();
     if (!renderSystem || !spriteRenderSystem) return;
 
-    if (m_gameCameraEntity != INVALID_ENTITY)
-    {
-        auto* pCmdList = GraphicsDevice::Instance().GetCmdList();
+    auto* pSceneHDR = Renderer::GetSceneHDRRenderTarget();
+    RenderGraph& graph = m_renderGraph;
+    const bool hasCamera = (cameraEntity != INVALID_ENTITY);
+    using Profiling = RenderGraph::Profiling;
 
-        UpdateLights(m_gameCameraEntity);
-        RenderLocalLightShadows();
-        UpdateGlobalIllumination();
-        CaptureReflectionProbe();
-        BeginTemporalFrame(m_gameCameraEntity);
+    // ゲームでカメラがまだ無いとき(読み込み中など)は、画面を黒にするだけ
+    if (!hasCamera && !isEditor)
+    {
+        graph.AddPass("Clear", []() { GraphicsDevice::Instance().ClearBackBuffer(0.0f, 0.0f, 0.0f, 1.0f); });
+        graph.Execute();
+        return;
+    }
+
+    // エディターはカメラが無くてもポストを通して背景の色を出すので、シーンの色と深度を先にクリアする
+    if (isEditor)
+    {
+        graph.AddPass("SceneClear", [pSceneHDR]()
+        {
+            GraphicsDevice::Instance().SetRenderTarget(pSceneHDR);
+            pSceneHDR->Clear(0.1f, 0.1f, 0.2f, 1.0f);
+        });
+    }
+
+    if (hasCamera)
+    {
+        // ライトと室内判定・反射プローブとDDGIの範囲(シェーダーの定数)を、このフレームのカメラで決める
+        graph.AddPass("UpdateLights", [this, cameraEntity]() { UpdateLights(cameraEntity); });
+        // 以下の3つは、中でそれぞれの名前で時間を計っている
+        graph.AddPass("LocalLightShadows", [this]() { RenderLocalLightShadows(); }, {}, Profiling::None);
+        graph.AddPass("GlobalIllumination", [this]() { UpdateGlobalIllumination(); }, {}, Profiling::None);
+        graph.AddPass("ReflectionProbe", [this]() { CaptureReflectionProbe(); }, {}, Profiling::None);
+        graph.AddPass("TemporalSetup", [this, cameraEntity]() { BeginTemporalFrame(cameraEntity); });
         // 深度プリパス: シーンの深度と、SSAO・SSR用の法線を描く。メインの不透明の描画はこの深度にEQUALで描く
-        auto* pSceneHDR = Renderer::GetSceneHDRRenderTarget();
-        renderSystem->RenderNormalPrepass(m_gameCameraEntity, Renderer::GetNormalPrepassRenderTarget(), pSceneHDR);
-        RenderSSAO(m_gameCameraEntity);
-
+        graph.AddPass("DepthPrepass", [renderSystem, cameraEntity, pSceneHDR]()
+        {
+            renderSystem->RenderNormalPrepass(cameraEntity, Renderer::GetNormalPrepassRenderTarget(), pSceneHDR);
+        }, {}, Profiling::None);
+        graph.AddPass("SSAO", [this, cameraEntity]() { RenderSSAO(cameraEntity); });
         // ReflectionComponent::PreDraw()がここで平面の位置/法線をワールド空間へ変換する。
-        // 以前はRenderGame()経路(実際のゲームプレイ=FPSカメラ)でこれが一度も呼ばれておらず、
-        // RenderReflection()が初期値(point=(0,0,0), normal=(0,0,1))のまま鏡を描画していた
-        // (ゲームプレイ中の反射が実際の窓の位置・向きを無視していた原因)。
-        auto scriptSystemPreDraw = GameManager::Instance().GetScriptSystem();
-        if (scriptSystemPreDraw) {
-            PROFILE_CPU_SCOPE("ScriptPreDraw");
-            PROFILE_GPU_SCOPE(pCmdList, "ScriptPreDraw");
-            scriptSystemPreDraw->PreDraw();
-        }
-
-        // 深度はプリパスで描いたので、色だけをクリアする
-        GraphicsDevice::Instance().SetRenderTarget(pSceneHDR);
-        pSceneHDR->ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-
+        // RenderReflection()より後に呼ぶと、1フレーム遅れた(古い)平面の情報を使ってしまう
+        graph.AddPass("ScriptPreDraw", []()
         {
-            PROFILE_CPU_SCOPE("Reflection");
-            PROFILE_GPU_SCOPE(pCmdList, "Reflection");
-            renderSystem->RenderReflection(m_gameCameraEntity);
-        }
+            if (auto scriptSystem = GameManager::Instance().GetScriptSystem())
+            {
+                scriptSystem->PreDraw();
+            }
+        });
+        // ゲームは深度をプリパスで描いたので、色だけをクリアする(エディターは最初にクリア済み)
+        if (!isEditor)
         {
-            PROFILE_CPU_SCOPE("Scene");
-            PROFILE_GPU_SCOPE(pCmdList, "Scene");
-            renderSystem->RenderScene(m_gameCameraEntity, pSceneHDR, true);
+            graph.AddPass("SceneClear", [pSceneHDR]()
+            {
+                GraphicsDevice::Instance().SetRenderTarget(pSceneHDR);
+                pSceneHDR->ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+            });
         }
-        // Script Draw (Player UI, GameClear/Over 表示など)
-        // ※ DebugWireはゲームモードでは非表示
-        auto scriptSystem = GameManager::Instance().GetScriptSystem();
-        if (scriptSystem) {
-            PROFILE_CPU_SCOPE("ScriptDraw");
-            PROFILE_GPU_SCOPE(pCmdList, "ScriptDraw");
-            scriptSystem->Draw();
-        }
-        // 速度(TAA・モーションブラー用)
-        renderSystem->RenderVelocity(m_gameCameraEntity, pSceneHDR);
-        EndTemporalFrame();
-
-        // Phase 4: PostProcess (Bloom, DOF, ToneMapping, Vignette, Grain, Chromatic Aberration...)
-        DoPostProcess(m_gameCameraEntity, 0.0f, 0.0f, 0.0f);
-
-        // UI(スプライト)はウィンドウ解像度のバックバッファに、ポストの後で合成する。
-        // HDRのシーンに描くと、トーンマップやsRGBのエンコードがUIの色にも掛かってしまうため
+        graph.AddPass("Reflection", [renderSystem, cameraEntity]() { renderSystem->RenderReflection(cameraEntity); });
+        graph.AddPass("Scene", [renderSystem, cameraEntity, pSceneHDR]() { renderSystem->RenderScene(cameraEntity, pSceneHDR, true); },
+            { { pSceneHDR->GetResource(), D3D12_RESOURCE_STATE_RENDER_TARGET }, { pSceneHDR->GetDepthResource(), D3D12_RESOURCE_STATE_DEPTH_WRITE } });
+        // ゲームはプレイヤーのUI・クリアの表示など、エディターはデバッグの線も描く
+        graph.AddPass("ScriptDraw", []()
         {
-            PROFILE_CPU_SCOPE("Sprite");
-            PROFILE_GPU_SCOPE(pCmdList, "Sprite");
-            spriteRenderSystem->Render();
+            if (auto scriptSystem = GameManager::Instance().GetScriptSystem())
+            {
+                scriptSystem->Draw();
+            }
+        });
+        if (isEditor)
+        {
+            graph.AddPass("DebugDraw", [cameraEntity]()
+            {
+                NavMeshManager::Instance().DrawDebugMesh();
+                CollisionManager::Instance().DrawDebugWires(0, 0, static_cast<float>(Renderer::GetRenderWidth()), static_cast<float>(Renderer::GetRenderHeight()), cameraEntity);
+            });
         }
+        // 速度(TAA・モーションブラー用)。中で時間を計っている
+        graph.AddPass("Velocity", [this, renderSystem, cameraEntity, pSceneHDR]()
+        {
+            renderSystem->RenderVelocity(cameraEntity, pSceneHDR);
+            EndTemporalFrame();
+        }, {}, Profiling::None);
     }
-    else
-    {
-        GraphicsDevice::Instance().ClearBackBuffer(0.0f, 0.0f, 0.0f, 1.0f);
-    }
+
+    // ポスト(SSR・霧・TAA・モーションブラー・自動露出・ブルーム・DOF・ゴッドレイ・トーンマップ)。中で時間を計っている
+    const float clearValue = isEditor ? 0.1f : 0.0f;
+    const float clearBlue = isEditor ? 0.2f : 0.0f;
+    graph.AddPass("PostProcess", [this, cameraEntity, clearValue, clearBlue]() { DoPostProcess(cameraEntity, clearValue, clearValue, clearBlue); }, {}, Profiling::None);
+
+    // UI(スプライト)はウィンドウ解像度のバックバッファに、ポストの後で合成する。
+    // HDRのシーンに描くと、トーンマップやsRGBのエンコードがUIの色にも掛かってしまうため
+    graph.AddPass("Sprite", [spriteRenderSystem]() { spriteRenderSystem->Render(); });
+
+    graph.Execute();
 }
 
 void GameScene::BeginTemporalFrame(Entity cameraEntity)
@@ -1142,77 +1174,6 @@ void GameScene::DoPostProcess(Entity cameraEntity, float clearR, float clearG, f
 
 void GameScene::RenderEditor()
 {
-    auto renderSystem = GameManager::Instance().GetRenderSystem();
-    auto spriteRenderSystem = GameManager::Instance().GetSpriteRenderSystem();
-    if (!renderSystem || !spriteRenderSystem) return;
-
-    auto* pSceneHDR = Renderer::GetSceneHDRRenderTarget();
-    GraphicsDevice::Instance().SetRenderTarget(pSceneHDR);
-    pSceneHDR->Clear(0.1f, 0.1f, 0.2f, 1.0f);
-
-    auto* pCmdList = GraphicsDevice::Instance().GetCmdList();
-
-    if (m_editorCameraEntity != INVALID_ENTITY)
-    {
-        UpdateLights(m_editorCameraEntity);
-        RenderLocalLightShadows();
-        UpdateGlobalIllumination();
-        CaptureReflectionProbe();
-        BeginTemporalFrame(m_editorCameraEntity);
-        // 深度プリパス(RenderGameと同じ)。シーンの深度はここで描き直す
-        renderSystem->RenderNormalPrepass(m_editorCameraEntity, Renderer::GetNormalPrepassRenderTarget(), pSceneHDR);
-        RenderSSAO(m_editorCameraEntity);
-
-        // ReflectionComponent::PreDraw()がここで平面の位置/法線をワールド空間へ変換する。
-        // RenderReflection()より後に呼んでいると1フレーム遅れた(古い)平面情報を使ってしまうので、
-        // 先に呼んでおく(以前はScriptDraw部分でRenderScene/Sprite描画より後に呼ばれていた)。
-        auto scriptSystem = GameManager::Instance().GetScriptSystem();
-        if (scriptSystem) {
-            PROFILE_CPU_SCOPE("ScriptPreDraw");
-            PROFILE_GPU_SCOPE(pCmdList, "ScriptPreDraw");
-            scriptSystem->PreDraw();
-        }
-
-        {
-            // 以前はRenderGame()経由(FPSカメラ)でしか呼ばれておらず、エディタのフリーカメラでは
-            // 反射テクスチャが直前のゲームプレイ時点のまま凍結していた(反射のデバッグが
-            // 事実上できなかった原因)。フリーカメラでも都度更新するようにする。
-            PROFILE_CPU_SCOPE("Reflection");
-            PROFILE_GPU_SCOPE(pCmdList, "Reflection");
-            renderSystem->RenderReflection(m_editorCameraEntity);
-        }
-        {
-            PROFILE_CPU_SCOPE("Scene");
-            PROFILE_GPU_SCOPE(pCmdList, "Scene");
-            renderSystem->RenderScene(m_editorCameraEntity, pSceneHDR, true);
-        }
-        // Script Draw (デバッグワイヤー等表示)
-        if (scriptSystem) {
-            PROFILE_CPU_SCOPE("ScriptDraw");
-            PROFILE_GPU_SCOPE(pCmdList, "ScriptDraw");
-            scriptSystem->Draw();
-        }
-        {
-            PROFILE_CPU_SCOPE("DebugDraw");
-            PROFILE_GPU_SCOPE(pCmdList, "DebugDraw");
-            NavMeshManager::Instance().DrawDebugMesh();
-            CollisionManager::Instance().DrawDebugWires(0, 0, static_cast<float>(Renderer::GetRenderWidth()), static_cast<float>(Renderer::GetRenderHeight()), m_editorCameraEntity);
-        }
-        // 速度(TAA・モーションブラー用)
-        renderSystem->RenderVelocity(m_editorCameraEntity, pSceneHDR);
-        EndTemporalFrame();
-    }
-
-    // Post Process to Back Buffer
-    DoPostProcess(m_editorCameraEntity, 0.1f, 0.1f, 0.2f);
-
-    // UI(スプライト)はポストの後でバックバッファに合成する(RenderGameと同じ)
-    {
-        auto* pCmdList = GraphicsDevice::Instance().GetCmdList();
-        PROFILE_CPU_SCOPE("Sprite");
-        PROFILE_GPU_SCOPE(pCmdList, "Sprite");
-        spriteRenderSystem->Render();
-    }
-
+    RenderFrame(m_editorCameraEntity, true);
     Editor::Draw();
 }

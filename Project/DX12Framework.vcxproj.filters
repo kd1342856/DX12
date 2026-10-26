@@ -780,6 +780,9 @@
     <ClCompile Include="Source\Graphics\Shader\HDRCompositeShader\HDRCompositeShader.cpp">
       <Filter>Source\Graphics\Shader\HDRCompositeShader</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Graphics\Renderer\RenderGraph.cpp">
+      <Filter>Source\Graphics\Renderer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Application\Object\Script\Player\Player.h">
@@ -1336,6 +1339,9 @@
     </ClInclude>
     <ClInclude Include="Source\Graphics\Shader\HDRCompositeShader\HDRCompositeShader.h">
       <Filter>Source\Graphics\Shader\HDRCompositeShader</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Graphics\Renderer\RenderGraph.h">
+      <Filter>Source\Graphics\Renderer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
