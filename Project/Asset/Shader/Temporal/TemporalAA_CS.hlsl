@@ -7,7 +7,7 @@
 //   - 速度は3x3の中で一番手前のピクセルのものを使う(輪郭が背景の速度で引きずられないように)
 //   - 履歴はCatmull-Romで読む(バイリニアより、混ぜ続けてもぼけにくい)
 //   - 履歴は今の3x3の色の分布(YCoCgの平均±標準偏差)の範囲へ寄せる(ゴーストを抑える)
-//   - 明るいピクセルほど重みを下げて混ぜる(HDRの明るい点がちらつかないように)
+//   - まわりより明るいピクセルほど重みを下げて混ぜる(HDRの明るい点がちらつかないように)
 //
 //================================
 
@@ -40,10 +40,13 @@ float3 YCoCgToRGB(float3 c)
     return float3(c.x + c.y - c.z, c.x + c.z, c.x - c.y - c.z);
 }
 
-// 明るさで重みを付ける(Karis)。YCoCgのYを輝度として使う
-float LumaWeight(float3 yCoCg)
+// 明るさで重みを付ける(Karis)。YCoCgのYを輝度として使う。
+// 基準の明るさ(referenceLuma)をまわりの平均にする。1で決め打ちにすると、暗い場面(0.01前後)では
+// ガラスに映った電球のような1ピクセルより小さい明るい点が、ジッターで写ったフレームだけ
+// 0.1ほど明るさを足し、暗さの10倍の点滅になっていた
+float LumaWeight(float3 yCoCg, float referenceLuma)
 {
-    return 1.0 / (1.0 + max(yCoCg.x, 0.0));
+    return 1.0 / (1.0 + max(yCoCg.x, 0.0) / referenceLuma);
 }
 
 // 9タップのCatmull-Romを、バイリニアの5回の読み込みで近似する
@@ -155,14 +158,17 @@ void main(uint3 dispatchId : SV_DispatchThreadID)
     // 分散で決めた箱へ履歴を寄せる。箱の広さは標準偏差の1倍
     const float3 mean = moment1 / 9.0;
     const float3 sigma = sqrt(abs(moment2 / 9.0 - mean * mean));
+    // 明るさの重みの基準。真ん中を除いた8ピクセルの平均(真ん中だけの明るい点で基準が上がらないように)
+    const float kMinReferenceLuma = 1e-4;
+    const float referenceLuma = max((moment1.x - center.x) / 8.0, kMinReferenceLuma);
     history = ClipToAABB(history, mean - sigma, mean + sigma);
 
     // 速く動いているところは今のフレームを多めに混ぜ、残像を短くする
     const float velocityPixels = length(velocity * size);
     const float currentWeight = lerp(g_constants.CurrentWeight, 0.5, saturate(velocityPixels / 40.0));
 
-    const float currentLumaWeight = LumaWeight(center) * currentWeight;
-    const float historyLumaWeight = LumaWeight(history) * (1.0 - currentWeight);
+    const float currentLumaWeight = LumaWeight(center, referenceLuma) * currentWeight;
+    const float historyLumaWeight = LumaWeight(history, referenceLuma) * (1.0 - currentWeight);
     const float3 result = (center * currentLumaWeight + history * historyLumaWeight) / (currentLumaWeight + historyLumaWeight);
 
     outputTex[pixel] = float4(max(YCoCgToRGB(result), 0.0), 1.0);
