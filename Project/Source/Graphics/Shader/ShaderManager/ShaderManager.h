@@ -40,7 +40,6 @@ public:
 	RendererSettings& GetRendererSettings() { return m_RendererSettings; }
 	LightingSettings& GetLightingSettings() { return m_LightingSettings; }
 	ShadowSettings& GetShadowSettings() { return m_ShadowSettings; }
-	IBLSettings& GetIBLSettings() { return m_IBLSettings; }
 	PostProcessSettings& GetPostProcessSettings() { return m_PostProcessSettings; }
 	SSAOSettings& GetSSAOSettings() { return m_SSAOSettings; }
 	DebugSettings& GetDebugSettings() { return m_DebugSettings; }
@@ -174,7 +173,6 @@ private:
 	void UpdateRendererCB();
 	void UpdateLightingCB();
 	void UpdateShadowCB();
-	void UpdateIBLCB();
 	void UpdatePostProcessCB();
 	void UpdateDebugCB();
 	void UpdateFogCB();
@@ -182,7 +180,6 @@ private:
 	RendererSettings m_RendererSettings;
 	LightingSettings m_LightingSettings;
 	ShadowSettings m_ShadowSettings;
-	IBLSettings m_IBLSettings;
 	PostProcessSettings m_PostProcessSettings;
 	SSAOSettings m_SSAOSettings;
 	DebugSettings m_DebugSettings;

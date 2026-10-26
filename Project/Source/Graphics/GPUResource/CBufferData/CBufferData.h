@@ -75,17 +75,17 @@ namespace CBufferData
 	{
 		int SL_Count;
 		// ダミーIBLと空の明るさ(nitの値に露出を掛けたもの)
-		float IBLLuminance;
+		float PadLight0; // 未使用(以前のダミーIBLの明るさ)。並びを変えないために残す
 		float SkyLuminance;
 		float ContactShadowLength; // コンタクトシャドウでたどる長さ(m)。0なら使わない(反射・反射プローブの描画)
 		Math::Vector3 AmbientLight;
-		float IndirectShadowFloor; // 影が落ちる場所に残す間接光(Ambient/IBL)の下限 0..1
+		float PadLight1; // 未使用(以前の影の中の間接光の下限)
 		Math::Vector3 DL_Dir;
 		float DL_ShadowBias;
 		Math::Vector3 DL_Color;
 		float DL_ShadowPower;
 		Math::Matrix DL_mLightVP[3];
-		Math::Vector4 DL_CascadeSplits;
+		Math::Vector4 PadLight2; // 未使用(カスケードの分割。平行光の影はシャドウマップ1枚)
 		SpotLight SL[10];
 		Math::Vector3 DistanceFogColor;
 		float DistanceFogDensity;
@@ -153,7 +153,7 @@ namespace CBufferData
 		float BlurRadius;
 		// Vignette
 		float VignetteIntensity;
-		float VignetteSmoothness;
+		float PadVignette; // 未使用(以前のビネットの柔らかさ。今はcos^4則で画角から求める)
 		// Film Grain
 		float FilmGrainIntensity;
 

@@ -5,15 +5,14 @@
 
 void IBLPanel::Draw(EditorContext& ctx)
 {
-    if (!ctx.IBL || !ctx.Lighting) return;
+    if (!ctx.Lighting) return;
 
-    if (ImGui::CollapsingHeader("IBL Settings", ImGuiTreeNodeFlags_DefaultOpen))
+    // ダミーIBL(空と地面の2色)と、影の中に残す間接光の下限(Indirect Shadow Floor)は、
+    // Step 5でDDGIと反射プローブに置き換えたので、設定ごと外した
+    if (ImGui::CollapsingHeader("Ambient / Indoor Settings", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        bool iChanged = false;
         bool lChanged = false;
 
-        // ダミーIBL(空と地面の2色)と、影の中に残す間接光の下限(Indirect Shadow Floor)は、
-        // Step 5でDDGIと反射プローブに置き換えたため、もう使っていない
         ImGui::TextDisabled(u8"拡散の環境光はDDGI、鏡面は反射プローブ(ダミーIBLは廃止)");
 
         lChanged |= ImGui::DragFloat3("Ambient Luminance (nit)", &ctx.Lighting->AmbientLight.x, 0.001f, 0.0f, 1000.0f, "%.3f");
@@ -36,7 +35,6 @@ void IBLPanel::Draw(EditorContext& ctx)
             ImGui::SetTooltip(u8"RoomAreaの範囲をこの分だけ広げて判定する(境界上の壁・床も室内扱いにするため)。");
         }
 
-        if (iChanged) ctx.IBL->IsDirty = true;
         if (lChanged) ctx.Lighting->IsDirty = true;
     }
 

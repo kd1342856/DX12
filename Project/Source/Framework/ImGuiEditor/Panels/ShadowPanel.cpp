@@ -19,10 +19,6 @@ void ShadowPanel::Draw(EditorContext& ctx)
         sChanged |= ImGui::DragFloat("Shadow Bias", &ctx.Shadow->ShadowBias, 0.0001f, 0.0f, 0.01f, "%.4f");
         SettingsWidgets::DefaultMark(*ctx.Shadow, ctx.Shadow->ShadowBias);
         
-        ImGui::Text("Cascaded Shadow Maps");
-        sChanged |= ImGui::DragFloat4("Cascade Splits", &ctx.Shadow->CascadeSplits.x, 0.01f, 0.01f, 1.0f);
-        SettingsWidgets::DefaultMark(*ctx.Shadow, ctx.Shadow->CascadeSplits);
-
         if (sChanged) ctx.Shadow->IsDirty = true;
     }
 }

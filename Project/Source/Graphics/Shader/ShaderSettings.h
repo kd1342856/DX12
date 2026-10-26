@@ -27,7 +27,6 @@ constexpr DebugViewItem DebugViewNames[] = {
 struct RendererSettings
 {
     bool IsDirty = true;
-    bool EnablePBR = true;
 
     // SSR (スクリーンスペース反射)。平面反射(専用の反射カメラ設定)が無いガラス等の
     // フォールバックとして、Opaqueパスの深度+カラーをレイマーチする。
@@ -52,7 +51,6 @@ struct RendererSettings
     template<typename TVisitor>
     void VisitFields(TVisitor&& visit)
     {
-        visit("EnablePBR", EnablePBR);
         visit("SSRStepSize", SSRStepSize);
         visit("SSROpaqueIntensity", SSROpaqueIntensity);
         visit("EnableContactShadows", EnableContactShadows);
@@ -74,10 +72,6 @@ struct LightingSettings
     // 空(スカイスフィアのテクスチャ)の明るさ。テクスチャの値1.0が何nitになるか
     float SkyLuminance = 0.05f;
 
-    // 平行光(月明かり等)のシャドウマップで遮られている場所に残す間接光の下限。
-    // 0 = 完全に光源が届かない場所は真っ黒、1 = 影の有無で環境光が変化しない(従来通り)。
-    float IndirectShadowFloor = 0.05f;
-
     // Indoor mask: pixels inside any RoomArea AABB never receive outside light (moon/ambient/sky),
     // treated as fully in the moon's shadow regardless of whether the shadow map actually covers them.
     bool EnableIndoorMask = true;
@@ -92,7 +86,6 @@ struct LightingSettings
         visit("DirectionalLightIntensity", DirectionalLightIntensity);
         visit("AmbientLight", AmbientLight);
         visit("SkyLuminance", SkyLuminance);
-        visit("IndirectShadowFloor", IndirectShadowFloor);
         visit("EnableIndoorMask", EnableIndoorMask);
         visit("IndoorMargin", IndoorMargin);
     }
@@ -104,7 +97,6 @@ struct ShadowSettings
     bool EnableShadows = true;
     float ShadowPower = 2.5f;
     float ShadowBias = 0.001f;
-    DirectX::XMFLOAT4 CascadeSplits = { 0.1f, 0.3f, 0.6f, 1.0f };
 
     template<typename TVisitor>
     void VisitFields(TVisitor&& visit)
@@ -112,22 +104,6 @@ struct ShadowSettings
         visit("EnableShadows", EnableShadows);
         visit("ShadowPower", ShadowPower);
         visit("ShadowBias", ShadowBias);
-        visit("CascadeSplits", CascadeSplits);
-    }
-};
-
-struct IBLSettings
-{
-    bool IsDirty = true;
-    bool EnableIBL = true;
-    // ダミーIBL(空と地面の2色)の明るさ。2色の値1.0が何nitになるか
-    float IBLIntensity = 0.02f;
-
-    template<typename TVisitor>
-    void VisitFields(TVisitor&& visit)
-    {
-        visit("EnableIBL", EnableIBL);
-        visit("IBLIntensity", IBLIntensity);
     }
 };
 
@@ -178,7 +154,6 @@ struct PostProcessSettings
     bool  EnableVignette = true;
     // 自然な周辺減光(cos^4則)の効き。1で画角どおり、0で無し
     float VignetteIntensity = 1.0f;
-    float VignetteSmoothness = 0.6f;
 
     // Film Grain
     bool  EnableFilmGrain = false;
@@ -230,7 +205,6 @@ struct PostProcessSettings
         visit("BloomRadius", BloomRadius);
         visit("EnableVignette", EnableVignette);
         visit("VignetteIntensity", VignetteIntensity);
-        visit("VignetteSmoothness", VignetteSmoothness);
         visit("EnableFilmGrain", EnableFilmGrain);
         visit("FilmGrainIntensity", FilmGrainIntensity);
         visit("EnableChromaticAberration", EnableChromaticAberration);

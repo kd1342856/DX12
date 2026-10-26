@@ -79,7 +79,6 @@ void Editor::Draw()
     ctx.Renderer = &ShaderManager::Instance().GetRendererSettings();
     ctx.Lighting = &ShaderManager::Instance().GetLightingSettings();
     ctx.Shadow = &ShaderManager::Instance().GetShadowSettings();
-    ctx.IBL = &ShaderManager::Instance().GetIBLSettings();
     ctx.PostProcess = &ShaderManager::Instance().GetPostProcessSettings();
     ctx.SSAO = &ShaderManager::Instance().GetSSAOSettings();
     ctx.Debug = &ShaderManager::Instance().GetDebugSettings();

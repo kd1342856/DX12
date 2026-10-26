@@ -33,7 +33,7 @@ cbuffer cbPostProcess : register(b0)
     // Vignette
     //---------------------------------
     float g_VignetteIntensity;
-    float g_VignetteSmoothness;
+    float g_PadVignette; // 未使用(以前のビネットの柔らかさ)
     //---------------------------------
     // Film Grain
     //---------------------------------

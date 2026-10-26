@@ -47,10 +47,6 @@ void RendererPanel::Draw(EditorContext& ctx)
         {
             bool changed = false;
 
-            if (ImGui::Checkbox("Enable PBR", &ctx.Renderer->EnablePBR)) changed = true;
-            SettingsWidgets::DefaultMark(*ctx.Renderer, ctx.Renderer->EnablePBR);
-
-            ImGui::Separator();
             ImGui::Text("SSR (Screen Space Reflection)");
             if (ImGui::Checkbox("Enable SSR", &ctx.Renderer->EnableSSR)) changed = true;
             SettingsWidgets::DefaultMark(*ctx.Renderer, ctx.Renderer->EnableSSR);

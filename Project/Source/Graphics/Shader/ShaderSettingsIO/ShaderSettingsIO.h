@@ -4,10 +4,10 @@
 
 //=============================
 //
-// シェーダーの設定(ShaderManagerが持つRenderer・Lighting・Shadow・IBL・PostProcess・SSAO・Fog)のJSONへの読み書き
+// シェーダーの設定(ShaderManagerが持つRenderer・Lighting・Shadow・PostProcess・SSAO・Fog)のJSONへの読み書き
 //
 //   保存する値は、各設定の構造体のVisitFieldsに並べたもの。JSONは
-//     { "Renderer": { "EnablePBR": true, ... }, "Lighting": { ... }, ... }
+//     { "Renderer": { "SSRStepSize": 0.35, ... }, "Lighting": { ... }, ... }
 //   の形で、シーンのJSON(ルートに同じ形で入る)、プリセット、A/B比較で共通に使う。
 //
 //=============================

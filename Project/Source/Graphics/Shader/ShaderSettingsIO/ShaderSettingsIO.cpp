@@ -116,13 +116,12 @@ namespace
 
     // 設定のグループをJSONのキーと組にして順に渡す
     template<typename TFunction>
-    void ForEachGroup(RendererSettings& renderer, LightingSettings& lighting, ShadowSettings& shadow, IBLSettings& ibl,
+    void ForEachGroup(RendererSettings& renderer, LightingSettings& lighting, ShadowSettings& shadow,
         PostProcessSettings& postProcess, SSAOSettings& ssao, FogSettings& fog, TFunction&& function)
     {
         function("Renderer", renderer);
         function("Lighting", lighting);
         function("Shadow", shadow);
-        function("IBL", ibl);
         function("PostProcess", postProcess);
         function("SSAO", ssao);
         function("Fog", fog);
@@ -148,7 +147,7 @@ nlohmann::json ShaderSettingsIO::Capture()
 {
     ShaderManager& manager = ShaderManager::Instance();
     nlohmann::json json = nlohmann::json::object();
-    ForEachGroup(manager.GetRendererSettings(), manager.GetLightingSettings(), manager.GetShadowSettings(), manager.GetIBLSettings(),
+    ForEachGroup(manager.GetRendererSettings(), manager.GetLightingSettings(), manager.GetShadowSettings(),
         manager.GetPostProcessSettings(), manager.GetSSAOSettings(), manager.GetFogSettings(), [&](const char* pGroupName, auto& settings)
     {
         json[pGroupName] = WriteGroup(settings);
@@ -161,12 +160,11 @@ nlohmann::json ShaderSettingsIO::CaptureDefaults()
     RendererSettings renderer;
     LightingSettings lighting;
     ShadowSettings shadow;
-    IBLSettings ibl;
     PostProcessSettings postProcess;
     SSAOSettings ssao;
     FogSettings fog;
     nlohmann::json json = nlohmann::json::object();
-    ForEachGroup(renderer, lighting, shadow, ibl, postProcess, ssao, fog, [&](const char* pGroupName, auto& settings)
+    ForEachGroup(renderer, lighting, shadow, postProcess, ssao, fog, [&](const char* pGroupName, auto& settings)
     {
         json[pGroupName] = WriteGroup(settings);
     });
@@ -180,7 +178,7 @@ void ShaderSettingsIO::Apply(const nlohmann::json& json)
         return;
     }
     ShaderManager& manager = ShaderManager::Instance();
-    ForEachGroup(manager.GetRendererSettings(), manager.GetLightingSettings(), manager.GetShadowSettings(), manager.GetIBLSettings(),
+    ForEachGroup(manager.GetRendererSettings(), manager.GetLightingSettings(), manager.GetShadowSettings(),
         manager.GetPostProcessSettings(), manager.GetSSAOSettings(), manager.GetFogSettings(), [&](const char* pGroupName, auto& settings)
     {
         auto it = json.find(pGroupName);

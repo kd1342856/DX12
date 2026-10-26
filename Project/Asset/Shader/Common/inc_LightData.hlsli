@@ -43,7 +43,7 @@ cbuffer cbLight : register(b3)
     // スポット光の使用数
     int g_SL_Count;
     // ダミーIBLと空の明るさ(nitの値に露出を掛けたもの)
-    float g_IBLLuminance;
+    float g_PadLight0; // 未使用(以前のダミーIBLの明るさ)。C++のCBufferData::Lightと並びを合わせる
     float g_SkyLuminance;
     float g_ContactShadowLength; // コンタクトシャドウでたどる長さ(m)。0なら使わない
     
@@ -51,7 +51,7 @@ cbuffer cbLight : register(b3)
     // 環境光
     //-------------------------
     float3 g_AmbientLight;
-    float  g_IndirectShadowFloor; // 平行光の影が落ちる場所に残す間接光(Ambient/IBL)の下限 0..1
+    float  g_PadLight1; // 未使用(以前の影の中の間接光の下限)
 
     //-------------------------
     // 平行光
@@ -63,7 +63,7 @@ cbuffer cbLight : register(b3)
     float  g_DL_ShadowPower;
     
     row_major float4x4 g_DL_mLightVP[3]; // 平行光のビュー*投影行列 (カスケード数分)
-    float4 g_DL_CascadeSplits;       // カスケード分割深度
+    float4 g_PadLight2;              // 未使用(カスケードの分割。平行光の影はシャドウマップ1枚)
 
     //-------------------------
     // スポット光

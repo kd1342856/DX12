@@ -166,7 +166,6 @@ void ShaderManager::InitializeShaderSettings()
 	m_RendererSettings = {};
 	m_LightingSettings = {};
 	m_ShadowSettings = {};
-	m_IBLSettings = {};
 	m_PostProcessSettings = {};
 	m_DebugSettings = {};
 	m_FogSettings = {};
@@ -178,12 +177,10 @@ void ShaderManager::InitializeShaderSettings()
 	m_LightData.SL_Count = 0;
 	m_LightData.PL_Count = 0;
 	m_LightData.AmbientLight = { 0.35f, 0.35f, 0.35f };
-	m_LightData.IndirectShadowFloor = 0.05f;
 	m_LightData.DL_Dir = { 0.0f, -1.0f, 1.0f };
 	m_LightData.DL_ShadowBias = 0.001f;
 	m_LightData.DL_Color = { 0.6f, 0.6f, 0.65f };
 	m_LightData.DL_ShadowPower = 2.5f;
-	m_LightData.DL_CascadeSplits = { 0.1f, 0.3f, 0.6f, 1.0f };
 
 	m_baseAmbientLight = m_LightData.AmbientLight;
 	m_baseDLColor = m_LightData.DL_Color;
@@ -199,7 +196,6 @@ void ShaderManager::UpdateConstantBuffers()
 	UpdateRendererCB();
 	UpdateLightingCB();
 	UpdateShadowCB();
-	UpdateIBLCB();
 	UpdatePostProcessCB();
 	UpdateDebugCB();
 	UpdateFogCB();
@@ -224,7 +220,6 @@ void ShaderManager::UpdateLightingCB()
 		// re-derives m_LightData.AmbientLight/DL_Color from these every frame, scaled by the
 		// hunt-darken multiplier, so a stale write here can't fight with that.
 		m_baseAmbientLight = { m_LightingSettings.AmbientLight.x, m_LightingSettings.AmbientLight.y, m_LightingSettings.AmbientLight.z };
-		m_LightData.IndirectShadowFloor = m_LightingSettings.IndirectShadowFloor;
 
 		float dx = m_LightingSettings.DirectionalLightDir.x;
 		float dy = m_LightingSettings.DirectionalLightDir.y;
@@ -250,22 +245,7 @@ void ShaderManager::UpdateShadowCB()
 	{
 		m_LightData.DL_ShadowPower = m_ShadowSettings.EnableShadows ? m_ShadowSettings.ShadowPower : 0.0f;
 		m_LightData.DL_ShadowBias = m_ShadowSettings.ShadowBias;
-		m_LightData.DL_CascadeSplits = {
-			m_ShadowSettings.CascadeSplits.x,
-			m_ShadowSettings.CascadeSplits.y,
-			m_ShadowSettings.CascadeSplits.z,
-			m_ShadowSettings.CascadeSplits.w
-		};
 		m_ShadowSettings.IsDirty = false;
-	}
-}
-
-void ShaderManager::UpdateIBLCB()
-{
-	if (m_IBLSettings.IsDirty)
-	{
-		// IBL Data mapping will go here when CBufferData is updated
-		m_IBLSettings.IsDirty = false;
 	}
 }
 
@@ -286,7 +266,6 @@ void ShaderManager::UpdatePostProcessCB()
 		m_PostProcessData.BlurRadius = m_PostProcessSettings.BloomRadius;
 
 		m_PostProcessData.VignetteIntensity = m_PostProcessSettings.EnableVignette ? m_PostProcessSettings.VignetteIntensity : 0.0f;
-		m_PostProcessData.VignetteSmoothness = m_PostProcessSettings.VignetteSmoothness;
 
 
 		m_PostProcessData.ChromaticAberrationIntensity = m_PostProcessSettings.EnableChromaticAberration ? m_PostProcessSettings.ChromaticAberrationIntensity : 0.0f;
@@ -380,7 +359,6 @@ void ShaderManager::UpdateFogCB()
 	m_LightData.DL_Color = { m_baseDLColor.x * lightScale, m_baseDLColor.y * lightScale, m_baseDLColor.z * lightScale };
 	// ñ∂ÇÃêFÇÕÅAñ∂Ç™éUóêÇµÇƒï‘Ç∑åıÇÃãPìx(nit)Ç∆ÇµÇƒàµÇ§
 	m_LightData.DistanceFogColor = { m_FogSettings.FogColor.x * exposure, m_FogSettings.FogColor.y * exposure, m_FogSettings.FogColor.z * exposure };
-	m_LightData.IBLLuminance = m_IBLSettings.EnableIBL ? m_IBLSettings.IBLIntensity * lightScale : 0.0f;
 	m_LightData.SkyLuminance = m_LightingSettings.SkyLuminance * exposure;
 	m_LightData.ContactShadowLength = m_RendererSettings.EnableContactShadows ? m_RendererSettings.ContactShadowLength : 0.0f;
 }
