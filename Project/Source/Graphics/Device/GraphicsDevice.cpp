@@ -1,5 +1,6 @@
 ﻿#include "../../Pch.h"
 #include "../GPUResource/ResourceLifetimeManager.h"
+#include "../GPUResource/Texture/TextureCache.h"
 #include "ResourceStateTracker.h"
 #include "ResourceUploader.h"
 #include "../GPUResource/RenderTarget/RenderTarget.h"
@@ -491,6 +492,9 @@ void GraphicsDevice::Shutdown()
 
 	if (m_upResourceLifetimeManager)
 		m_upResourceLifetimeManager->ForceReleaseAll();
+
+	// テクスチャのキャッシュを作る裏のスレッドを止める(まだ圧縮していないものは次の起動で作り直す)
+	TextureCache::Instance().Shutdown();
 
 	// 起動後に作られたPSOがあれば、デバイスを解放する前に保存しておく
 	ShaderManager::Instance().SavePipelineLibrary();

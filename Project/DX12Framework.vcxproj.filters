@@ -771,6 +771,9 @@
     <ClCompile Include="Source\Graphics\Renderer\PathTracer.cpp">
       <Filter>Source\Graphics\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Graphics\GPUResource\Texture\TextureCache.cpp">
+      <Filter>Source\Graphics\GPUResource\Texture</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Application\Object\Script\Player\Player.h">
@@ -1321,6 +1324,9 @@
     </ClInclude>
     <ClInclude Include="Source\Graphics\Renderer\PathTracer.h">
       <Filter>Source\Graphics\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Graphics\GPUResource\Texture\TextureCache.h">
+      <Filter>Source\Graphics\GPUResource\Texture</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

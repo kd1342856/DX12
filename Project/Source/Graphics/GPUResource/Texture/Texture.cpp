@@ -4,6 +4,7 @@
 #include "../../Device/ResourceUploader.h"
 #include "../../GPUUploadQueue/GPUUploadQueue.h"
 #include "../../../Framework/DirectX/Utility/Thread.h"
+#include "TextureCache.h"
 
 namespace
 {
@@ -14,8 +15,8 @@ namespace
         return colorSpace == TextureColorSpace::Srgb ? DirectX::WIC_FLAGS_FORCE_SRGB : DirectX::WIC_FLAGS_IGNORE_SRGB;
     }
 
-    // WICで読み込んだ画像を、色空間とミップの指定どおりに整えてアップロード用のデータにする
-    bool BuildUploadData(DirectX::ScratchImage& scratchImage, TextureColorSpace colorSpace, bool isMipmapped, TextureUploadData& outData)
+    // WICで読み込んだ画像を、色空間とミップの指定どおりに整える(結果はoutImageへ)
+    bool PrepareImage(DirectX::ScratchImage& scratchImage, TextureColorSpace colorSpace, bool isMipmapped, DirectX::ScratchImage& outImage)
     {
         DirectX::ScratchImage converted;
         DirectX::ScratchImage mipChain;
@@ -58,7 +59,14 @@ namespace
                 }
             }
         }
+        outImage = std::move(*pSource);
+        return true;
+    }
 
+    // 整えた画像(またはキャッシュから読んだBC7の画像)を、アップロード用のデータにする
+    bool FillUploadData(const DirectX::ScratchImage& image, TextureUploadData& outData)
+    {
+        const DirectX::ScratchImage* pSource = &image;
         const DirectX::TexMetadata& metadata = pSource->GetMetadata();
         size_t totalSize = 0;
         for (size_t mipIndex = 0; mipIndex < metadata.mipLevels; ++mipIndex)
@@ -93,18 +101,36 @@ namespace
 
 bool Texture::LoadCPU(const std::string& filePath, TextureUploadData& outData, TextureColorSpace colorSpace, bool isMipmapped)
 {
+    // ミップを作るテクスチャ(マテリアル)は、BC7に圧縮したDDSのキャッシュがあればそれを読む
+    const uint64_t cacheKey = isMipmapped ? TextureCache::MakeFileKey(filePath, colorSpace == TextureColorSpace::Srgb) : 0;
+    if (isMipmapped)
+    {
+        DirectX::ScratchImage cached;
+        if (TextureCache::Instance().TryLoad(cacheKey, cached) && FillUploadData(cached, outData))
+        {
+            m_state = AssetState::WaitingGPU;
+            return true;
+        }
+    }
+
     wchar_t wFilePath[128];
     MultiByteToWideChar(CP_ACP, 0, filePath.c_str(), -1, wFilePath, _countof(wFilePath));
 
     DirectX::TexMetadata metadata = {};
     DirectX::ScratchImage scratchImage = {};
+    DirectX::ScratchImage prepared = {};
 
     HRESULT hr = DirectX::LoadFromWICFile(wFilePath, ToWicFlags(colorSpace), &metadata, scratchImage);
-    if (FAILED(hr) || !BuildUploadData(scratchImage, colorSpace, isMipmapped, outData))
+    if (FAILED(hr) || !PrepareImage(scratchImage, colorSpace, isMipmapped, prepared) || !FillUploadData(prepared, outData))
     {
         OutputDebugStringA(("Texture::LoadCPU failed: " + filePath + "\n").c_str());
         m_state = AssetState::Failed;
         return false;
+    }
+    // 次からキャッシュを読めるよう、裏で圧縮して保存する
+    if (isMipmapped)
+    {
+        TextureCache::Instance().RequestStore(cacheKey, std::move(prepared));
     }
 
     m_state = AssetState::WaitingGPU;
@@ -113,15 +139,32 @@ bool Texture::LoadCPU(const std::string& filePath, TextureUploadData& outData, T
 
 bool Texture::LoadCPUFromMemory(const void* pData, size_t size, TextureUploadData& outData, TextureColorSpace colorSpace, bool isMipmapped)
 {
+    // glTFに埋め込まれた画像は、中身のハッシュをキャッシュのキーにする
+    const uint64_t cacheKey = isMipmapped ? TextureCache::MakeMemoryKey(pData, size, colorSpace == TextureColorSpace::Srgb) : 0;
+    if (isMipmapped)
+    {
+        DirectX::ScratchImage cached;
+        if (TextureCache::Instance().TryLoad(cacheKey, cached) && FillUploadData(cached, outData))
+        {
+            m_state = AssetState::WaitingGPU;
+            return true;
+        }
+    }
+
     DirectX::TexMetadata metadata = {};
     DirectX::ScratchImage scratchImage = {};
+    DirectX::ScratchImage prepared = {};
 
     HRESULT hr = DirectX::LoadFromWICMemory((const uint8_t*)pData, size, ToWicFlags(colorSpace), &metadata, scratchImage);
-    if (FAILED(hr) || !BuildUploadData(scratchImage, colorSpace, isMipmapped, outData))
+    if (FAILED(hr) || !PrepareImage(scratchImage, colorSpace, isMipmapped, prepared) || !FillUploadData(prepared, outData))
     {
         OutputDebugStringA("Texture::LoadCPUFromMemory failed\n");
         m_state = AssetState::Failed;
         return false;
+    }
+    if (isMipmapped)
+    {
+        TextureCache::Instance().RequestStore(cacheKey, std::move(prepared));
     }
 
     m_state = AssetState::WaitingGPU;
