@@ -41,23 +41,8 @@ cbuffer cbDDGIFrame : register(b1)
 SamplerState g_linearClamp : register(s1);
 SamplerState g_linearWrap : register(s2);
 
-// C++のRaytracingScene::GeometryInfoと同じ並び
-struct GeometryInfo
-{
-    uint VertexBufferIndex;
-    uint IndexBufferIndex;
-    uint BaseColorTextureIndex;
-    uint EmissiveTextureIndex;
-    float4 BaseColorFactor;
-    float3 Emissive;
-    float Pad;
-};
+#include "inc_Raytracing.hlsli"
 
-static const uint kInvalidIndex = 0xFFFFFFFF;
-// MeshVertexの並び(位置12、UV8、法線12 ...)
-static const uint kVertexStride = 72;
-static const uint kUVOffset = 12;
-static const uint kNormalOffset = 20;
 static const float kPi = 3.14159265;
 
 // レイの向き(球面フィボナッチ格子をフレームごとに回したもの)
@@ -69,75 +54,6 @@ float3 RayDirection(uint rayIndex, uint rayCount)
     const float sinTheta = sqrt(saturate(1.0 - cosTheta * cosTheta));
     const float3 direction = float3(cos(phi) * sinTheta, sin(phi) * sinTheta, cosTheta);
     return normalize(mul(float4(direction, 0.0), g_RayRotation).xyz);
-}
-
-// 2点の間がさえぎられていないか(シャドウレイ)
-bool IsVisible(RaytracingAccelerationStructure scene, float3 origin, float3 direction, float maxDistance)
-{
-    RayQuery<RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_FORCE_OPAQUE> query;
-    RayDesc ray;
-    ray.Origin = origin;
-    ray.TMin = 0.0;
-    ray.Direction = direction;
-    ray.TMax = maxDistance;
-    query.TraceRayInline(scene, RAY_FLAG_NONE, 0xFF, ray);
-    query.Proceed();
-    return query.CommittedStatus() == COMMITTED_NOTHING;
-}
-
-// 当たった所に届く直接光(拡散だけ、前露出)。影はシャドウレイで調べる
-float3 EvaluateDirectDiffuse(RaytracingAccelerationStructure scene, float3 position, float3 normal)
-{
-    const float3 origin = position + normal * 0.02;
-    float3 irradiance = 0.0;
-
-    // 平行光(月)
-    const float3 toMoon = -g_DL_Dir;
-    const float moonNdotL = saturate(dot(normal, toMoon));
-    if (moonNdotL > 0.0 && any(g_DL_Color > 0.0) && IsVisible(scene, origin, toMoon, 1000.0))
-    {
-        irradiance += g_DL_Color * moonNdotL;
-    }
-
-    // スポットライト
-    for (int i = 0; i < g_SL_Count; ++i)
-    {
-        const SpotLight light = g_SL[i];
-        const float3 toLight = light.Pos - position;
-        const float distanceToLight = length(toLight);
-        if (distanceToLight >= light.Range)
-        {
-            continue;
-        }
-        const float3 L = toLight / max(distanceToLight, 1e-4);
-        const float NdotL = saturate(dot(normal, L));
-        const float cone = saturate((dot(-L, normalize(light.Dir)) - light.OuterCorn) / (light.InnerCorn - light.OuterCorn));
-        const float3 illuminance = light.Color * (DistanceAttenuation(distanceToLight, light.Range) * cone * NdotL);
-        if (any(illuminance > 0.0) && IsVisible(scene, origin, L, max(distanceToLight - 0.05, 0.0)))
-        {
-            irradiance += illuminance;
-        }
-    }
-
-    // 点光源
-    for (int j = 0; j < g_PL_Count; ++j)
-    {
-        const PointLight light = g_PL[j];
-        const float3 toLight = light.Pos - position;
-        const float distanceToLight = length(toLight);
-        if (distanceToLight >= light.Range)
-        {
-            continue;
-        }
-        const float3 L = toLight / max(distanceToLight, 1e-4);
-        const float NdotL = saturate(dot(normal, L));
-        const float3 illuminance = light.Color * (DistanceAttenuation(distanceToLight, light.Range) * NdotL);
-        if (any(illuminance > 0.0) && IsVisible(scene, origin, L, max(distanceToLight - 0.05, 0.0)))
-        {
-            irradiance += illuminance;
-        }
-    }
-    return irradiance;
 }
 
 //--------------------------------
@@ -176,25 +92,10 @@ void TraceRays(uint3 groupId : SV_GroupID, uint3 groupThreadId : SV_GroupThreadI
         return;
     }
 
-    const float hitDistance = query.CommittedRayT();
-    const GeometryInfo geometry = geometries[query.CommittedInstanceID()];
-    ByteAddressBuffer indexBuffer = ResourceDescriptorHeap[geometry.IndexBufferIndex];
-    ByteAddressBuffer vertexBuffer = ResourceDescriptorHeap[geometry.VertexBufferIndex];
-    const uint3 indices = indexBuffer.Load3(query.CommittedPrimitiveIndex() * 12);
-    const float2 barycentrics = query.CommittedTriangleBarycentrics();
-    const float3 weights = float3(1.0 - barycentrics.x - barycentrics.y, barycentrics.x, barycentrics.y);
-
-    float3 localNormal = 0.0;
-    float2 uv = 0.0;
-    [unroll]
-    for (int i = 0; i < 3; ++i)
-    {
-        const uint vertexOffset = indices[i] * kVertexStride;
-        localNormal += asfloat(vertexBuffer.Load3(vertexOffset + kNormalOffset)) * weights[i];
-        uv += asfloat(vertexBuffer.Load2(vertexOffset + kUVOffset)) * weights[i];
-    }
-    const float3x4 objectToWorld = query.CommittedObjectToWorld3x4();
-    float3 normal = normalize(mul(objectToWorld, float4(localNormal, 0.0)));
+    const HitSurface hit = GetHitSurface(geometries, query.CommittedInstanceID(), query.CommittedPrimitiveIndex(), query.CommittedTriangleBarycentrics(),
+        query.CommittedRayT(), query.CommittedObjectToWorld3x4(), probePosition, direction, 3.0);
+    const float hitDistance = hit.distance;
+    const float3 normal = hit.normal;
 
     // 裏側に当たった(壁や物の中にあるプローブ)。距離を負にして印を付け、明るさは0
     if (dot(normal, direction) > 0.0)
@@ -202,24 +103,12 @@ void TraceRays(uint3 groupId : SV_GroupID, uint3 groupThreadId : SV_GroupThreadI
         rayData[uint2(rayIndex, probeIndex)] = float4(0.0, 0.0, 0.0, -hitDistance * 0.2);
         return;
     }
-
-    // マテリアル(テクスチャは粗いミップで十分)
-    float3 albedo = geometry.BaseColorFactor.rgb;
-    if (geometry.BaseColorTextureIndex != kInvalidIndex)
-    {
-        Texture2D<float4> baseColorTex = ResourceDescriptorHeap[geometry.BaseColorTextureIndex];
-        albedo *= baseColorTex.SampleLevel(g_linearWrap, uv, 3.0).rgb;
-    }
-    float3 emissive = geometry.Emissive;
-    if (geometry.EmissiveTextureIndex != kInvalidIndex && any(emissive > 0.0))
-    {
-        Texture2D<float4> emissiveTex = ResourceDescriptorHeap[geometry.EmissiveTextureIndex];
-        emissive *= emissiveTex.SampleLevel(g_linearWrap, uv, 3.0).rgb;
-    }
+    const float3 albedo = hit.albedo;
+    const float3 emissive = hit.emissive;
 
     const float3 hitPosition = probePosition + direction * hitDistance;
     // 直接光(前露出)を絶対の値へ
-    const float3 direct = EvaluateDirectDiffuse(scene, hitPosition, normal) / exposure;
+    const float3 direct = EvaluateDirectIrradiance(scene, hitPosition, normal) / exposure;
 
     // 前のフレームのプローブからの跳ね返り(何度も跳ね返った光が、フレームを重ねて積もる)
     Texture2D<float4> irradianceTex = ResourceDescriptorHeap[g_constants.IrradianceSRVIndex];

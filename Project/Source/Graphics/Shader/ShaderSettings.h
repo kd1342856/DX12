@@ -38,6 +38,10 @@ struct RendererSettings
     // コンタクトシャドウ: 光源の方向へ画面の深度を短くたどり、シャドウマップでは拾えない接地の細かい影を足す
     bool  EnableContactShadows = true;
     float ContactShadowLength = 0.2f; // たどる長さ(m)
+
+    // リファレンスのパストレーサー(開発用)。オンの間は、シーンの色をパストレースの結果で置き換える
+    bool  EnableReferencePathTracer = false;
+    int   PathTracerMaxBounces = 4; // 拡散の反射を繰り返す回数
 };
 
 struct LightingSettings

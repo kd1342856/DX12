@@ -34,6 +34,7 @@
 #include "../../../Graphics/Renderer/RaytracingScene.h"
 #include "../../../Graphics/Renderer/DDGIVolume.h"
 #include "../../../Graphics/Renderer/VolumetricFog.h"
+#include "../../../Graphics/Renderer/PathTracer.h"
 #include "../../../Framework/Manager/Particle/ParticleManager.h"
 #include "../../../Framework/Manager/Audio/AudioManager.h"
 #include "../../UI/OptionMenu.h"
@@ -954,7 +955,19 @@ void GameScene::DoPostProcess(Entity cameraEntity, float clearR, float clearG, f
     // とは別物で、床・タイル等のOpaque材質に効く。RenderScene直後、まだpSceneHDRがRENDER_TARGET
     // 状態のこのタイミングでだけ加算できる(この後すぐSRVへ遷移してBloom等に読まれるため)。
     auto& rendererSettings = ShaderManager::Instance().GetRendererSettings();
-    if (rendererSettings.EnableSSR)
+    // リファレンスのパストレーサー(開発用): シーンの色を置き換え、SSR・霧・TAA・モーションブラーは掛けない
+    const bool isPathTracing = rendererSettings.EnableReferencePathTracer && PathTracer::Instance().IsAvailable() && cameraEntity != INVALID_ENTITY;
+    if (isPathTracing)
+    {
+        auto& ecs = GameManager::Instance().GetECS();
+        if (auto* pCamData = ecs.TryGetComponent<CameraData>(cameraEntity))
+        {
+            const auto& shaderManager = ShaderManager::Instance();
+            PathTracer::Instance().Render(pSceneHDR, pCamData->m_viewMatrix, pCamData->m_projMatrix, rendererSettings.PathTracerMaxBounces,
+                shaderManager.GetLightData(), shaderManager.GetSystemData());
+        }
+    }
+    if (rendererSettings.EnableSSR && !isPathTracing)
     {
         auto* pNormalRT = Renderer::GetNormalPrepassRenderTarget();
         auto* pSceneOpaqueCopy = Renderer::GetSceneOpaqueCopyRenderTarget();
@@ -968,7 +981,7 @@ void GameScene::DoPostProcess(Entity cameraEntity, float clearR, float clearG, f
     // 0.4 ボリュメトリックフォグ - ライトと影で光る霧を、ピクセルの深さまで積み上げて掛ける。
     // SSRの反射にも掛かるよう、SSRの後に行う
     const auto& fogSettings = ShaderManager::Instance().GetFogSettings();
-    if (fogSettings.EnableVolumetricFog && cameraEntity != INVALID_ENTITY)
+    if (fogSettings.EnableVolumetricFog && cameraEntity != INVALID_ENTITY && !isPathTracing)
     {
         auto& ecs = GameManager::Instance().GetECS();
         if (auto* pCamData = ecs.TryGetComponent<CameraData>(cameraEntity))
@@ -981,10 +994,13 @@ void GameScene::DoPostProcess(Entity cameraEntity, float clearR, float clearG, f
 
     // 0.5 TAA - ジッターで揺らして描いた絵を履歴と混ぜ、ジャギーとちらつきを抑える。
     // SSRまで足し終えたシーンに掛け、ブルームなどはその結果から作る
-    TemporalAA::Instance().Resolve(pSceneHDR, postProcessSettings.TAACurrentWeight);
+    if (!isPathTracing)
+    {
+        TemporalAA::Instance().Resolve(pSceneHDR, postProcessSettings.TAACurrentWeight);
+    }
 
     // 0.55 モーションブラー - シャッターが開いていた時間の分だけ、速度の方向にぼかす
-    if (postProcessSettings.EnableMotionBlur)
+    if (postProcessSettings.EnableMotionBlur && !isPathTracing)
     {
         const float deltaTime = GameTimer::Instance().DeltaTime();
         float shutterFraction = postProcessSettings.MotionBlurShutterAngle / 360.0f;

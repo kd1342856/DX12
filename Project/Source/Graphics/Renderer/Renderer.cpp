@@ -9,6 +9,7 @@
 #include "MotionBlur.h"
 #include "EnvironmentBRDF.h"
 #include "VolumetricFog.h"
+#include "PathTracer.h"
 
 static RenderContext s_renderContext;
 
@@ -108,6 +109,7 @@ void Renderer::ResizeRenderTargets(int width, int height)
 	TemporalAA::Instance().Resize(width, height);
 	MotionBlur::Instance().Resize(width, height);
 	VolumetricFog::Instance().Resize(width, height);
+	PathTracer::Instance().Resize(width, height);
 }
 
 void Renderer::InitializeRenderTargets(int width, int height)

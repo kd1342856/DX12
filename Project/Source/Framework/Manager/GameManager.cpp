@@ -26,6 +26,7 @@
 #include "../../Graphics/Renderer/RaytracingScene.h"
 #include "../../Graphics/Renderer/DDGIVolume.h"
 #include "../../Graphics/Renderer/VolumetricFog.h"
+#include "../../Graphics/Renderer/PathTracer.h"
 #include "Scene/Scene.h"
 #include "../Object/GameObject.h"
 #include "../ECS/CompSystem/Systems/RenderSystem.h"
@@ -174,6 +175,7 @@ void GameManager::Init()
     RaytracingScene::Instance().Initialize();
     DDGIVolume::Instance().Initialize();
     VolumetricFog::Instance().Initialize(Renderer::GetRenderWidth(), Renderer::GetRenderHeight());
+    PathTracer::Instance().Initialize(Renderer::GetRenderWidth(), Renderer::GetRenderHeight());
 }
 
 void GameManager::Update(float deltaTime, class Scene* pScene)

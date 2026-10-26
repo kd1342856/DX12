@@ -3,6 +3,7 @@
 #include "ImGui/imgui.h"
 #include "../../../Graphics/Device/GraphicsDevice.h"
 #include "../../ECS/CompSystem/Systems/RenderSystem.h"
+#include "../../../Graphics/Renderer/PathTracer.h"
 
 #ifdef _DEBUG
 namespace
@@ -59,6 +60,25 @@ void RendererPanel::Draw(EditorContext& ctx)
             if (ImGui::IsItemHovered())
             {
                 ImGui::SetTooltip(u8"床・タイル等のOpaque材質向けSSR(NormalPrepassの法線+深度を再利用)。\n粗さ/金属度は考慮しない鏡面反射の近似(非金属F0=0.04固定)。0で無効。");
+            }
+
+            ImGui::Separator();
+            ImGui::Text("Reference Path Tracer (dev)");
+            // CPU側だけで使う設定なので、IsDirtyを待たずに毎フレーム反映される
+            ImGui::BeginDisabled(!PathTracer::Instance().IsAvailable());
+            ImGui::Checkbox("Enable Path Tracer", &ctx.Renderer->EnableReferencePathTracer);
+            ImGui::EndDisabled();
+            if (ImGui::IsItemHovered())
+            {
+                ImGui::SetTooltip(u8"拡散の反射を繰り返す正解の絵(カメラを止めると足し続けてノイズが消える)。\nラスタライズの描画(DDGI・反射プローブ・影)と見比べる。鏡面・スキニングのモデル・半透明は写らない。");
+            }
+            if (ImGui::SliderInt("Max Bounces", &ctx.Renderer->PathTracerMaxBounces, 0, 8))
+            {
+                PathTracer::Instance().ResetAccumulation();
+            }
+            if (ctx.Renderer->EnableReferencePathTracer)
+            {
+                ImGui::Text("Samples: %u", PathTracer::Instance().GetSampleCount());
             }
 
             if (changed) {
