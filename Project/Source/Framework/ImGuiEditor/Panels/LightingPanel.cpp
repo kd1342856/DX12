@@ -1,6 +1,7 @@
 #include "LightingPanel.h"
 #include "../EditorContext.h"
 #include "ImGui/imgui.h"
+#include "SettingsWidgets.h"
 #include <cmath>
 
 void LightingPanel::Draw(EditorContext& ctx)
@@ -14,6 +15,7 @@ void LightingPanel::Draw(EditorContext& ctx)
         ImGui::Text("Directional Light");
         
         changed |= ImGui::DragFloat3("Direction", &ctx.Lighting->DirectionalLightDir.x, 0.01f, -1.0f, 1.0f);
+        SettingsWidgets::DefaultMark(*ctx.Lighting, ctx.Lighting->DirectionalLightDir);
         if (changed)
         {
             float length = std::sqrt(
@@ -29,9 +31,13 @@ void LightingPanel::Draw(EditorContext& ctx)
         }
 
         changed |= ImGui::ColorEdit3("Tint", &ctx.Lighting->DirectionalLightColor.x);
+        SettingsWidgets::DefaultMark(*ctx.Lighting, ctx.Lighting->DirectionalLightColor);
         changed |= ImGui::DragFloat("Temperature (K)", &ctx.Lighting->DirectionalLightTemperature, 10.0f, 0.0f, 12000.0f, "%.0f");
+        SettingsWidgets::DefaultMark(*ctx.Lighting, ctx.Lighting->DirectionalLightTemperature);
         changed |= ImGui::DragFloat("Illuminance (lx)", &ctx.Lighting->DirectionalLightIntensity, 0.001f, 0.0f, 120000.0f, "%.3f");
+        SettingsWidgets::DefaultMark(*ctx.Lighting, ctx.Lighting->DirectionalLightIntensity);
         changed |= ImGui::DragFloat("Sky Luminance (nit)", &ctx.Lighting->SkyLuminance, 0.001f, 0.0f, 10000.0f, "%.3f");
+        SettingsWidgets::DefaultMark(*ctx.Lighting, ctx.Lighting->SkyLuminance);
 
         if (changed)
         {

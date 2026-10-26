@@ -47,6 +47,8 @@ public:
     // シーンJSONとは別の「XXX.editor.json」に保存し、Save Sceneと一緒に書き出す。
     static void LoadEditorData();
     static void SaveEditorData();
+    // 今のシーンをJSONに保存する(File > Save Scene と同じ)。保存先が無ければfalse
+    static bool SaveCurrentScene();
 
     // ルートGameObjectを「World/Props/LivingRoom」のような'/'区切りのフォルダに入れる。無いフォルダは作る。
     // ランタイム生成物(Dynamic)の整理用。Dynamicなオブジェクトの対応はeditor.jsonに保存されない(UUIDが毎回変わるため)。

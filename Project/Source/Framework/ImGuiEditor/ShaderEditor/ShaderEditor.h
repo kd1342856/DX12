@@ -12,6 +12,7 @@
 #include "../Panels/PostProcessPanel.h"
 #include "../Panels/FogPanel.h"
 #include "../Panels/ShaderReloadPanel.h"
+#include "../Panels/ShaderSettingsPanel.h"
 
 class ShaderEditor
 {

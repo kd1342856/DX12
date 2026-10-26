@@ -46,6 +46,19 @@ struct RendererSettings
     // リファレンスのパストレーサー(開発用)。オンの間は、シーンの色をパストレースの結果で置き換える
     bool  EnableReferencePathTracer = false;
     int   PathTracerMaxBounces = 4; // 拡散の反射を繰り返す回数
+
+    // シーンのJSONとプリセットに保存する値。名前はJSONのキーになるので変えないこと。
+    // 画質設定(EnableSSR)・オプション画面(EnableRaytracedShadows)・開発用(EnableReferencePathTracer)が決める値は入れない
+    template<typename TVisitor>
+    void VisitFields(TVisitor&& visit)
+    {
+        visit("EnablePBR", EnablePBR);
+        visit("SSRStepSize", SSRStepSize);
+        visit("SSROpaqueIntensity", SSROpaqueIntensity);
+        visit("EnableContactShadows", EnableContactShadows);
+        visit("ContactShadowLength", ContactShadowLength);
+        visit("PathTracerMaxBounces", PathTracerMaxBounces);
+    }
 };
 
 struct LightingSettings
@@ -69,6 +82,20 @@ struct LightingSettings
     // treated as fully in the moon's shadow regardless of whether the shadow map actually covers them.
     bool EnableIndoorMask = true;
     float IndoorMargin = 0.3f; // grows each RoomArea AABB by this much (m) so walls/floors on the boundary count as indoor
+
+    template<typename TVisitor>
+    void VisitFields(TVisitor&& visit)
+    {
+        visit("DirectionalLightDir", DirectionalLightDir);
+        visit("DirectionalLightColor", DirectionalLightColor);
+        visit("DirectionalLightTemperature", DirectionalLightTemperature);
+        visit("DirectionalLightIntensity", DirectionalLightIntensity);
+        visit("AmbientLight", AmbientLight);
+        visit("SkyLuminance", SkyLuminance);
+        visit("IndirectShadowFloor", IndirectShadowFloor);
+        visit("EnableIndoorMask", EnableIndoorMask);
+        visit("IndoorMargin", IndoorMargin);
+    }
 };
 
 struct ShadowSettings
@@ -78,6 +105,15 @@ struct ShadowSettings
     float ShadowPower = 2.5f;
     float ShadowBias = 0.001f;
     DirectX::XMFLOAT4 CascadeSplits = { 0.1f, 0.3f, 0.6f, 1.0f };
+
+    template<typename TVisitor>
+    void VisitFields(TVisitor&& visit)
+    {
+        visit("EnableShadows", EnableShadows);
+        visit("ShadowPower", ShadowPower);
+        visit("ShadowBias", ShadowBias);
+        visit("CascadeSplits", CascadeSplits);
+    }
 };
 
 struct IBLSettings
@@ -86,6 +122,13 @@ struct IBLSettings
     bool EnableIBL = true;
     // ダミーIBL(空と地面の2色)の明るさ。2色の値1.0が何nitになるか
     float IBLIntensity = 0.02f;
+
+    template<typename TVisitor>
+    void VisitFields(TVisitor&& visit)
+    {
+        visit("EnableIBL", EnableIBL);
+        visit("IBLIntensity", IBLIntensity);
+    }
 };
 
 struct PostProcessSettings
@@ -159,6 +202,50 @@ struct PostProcessSettings
     float GodRaysExposure = 1.0f;
     float GodRaysIntensity = 1.0f;
     int   GodRaysNumSamples = 48;
+
+    // オプション画面(BrightnessGamma・EnableTAA・EnableMotionBlur)と画質設定(BloomIterations)が決める値は入れない
+    template<typename TVisitor>
+    void VisitFields(TVisitor&& visit)
+    {
+        visit("EnableHDR", EnableHDR);
+        visit("Gamma", Gamma);
+        visit("EV100", EV100);
+        visit("UseCameraSettings", UseCameraSettings);
+        visit("Aperture", Aperture);
+        visit("ShutterSpeed", ShutterSpeed);
+        visit("ISO", ISO);
+        visit("TAACurrentWeight", TAACurrentWeight);
+        visit("EnableAutoExposure", EnableAutoExposure);
+        visit("AutoExposureMinEV100", AutoExposureMinEV100);
+        visit("AutoExposureMaxEV100", AutoExposureMaxEV100);
+        visit("ExposureCompensation", ExposureCompensation);
+        visit("AutoExposureLowPercent", AutoExposureLowPercent);
+        visit("AutoExposureHighPercent", AutoExposureHighPercent);
+        visit("AutoExposureSpeedUp", AutoExposureSpeedUp);
+        visit("AutoExposureSpeedDown", AutoExposureSpeedDown);
+        visit("MotionBlurShutterAngle", MotionBlurShutterAngle);
+        visit("MotionBlurMaxPixels", MotionBlurMaxPixels);
+        visit("BloomThreshold", BloomThreshold);
+        visit("BloomIntensity", BloomIntensity);
+        visit("BloomRadius", BloomRadius);
+        visit("EnableVignette", EnableVignette);
+        visit("VignetteIntensity", VignetteIntensity);
+        visit("VignetteSmoothness", VignetteSmoothness);
+        visit("EnableFilmGrain", EnableFilmGrain);
+        visit("FilmGrainIntensity", FilmGrainIntensity);
+        visit("EnableChromaticAberration", EnableChromaticAberration);
+        visit("ChromaticAberrationIntensity", ChromaticAberrationIntensity);
+        visit("EnableDOF", EnableDOF);
+        visit("DOFFocusDistance", DOFFocusDistance);
+        visit("DOFFocusRange", DOFFocusRange);
+        visit("EnableGodRays", EnableGodRays);
+        visit("GodRaysDensity", GodRaysDensity);
+        visit("GodRaysDecay", GodRaysDecay);
+        visit("GodRaysWeight", GodRaysWeight);
+        visit("GodRaysExposure", GodRaysExposure);
+        visit("GodRaysIntensity", GodRaysIntensity);
+        visit("GodRaysNumSamples", GodRaysNumSamples);
+    }
 };
 
 struct DebugSettings
@@ -174,6 +261,16 @@ struct SSAOSettings
     float Bias = 0.03f;
     float Power = 1.5f;
     float Intensity = 1.0f;
+
+    // EnableSSAOは画質設定が決めるので入れない
+    template<typename TVisitor>
+    void VisitFields(TVisitor&& visit)
+    {
+        visit("Radius", Radius);
+        visit("Bias", Bias);
+        visit("Power", Power);
+        visit("Intensity", Intensity);
+    }
 };
 
 struct FogSettings
@@ -201,4 +298,20 @@ struct FogSettings
     float VolumetricFogAnisotropy = 0.3f;    // 正で前方散乱(光の方を向くと霧が明るく光る)
     float VolumetricFogFar = 40.0f;          // フロクセルの奥の端(m)。家の大きさに合わせる
     float VolumetricFogHistoryWeight = 0.9f; // 前のフレームの結果を残す割合
+
+    template<typename TVisitor>
+    void VisitFields(TVisitor&& visit)
+    {
+        visit("EnableFog", EnableFog);
+        visit("FogColor", FogColor);
+        visit("FogDensity", FogDensity);
+        visit("HuntFogDensity", HuntFogDensity);
+        visit("EnableHuntDarken", EnableHuntDarken);
+        visit("HuntDarkenAmount", HuntDarkenAmount);
+        visit("HuntTransitionSpeed", HuntTransitionSpeed);
+        visit("EnableVolumetricFog", EnableVolumetricFog);
+        visit("VolumetricFogAnisotropy", VolumetricFogAnisotropy);
+        visit("VolumetricFogFar", VolumetricFogFar);
+        visit("VolumetricFogHistoryWeight", VolumetricFogHistoryWeight);
+    }
 };

@@ -91,6 +91,29 @@ void Editor::Draw()
     if (s_showNavMeshEditor) navMeshEditor.Draw(ctx);
 }
 
+bool Editor::SaveCurrentScene()
+{
+    auto sceneObj = GetCurrentScenePtr();
+    const std::string& path = GetScenePath();
+    if (!sceneObj || path.empty())
+    {
+        Logger::Instance().AddLog(Logger::LogLevel::Warning, u8"このシーンには保存先がありません(保存しませんでした)");
+        return false;
+    }
+    nlohmann::json j;
+    sceneObj->Serialize(j);
+    std::ofstream o(path);
+    if (!o.is_open())
+    {
+        Logger::Instance().AddLog(Logger::LogLevel::Error, u8"シーンを書き込めませんでした: %s", path.c_str());
+        return false;
+    }
+    o << std::setw(4) << j << std::endl;
+    Logger::Instance().AddLog(Logger::LogLevel::Info, "Scene Saved: %s", path.c_str());
+    SaveEditorData();
+    return true;
+}
+
 void Editor::DrawProfilerOverlay()
 {
     if (Input::Instance().IsKeyTrigger(DirectX::Keyboard::Keys::F3)) {

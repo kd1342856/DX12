@@ -1,6 +1,7 @@
 ﻿#include "RendererPanel.h"
 #include "../EditorContext.h"
 #include "ImGui/imgui.h"
+#include "SettingsWidgets.h"
 #include "../../../Graphics/Device/GraphicsDevice.h"
 #include "../../ECS/CompSystem/Systems/RenderSystem.h"
 #include "../../../Graphics/Renderer/PathTracer.h"
@@ -47,16 +48,20 @@ void RendererPanel::Draw(EditorContext& ctx)
             bool changed = false;
 
             if (ImGui::Checkbox("Enable PBR", &ctx.Renderer->EnablePBR)) changed = true;
+            SettingsWidgets::DefaultMark(*ctx.Renderer, ctx.Renderer->EnablePBR);
 
             ImGui::Separator();
             ImGui::Text("SSR (Screen Space Reflection)");
             if (ImGui::Checkbox("Enable SSR", &ctx.Renderer->EnableSSR)) changed = true;
+            SettingsWidgets::DefaultMark(*ctx.Renderer, ctx.Renderer->EnableSSR);
             if (ImGui::SliderFloat("SSR Step Size", &ctx.Renderer->SSRStepSize, 0.05f, 1.5f, "%.2f")) changed = true;
+            SettingsWidgets::DefaultMark(*ctx.Renderer, ctx.Renderer->SSRStepSize);
             if (ImGui::IsItemHovered())
             {
                 ImGui::SetTooltip(u8"平面反射(専用の反射カメラ)が設定されていないガラス面のフォールバック。");
             }
             if (ImGui::SliderFloat("SSR Opaque Intensity", &ctx.Renderer->SSROpaqueIntensity, 0.0f, 2.0f, "%.2f")) changed = true;
+            SettingsWidgets::DefaultMark(*ctx.Renderer, ctx.Renderer->SSROpaqueIntensity);
             if (ImGui::IsItemHovered())
             {
                 ImGui::SetTooltip(u8"床・タイル等のOpaque材質向けSSR(NormalPrepassの法線+深度を再利用)。\n粗さ/金属度は考慮しない鏡面反射の近似(非金属F0=0.04固定)。0で無効。");
@@ -65,6 +70,7 @@ void RendererPanel::Draw(EditorContext& ctx)
             ImGui::Separator();
             ImGui::Text("Ray Tracing");
             ImGui::Checkbox("Raytraced Shadows (High+)", &ctx.Renderer->EnableRaytracedShadows);
+            SettingsWidgets::DefaultMark(*ctx.Renderer, ctx.Renderer->EnableRaytracedShadows);
             if (ImGui::IsItemHovered())
             {
                 ImGui::SetTooltip(u8"スポット・点光源・月の影をレイで調べる(画質「高」以上)。反射は画質「最高」で自動的に有効。");
@@ -75,12 +81,17 @@ void RendererPanel::Draw(EditorContext& ctx)
             // CPU側だけで使う設定なので、IsDirtyを待たずに毎フレーム反映される
             ImGui::BeginDisabled(!PathTracer::Instance().IsAvailable());
             ImGui::Checkbox("Enable Path Tracer", &ctx.Renderer->EnableReferencePathTracer);
+            SettingsWidgets::DefaultMark(*ctx.Renderer, ctx.Renderer->EnableReferencePathTracer);
             ImGui::EndDisabled();
             if (ImGui::IsItemHovered())
             {
                 ImGui::SetTooltip(u8"拡散の反射を繰り返す正解の絵(カメラを止めると足し続けてノイズが消える)。\nラスタライズの描画(DDGI・反射プローブ・影)と見比べる。鏡面・スキニングのモデル・半透明は写らない。");
             }
             if (ImGui::SliderInt("Max Bounces", &ctx.Renderer->PathTracerMaxBounces, 0, 8))
+            {
+                PathTracer::Instance().ResetAccumulation();
+            }
+            if (SettingsWidgets::DefaultMark(*ctx.Renderer, ctx.Renderer->PathTracerMaxBounces))
             {
                 PathTracer::Instance().ResetAccumulation();
             }
