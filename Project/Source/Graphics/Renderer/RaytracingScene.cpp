@@ -60,7 +60,33 @@ void RaytracingScene::Initialize()
         frame.tlasSrvIndex = static_cast<int>(pAllocator->Allocate());
         frame.geometrySrvIndex = static_cast<int>(pAllocator->Allocate());
     }
+    if (!m_skinShader.Create(L"Asset/Shader/Lighting/SkinVertices_CS.hlsl"))
+    {
+        return;
+    }
     m_isSupported = true;
+}
+
+void RaytracingScene::ReleaseSkinnedGeometry(SkinnedGeometry& geometry)
+{
+    auto& device = GraphicsDevice::Instance();
+    const uint64_t fenceValue = device.GetQueueManager()->GetGraphicsQueue()->GetFenceValue();
+    if (geometry.cpVertexBuffer)
+    {
+        device.DeferDeleteResource(std::move(geometry.cpVertexBuffer), fenceValue);
+    }
+    if (geometry.bottomLevel.cpBuffer)
+    {
+        device.DeferDeleteResource(std::move(geometry.bottomLevel.cpBuffer), fenceValue);
+    }
+    auto* pAllocator = device.GetDescriptorHeapManager()->GetCBVSRVUAVAllocator();
+    for (int index : { geometry.sourceSrvIndex, geometry.outputUavIndex, geometry.bottomLevel.vertexSrvIndex, geometry.bottomLevel.indexSrvIndex })
+    {
+        if (index != -1)
+        {
+            pAllocator->Free(static_cast<UINT>(index));
+        }
+    }
 }
 
 void RaytracingScene::Clear()
@@ -80,6 +106,12 @@ void RaytracingScene::Clear()
     }
     m_bottomLevels.clear();
     m_pendingBuilds.clear();
+    for (auto& [key, geometry] : m_skinnedGeometries)
+    {
+        ReleaseSkinnedGeometry(geometry);
+    }
+    m_skinnedGeometries.clear();
+    m_skinJobs.clear();
     m_hasTLAS = false;
 }
 
@@ -115,7 +147,24 @@ void RaytracingScene::BeginFrame()
     m_instanceDescs.clear();
     m_geometryInfos.clear();
     m_pendingBuilds.clear();
+    m_pendingStaticBuildCount = 0;
+    m_skinJobs.clear();
     m_frameSlot = (m_frameSlot + 1) % kFrameCount;
+    ++m_frameCounter;
+
+    // しばらく使われていないスキニングのメッシュ(消えた幽霊など)は捨てる
+    for (auto it = m_skinnedGeometries.begin(); it != m_skinnedGeometries.end();)
+    {
+        if (m_frameCounter - it->second.lastUsedFrame > static_cast<uint64_t>(kFrameCount))
+        {
+            ReleaseSkinnedGeometry(it->second);
+            it = m_skinnedGeometries.erase(it);
+        }
+        else
+        {
+            ++it;
+        }
+    }
 }
 
 RaytracingScene::BottomLevel* RaytracingScene::FindOrCreateBottomLevel(const Mesh& mesh)
@@ -126,7 +175,7 @@ RaytracingScene::BottomLevel* RaytracingScene::FindOrCreateBottomLevel(const Mes
     {
         return &it->second;
     }
-    if (static_cast<int>(m_pendingBuilds.size()) >= kMaxBottomLevelBuildsPerFrame)
+    if (m_pendingStaticBuildCount >= kMaxBottomLevelBuildsPerFrame)
     {
         return nullptr;
     }
@@ -161,8 +210,177 @@ RaytracingScene::BottomLevel* RaytracingScene::FindOrCreateBottomLevel(const Mes
     srvDesc.Buffer.NumElements = static_cast<UINT>(indexBytes / 4);
     device.GetDevice()->CreateShaderResourceView(mesh.GetIndexBuffer().GetResource(), &srvDesc, pAllocator->GetCPUHandle(bottomLevel.indexSrvIndex));
 
-    m_pendingBuilds.emplace_back(&mesh, &bottomLevel);
+    PendingBuild pending;
+    pending.pBottomLevel = &bottomLevel;
+    pending.vertexAddress = vertexAddress;
+    pending.vertexCount = static_cast<UINT>(mesh.GetVertices().size());
+    pending.indexAddress = mesh.GetIndexBuffer().GetGPUVirtualAddress();
+    pending.indexCount = mesh.GetInstanceCount();
+    m_pendingBuilds.push_back(pending);
+    ++m_pendingStaticBuildCount;
     return &bottomLevel;
+}
+
+RaytracingScene::SkinnedGeometry* RaytracingScene::FindOrCreateSkinnedGeometry(uint32_t ownerId, const Mesh& mesh)
+{
+    const auto key = std::make_pair(ownerId, &mesh);
+    auto it = m_skinnedGeometries.find(key);
+    if (it != m_skinnedGeometries.end())
+    {
+        return &it->second;
+    }
+
+    auto& device = GraphicsDevice::Instance();
+    auto* pAllocator = device.GetDescriptorHeapManager()->GetCBVSRVUAVAllocator();
+    SkinnedGeometry& geometry = m_skinnedGeometries[key];
+    geometry.vertexCount = static_cast<UINT>(mesh.GetVertices().size());
+    const UINT64 vertexBytes = static_cast<UINT64>(geometry.vertexCount) * sizeof(MeshVertex);
+    const UINT64 indexBytes = static_cast<UINT64>(mesh.GetInstanceCount()) * sizeof(uint32_t);
+
+    // 変形した頂点(バッファは常にCOMMONで作られ、最初の書き込みでUAVへ暗黙に昇格する)
+    D3D12_HEAP_PROPERTIES heapProperties = {};
+    heapProperties.Type = D3D12_HEAP_TYPE_DEFAULT;
+    const D3D12_RESOURCE_DESC desc = MakeBufferDesc(vertexBytes, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+    if (FAILED(device.GetDevice()->CreateCommittedResource(&heapProperties, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_COMMON, nullptr, IID_PPV_ARGS(&geometry.cpVertexBuffer))))
+    {
+        m_skinnedGeometries.erase(key);
+        return nullptr;
+    }
+    geometry.cpVertexBuffer->SetName(L"SkinnedVertices");
+
+    D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+    srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+    srvDesc.Format = DXGI_FORMAT_R32_TYPELESS;
+    srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+    srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_RAW;
+    srvDesc.Buffer.NumElements = static_cast<UINT>(vertexBytes / 4);
+    // 元の頂点
+    geometry.sourceSrvIndex = static_cast<int>(pAllocator->Allocate());
+    device.GetDevice()->CreateShaderResourceView(mesh.GetVertexBuffer().GetResource(), &srvDesc, pAllocator->GetCPUHandle(geometry.sourceSrvIndex));
+    // 変形した頂点(当たった三角形を読むとき)
+    geometry.bottomLevel.vertexSrvIndex = static_cast<int>(pAllocator->Allocate());
+    device.GetDevice()->CreateShaderResourceView(geometry.cpVertexBuffer.Get(), &srvDesc, pAllocator->GetCPUHandle(geometry.bottomLevel.vertexSrvIndex));
+    // インデックス
+    geometry.bottomLevel.indexSrvIndex = static_cast<int>(pAllocator->Allocate());
+    srvDesc.Buffer.NumElements = static_cast<UINT>(indexBytes / 4);
+    device.GetDevice()->CreateShaderResourceView(mesh.GetIndexBuffer().GetResource(), &srvDesc, pAllocator->GetCPUHandle(geometry.bottomLevel.indexSrvIndex));
+    // 変形した頂点を書くUAV
+    geometry.outputUavIndex = static_cast<int>(pAllocator->Allocate());
+    D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+    uavDesc.Format = DXGI_FORMAT_R32_TYPELESS;
+    uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
+    uavDesc.Buffer.NumElements = static_cast<UINT>(vertexBytes / 4);
+    uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_RAW;
+    device.GetDevice()->CreateUnorderedAccessView(geometry.cpVertexBuffer.Get(), nullptr, &uavDesc, pAllocator->GetCPUHandle(geometry.outputUavIndex));
+
+    geometry.bottomLevel.vertexAddress = geometry.cpVertexBuffer->GetGPUVirtualAddress();
+    geometry.bottomLevel.allowUpdate = true;
+    return &geometry;
+}
+
+void RaytracingScene::AddSkinnedInstance(uint32_t ownerId, const Mesh& mesh, const Material& material, const Math::Matrix& world, const std::vector<Math::Matrix>& bones)
+{
+    if (!m_isSupported || !mesh.IsReady() || mesh.GetInstanceCount() == 0 || bones.empty())
+    {
+        return;
+    }
+    SkinnedGeometry* pGeometry = FindOrCreateSkinnedGeometry(ownerId, mesh);
+    if (!pGeometry)
+    {
+        return;
+    }
+    // 同じフレームに同じメッシュが2回来ても(あり得ないが)、変形とBLASの更新は1回にする
+    if (pGeometry->lastUsedFrame == m_frameCounter)
+    {
+        AddInstanceDesc(&pGeometry->bottomLevel, material, world);
+        return;
+    }
+    pGeometry->lastUsedFrame = m_frameCounter;
+
+    SkinJob job;
+    job.pGeometry = pGeometry;
+    job.pBones = &bones;
+    m_skinJobs.push_back(job);
+
+    PendingBuild pending;
+    pending.pBottomLevel = &pGeometry->bottomLevel;
+    pending.vertexAddress = pGeometry->cpVertexBuffer->GetGPUVirtualAddress();
+    pending.vertexCount = pGeometry->vertexCount;
+    pending.indexAddress = mesh.GetIndexBuffer().GetGPUVirtualAddress();
+    pending.indexCount = mesh.GetInstanceCount();
+    m_pendingBuilds.push_back(pending);
+
+    AddInstanceDesc(&pGeometry->bottomLevel, material, world);
+}
+
+void RaytracingScene::SkinVertices()
+{
+    if (m_skinJobs.empty())
+    {
+        return;
+    }
+    auto* pCmdList = GraphicsDevice::Instance().GetCmdList();
+    GraphicsDevice::Instance().GetContextManager()->GetGraphicsContext()->FlushResourceBarriers();
+
+    // 前のフレームで読んでいた頂点を、書ける状態にする(この変形のバッファは状態の管理の外で、ここだけで切り替える)
+    std::vector<D3D12_RESOURCE_BARRIER> barriers;
+    for (const SkinJob& job : m_skinJobs)
+    {
+        if (job.pGeometry->hasBeenWritten)
+        {
+            D3D12_RESOURCE_BARRIER barrier = {};
+            barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+            barrier.Transition.pResource = job.pGeometry->cpVertexBuffer.Get();
+            barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+            barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+            barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+            barriers.push_back(barrier);
+        }
+    }
+    if (!barriers.empty())
+    {
+        pCmdList->ResourceBarrier(static_cast<UINT>(barriers.size()), barriers.data());
+    }
+
+    // SkinVertices_CS.hlslのg_constants(b0)と同じ並び
+    struct SkinConstants
+    {
+        uint32_t sourceIndex;
+        uint32_t outputIndex;
+        uint32_t vertexCount;
+    };
+    m_skinShader.Begin();
+    for (const SkinJob& job : m_skinJobs)
+    {
+        CBufferData::Bones bones = {};
+        const size_t boneCount = (std::min)(job.pBones->size(), static_cast<size_t>(256));
+        for (size_t i = 0; i < boneCount; ++i)
+        {
+            bones.mBones[i] = (*job.pBones)[i];
+        }
+        SkinConstants constants = {};
+        constants.sourceIndex = static_cast<uint32_t>(job.pGeometry->sourceSrvIndex);
+        constants.outputIndex = static_cast<uint32_t>(job.pGeometry->outputUavIndex);
+        constants.vertexCount = job.pGeometry->vertexCount;
+        m_skinShader.SetConstants(constants);
+        m_skinShader.SetConstantBuffer(1, bones);
+        m_skinShader.Dispatch(ComputeShader::DivideRoundUp(constants.vertexCount, 64), 1);
+    }
+
+    // 書き終えた頂点を、BLASの入力と当たった三角形の読み込みに使える状態にする
+    barriers.clear();
+    for (const SkinJob& job : m_skinJobs)
+    {
+        D3D12_RESOURCE_BARRIER barrier = {};
+        barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+        barrier.Transition.pResource = job.pGeometry->cpVertexBuffer.Get();
+        barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+        barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+        barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+        barriers.push_back(barrier);
+        job.pGeometry->hasBeenWritten = true;
+    }
+    pCmdList->ResourceBarrier(static_cast<UINT>(barriers.size()), barriers.data());
 }
 
 void RaytracingScene::AddInstance(const Mesh& mesh, const Material& material, const Math::Matrix& world)
@@ -176,7 +394,11 @@ void RaytracingScene::AddInstance(const Mesh& mesh, const Material& material, co
     {
         return;
     }
+    AddInstanceDesc(pBottomLevel, material, world);
+}
 
+void RaytracingScene::AddInstanceDesc(BottomLevel* pBottomLevel, const Material& material, const Math::Matrix& world)
+{
     D3D12_RAYTRACING_INSTANCE_DESC instance = {};
     // DXRの変換は列ベクトルの3x4。行ベクトルのワールド行列の上3列を転置して入れる
     for (int row = 0; row < 3; ++row)
@@ -216,43 +438,57 @@ void RaytracingScene::Build()
     auto* pCmdList = device.GetCmdList();
     PROFILE_GPU_SCOPE(pCmdList, "BuildAccelerationStructures");
 
-    // 1. このフレームで新しく作るBLASの大きさを調べ、まとめて1つの作業用バッファから切り出す
+    // 0. スキニングのメッシュの頂点を変形する
+    SkinVertices();
+
+    // 1. このフレームで新しく作る(スキニングは更新する)BLASの大きさを調べ、まとめて1つの作業用バッファから切り出す
     std::vector<D3D12_RAYTRACING_GEOMETRY_DESC> geometryDescs(m_pendingBuilds.size());
     std::vector<D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS> bottomInputs(m_pendingBuilds.size());
     std::vector<UINT64> scratchOffsets(m_pendingBuilds.size());
     UINT64 scratchTotal = 0;
     for (size_t i = 0; i < m_pendingBuilds.size(); ++i)
     {
-        const Mesh& mesh = *m_pendingBuilds[i].first;
-        BottomLevel& bottomLevel = *m_pendingBuilds[i].second;
+        const PendingBuild& pending = m_pendingBuilds[i];
+        BottomLevel& bottomLevel = *pending.pBottomLevel;
         D3D12_RAYTRACING_GEOMETRY_DESC& geometry = geometryDescs[i];
         geometry.Type = D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;
         geometry.Flags = D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE;
-        geometry.Triangles.VertexBuffer.StartAddress = mesh.GetVertexBuffer().GetGPUVirtualAddress();
+        geometry.Triangles.VertexBuffer.StartAddress = pending.vertexAddress;
         geometry.Triangles.VertexBuffer.StrideInBytes = sizeof(MeshVertex);
         geometry.Triangles.VertexFormat = DXGI_FORMAT_R32G32B32_FLOAT;
-        geometry.Triangles.VertexCount = static_cast<UINT>(mesh.GetVertices().size());
-        geometry.Triangles.IndexBuffer = mesh.GetIndexBuffer().GetGPUVirtualAddress();
+        geometry.Triangles.VertexCount = pending.vertexCount;
+        geometry.Triangles.IndexBuffer = pending.indexAddress;
         geometry.Triangles.IndexFormat = DXGI_FORMAT_R32_UINT;
-        geometry.Triangles.IndexCount = mesh.GetInstanceCount();
+        geometry.Triangles.IndexCount = pending.indexCount;
 
         D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS& inputs = bottomInputs[i];
         inputs.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL;
-        inputs.Flags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE;
+        // スキニングは毎フレーム更新するので、作るのが速く、更新できる形にする
+        inputs.Flags = bottomLevel.allowUpdate
+            ? (D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_ALLOW_UPDATE | D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_BUILD)
+            : D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE;
+        if (bottomLevel.allowUpdate && bottomLevel.isBuilt)
+        {
+            inputs.Flags |= D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PERFORM_UPDATE;
+        }
         inputs.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;
         inputs.NumDescs = 1;
         inputs.pGeometryDescs = &geometry;
 
         D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO prebuild = {};
         pDevice->GetRaytracingAccelerationStructurePrebuildInfo(&inputs, &prebuild);
-        UINT64 resultCapacity = 0;
-        if (!EnsureBuffer(bottomLevel.cpBuffer, resultCapacity, prebuild.ResultDataMaxSizeInBytes, D3D12_HEAP_TYPE_DEFAULT,
-            D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE, L"BLAS"))
+        if (!bottomLevel.cpBuffer)
         {
-            continue;
+            UINT64 resultCapacity = 0;
+            if (!EnsureBuffer(bottomLevel.cpBuffer, resultCapacity, prebuild.ResultDataMaxSizeInBytes, D3D12_HEAP_TYPE_DEFAULT,
+                D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE, L"BLAS"))
+            {
+                continue;
+            }
         }
+        const bool isUpdate = (inputs.Flags & D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PERFORM_UPDATE) != 0;
         scratchOffsets[i] = scratchTotal;
-        scratchTotal = AlignUp(scratchTotal + prebuild.ScratchDataSizeInBytes, D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BYTE_ALIGNMENT);
+        scratchTotal = AlignUp(scratchTotal + (isUpdate ? prebuild.UpdateScratchDataSizeInBytes : prebuild.ScratchDataSizeInBytes), D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BYTE_ALIGNMENT);
     }
 
     // 2. TLASの入力(インスタンス)。BLASのアドレスを埋めてアップロードのバッファへ写す
@@ -337,7 +573,7 @@ void RaytracingScene::Build()
 
     for (size_t i = 0; i < m_pendingBuilds.size(); ++i)
     {
-        BottomLevel& bottomLevel = *m_pendingBuilds[i].second;
+        BottomLevel& bottomLevel = *m_pendingBuilds[i].pBottomLevel;
         if (!bottomLevel.cpBuffer)
         {
             continue;
@@ -346,6 +582,11 @@ void RaytracingScene::Build()
         buildDesc.Inputs = bottomInputs[i];
         buildDesc.Inputs.pGeometryDescs = &geometryDescs[i];
         buildDesc.DestAccelerationStructureData = bottomLevel.cpBuffer->GetGPUVirtualAddress();
+        // 更新は、前のBLASを元にその場で書き換える
+        if ((buildDesc.Inputs.Flags & D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PERFORM_UPDATE) != 0)
+        {
+            buildDesc.SourceAccelerationStructureData = buildDesc.DestAccelerationStructureData;
+        }
         buildDesc.ScratchAccelerationStructureData = m_cpScratch->GetGPUVirtualAddress() + scratchOffsets[i];
         pCmdList->BuildRaytracingAccelerationStructure(&buildDesc, 0, nullptr);
         bottomLevel.isBuilt = true;

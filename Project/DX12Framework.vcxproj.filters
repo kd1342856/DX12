@@ -1454,6 +1454,9 @@
     <None Include="Asset\Shader\Lighting\inc_Raytracing.hlsli">
       <Filter>Asset\Shader\Lighting</Filter>
     </None>
+    <None Include="Asset\Shader\Lighting\SkinVertices_CS.hlsl">
+      <Filter>Asset\Shader\Lighting</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Asset\Shader\SkinningShader\SkinningShader_PS.hlsl">
