@@ -124,7 +124,8 @@ public:
 		m_PostProcessData.EnableGodRays = (m_PostProcessSettings.EnableGodRays && isValid) ? 1 : 0;
 	}
 
-	ShaderProgram* LoadShader(const std::wstring& vsPath, const std::wstring& psPath);
+	// psProfileはピクセルシェーダーの版(レイトレースを使うシェーダーはps_6_6)
+	ShaderProgram* LoadShader(const std::wstring& vsPath, const std::wstring& psPath, const std::wstring& psProfile = L"ps_6_0");
 	ID3D12PipelineState* GetPipelineState(ShaderProgram* pProgram, const PipelineDesc& desc);
 
 	// 新しく作ったPSOがあれば、PSOライブラリを<root>/Saved/ShaderCache/PipelineLibrary_<構成>.binに保存する。

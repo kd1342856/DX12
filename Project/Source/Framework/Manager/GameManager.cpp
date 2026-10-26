@@ -148,6 +148,9 @@ void GameManager::Init()
         JobSystem::Instance().Init();
 
     auto* pDevice = &GDF::Instance().GetGraphicsDevice();
+    // シェーダーモデル6.6(バインドレス)に対応しているか。描画のシェーダーのルートシグネチャと、
+    // LitShader・SkinningShaderのピクセルシェーダーの版(レイトレースの影と反射)に使うので、先に調べる
+    ComputeShader::InitializeShared(pDevice->GetDevice());
     ShaderLibrary::Instance().Register<LitShader>(pDevice);
     ShaderLibrary::Instance().Register<ShadowShader>(pDevice);
     ShaderLibrary::Instance().Register<SkinningShader>(pDevice);
@@ -163,8 +166,7 @@ void GameManager::Init()
     ShaderLibrary::Instance().Register<ParticleShader>(pDevice);
     ShaderLibrary::Instance().Register<VelocityShader>(pDevice);
 
-    // バインドレスのコンピュート(シェーダーモデル6.6)と、それを使う速度・TAA。描画解像度で作る
-    ComputeShader::InitializeShared(pDevice->GetDevice());
+    // バインドレスのコンピュートを使う速度・TAAなど。描画解像度で作る
     MotionVectors::Instance().Initialize(Renderer::GetRenderWidth(), Renderer::GetRenderHeight());
     TemporalAA::Instance().Initialize(Renderer::GetRenderWidth(), Renderer::GetRenderHeight());
     AutoExposure::Instance().Initialize();

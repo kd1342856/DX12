@@ -113,6 +113,12 @@ namespace CBufferData
 		Math::Vector4 DDGIOrigin;    // xyz: 最初のプローブの位置、w: プローブの間隔(m)
 		DirectX::XMINT4 DDGICounts;  // xyz: 各軸のプローブの数、w: テクスチャの1行に並べるプローブの数
 		Math::Vector4 DDGIParams;    // x: 有効(1)か、y: 法線の向きへずらす量、z: カメラの向きへずらす量
+
+		// レイトレースの影と反射(GameSceneが毎フレーム書く)。TLASの番号が-1なら使わない
+		int32_t RaytracingTLASIndex;
+		int32_t RaytracingGeometryIndex;
+		uint32_t RaytracingFlags; // 1: 影、2: 反射
+		uint32_t RaytracingFrame; // フレームごとに乱数の並びを変える
 	};
 
 	struct SSAO

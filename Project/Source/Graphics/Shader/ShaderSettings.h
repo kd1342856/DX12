@@ -39,6 +39,10 @@ struct RendererSettings
     bool  EnableContactShadows = true;
     float ContactShadowLength = 0.2f; // たどる長さ(m)
 
+    // レイトレースの影(画質が「高」以上のときだけ使える)。スポット・点光源・月の影をシャドウマップの代わりにレイで調べる。
+    // 光源の大きさの円板から毎フレーム1点ずつ選び、TAAで平均して柔らかい影にする
+    bool  EnableRaytracedShadows = false;
+
     // リファレンスのパストレーサー(開発用)。オンの間は、シーンの色をパストレースの結果で置き換える
     bool  EnableReferencePathTracer = false;
     int   PathTracerMaxBounces = 4; // 拡散の反射を繰り返す回数

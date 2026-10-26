@@ -29,6 +29,7 @@ struct QualityPreset
     int maxPlanarReflections;          // 同時に描く平面反射(窓)の数(0～3)
     UINT planarReflectionResolution;
     int bloomIterations;
+    bool raytracedReflections;         // レイトレースの反射(滑らかな面だけ)
 };
 
 class QualitySettings

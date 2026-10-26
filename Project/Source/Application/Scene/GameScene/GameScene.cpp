@@ -35,6 +35,7 @@
 #include "../../../Graphics/Renderer/DDGIVolume.h"
 #include "../../../Graphics/Renderer/VolumetricFog.h"
 #include "../../../Graphics/Renderer/PathTracer.h"
+#include "../../../Graphics/Renderer/QualitySettings.h"
 #include "../../../Framework/Manager/Particle/ParticleManager.h"
 #include "../../../Framework/Manager/Audio/AudioManager.h"
 #include "../../UI/OptionMenu.h"
@@ -788,6 +789,10 @@ void GameScene::UpdateLights(Entity cameraEntity)
         }
     }
     lightData.IndoorCount = indoorCount;
+    // レイトレースの影と反射は、加速構造を作った後(UpdateGlobalIllumination)で有効にする
+    lightData.RaytracingTLASIndex = -1;
+    lightData.RaytracingGeometryIndex = -1;
+    lightData.RaytracingFlags = 0;
 
     // 反射プローブ: 部屋ごとに1つ。箱は室内判定と同じ余白で広げ、壁や床の面が箱の内側に入るようにする
     {
@@ -836,8 +841,26 @@ void GameScene::UpdateGlobalIllumination()
     PROFILE_CPU_SCOPE("GlobalIllumination");
     PROFILE_GPU_SCOPE(pCmdList, "GlobalIllumination");
     renderSystem->BuildRaytracingScene();
-    const auto& shaderManager = ShaderManager::Instance();
+    auto& shaderManager = ShaderManager::Instance();
     DDGIVolume::Instance().Update(shaderManager.GetLightData(), shaderManager.GetSystemData());
+
+    // 描画のシェーダーからのレイトレース(影は画質が「高」以上で設定がオンのとき、反射は画質の設定)。
+    // ピクセルシェーダーがシェーダーモデル6.6でコンパイルされているときだけ使われる
+    const RaytracingScene& scene = RaytracingScene::Instance();
+    auto& lightData = shaderManager.GetMutableLightData();
+    lightData.RaytracingTLASIndex = scene.GetTLASIndex();
+    lightData.RaytracingGeometryIndex = scene.GetGeometryInfoIndex();
+    uint32_t flags = 0;
+    if (shaderManager.GetRendererSettings().EnableRaytracedShadows && QualitySettings::GetLevel() >= QualityLevel::High)
+    {
+        flags |= 1u;
+    }
+    if (QualitySettings::GetCurrent().raytracedReflections)
+    {
+        flags |= 2u;
+    }
+    lightData.RaytracingFlags = flags;
+    ++lightData.RaytracingFrame;
 }
 
 void GameScene::CaptureReflectionProbe()

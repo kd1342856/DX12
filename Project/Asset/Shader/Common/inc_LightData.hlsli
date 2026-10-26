@@ -108,6 +108,14 @@ cbuffer cbLight : register(b3)
     float4 g_DDGIOrigin; // xyz: 最初のプローブの位置、w: プローブの間隔(m)
     int4   g_DDGICounts; // xyz: 各軸のプローブの数、w: テクスチャの1行に並べるプローブの数
     float4 g_DDGIParams; // x: 有効(1)か、y: 法線の向きへずらす量、z: カメラの向きへずらす量
+
+    //-------------------------
+    // レイトレースの影と反射(TLASの番号が-1なら使わない)
+    //-------------------------
+    int  g_RaytracingTLASIndex;
+    int  g_RaytracingGeometryIndex;
+    uint g_RaytracingFlags; // 1: 影、2: 反射
+    uint g_RaytracingFrame;
 };
 
 // ワールド座標がいずれかの室内範囲(RoomArea)に入っているか

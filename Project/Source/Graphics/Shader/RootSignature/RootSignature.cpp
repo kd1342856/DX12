@@ -1,13 +1,16 @@
 #include "../../../Pch.h"
 #include "RootSignature.h"
+#include "../ComputeShader/ComputeShader.h"
 
 void RootSignature::Create(GraphicsDevice* pGraphicsDevice, const std::vector<DescriptorRange>& inputRanges)
 {
 	m_pDevice = pGraphicsDevice;
 
+	// 版1.1で作る(シェーダーモデル6.6のヒープを直接参照するフラグは1.0では作れない)。
+	// ディスクリプタとデータは「揮発」にして、1.0と同じ扱い(描画の途中で書き換えてよい)にする
 	int rangeCount = (int)inputRanges.size();
-	std::vector<D3D12_ROOT_PARAMETER> rootParams(rangeCount);
-	std::vector<D3D12_DESCRIPTOR_RANGE> dxRanges(rangeCount);
+	std::vector<D3D12_ROOT_PARAMETER1> rootParams(rangeCount);
+	std::vector<D3D12_DESCRIPTOR_RANGE1> dxRanges(rangeCount);
 
 	bool bSampler = false;
 
@@ -17,6 +20,7 @@ void RootSignature::Create(GraphicsDevice* pGraphicsDevice, const std::vector<De
 		dxRanges[i].BaseShaderRegister = inputRanges[i].Register;
 		dxRanges[i].RegisterSpace = inputRanges[i].Space;
 		dxRanges[i].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+		dxRanges[i].Flags = D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE | D3D12_DESCRIPTOR_RANGE_FLAG_DATA_VOLATILE;
 
 		switch (inputRanges[i].Type) {
 		case RangeType::CBV:
@@ -63,18 +67,29 @@ void RootSignature::Create(GraphicsDevice* pGraphicsDevice, const std::vector<De
 		pStaticSmplerDesc[6] = cmpSampler;
 	}
 
-	D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc = {};
+	D3D12_ROOT_SIGNATURE_DESC1 rootSignatureDesc = {};
 	rootSignatureDesc.pStaticSamplers = bSampler ? pStaticSmplerDesc.data() : nullptr;
 	rootSignatureDesc.NumStaticSamplers = bSampler ? 7 : 0;
 	rootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+	// シェーダーモデル6.6に対応していれば、描画のシェーダーからもResourceDescriptorHeapで読めるようにする
+	// (レイトレースの影と反射で、加速構造と当たった物の頂点・テクスチャを番号で読む)
+	if (ComputeShader::IsSupported())
+	{
+		rootSignatureDesc.Flags |= D3D12_ROOT_SIGNATURE_FLAG_CBV_SRV_UAV_HEAP_DIRECTLY_INDEXED;
+	}
 	rootSignatureDesc.pParameters = rootParams.data();
 	rootSignatureDesc.NumParameters = (int)inputRanges.size();
 
-	ID3DBlob* pErrorBlob = nullptr;
-	auto hr = D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1_0, &m_pRootBlob, &pErrorBlob);
+	D3D12_VERSIONED_ROOT_SIGNATURE_DESC versionedDesc = {};
+	versionedDesc.Version = D3D_ROOT_SIGNATURE_VERSION_1_1;
+	versionedDesc.Desc_1_1 = rootSignatureDesc;
+	Microsoft::WRL::ComPtr<ID3DBlob> cpErrorBlob;
+	auto hr = D3D12SerializeVersionedRootSignature(&versionedDesc, &m_pRootBlob, &cpErrorBlob);
 	if (FAILED(hr))
 	{
 		OutputDebugStringA("SerializeRootSignature Failed\n");
+		Logger::Instance().AddLog(Logger::LogLevel::Error, u8"[RootSignature] ルートシグネチャを作れませんでした: %s",
+			cpErrorBlob ? static_cast<const char*>(cpErrorBlob->GetBufferPointer()) : "");
 		return;
 	}
 	hr = m_pDevice->GetDevice()->CreateRootSignature(0, m_pRootBlob->GetBufferPointer(), m_pRootBlob->GetBufferSize(), IID_PPV_ARGS(m_pRootSignature.GetAddressOf()));

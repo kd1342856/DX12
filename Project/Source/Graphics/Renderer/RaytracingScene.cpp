@@ -8,6 +8,8 @@
 namespace
 {
     constexpr uint32_t kInvalidIndex = 0xFFFFFFFFu;
+    // 変形した頂点を読むときの状態(BLASの入力と、コンピュート・ピクセルシェーダーで当たった三角形を読む)
+    constexpr D3D12_RESOURCE_STATES kSkinnedReadState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 
     UINT64 AlignUp(UINT64 value, UINT64 alignment)
     {
@@ -332,7 +334,7 @@ void RaytracingScene::SkinVertices()
             barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
             barrier.Transition.pResource = job.pGeometry->cpVertexBuffer.Get();
             barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-            barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+            barrier.Transition.StateBefore = kSkinnedReadState;
             barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
             barriers.push_back(barrier);
         }
@@ -376,7 +378,7 @@ void RaytracingScene::SkinVertices()
         barrier.Transition.pResource = job.pGeometry->cpVertexBuffer.Get();
         barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
         barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-        barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+        barrier.Transition.StateAfter = kSkinnedReadState;
         barriers.push_back(barrier);
         job.pGeometry->hasBeenWritten = true;
     }

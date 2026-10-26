@@ -321,7 +321,11 @@ PSOutput main(VSOutput In) : SV_Target0
 
         // 影
         float shadow = 1;
-        if (g_DL_ShadowPower > 0)
+        if (IsRaytracedShadowEnabled())
+        {
+            shadow = TraceShadowToDirection(In.wPos, wN, -g_DL_Dir, In.Pos.xy);
+        }
+        else if (g_DL_ShadowPower > 0)
         {
             // 簡易シャドウ（カスケードなし）
             uint cascadeIndex = 0;
@@ -390,9 +394,16 @@ PSOutput main(VSOutput In) : SV_Target0
         // 届いていない(コーンの外・範囲外・裏向き)ピクセルでは影を調べない
         if (any(spotLight > 0.0))
         {
-            spotLight *= EvaluateSpotLightShadow(surface, g_SL[i], In.Pos.xy);
-            const float3 toLight = g_SL[i].Pos - In.wPos;
-            spotLight *= EvaluateContactShadow(In.wPos, wN, normalize(toLight), length(toLight), mul(g_mV, g_mP), float2(g_mP._33, g_mP._43), In.Pos.xy);
+            if (IsRaytracedShadowEnabled())
+            {
+                spotLight *= TraceShadowToPoint(In.wPos, wN, g_SL[i].Pos, g_SL[i].SourceRadius, In.Pos.xy);
+            }
+            else
+            {
+                spotLight *= EvaluateSpotLightShadow(surface, g_SL[i], In.Pos.xy);
+                const float3 toLight = g_SL[i].Pos - In.wPos;
+                spotLight *= EvaluateContactShadow(In.wPos, wN, normalize(toLight), length(toLight), mul(g_mV, g_mP), float2(g_mP._33, g_mP._43), In.Pos.xy);
+            }
         }
         color += spotLight;
     }
@@ -406,9 +417,16 @@ PSOutput main(VSOutput In) : SV_Target0
         // 届いていない(範囲外・裏向き)ピクセルでは影を調べない
         if (any(pointLight > 0.0))
         {
-            pointLight *= EvaluatePointLightShadow(surface, g_PL[j], In.Pos.xy);
-            const float3 toLight = g_PL[j].Pos - In.wPos;
-            pointLight *= EvaluateContactShadow(In.wPos, wN, normalize(toLight), length(toLight), mul(g_mV, g_mP), float2(g_mP._33, g_mP._43), In.Pos.xy);
+            if (IsRaytracedShadowEnabled())
+            {
+                pointLight *= TraceShadowToPoint(In.wPos, wN, g_PL[j].Pos, g_PL[j].SourceRadius, In.Pos.xy);
+            }
+            else
+            {
+                pointLight *= EvaluatePointLightShadow(surface, g_PL[j], In.Pos.xy);
+                const float3 toLight = g_PL[j].Pos - In.wPos;
+                pointLight *= EvaluateContactShadow(In.wPos, wN, normalize(toLight), length(toLight), mul(g_mV, g_mP), float2(g_mP._33, g_mP._43), In.Pos.xy);
+            }
         }
         color += pointLight;
     }
@@ -454,7 +472,7 @@ PSOutput main(VSOutput In) : SV_Target0
     float specAO = occlusion * ssao;
     float specOcclusion = saturate(pow(NdotV + specAO, exp2(-16.0 * roughness2 - 1.0)) - 1.0 + specAO);
 
-    color += EvaluateEnvironmentSpecular(surface, specOcclusion, skyRadiance, g_ss_linear_clamp);
+    color += EvaluateEnvironmentSpecular(surface, specOcclusion, skyRadiance, g_ss_linear_clamp, In.Pos.xy);
 
     //------------------------------------------
     // 距離フォグ

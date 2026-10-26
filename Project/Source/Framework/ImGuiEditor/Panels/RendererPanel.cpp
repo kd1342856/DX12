@@ -63,6 +63,14 @@ void RendererPanel::Draw(EditorContext& ctx)
             }
 
             ImGui::Separator();
+            ImGui::Text("Ray Tracing");
+            ImGui::Checkbox("Raytraced Shadows (High+)", &ctx.Renderer->EnableRaytracedShadows);
+            if (ImGui::IsItemHovered())
+            {
+                ImGui::SetTooltip(u8"スポット・点光源・月の影をレイで調べる(画質「高」以上)。反射は画質「最高」で自動的に有効。");
+            }
+
+            ImGui::Separator();
             ImGui::Text("Reference Path Tracer (dev)");
             // CPU側だけで使う設定なので、IsDirtyを待たずに毎フレーム反映される
             ImGui::BeginDisabled(!PathTracer::Instance().IsAvailable());

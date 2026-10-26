@@ -175,8 +175,8 @@ void ResourceUploader::UploadVertexBuffer(VertexBuffer* pBuffer, const void* pDa
     barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
     barrier.Transition.pResource = pBuffer->GetResource();
     barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
-    // DDGIのレイトレース(コンピュート)でも読むので、NON_PIXEL_SHADER_RESOURCEも含めた読み取りの状態にする
-    barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+    // レイトレースで当たった三角形を読む(コンピュートとピクセルシェーダー)ので、シェーダーから読む状態も含める
+    barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
     barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
     m_uploadContext.value()->AddPendingBarrier(barrier);
 }
@@ -207,7 +207,7 @@ void ResourceUploader::UploadIndexBuffer(IndexBuffer* pBuffer, const void* pData
     barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
     barrier.Transition.pResource = pBuffer->GetResource();
     barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
-    barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_INDEX_BUFFER | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+    barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_INDEX_BUFFER | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
     barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
     m_uploadContext.value()->AddPendingBarrier(barrier);
 }

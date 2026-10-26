@@ -149,6 +149,143 @@ Texture2D<float4> g_ddgiIrradiance : register(t23);
 Texture2D<float2> g_ddgiDistance : register(t24);
 
 //------------------------------------------
+// レイトレースの影と反射(ピクセルシェーダーがシェーダーモデル6.6のときだけ)
+//------------------------------------------
+#if (__SHADER_TARGET_MAJOR > 6) || (__SHADER_TARGET_MAJOR == 6 && __SHADER_TARGET_MINOR >= 6)
+#define LIGHTING_HAS_RAYTRACING 1
+// 読み込む側でg_linearWrap(リニア・ラップのサンプラー)を定義しておくこと
+#include "../Lighting/inc_Raytracing.hlsli"
+#endif
+
+static const uint kRaytracedShadowFlag = 1;
+static const uint kRaytracedReflectionFlag = 2;
+// レイトレースの反射を使う、知覚的なラフネスの上限(これより粗い面は反射プローブだけ)
+static const float kRaytracedReflectionMaxRoughness = 0.35;
+
+bool IsRaytracedShadowEnabled()
+{
+#ifdef LIGHTING_HAS_RAYTRACING
+    return g_RaytracingTLASIndex >= 0 && (g_RaytracingFlags & kRaytracedShadowFlag) != 0;
+#else
+    return false;
+#endif
+}
+
+// ピクセルとフレームごとに散らばった0〜1の値を2つ(Interleaved Gradient Noise)
+float2 RaytracingNoise(float2 screenPos)
+{
+    const float3 magic = float3(0.06711056, 0.00583715, 52.9829189);
+    const float2 offset = 5.588238 * float(g_RaytracingFrame % 64);
+    return float2(frac(magic.z * frac(dot(screenPos + offset, magic.xy))),
+                  frac(magic.z * frac(dot(screenPos.yx + offset * 1.7 + 13.0, magic.xy))));
+}
+
+// 光源の球へ向かうシャドウレイ。球の見かけの円板から毎フレーム1点ずつ選ぶので、TAAで平均すると柔らかい影になる
+float TraceShadowToPoint(float3 position, float3 normal, float3 lightPos, float sourceRadius, float2 screenPos)
+{
+#ifdef LIGHTING_HAS_RAYTRACING
+    RaytracingAccelerationStructure scene = ResourceDescriptorHeap[g_RaytracingTLASIndex];
+    const float3 toLight = lightPos - position;
+    const float3 direction = toLight / max(length(toLight), 1e-4);
+    const float3 axisA = normalize(cross(direction, abs(direction.y) < 0.99 ? float3(0.0, 1.0, 0.0) : float3(1.0, 0.0, 0.0)));
+    const float3 axisB = cross(direction, axisA);
+    const float2 noise = RaytracingNoise(screenPos);
+    const float radius = sourceRadius * sqrt(noise.x);
+    const float angle = noise.y * 6.28318530718;
+    const float3 target = lightPos + (axisA * cos(angle) + axisB * sin(angle)) * radius;
+    const float3 origin = position + normal * 0.01;
+    const float3 toTarget = target - origin;
+    const float distanceToTarget = length(toTarget);
+    // 光源のすぐまわり(電球や芯のメッシュ)では止める(シャドウマップの手前の面と同じ5cm強)
+    return IsVisible(scene, origin, toTarget / max(distanceToTarget, 1e-4), max(distanceToTarget - 0.06, 0.0)) ? 1.0 : 0.0;
+#else
+    return 1.0;
+#endif
+}
+
+// 平行光(月)へのシャドウレイ。月の見かけの大きさ(半径約0.26度)の中で向きを散らす
+float TraceShadowToDirection(float3 position, float3 normal, float3 toLight, float2 screenPos)
+{
+#ifdef LIGHTING_HAS_RAYTRACING
+    RaytracingAccelerationStructure scene = ResourceDescriptorHeap[g_RaytracingTLASIndex];
+    const float kTanAngularRadius = 0.0045;
+    const float3 axisA = normalize(cross(toLight, abs(toLight.y) < 0.99 ? float3(0.0, 1.0, 0.0) : float3(1.0, 0.0, 0.0)));
+    const float3 axisB = cross(toLight, axisA);
+    const float2 noise = RaytracingNoise(screenPos);
+    const float radius = kTanAngularRadius * sqrt(noise.x);
+    const float angle = noise.y * 6.28318530718;
+    const float3 direction = normalize(toLight + (axisA * cos(angle) + axisB * sin(angle)) * radius);
+    return IsVisible(scene, position + normal * 0.01, direction, 1000.0) ? 1.0 : 0.0;
+#else
+    return 1.0;
+#endif
+}
+
+// レイトレースの反射。滑らかな面(知覚的なラフネスがkRaytracedReflectionMaxRoughnessより小さい)だけ、
+// GGXの広がりの中で反射の向きを毎フレーム1本選んで飛ばし、当たった所をDDGIの環境光と発光で照らす。
+// 粗くなるほど、反射プローブなどの値(fallbackRadiance)へ混ぜて戻す
+float3 TraceReflection(SurfaceData surface, float3 fallbackRadiance, SamplerState linearSampler, float2 screenPos)
+{
+#ifdef LIGHTING_HAS_RAYTRACING
+    if (g_RaytracingTLASIndex < 0 || (g_RaytracingFlags & kRaytracedReflectionFlag) == 0)
+    {
+        return fallbackRadiance;
+    }
+    const float perceptualRoughness = sqrt(surface.alpha);
+    const float weight = saturate(1.0 - perceptualRoughness / kRaytracedReflectionMaxRoughness);
+    if (weight <= 0.0)
+    {
+        return fallbackRadiance;
+    }
+
+    // GGXの法線分布でハーフベクトルを選び、反射の向きにする
+    const float2 noise = RaytracingNoise(screenPos);
+    const float alpha = max(surface.alpha, 1e-3);
+    const float phi = 6.28318530718 * noise.x;
+    const float cosTheta = sqrt((1.0 - noise.y) / (1.0 + (alpha * alpha - 1.0) * noise.y));
+    const float sinTheta = sqrt(1.0 - cosTheta * cosTheta);
+    const float3 N = surface.normal;
+    const float3 tangentX = normalize(cross(abs(N.y) < 0.999 ? float3(0.0, 1.0, 0.0) : float3(1.0, 0.0, 0.0), N));
+    const float3 tangentY = cross(N, tangentX);
+    const float3 H = tangentX * (sinTheta * cos(phi)) + tangentY * (sinTheta * sin(phi)) + N * cosTheta;
+    float3 direction = reflect(-surface.viewDir, H);
+    if (dot(direction, N) <= 0.0)
+    {
+        direction = reflect(-surface.viewDir, N);
+    }
+
+    RaytracingAccelerationStructure scene = ResourceDescriptorHeap[g_RaytracingTLASIndex];
+    StructuredBuffer<GeometryInfo> geometries = ResourceDescriptorHeap[g_RaytracingGeometryIndex];
+    const float3 origin = surface.position + N * 0.01;
+    RayQuery<RAY_FLAG_FORCE_OPAQUE> query;
+    RayDesc ray;
+    ray.Origin = origin;
+    ray.TMin = 0.0;
+    ray.Direction = direction;
+    ray.TMax = 50.0;
+    query.TraceRayInline(scene, RAY_FLAG_NONE, 0xFF, ray);
+    query.Proceed();
+    if (query.CommittedStatus() != COMMITTED_TRIANGLE_HIT)
+    {
+        return fallbackRadiance;
+    }
+    HitSurface hit = GetHitSurface(geometries, query.CommittedInstanceID(), query.CommittedPrimitiveIndex(), query.CommittedTriangleBarycentrics(),
+        query.CommittedRayT(), query.CommittedObjectToWorld3x4(), origin, direction, 2.0);
+    if (dot(hit.normal, direction) > 0.0)
+    {
+        hit.normal = -hit.normal;
+    }
+    // 当たった所の拡散: DDGIのプローブ(直接光も含む)。家の外は空の明るさ
+    float coverage;
+    const float3 irradiance = SampleDDGIIrradiance(hit.position, hit.normal, -direction, g_ddgiIrradiance, g_ddgiDistance, linearSampler, coverage);
+    const float3 hitRadiance = hit.emissive * g_Exposure + hit.albedo * lerp(g_AmbientLight, irradiance * g_Exposure, coverage);
+    return lerp(fallbackRadiance, hitRadiance, weight);
+#else
+    return fallbackRadiance;
+#endif
+}
+
+//------------------------------------------
 // 反射プローブ(C++のReflectionProbesが部屋ごとに撮る)
 //------------------------------------------
 TextureCubeArray g_reflectionProbes : register(t22);
@@ -206,10 +343,11 @@ float4 SampleReflectionProbes(SurfaceData surface, SamplerState probeSampler)
 
 // 鏡面の環境光。反射プローブから読み、どの部屋のプローブにも入らないところは
 // fallbackRadiance(一様な空の明るさ、前露出のnit)を使う
-float3 EvaluateEnvironmentSpecular(SurfaceData surface, float specularOcclusion, float3 fallbackRadiance, SamplerState probeSampler)
+float3 EvaluateEnvironmentSpecular(SurfaceData surface, float specularOcclusion, float3 fallbackRadiance, SamplerState probeSampler, float2 screenPos)
 {
     const float4 probe = SampleReflectionProbes(surface, probeSampler);
-    const float3 radiance = probe.rgb + fallbackRadiance * (1.0 - probe.a);
+    // 滑らかな面は、レイトレースの反射で置き換える(画質「最高」)
+    const float3 radiance = TraceReflection(surface, probe.rgb + fallbackRadiance * (1.0 - probe.a), probeSampler, screenPos);
 
     // 環境BRDF(スプリットサム近似)。粗さとフレネルで反射量を決める
     // (粗いほど正面の反射が弱まり、浅い角度ほど強まる)。マルチスキャッタの分も足す

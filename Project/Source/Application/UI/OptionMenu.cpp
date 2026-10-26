@@ -6,6 +6,7 @@
 #include "../../Graphics/Renderer/QualitySettings.h"
 #include "../../Graphics/Renderer/TemporalAA.h"
 #include "../../Graphics/Renderer/MotionBlur.h"
+#include "../../Graphics/Renderer/RaytracingScene.h"
 #include <imgui.h>
 #include <algorithm>
 
@@ -111,6 +112,10 @@ void OptionMenu::LoadSettings()
         {
             pp.EnableMotionBlur = j["motionBlur"].get<bool>();
         }
+        if (j.contains("raytracedShadows"))
+        {
+            ShaderManager::Instance().GetRendererSettings().EnableRaytracedShadows = j["raytracedShadows"].get<bool>();
+        }
     }
     catch (const std::exception& e) {
         Logger::Instance().AddLog(Logger::LogLevel::Warning, "OptionMenu: Failed to load %s (%s)", AppPaths::ToUtf8(settingsPath).c_str(), e.what());
@@ -126,6 +131,7 @@ void OptionMenu::SaveSettings()
     j["qualityLevel"] = kQualityNames[static_cast<int>(QualitySettings::GetLevel())];
     j["antiAliasing"] = ShaderManager::Instance().GetPostProcessSettings().EnableTAA;
     j["motionBlur"] = ShaderManager::Instance().GetPostProcessSettings().EnableMotionBlur;
+    j["raytracedShadows"] = ShaderManager::Instance().GetRendererSettings().EnableRaytracedShadows;
     std::filesystem::path settingsPath = AppPaths::GetSavedFilePath(kSettingsFileName);
     std::ofstream o(settingsPath);
     if (o.is_open()) {
@@ -285,6 +291,11 @@ void OptionMenu::DrawDisplayTab()
     ImGui::EndDisabled();
     ImGui::BeginDisabled(!MotionBlur::Instance().IsAvailable());
     ImGui::Checkbox(u8"モーションブラー", &postProcess.EnableMotionBlur);
+    ImGui::EndDisabled();
+    // レイトレースの影は、レイトレースに対応したGPUで、画質が「高」以上のときだけ
+    auto& renderer = ShaderManager::Instance().GetRendererSettings();
+    ImGui::BeginDisabled(!RaytracingScene::Instance().IsSupported() || QualitySettings::GetLevel() < QualityLevel::High);
+    ImGui::Checkbox(u8"レイトレースの影(画質「高」以上)", &renderer.EnableRaytracedShadows);
     ImGui::EndDisabled();
     ImGui::Spacing();
     ImGui::TextUnformatted(u8"フレームレートの上限");

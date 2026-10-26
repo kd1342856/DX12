@@ -1,5 +1,7 @@
 #include "../Common/ShaderCore.hlsli"
 #include "../Common/inc_PBRCommon.hlsli"
+// レイトレースで当たった物のテクスチャを読むサンプラー(inc_Raytracing.hlsli)
+#define g_linearWrap g_ss_linear_wrap
 #include "../Common/inc_Lighting.hlsli"
 
 // 16サンプルの Poisson Disk

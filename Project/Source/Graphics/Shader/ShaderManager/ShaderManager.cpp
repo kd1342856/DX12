@@ -393,10 +393,10 @@ float ShaderManager::GetExposure() const
 	return PhotometricUnits::ExposureFromEV100(ev100);
 }
 
-ShaderProgram* ShaderManager::LoadShader(const std::wstring& vsPath, const std::wstring& psPath)
+ShaderProgram* ShaderManager::LoadShader(const std::wstring& vsPath, const std::wstring& psPath, const std::wstring& psProfile)
 {
 	std::lock_guard<std::mutex> lock(m_mutex);
-	std::wstring key = vsPath + L"|" + psPath;
+	std::wstring key = vsPath + L"|" + psPath + L"|" + psProfile;
 	if (m_shaderCache.find(key) != m_shaderCache.end()) {
 		return m_shaderCache[key].get();
 	}
@@ -415,7 +415,7 @@ ShaderProgram* ShaderManager::LoadShader(const std::wstring& vsPath, const std::
 	}
 
 	if (psPath.length() > 0) {
-		program->pPS = ShaderCompiler::CompilePS(psPath, L"main");
+		program->pPS = ShaderCompiler::CompilePS(psPath, L"main", psProfile);
 	}
 
 	if (program->pVS)

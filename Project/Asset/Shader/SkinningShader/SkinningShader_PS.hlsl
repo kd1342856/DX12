@@ -15,6 +15,8 @@ SamplerComparisonState g_ss_comparison : register(s15);
 
 #include "../Common/inc_LightData.hlsli"
 #include "../Common/inc_PBRCommon.hlsli"
+// レイトレースで当たった物のテクスチャを読むサンプラー(inc_Raytracing.hlsli)
+#define g_linearWrap g_ss
 #include "../Common/inc_Lighting.hlsli"
 
 float Hash2D(float2 p)
@@ -142,7 +144,7 @@ PSOutput main(VSOutput In)
     float moonVisibility = 0;
     if (!IsIndoor(In.wPos))
     {
-        float shadow = SampleDirectionalShadow(In.wPos, saturate(dot(wN, -g_DL_Dir)));
+        float shadow = IsRaytracedShadowEnabled() ? TraceShadowToDirection(In.wPos, wN, -g_DL_Dir, In.pos.xy) : SampleDirectionalShadow(In.wPos, saturate(dot(wN, -g_DL_Dir)));
         color += EvaluateDirectLight(surface, -g_DL_Dir, g_DL_Color) * shadow;
         moonVisibility = shadow;
     }
@@ -155,9 +157,16 @@ PSOutput main(VSOutput In)
         float3 spotLight = EvaluateSpotLight(surface, g_SL[spotIndex]);
         if (any(spotLight > 0.0))
         {
-            spotLight *= EvaluateSpotLightShadow(surface, g_SL[spotIndex], In.pos.xy);
-            const float3 toLight = g_SL[spotIndex].Pos - In.wPos;
-            spotLight *= EvaluateContactShadow(In.wPos, wN, normalize(toLight), length(toLight), mul(c_mView, c_mProj), float2(c_mProj._33, c_mProj._43), In.pos.xy);
+            if (IsRaytracedShadowEnabled())
+            {
+                spotLight *= TraceShadowToPoint(In.wPos, wN, g_SL[spotIndex].Pos, g_SL[spotIndex].SourceRadius, In.pos.xy);
+            }
+            else
+            {
+                spotLight *= EvaluateSpotLightShadow(surface, g_SL[spotIndex], In.pos.xy);
+                const float3 toLight = g_SL[spotIndex].Pos - In.wPos;
+                spotLight *= EvaluateContactShadow(In.wPos, wN, normalize(toLight), length(toLight), mul(c_mView, c_mProj), float2(c_mProj._33, c_mProj._43), In.pos.xy);
+            }
         }
         color += spotLight;
     }
@@ -166,9 +175,16 @@ PSOutput main(VSOutput In)
         float3 pointLight = EvaluatePointLight(surface, g_PL[pointIndex]);
         if (any(pointLight > 0.0))
         {
-            pointLight *= EvaluatePointLightShadow(surface, g_PL[pointIndex], In.pos.xy);
-            const float3 toLight = g_PL[pointIndex].Pos - In.wPos;
-            pointLight *= EvaluateContactShadow(In.wPos, wN, normalize(toLight), length(toLight), mul(c_mView, c_mProj), float2(c_mProj._33, c_mProj._43), In.pos.xy);
+            if (IsRaytracedShadowEnabled())
+            {
+                pointLight *= TraceShadowToPoint(In.wPos, wN, g_PL[pointIndex].Pos, g_PL[pointIndex].SourceRadius, In.pos.xy);
+            }
+            else
+            {
+                pointLight *= EvaluatePointLightShadow(surface, g_PL[pointIndex], In.pos.xy);
+                const float3 toLight = g_PL[pointIndex].Pos - In.wPos;
+                pointLight *= EvaluateContactShadow(In.wPos, wN, normalize(toLight), length(toLight), mul(c_mView, c_mProj), float2(c_mProj._33, c_mProj._43), In.pos.xy);
+            }
         }
         color += pointLight;
     }
@@ -182,7 +198,7 @@ PSOutput main(VSOutput In)
     const float3 skyRadiance = g_AmbientLight * moonVisibility;
     color += lerp(surface.diffuseColor * skyRadiance, surface.diffuseColor * giIrradiance * g_Exposure, giCoverage) * occlusion;
     // 鏡面: 反射プローブ
-    color += EvaluateEnvironmentSpecular(surface, occlusion, skyRadiance, g_ss);
+    color += EvaluateEnvironmentSpecular(surface, occlusion, skyRadiance, g_ss, In.pos.xy);
 
     color = ApplyDistanceFog(color, camDist);
 

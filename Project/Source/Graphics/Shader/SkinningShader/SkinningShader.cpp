@@ -3,6 +3,7 @@
 
 #include "../../Renderer/ModelRenderer.h"
 #include "../../GDF/GDF.h"
+#include "../ComputeShader/ComputeShader.h"
 #include "../../Renderer/RenderContext.h"
 #include "../../../Framework/Manager/Asset/TextureManager.h"
 
@@ -10,7 +11,9 @@ void SkinningShader::Create(GraphicsDevice* pGraphicsDevice)
 {
 	m_pDevice = pGraphicsDevice;
 
-	m_pProgram = ShaderManager::Instance().LoadShader(L"Asset/Shader/SkinningShader/SkinningShader_VS.hlsl", L"Asset/Shader/SkinningShader/SkinningShader_PS.hlsl");
+	// シェーダーモデル6.6に対応していれば、ピクセルシェーダーからレイトレース(影と反射)をする
+	m_pProgram = ShaderManager::Instance().LoadShader(L"Asset/Shader/SkinningShader/SkinningShader_VS.hlsl", L"Asset/Shader/SkinningShader/SkinningShader_PS.hlsl",
+		ComputeShader::IsSupported() ? L"ps_6_6" : L"ps_6_0");
 
 	PipelineDesc desc;
 	desc.InputLayouts = {
