@@ -21,9 +21,9 @@ private:
 	void SetMaterial(const Material& material);
 	int m_cbvCount = 0;
 
-	Microsoft::WRL::ComPtr<ID3D12PipelineState> m_psoOpaque;
-	Microsoft::WRL::ComPtr<ID3D12PipelineState> m_psoOpaqueDepthEqual;
+	PipelineStateRef m_psoOpaque;
+	PipelineStateRef m_psoOpaqueDepthEqual;
 	bool m_isDepthEqual = false;
-	Microsoft::WRL::ComPtr<ID3D12PipelineState> m_psoMask;
-	Microsoft::WRL::ComPtr<ID3D12PipelineState> m_psoBlend;
+	PipelineStateRef m_psoMask;
+	PipelineStateRef m_psoBlend;
 };

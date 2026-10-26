@@ -17,7 +17,7 @@ public:
 private:
 	void SetMaterial(const Material& material);
 
-	ID3D12PipelineState* m_pShadowPipelineState = nullptr;
+	PipelineStateRef m_pShadowPipelineState;
 	
 	// Temporary state during DrawModel
 	const DrawContext* m_pCurrentDrawContext = nullptr;

@@ -36,6 +36,31 @@ struct PipelineDesc {
 	int DepthBias = 0;
 };
 
+// ShaderManagerが持つPSOへの参照。シェーダーのホットリロードでPSOが作り直されても、同じ参照から新しいPSOを引ける。
+// 生のポインタの代わりに持っておき、使うたびにGet()する(ID3D12PipelineState*へは暗黙に変換できる)
+class PipelineStateRef
+{
+public:
+	PipelineStateRef() = default;
+	explicit PipelineStateRef(const Microsoft::WRL::ComPtr<ID3D12PipelineState>* pSlot)
+		: m_pSlot(pSlot)
+	{
+	}
+
+	ID3D12PipelineState* Get() const
+	{
+		return m_pSlot ? m_pSlot->Get() : nullptr;
+	}
+
+	operator ID3D12PipelineState*() const
+	{
+		return Get();
+	}
+
+private:
+	const Microsoft::WRL::ComPtr<ID3D12PipelineState>* m_pSlot = nullptr;
+};
+
 class Pipeline {
 public:
 	// pLibraryとpNameを渡すと、先にPSOライブラリ(ディスクキャッシュ)からpNameで読み込みを試み、

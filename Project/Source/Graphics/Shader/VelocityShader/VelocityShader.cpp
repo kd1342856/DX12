@@ -44,10 +44,10 @@ void VelocityShader::BeginSkinned(RenderContext& context, const FrameConstants& 
     BeginProgram(context, m_pSkinnedProgram, m_pSkinnedPipelineState, frame);
 }
 
-void VelocityShader::BeginProgram(RenderContext& context, ShaderProgram* pProgram, ID3D12PipelineState* pPipelineState, const FrameConstants& frame)
+void VelocityShader::BeginProgram(RenderContext& context, ShaderProgram* pProgram, const PipelineStateRef& pipelineState, const FrameConstants& frame)
 {
     m_pProgram = pProgram;
-    m_pPipelineState = pPipelineState;
+    m_pPipelineState = pipelineState;
     GraphicsShader::Begin(context);
 
     const int b0 = GetRootParameterIndex(ShaderBindingType::CBV, 0);

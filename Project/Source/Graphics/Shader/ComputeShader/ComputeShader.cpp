@@ -1,6 +1,7 @@
 #include "../../../Pch.h"
 #include "ComputeShader.h"
 #include "../ShaderCompiler/ShaderCompiler.h"
+#include "../ShaderHotReload/ShaderHotReload.h"
 
 namespace
 {
@@ -94,6 +95,11 @@ void ComputeShader::ReleaseShared()
     s_isSupported = false;
 }
 
+ComputeShader::~ComputeShader()
+{
+    ShaderHotReload::Instance().Unregister(this);
+}
+
 bool ComputeShader::Create(const std::wstring& filePath, const std::wstring& entryPoint)
 {
     m_cpPipelineState.Reset();
@@ -102,22 +108,60 @@ bool ComputeShader::Create(const std::wstring& filePath, const std::wstring& ent
         return false;
     }
 
-    Microsoft::WRL::ComPtr<IDxcBlob> cpBlob = ShaderCompiler::CompileCS(filePath, entryPoint, L"cs_6_6");
-    if (!cpBlob)
+    m_filePath = filePath;
+    m_entryPoint = entryPoint;
+    std::vector<std::wstring> dependencies;
+    m_cpPipelineState = CompileAndCreatePipelineState(dependencies);
+
+    const std::string name = AppPaths::ToUtf8(std::filesystem::path(filePath).filename()) + " (" + AppPaths::ToUtf8(entryPoint) + ", cs_6_6)";
+    ShaderHotReload::Instance().Register(this, name, dependencies, [this]()
     {
-        return false;
+        return Reload();
+    });
+    return m_cpPipelineState != nullptr;
+}
+
+Microsoft::WRL::ComPtr<ID3D12PipelineState> ComputeShader::CompileAndCreatePipelineState(std::vector<std::wstring>& outDependencies) const
+{
+    ShaderCompileResult result;
+    const bool isCompiled = ShaderCompiler::TryCompileShader(m_filePath, m_entryPoint, L"cs_6_6", result);
+    const std::string name = AppPaths::ToUtf8(std::filesystem::path(m_filePath).filename()) + " (" + AppPaths::ToUtf8(m_entryPoint) + ", cs_6_6)";
+    ShaderHotReload::Instance().ReportResult(name, result, isCompiled);
+    outDependencies = result.dependencies;
+    if (!isCompiled)
+    {
+        if (!result.log.empty())
+        {
+            OutputDebugStringA(result.log.c_str());
+        }
+        Logger::Instance().AddLog(Logger::LogLevel::Error, u8"[ComputeShader] コンパイルに失敗しました: %ls", m_filePath.c_str());
+        return nullptr;
     }
 
     D3D12_COMPUTE_PIPELINE_STATE_DESC pipelineDesc = {};
     pipelineDesc.pRootSignature = s_cpRootSignature.Get();
-    pipelineDesc.CS.pShaderBytecode = cpBlob->GetBufferPointer();
-    pipelineDesc.CS.BytecodeLength = cpBlob->GetBufferSize();
-    if (FAILED(GraphicsDevice::Instance().GetDevice()->CreateComputePipelineState(&pipelineDesc, IID_PPV_ARGS(&m_cpPipelineState))))
+    pipelineDesc.CS.pShaderBytecode = result.cpBlob->GetBufferPointer();
+    pipelineDesc.CS.BytecodeLength = result.cpBlob->GetBufferSize();
+    Microsoft::WRL::ComPtr<ID3D12PipelineState> cpPipelineState;
+    if (FAILED(GraphicsDevice::Instance().GetDevice()->CreateComputePipelineState(&pipelineDesc, IID_PPV_ARGS(&cpPipelineState))))
     {
-        Logger::Instance().AddLog(Logger::LogLevel::Error, u8"[ComputeShader] PSOを作れませんでした: %ls", filePath.c_str());
-        m_cpPipelineState.Reset();
+        Logger::Instance().AddLog(Logger::LogLevel::Error, u8"[ComputeShader] PSOを作れませんでした: %ls", m_filePath.c_str());
+        return nullptr;
+    }
+    return cpPipelineState;
+}
+
+bool ComputeShader::Reload()
+{
+    std::vector<std::wstring> dependencies;
+    Microsoft::WRL::ComPtr<ID3D12PipelineState> cpPipelineState = CompileAndCreatePipelineState(dependencies);
+    ShaderHotReload::Instance().UpdateDependencies(this, dependencies);
+    if (!cpPipelineState)
+    {
         return false;
     }
+    // GPUは止まっているので、古いPSOはここで解放してよい
+    m_cpPipelineState = cpPipelineState;
     return true;
 }
 

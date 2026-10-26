@@ -17,5 +17,5 @@ public:
 
 private:
 	// HDR出力のとき(HDRのシーンのRT、RGBA16Fへ描く)
-	ID3D12PipelineState* m_pHDRPipelineState = nullptr;
+	PipelineStateRef m_pHDRPipelineState;
 };

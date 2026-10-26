@@ -6,6 +6,7 @@
 #include "Scene/GameScene/GameScene.h"
 #include "Scene/TitleScene/TitleScene.h"
 #include "../Graphics/Shader/ShaderManager/ShaderManager.h"
+#include "../Graphics/Shader/ShaderHotReload/ShaderHotReload.h"
 #include "../Framework/Manager/Audio/AudioManager.h"
 #include "../Graphics/Renderer/Renderer.h"
 #include "../Framework/Manager/Scene/SceneManager.h"
@@ -14,6 +15,7 @@
 #include "../Framework/DirectX/Utility/Profiler.h"
 #include "../Framework/System/AppPaths/AppPaths.h"
 #include "UI/OptionMenu.h"
+#include "../Framework/ImGuiEditor/Panels/ShaderReloadPanel.h"
 
 // ImGui の Win32 メッセージハンドラへ転送する
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -74,6 +76,8 @@ void Application::Execute()
 
 	// ShaderManager
 	ShaderManager::Instance().Initialize(&GDF::Instance().GetGraphicsDevice());
+	// Asset/Shader の更新を監視し、保存したシェーダーをその場でコンパイルし直す
+	ShaderHotReload::Instance().Initialize(L"Asset/Shader");
 	// オプション画面で保存した明るさ(表示ガンマ)。音量はAudioManager::Init()で読み込まれる
 	OptionMenu::LoadSettings();
 
@@ -113,6 +117,9 @@ void Application::Execute()
 			GameTimer::Instance().UpdateWindowTitle(m_window.GetWndHandle(), L"Haihu");
 		}
 
+		// 前のフレームのコマンドを積み終えた後、次のフレームを積み始める前に差し替える
+		ShaderHotReload::Instance().Update();
+
 		GDF::Instance().BeginFrame();
 
 
@@ -130,10 +137,13 @@ void Application::Execute()
 			SceneManager::Instance().Update();
 		}
 		SceneManager::Instance().DrawFade();
+		// シェーダーのコンパイルエラーは、エディターを閉じていてもプレイ中でも画面の隅に出す
+		ShaderReloadPanel::DrawErrorNotice();
 
 		GDF::Instance().EndFrame();
 	}
 
+	ShaderHotReload::Instance().Terminate();
 	SceneManager::Instance().Shutdown();
 	GameManager::Instance().Shutdown();
 	JobSystem::Instance().Shutdown();

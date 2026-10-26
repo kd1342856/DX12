@@ -337,6 +337,9 @@
     <Filter Include="Source\Graphics\Shader\HDRCompositeShader">
       <UniqueIdentifier>{16889510-2888-4C1F-ACCC-DDDDEF147E64}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Graphics\Shader\ShaderHotReload">
+      <UniqueIdentifier>{472FED33-276A-4D72-856C-86C53E4A7B6A}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Library\ImGui\imgui.cpp">
@@ -782,6 +785,12 @@
     </ClCompile>
     <ClCompile Include="Source\Graphics\Renderer\RenderGraph.cpp">
       <Filter>Source\Graphics\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Graphics\Shader\ShaderHotReload\ShaderHotReload.cpp">
+      <Filter>Source\Graphics\Shader\ShaderHotReload</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Framework\ImGuiEditor\Panels\ShaderReloadPanel.cpp">
+      <Filter>Source\Framework\ImGuiEditor\Panels</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1342,6 +1351,12 @@
     </ClInclude>
     <ClInclude Include="Source\Graphics\Renderer\RenderGraph.h">
       <Filter>Source\Graphics\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Graphics\Shader\ShaderHotReload\ShaderHotReload.h">
+      <Filter>Source\Graphics\Shader\ShaderHotReload</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\ImGuiEditor\Panels\ShaderReloadPanel.h">
+      <Filter>Source\Framework\ImGuiEditor\Panels</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

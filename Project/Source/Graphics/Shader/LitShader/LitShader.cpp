@@ -53,7 +53,7 @@ void LitShader::Create(GraphicsDevice* pGraphicsDevice)
 	m_psoBlend = ShaderManager::Instance().GetPipelineState(m_pProgram, desc);
 
 	// デフォルト
-	m_pPipelineState = m_psoOpaque.Get();
+	m_pPipelineState = m_psoOpaque;
 }
 
 void LitShader::Begin(RenderContext& context)

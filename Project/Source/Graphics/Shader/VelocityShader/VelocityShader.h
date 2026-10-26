@@ -33,10 +33,10 @@ public:
     void BeforeDrawMesh(const Mesh& mesh, const Material& material) override;
 
 private:
-    void BeginProgram(RenderContext& context, ShaderProgram* pProgram, ID3D12PipelineState* pPipelineState, const FrameConstants& frame);
+    void BeginProgram(RenderContext& context, ShaderProgram* pProgram, const PipelineStateRef& pipelineState, const FrameConstants& frame);
 
     ShaderProgram* m_pStaticProgram = nullptr;
     ShaderProgram* m_pSkinnedProgram = nullptr;
-    ID3D12PipelineState* m_pStaticPipelineState = nullptr;
-    ID3D12PipelineState* m_pSkinnedPipelineState = nullptr;
+    PipelineStateRef m_pStaticPipelineState;
+    PipelineStateRef m_pSkinnedPipelineState;
 };

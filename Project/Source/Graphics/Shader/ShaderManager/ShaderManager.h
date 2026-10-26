@@ -23,6 +23,10 @@ struct ShaderProgram {
 	// DXILの中身のハッシュ。PSOライブラリでの名前に使う(ポインタは起動ごとに変わるため)
 	uint64_t vsHash = 0;
 	uint64_t psHash = 0;
+	// ホットリロードでコンパイルし直すときに使う
+	std::wstring vsPath;
+	std::wstring psPath;
+	std::wstring psProfile;
 };
 
 class ShaderManager {
@@ -126,7 +130,8 @@ public:
 
 	// psProfileはピクセルシェーダーの版(レイトレースを使うシェーダーはps_6_6)
 	ShaderProgram* LoadShader(const std::wstring& vsPath, const std::wstring& psPath, const std::wstring& psProfile = L"ps_6_0");
-	ID3D12PipelineState* GetPipelineState(ShaderProgram* pProgram, const PipelineDesc& desc);
+	// 返す参照は、ホットリロードでPSOが作り直されても新しいPSOを指す。生のポインタにして持ち続けないこと
+	PipelineStateRef GetPipelineState(ShaderProgram* pProgram, const PipelineDesc& desc);
 
 	// 新しく作ったPSOがあれば、PSOライブラリを<root>/Saved/ShaderCache/PipelineLibrary_<構成>.binに保存する。
 	// 全シェーダーの登録(PSOの事前作成)が終わった後と、終了時(デバイスの解放前)に呼ぶ
@@ -137,9 +142,21 @@ private:
 	{
 		Microsoft::WRL::ComPtr<ID3D12PipelineState> cpPipelineState;
 		std::wstring libraryName;
+		// ホットリロードで作り直すときに使う
+		ShaderProgram* pProgram = nullptr;
+		PipelineDesc desc;
+		bool usePS = true;
+		// ライブラリでの名前のうち、シェーダーのハッシュを除いた部分
+		std::wstring descKey;
 	};
 
 	void OpenPipelineLibrary();
+	// コンパイル済みのVS・PSから、リフレクションでバインドを調べてルートシグネチャを作る
+	void BuildProgram(ShaderProgram& program, Microsoft::WRL::ComPtr<IDxcBlob> cpVS, Microsoft::WRL::ComPtr<IDxcBlob> cpPS);
+	// PSOライブラリから読むか新しく作る。m_mutexを持った状態で呼ぶ
+	Microsoft::WRL::ComPtr<ID3D12PipelineState> CreatePipelineState(const ShaderProgram& program, const PipelineDesc& desc, bool usePS, const std::wstring& libraryName);
+	// ホットリロード: コンパイルし直し、成功したらプログラムとそのPSOをすべて差し替える。GPUが止まっている間に呼ばれる
+	bool ReloadProgram(ShaderProgram* pProgram);
 
 	GraphicsDevice* m_pDevice = nullptr;
 	std::unordered_map<std::wstring, std::unique_ptr<ShaderProgram>> m_shaderCache;

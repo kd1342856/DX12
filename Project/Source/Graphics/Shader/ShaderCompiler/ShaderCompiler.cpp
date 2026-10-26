@@ -1,6 +1,7 @@
 #include "../../../Pch.h"
 #include "ShaderCompiler.h"
 #include "../../../Framework/System/AppPaths/AppPaths.h"
+#include <regex>
 
 Microsoft::WRL::ComPtr<IDxcUtils>          ShaderCompiler::s_pUtils;
 Microsoft::WRL::ComPtr<IDxcCompiler3>      ShaderCompiler::s_pCompiler;
@@ -96,9 +97,11 @@ namespace
         return buffer;
     }
 
-    // キャッシュを読み込む。形式が違う、またはインクルードしたファイルのどれかが変わっていればfalse
-    bool LoadDxilCache(const std::filesystem::path& path, std::vector<uint8_t>& outDxil)
+    // キャッシュを読み込む。形式が違う、またはインクルードしたファイルのどれかが変わっていればfalse。
+    // 成功したら、記録してあったインクルードのパスをoutIncludesに入れる
+    bool LoadDxilCache(const std::filesystem::path& path, std::vector<uint8_t>& outDxil, std::vector<std::wstring>& outIncludes)
     {
+        outIncludes.clear();
         std::vector<uint8_t> bytes;
         if (!ReadFileBytes(path, bytes))
         {
@@ -147,6 +150,7 @@ namespace
             {
                 return false;
             }
+            outIncludes.push_back(std::move(includePath));
         }
 
         uint64_t dxilSize = 0;
@@ -343,17 +347,99 @@ void ShaderCompiler::Terminate()
     s_pUtils.Reset();
 }
 
-Microsoft::WRL::ComPtr<IDxcBlob> ShaderCompiler::CompileShader(
+std::wstring ShaderCompiler::NormalizePath(const std::wstring& path)
+{
+    std::error_code errorCode;
+    std::filesystem::path absolutePath = std::filesystem::absolute(path, errorCode);
+    if (errorCode)
+    {
+        absolutePath = path;
+    }
+    std::wstring normalized = absolutePath.lexically_normal().make_preferred().wstring();
+    // Windowsのパスは大文字と小文字を区別しない
+    for (wchar_t& ch : normalized)
+    {
+        ch = static_cast<wchar_t>(towlower(ch));
+    }
+    return normalized;
+}
+
+std::vector<ShaderDiagnostic> ShaderCompiler::ParseDiagnostics(const std::string& log)
+{
+    // DXCのメッセージは「C:\path\file.hlsl:12:5: error: 本文」の形。続く行(ソースの引用や^の印)は直前のメッセージに含める
+    static const std::regex kHeaderPattern(R"(^(.+?):(\d+):(\d+): (fatal error|error|warning|note): (.*)$)");
+    std::vector<ShaderDiagnostic> diagnostics;
+    // 「In file included from a.hlsl:3:」はエラーの前に出る。どこからインクルードしたかとして、次のエラーに付ける
+    std::string includeContext;
+    std::istringstream stream(log);
+    std::string line;
+    while (std::getline(stream, line))
+    {
+        if (!line.empty() && line.back() == '\r')
+        {
+            line.pop_back();
+        }
+        if (line.rfind("In file included from ", 0) == 0)
+        {
+            includeContext += "\n" + line;
+            continue;
+        }
+        std::smatch match;
+        if (std::regex_match(line, match, kHeaderPattern))
+        {
+            if (match[4] == "note" && !diagnostics.empty())
+            {
+                // noteは直前のエラーの補足(マクロの展開元など)
+                diagnostics.back().message += "\n" + line;
+                continue;
+            }
+            ShaderDiagnostic diagnostic;
+            diagnostic.filePath = match[1];
+            diagnostic.line = std::stoi(match[2]);
+            diagnostic.column = std::stoi(match[3]);
+            diagnostic.isError = (match[4] != "warning");
+            diagnostic.message = std::string(match[5]) + includeContext;
+            includeContext.clear();
+            diagnostics.push_back(std::move(diagnostic));
+        }
+        else if (!diagnostics.empty())
+        {
+            if (!line.empty())
+            {
+                diagnostics.back().message += "\n" + line;
+            }
+        }
+        else if (!line.empty())
+        {
+            // 位置の無いメッセージ(引数の誤りなど)
+            ShaderDiagnostic diagnostic;
+            diagnostic.message = line;
+            diagnostics.push_back(std::move(diagnostic));
+        }
+    }
+    return diagnostics;
+}
+
+bool ShaderCompiler::TryCompileShader(
     const std::wstring& filePath,
     const std::wstring& entryPoint,
-    const std::wstring& profile)
+    const std::wstring& profile,
+    ShaderCompileResult& outResult)
 {
+    outResult = {};
     Initialize();
-
+    if (!s_pCompiler || !s_pUtils)
+    {
+        ShaderDiagnostic diagnostic;
+        diagnostic.message = u8"シェーダーコンパイラ(dxcompiler.dll)を読み込めていません";
+        outResult.diagnostics.push_back(diagnostic);
+        return false;
+    }
 
     wchar_t absPath[MAX_PATH] = {};
     GetFullPathNameW(filePath.c_str(), MAX_PATH, absPath, nullptr);
     std::wstring absoluteFilePath = absPath;
+    outResult.dependencies.push_back(absoluteFilePath);
 
     std::wstring shaderDir = absoluteFilePath.substr(
         0, absoluteFilePath.find_last_of(L"/\\"));
@@ -370,7 +456,12 @@ Microsoft::WRL::ComPtr<IDxcBlob> ShaderCompiler::CompileShader(
         msg += absoluteFilePath;
         msg += L"\n";
         OutputDebugStringW(msg.c_str());
-        throw std::runtime_error("Shader file not found");
+
+        ShaderDiagnostic diagnostic;
+        diagnostic.filePath = std::filesystem::path(absoluteFilePath).u8string();
+        diagnostic.message = u8"シェーダーのファイルを開けません";
+        outResult.diagnostics.push_back(diagnostic);
+        return false;
     }
 
     DxcBuffer sourceBuffer;
@@ -422,13 +513,17 @@ Microsoft::WRL::ComPtr<IDxcBlob> ShaderCompiler::CompileShader(
 
     const std::filesystem::path cachePath = GetCacheDir(L"DXIL") / (ToHex(cacheKey) + L".bin");
     std::vector<uint8_t> cachedDxil;
-    if (LoadDxilCache(cachePath, cachedDxil))
+    std::vector<std::wstring> cachedIncludes;
+    if (LoadDxilCache(cachePath, cachedDxil, cachedIncludes))
     {
         Microsoft::WRL::ComPtr<IDxcBlobEncoding> cpCachedBlob;
         if (SUCCEEDED(s_pUtils->CreateBlob(cachedDxil.data(), static_cast<UINT32>(cachedDxil.size()), DXC_CP_ACP, &cpCachedBlob)))
         {
             ++s_cacheHitCount;
-            return cpCachedBlob;
+            outResult.cpBlob = cpCachedBlob;
+            outResult.isFromCache = true;
+            outResult.dependencies.insert(outResult.dependencies.end(), cachedIncludes.begin(), cachedIncludes.end());
+            return true;
         }
     }
     ++s_cacheMissCount;
@@ -455,40 +550,45 @@ Microsoft::WRL::ComPtr<IDxcBlob> ShaderCompiler::CompileShader(
         &includeHandler,
         IID_PPV_ARGS(&pResults));
 
-    if (pResults)
+    // 失敗しても、それまでに読めたインクルードは監視の対象にする(インクルード先を直したら再コンパイルできるように)
+    for (const std::wstring& includePath : includeHandler.GetIncludePaths())
     {
-        HRESULT status = S_OK;
-        pResults->GetStatus(&status);
-
-        Microsoft::WRL::ComPtr<IDxcBlobUtf8> pErrors;
-        pResults->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(&pErrors), nullptr);
-
-        if (FAILED(status))
-        {
-            if (pErrors)
-            {
-                OutputDebugStringA(pErrors->GetStringPointer());
-            }
-
-            throw std::runtime_error("Shader compile failed");
-        }
-
-        // 成功なら警告だけ表示
-        if (pErrors && pErrors->GetStringLength() > 0)
-        {
-            OutputDebugStringA(pErrors->GetStringPointer());
-        }
+        outResult.dependencies.push_back(includePath);
     }
 
-    if (FAILED(hrCompile))
-        throw std::runtime_error("IDxcCompiler3::Compile HRESULT failed");
-
-    if (!pResults) return nullptr;
+    if (FAILED(hrCompile) || !pResults)
+    {
+        ShaderDiagnostic diagnostic;
+        diagnostic.filePath = std::filesystem::path(absoluteFilePath).u8string();
+        diagnostic.message = u8"DXCの呼び出しに失敗しました";
+        outResult.diagnostics.push_back(diagnostic);
+        return false;
+    }
 
     HRESULT status = S_OK;
     pResults->GetStatus(&status);
+
+    Microsoft::WRL::ComPtr<IDxcBlobUtf8> pErrors;
+    pResults->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(&pErrors), nullptr);
+    if (pErrors && pErrors->GetStringLength() > 0)
+    {
+        // 成功なら警告だけが入っている
+        OutputDebugStringA(pErrors->GetStringPointer());
+        outResult.log = pErrors->GetStringPointer();
+        outResult.diagnostics = ParseDiagnostics(outResult.log);
+    }
+
     if (FAILED(status))
-        throw std::runtime_error("Shader compile status failed");
+    {
+        if (outResult.diagnostics.empty())
+        {
+            ShaderDiagnostic diagnostic;
+            diagnostic.filePath = std::filesystem::path(absoluteFilePath).u8string();
+            diagnostic.message = u8"コンパイルに失敗しました(DXCがメッセージを返していません)";
+            outResult.diagnostics.push_back(diagnostic);
+        }
+        return false;
+    }
 
     Microsoft::WRL::ComPtr<IDxcBlob> pShader;
     pResults->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(&pShader), nullptr);
@@ -508,6 +608,19 @@ Microsoft::WRL::ComPtr<IDxcBlob> ShaderCompiler::CompileShader(
             {
                 pValResult->GetResult(&pShader);
                 isValidated = true;
+            }
+            else
+            {
+                ShaderDiagnostic diagnostic;
+                diagnostic.filePath = std::filesystem::path(absoluteFilePath).u8string();
+                diagnostic.message = u8"DXILの検証に失敗しました";
+                Microsoft::WRL::ComPtr<IDxcBlobEncoding> cpValErrors;
+                if (SUCCEEDED(pValResult->GetErrorBuffer(&cpValErrors)) && cpValErrors && cpValErrors->GetBufferSize() > 0)
+                {
+                    const char* pText = static_cast<const char*>(cpValErrors->GetBufferPointer());
+                    diagnostic.message += "\n" + std::string(pText, strnlen(pText, cpValErrors->GetBufferSize()));
+                }
+                outResult.diagnostics.push_back(diagnostic);
             }
         }
     }
@@ -545,7 +658,27 @@ Microsoft::WRL::ComPtr<IDxcBlob> ShaderCompiler::CompileShader(
         }
     }
 
-    return pShader;
+    // 検証に失敗したDXILも返す(起動時はこれまでどおり使い、PSOの作成で失敗させる)。ホットリロードはfalseを見て差し替えない
+    outResult.cpBlob = pShader;
+    return pShader != nullptr && isValidated;
+}
+
+Microsoft::WRL::ComPtr<IDxcBlob> ShaderCompiler::CompileShader(
+    const std::wstring& filePath,
+    const std::wstring& entryPoint,
+    const std::wstring& profile)
+{
+    ShaderCompileResult result;
+    if (TryCompileShader(filePath, entryPoint, profile, result))
+    {
+        return result.cpBlob;
+    }
+    if (result.cpBlob)
+    {
+        // 検証だけに失敗した。これまでどおりそのまま返す
+        return result.cpBlob;
+    }
+    throw std::runtime_error("Shader compile failed");
 }
 
 Microsoft::WRL::ComPtr<IDxcBlob> ShaderCompiler::CompileVS(

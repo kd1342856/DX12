@@ -146,7 +146,7 @@ protected:
 
 	GraphicsDevice* m_pDevice = nullptr;
 	ShaderProgram* m_pProgram = nullptr;
-	ID3D12PipelineState* m_pPipelineState = nullptr;
+	PipelineStateRef m_pPipelineState;
 	D3D12_PRIMITIVE_TOPOLOGY m_topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
 private:

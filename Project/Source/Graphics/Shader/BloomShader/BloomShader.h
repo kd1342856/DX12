@@ -18,6 +18,6 @@ private:
 	ShaderProgram* m_pExtractProgram = nullptr;
 	ShaderProgram* m_pBlurProgram = nullptr;
 
-	ID3D12PipelineState* m_pExtractPipelineState = nullptr;
-	ID3D12PipelineState* m_pBlurPipelineState = nullptr;
+	PipelineStateRef m_pExtractPipelineState;
+	PipelineStateRef m_pBlurPipelineState;
 };

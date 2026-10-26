@@ -1,6 +1,7 @@
 #include "../../../Pch.h"
 #include "ShaderManager.h"
 #include "../ShaderCompiler/ShaderCompiler.h"
+#include "../ShaderHotReload/ShaderHotReload.h"
 #include "../PhotometricUnits.h"
 #include "../../Renderer/AutoExposure.h"
 #include "../../Renderer/VolumetricFog.h"
@@ -399,90 +400,213 @@ float ShaderManager::GetExposure() const
 	return PhotometricUnits::ExposureFromEV100(ev100);
 }
 
-ShaderProgram* ShaderManager::LoadShader(const std::wstring& vsPath, const std::wstring& psPath, const std::wstring& psProfile)
+void ShaderManager::BuildProgram(ShaderProgram& program, Microsoft::WRL::ComPtr<IDxcBlob> cpVS, Microsoft::WRL::ComPtr<IDxcBlob> cpPS)
 {
-	std::lock_guard<std::mutex> lock(m_mutex);
-	std::wstring key = vsPath + L"|" + psPath + L"|" + psProfile;
-	if (m_shaderCache.find(key) != m_shaderCache.end()) {
-		return m_shaderCache[key].get();
-	}
-
-	auto program = std::make_unique<ShaderProgram>();
-
-	program->pVS = ShaderCompiler::CompileVS(vsPath, L"main");
-	if (program->pVS) {
-		char msg[512];
-		sprintf_s(msg, "VS size=%zu, path=%ls\n", program->pVS->GetBufferSize(), vsPath.c_str());
-		OutputDebugStringA(msg);
-	} else {
-		char msg[512];
-		sprintf_s(msg, "VS is null after CompileVS, path=%ls\n", vsPath.c_str());
-		OutputDebugStringA(msg);
-	}
-
-	if (psPath.length() > 0) {
-		program->pPS = ShaderCompiler::CompilePS(psPath, L"main", psProfile);
-	}
-
-	if (program->pVS)
+	program.pVS = cpVS;
+	program.pPS = cpPS;
+	program.vsHash = 0;
+	program.psHash = 0;
+	if (program.pVS)
 	{
-		program->vsHash = ShaderCompiler::HashBytes(program->pVS->GetBufferPointer(), program->pVS->GetBufferSize());
+		program.vsHash = ShaderCompiler::HashBytes(program.pVS->GetBufferPointer(), program.pVS->GetBufferSize());
 	}
-	if (program->pPS)
+	if (program.pPS)
 	{
-		program->psHash = ShaderCompiler::HashBytes(program->pPS->GetBufferPointer(), program->pPS->GetBufferSize());
+		program.psHash = ShaderCompiler::HashBytes(program.pPS->GetBufferPointer(), program.pPS->GetBufferSize());
 	}
 
-	auto vsBindings = ShaderReflection::Reflect(program->pVS);
-	auto psBindings = ShaderReflection::Reflect(program->pPS);
+	auto vsBindings = ShaderReflection::Reflect(program.pVS);
+	auto psBindings = ShaderReflection::Reflect(program.pPS);
 
 	// Merge bindings
 	std::vector<ShaderBinding> mergedBindings = vsBindings;
-	for (const auto& pb : psBindings) {
+	for (const auto& pb : psBindings)
+	{
 		bool found = false;
-		for (const auto& vb : mergedBindings) {
-			if (vb.Type == pb.Type && vb.BindPoint == pb.BindPoint && vb.Space == pb.Space) {
+		for (const auto& vb : mergedBindings)
+		{
+			if (vb.Type == pb.Type && vb.BindPoint == pb.BindPoint && vb.Space == pb.Space)
+			{
 				found = true;
 				break;
 			}
 		}
-		if (!found) {
+		if (!found)
+		{
 			mergedBindings.push_back(pb);
 		}
 	}
 
 	// Sort bindings to maintain deterministic root signature order
-	std::sort(mergedBindings.begin(), mergedBindings.end(), [](const ShaderBinding& a, const ShaderBinding& b) {
-		if (a.Type != b.Type) return a.Type < b.Type;
+	std::sort(mergedBindings.begin(), mergedBindings.end(), [](const ShaderBinding& a, const ShaderBinding& b)
+	{
+		if (a.Type != b.Type)
+		{
+			return a.Type < b.Type;
+		}
 		return a.BindPoint < b.BindPoint;
 	});
 
-	program->Bindings = mergedBindings;
+	program.Bindings = mergedBindings;
 
 	// Build RootSignature
 	std::vector<DescriptorRange> ranges;
-	for (const auto& b : mergedBindings) {
-		if (b.Type == ShaderBindingType::Sampler) continue; // Handled as static samplers in RootSignature::Create for now
+	for (const auto& b : mergedBindings)
+	{
+		if (b.Type == ShaderBindingType::Sampler)
+		{
+			continue; // Handled as static samplers in RootSignature::Create for now
+		}
 
 		DescriptorRange range;
-		if (b.Type == ShaderBindingType::CBV) range.Type = RangeType::CBV;
-		else if (b.Type == ShaderBindingType::SRV) range.Type = RangeType::SRV;
-		else if (b.Type == ShaderBindingType::UAV) range.Type = RangeType::UAV;
-		
+		if (b.Type == ShaderBindingType::CBV)
+		{
+			range.Type = RangeType::CBV;
+		}
+		else if (b.Type == ShaderBindingType::SRV)
+		{
+			range.Type = RangeType::SRV;
+		}
+		else if (b.Type == ShaderBindingType::UAV)
+		{
+			range.Type = RangeType::UAV;
+		}
+
 		range.Register = b.BindPoint;
 		range.Count = b.BindCount;
 		range.Space = b.Space;
 		ranges.push_back(range);
 	}
 
-	program->pRootSignature = std::make_unique<RootSignature>();
-	program->pRootSignature->Create(m_pDevice, ranges);
-
-	m_shaderCache[key] = std::move(program);
-	return m_shaderCache[key].get();
+	program.pRootSignature = std::make_unique<RootSignature>();
+	program.pRootSignature->Create(m_pDevice, ranges);
 }
 
-ID3D12PipelineState* ShaderManager::GetPipelineState(ShaderProgram* pProgram, const PipelineDesc& desc)
+namespace
+{
+	// エラーの一覧やログに出すシェーダーの名前(UTF-8)
+	std::string MakeShaderName(const std::wstring& path, const std::wstring& entryPoint, const std::wstring& profile)
+	{
+		return AppPaths::ToUtf8(std::filesystem::path(path).filename()) + " (" + AppPaths::ToUtf8(entryPoint) + ", " + AppPaths::ToUtf8(profile) + ")";
+	}
+
+	// VSとPSのコンパイル。結果をホットリロードのエラーの一覧に記録する
+	bool CompileProgramStages(const ShaderProgram& program, ShaderCompileResult& outVS, ShaderCompileResult& outPS, std::vector<std::wstring>& outDependencies)
+	{
+		const bool isVSOk = ShaderCompiler::TryCompileShader(program.vsPath, L"main", L"vs_6_0", outVS);
+		ShaderHotReload::Instance().ReportResult(MakeShaderName(program.vsPath, L"main", L"vs_6_0"), outVS, isVSOk);
+		outDependencies = outVS.dependencies;
+
+		bool isPSOk = true;
+		if (!program.psPath.empty())
+		{
+			isPSOk = ShaderCompiler::TryCompileShader(program.psPath, L"main", program.psProfile, outPS);
+			ShaderHotReload::Instance().ReportResult(MakeShaderName(program.psPath, L"main", program.psProfile), outPS, isPSOk);
+			outDependencies.insert(outDependencies.end(), outPS.dependencies.begin(), outPS.dependencies.end());
+		}
+		return isVSOk && isPSOk;
+	}
+
+	bool HasSameBindings(const std::vector<ShaderBinding>& lhs, const std::vector<ShaderBinding>& rhs)
+	{
+		if (lhs.size() != rhs.size())
+		{
+			return false;
+		}
+		for (size_t bindingIndex = 0; bindingIndex < lhs.size(); ++bindingIndex)
+		{
+			const ShaderBinding& a = lhs[bindingIndex];
+			const ShaderBinding& b = rhs[bindingIndex];
+			if (a.Type != b.Type || a.BindPoint != b.BindPoint || a.BindCount != b.BindCount || a.Space != b.Space)
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+}
+
+ShaderProgram* ShaderManager::LoadShader(const std::wstring& vsPath, const std::wstring& psPath, const std::wstring& psProfile)
+{
+	std::lock_guard<std::mutex> lock(m_mutex);
+	std::wstring key = vsPath + L"|" + psPath + L"|" + psProfile;
+	if (m_shaderCache.find(key) != m_shaderCache.end())
+	{
+		return m_shaderCache[key].get();
+	}
+
+	auto program = std::make_unique<ShaderProgram>();
+	program->vsPath = vsPath;
+	program->psPath = psPath;
+	program->psProfile = psProfile;
+
+	ShaderCompileResult vsResult;
+	ShaderCompileResult psResult;
+	std::vector<std::wstring> dependencies;
+	CompileProgramStages(*program, vsResult, psResult, dependencies);
+	// 起動時の読み込みはこれまでどおり、コンパイルできなければ止める(検証だけの失敗はそのまま使う)
+	if (!vsResult.cpBlob || (!psPath.empty() && !psResult.cpBlob))
+	{
+		for (const ShaderCompileResult* pResult : { &vsResult, &psResult })
+		{
+			if (!pResult->log.empty())
+			{
+				OutputDebugStringA(pResult->log.c_str());
+			}
+		}
+		throw std::runtime_error("Shader compile failed");
+	}
+
+	{
+		char msg[512];
+		sprintf_s(msg, "VS size=%zu, path=%ls\n", vsResult.cpBlob->GetBufferSize(), vsPath.c_str());
+		OutputDebugStringA(msg);
+	}
+
+	BuildProgram(*program, vsResult.cpBlob, psResult.cpBlob);
+
+	ShaderProgram* pProgram = program.get();
+	const std::string name = MakeShaderName(psPath.empty() ? vsPath : psPath, L"main", psPath.empty() ? L"vs_6_0" : psProfile);
+	ShaderHotReload::Instance().Register(pProgram, name, dependencies, [this, pProgram]()
+	{
+		return ReloadProgram(pProgram);
+	});
+
+	m_shaderCache[key] = std::move(program);
+	return pProgram;
+}
+
+Microsoft::WRL::ComPtr<ID3D12PipelineState> ShaderManager::CreatePipelineState(const ShaderProgram& program, const PipelineDesc& desc, bool usePS, const std::wstring& libraryName)
+{
+	Pipeline pipeline;
+	// Always use the program's root signature
+	PipelineDesc copyDesc = desc;
+	copyDesc.pRootSignature = program.pRootSignature.get();
+	if (usePS)
+	{
+		// Normal pass: bind both VS and PS
+		copyDesc.pBlobs = { program.pVS.Get(), nullptr, nullptr, nullptr, program.pPS.Get() };
+	}
+	else
+	{
+		// Depth Only pass (ShadowShader etc.): set PS to nullptr -> depth-only PSO
+		copyDesc.pBlobs = { program.pVS.Get(), nullptr, nullptr, nullptr, nullptr };
+	}
+
+	pipeline.Create(m_pDevice, copyDesc, m_cpPipelineLibrary.Get(), libraryName.c_str());
+	if (pipeline.IsLoadedFromLibrary())
+	{
+		++m_psoLoadedCount;
+	}
+	else if (pipeline.GetPipeline())
+	{
+		++m_psoCreatedCount;
+		m_isPipelineLibraryDirty = true;
+	}
+	return pipeline.GetPipeline();
+}
+
+PipelineStateRef ShaderManager::GetPipelineState(ShaderProgram* pProgram, const PipelineDesc& desc)
 {
 	std::lock_guard<std::mutex> lock(m_mutex);
 
@@ -499,13 +623,15 @@ ID3D12PipelineState* ShaderManager::GetPipelineState(ShaderProgram* pProgram, co
 	key += std::to_wstring(desc.DepthBias) + L"|";
 
 	// Encode Formats
-	for (auto fmt : desc.Formats) {
+	for (auto fmt : desc.Formats)
+	{
 		key += std::to_wstring((uint32_t)fmt) + L",";
 	}
 	key += L"|";
 
 	// Encode InputLayouts
-	for (auto il : desc.InputLayouts) {
+	for (auto il : desc.InputLayouts)
+	{
 		key += std::to_wstring((uint32_t)il) + L",";
 	}
 
@@ -522,38 +648,86 @@ ID3D12PipelineState* ShaderManager::GetPipelineState(ShaderProgram* pProgram, co
 
 	// ライブラリでの名前は、起動ごとに変わるポインタの代わりにシェーダーの中身のハッシュで区別する
 	std::wstring libraryName = ToHex(pProgram->vsHash) + L"|" + ToHex(pProgram->psHash) + L"|" + key;
+	std::wstring descKey = key;
 	key = std::to_wstring((uint64_t)pProgram) + L"|" + key;
 
-	if (m_psoCache.find(key) != m_psoCache.end()) {
-		return m_psoCache[key].cpPipelineState.Get();
+	auto it = m_psoCache.find(key);
+	if (it != m_psoCache.end())
+	{
+		return PipelineStateRef(std::addressof(it->second.cpPipelineState));
 	}
 
-	Pipeline pipeline;
-	// Always use the program's root signature
-	PipelineDesc copyDesc = desc;
-	copyDesc.pRootSignature = pProgram->pRootSignature.get();
-	if (bUsePS)
+	// unordered_mapの要素は再ハッシュでも動かないので、要素のアドレスを参照として返せる
+	PipelineCacheEntry& entry = m_psoCache[key];
+	entry.cpPipelineState = CreatePipelineState(*pProgram, desc, bUsePS, libraryName);
+	entry.libraryName = libraryName;
+	entry.pProgram = pProgram;
+	entry.desc = desc;
+	entry.desc.pBlobs.clear(); // 使うのはbUsePSだけ。古いブロブのポインタを残さない
+	entry.usePS = bUsePS;
+	entry.descKey = descKey;
+
+	// ComPtrの&は中身を解放するReleaseAndGetAddressOfなので、入れ物のアドレスはstd::addressofで取る
+	return PipelineStateRef(std::addressof(entry.cpPipelineState));
+}
+
+bool ShaderManager::ReloadProgram(ShaderProgram* pProgram)
+{
+	std::lock_guard<std::mutex> lock(m_mutex);
+
+	ShaderCompileResult vsResult;
+	ShaderCompileResult psResult;
+	std::vector<std::wstring> dependencies;
+	const bool isCompiled = CompileProgramStages(*pProgram, vsResult, psResult, dependencies);
+	// 失敗しても依存するファイルは更新する(新しく足したインクルードを直したときにも作り直せるように)
+	ShaderHotReload::Instance().UpdateDependencies(pProgram, dependencies);
+	if (!isCompiled)
 	{
-		// Normal pass: bind both VS and PS
-		copyDesc.pBlobs = { pProgram->pVS.Get(), nullptr, nullptr, nullptr, pProgram->pPS.Get() };
-	}
-	else
-	{
-		// Depth Only pass (ShadowShader etc.): set PS to nullptr -> depth-only PSO
-		copyDesc.pBlobs = { pProgram->pVS.Get(), nullptr, nullptr, nullptr, nullptr };
+		return false;
 	}
 
-	pipeline.Create(m_pDevice, copyDesc, m_cpPipelineLibrary.Get(), libraryName.c_str());
-	if (pipeline.IsLoadedFromLibrary())
+	ShaderProgram newProgram;
+	newProgram.vsPath = pProgram->vsPath;
+	newProgram.psPath = pProgram->psPath;
+	newProgram.psProfile = pProgram->psProfile;
+	BuildProgram(newProgram, vsResult.cpBlob, psResult.cpBlob);
+	if (!newProgram.pRootSignature || !newProgram.pRootSignature->GetRootSignature())
 	{
-		++m_psoLoadedCount;
+		Logger::Instance().AddLog(Logger::LogLevel::Error, u8"[ShaderHotReload] ルートシグネチャを作れませんでした: %ls", pProgram->psPath.empty() ? pProgram->vsPath.c_str() : pProgram->psPath.c_str());
+		return false;
 	}
-	else if (pipeline.GetPipeline())
+	if (!HasSameBindings(newProgram.Bindings, pProgram->Bindings))
 	{
-		++m_psoCreatedCount;
-		m_isPipelineLibraryDirty = true;
+		// ルートパラメーターの番号を作成時に控えているシェーダーは、正しく描けないことがある
+		Logger::Instance().AddLog(Logger::LogLevel::Warning, u8"[ShaderHotReload] リソースのバインドが変わりました。表示がおかしければ再起動してください: %ls", pProgram->psPath.empty() ? pProgram->vsPath.c_str() : pProgram->psPath.c_str());
 	}
-	m_psoCache[key] = { pipeline.GetPipeline(), libraryName };
 
-	return m_psoCache[key].cpPipelineState.Get();
+	// 先にすべてのPSOを作り、1つでも失敗したら何も差し替えない
+	std::vector<std::pair<PipelineCacheEntry*, Microsoft::WRL::ComPtr<ID3D12PipelineState>>> newPipelineStates;
+	std::vector<std::wstring> newLibraryNames;
+	for (auto& [key, entry] : m_psoCache)
+	{
+		if (entry.pProgram != pProgram)
+		{
+			continue;
+		}
+		const std::wstring libraryName = ToHex(newProgram.vsHash) + L"|" + ToHex(newProgram.psHash) + L"|" + entry.descKey;
+		Microsoft::WRL::ComPtr<ID3D12PipelineState> cpPipelineState = CreatePipelineState(newProgram, entry.desc, entry.usePS, libraryName);
+		if (!cpPipelineState)
+		{
+			Logger::Instance().AddLog(Logger::LogLevel::Error, u8"[ShaderHotReload] PSOを作れませんでした: %ls", pProgram->psPath.empty() ? pProgram->vsPath.c_str() : pProgram->psPath.c_str());
+			return false;
+		}
+		newPipelineStates.emplace_back(&entry, cpPipelineState);
+		newLibraryNames.push_back(libraryName);
+	}
+
+	// GPUは止まっているので、古いものはここで解放してよい
+	*pProgram = std::move(newProgram);
+	for (size_t entryIndex = 0; entryIndex < newPipelineStates.size(); ++entryIndex)
+	{
+		newPipelineStates[entryIndex].first->cpPipelineState = newPipelineStates[entryIndex].second;
+		newPipelineStates[entryIndex].first->libraryName = newLibraryNames[entryIndex];
+	}
+	return true;
 }

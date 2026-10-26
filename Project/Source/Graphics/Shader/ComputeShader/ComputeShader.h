@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <vector>
 #include <wrl.h>
 #include <d3d12.h>
 
@@ -30,7 +31,14 @@ public:
     static void ReleaseShared();
     static bool IsSupported() { return s_isSupported; }
 
-    // cs_6_6でコンパイルしてPSOを作る。失敗したらfalse
+    ComputeShader() = default;
+    // ホットリロードに自分のアドレスで登録するので、コピーと移動はできない
+    ComputeShader(const ComputeShader&) = delete;
+    ComputeShader& operator=(const ComputeShader&) = delete;
+    ~ComputeShader();
+
+    // cs_6_6でコンパイルしてPSOを作る。失敗したらfalse(エラーはシェーダーエディターに出る)。
+    // 失敗してもホットリロードに登録するので、シェーダーを直せばその場で使えるようになる
     bool Create(const std::wstring& filePath, const std::wstring& entryPoint = L"main");
     bool IsValid() const { return m_cpPipelineState != nullptr; }
 
@@ -66,10 +74,17 @@ public:
     static UINT DivideRoundUp(UINT count, UINT groupSize) { return (count + groupSize - 1) / groupSize; }
 
 private:
+    // コンパイルしてPSOを作る。失敗したらnullptr。依存するファイルをoutDependenciesに入れる
+    Microsoft::WRL::ComPtr<ID3D12PipelineState> CompileAndCreatePipelineState(std::vector<std::wstring>& outDependencies) const;
+    // ホットリロードから呼ばれる。GPUが止まっている間に差し替える
+    bool Reload();
+
     void SetConstantsRaw(const void* pData, UINT count) const;
     void SetConstantBufferAddress(UINT shaderRegister, D3D12_GPU_VIRTUAL_ADDRESS address) const;
 
     Microsoft::WRL::ComPtr<ID3D12PipelineState> m_cpPipelineState;
+    std::wstring m_filePath;
+    std::wstring m_entryPoint;
 
     static inline Microsoft::WRL::ComPtr<ID3D12RootSignature> s_cpRootSignature;
     static inline bool s_isSupported = false;

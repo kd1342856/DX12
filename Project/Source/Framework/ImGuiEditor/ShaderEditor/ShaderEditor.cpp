@@ -3,6 +3,8 @@
 
 void ShaderEditor::Initialize()
 {
+    // コンパイルエラーに気付けるよう、ホットリロードの状態を一番上に置く
+    m_Panels.push_back(std::make_unique<ShaderReloadPanel>());
     m_Panels.push_back(std::make_unique<RendererPanel>());
     m_Panels.push_back(std::make_unique<LightingPanel>());
     m_Panels.push_back(std::make_unique<ShadowPanel>());
