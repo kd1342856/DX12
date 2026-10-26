@@ -303,10 +303,24 @@ float3 BoxProjectedDirection(float3 position, float3 direction, float3 boxMin, f
 
 // プローブの重み。箱の中ほど1で、箱の縁のkProbeFadeDistance(m)で0に落とす(部屋の境目で混ぜる)
 static const float kProbeFadeDistance = 0.3;
-float ReflectionProbeWeight(float3 position, float3 boxMin, float3 boxMax)
+float ReflectionProbeBoxWeight(float3 position, float3 boxMin, float3 boxMax)
 {
     const float3 distanceToFace = min(position - boxMin, boxMax - position);
     return saturate(min(distanceToFace.x, min(distanceToFace.y, distanceToFace.z)) / kProbeFadeDistance);
+}
+
+// 箱は壁や床の面が入るよう部屋より広げてある(margin)ので、隣の部屋の箱とは壁や床をはさんで重なる。
+// 面から法線の向きへ少し出た点が、広げる前の部屋の箱に入っているか(面がその部屋を向いているか)も調べ、
+// 壁や床の裏側の部屋のプローブ(点いている照明の映り込み)を混ぜないようにする。
+// kProbeSideToleranceは、部屋の箱と実際の壁の位置のずれをどこまで許すか(m)。薄い壁(約6cm)より小さくする
+static const float kProbeFrontOffset = 0.05;
+static const float kProbeSideTolerance = 0.08;
+float ReflectionProbeWeight(float3 position, float3 normal, float3 boxMin, float3 boxMax, float margin)
+{
+    const float3 frontPosition = position + normal * kProbeFrontOffset;
+    const float3 outside = max(max((boxMin + margin) - frontPosition, frontPosition - (boxMax - margin)), 0.0);
+    const float sideWeight = saturate(1.0 - length(outside) / kProbeSideTolerance);
+    return ReflectionProbeBoxWeight(position, boxMin, boxMax) * sideWeight;
 }
 
 // 反射プローブから鏡面の環境光(放射輝度)を読む。aは覆えた割合(0なら、どのプローブの中でもない)
@@ -323,7 +337,7 @@ float4 SampleReflectionProbes(SurfaceData surface, SamplerState probeSampler)
         {
             continue;
         }
-        const float weight = ReflectionProbeWeight(surface.position, g_ProbeBoxMin[i].xyz, g_ProbeBoxMax[i].xyz);
+        const float weight = ReflectionProbeWeight(surface.position, surface.normal, g_ProbeBoxMin[i].xyz, g_ProbeBoxMax[i].xyz, g_ProbeBoxMin[i].w);
         if (weight <= 0.0)
         {
             continue;

@@ -105,7 +105,7 @@ namespace CBufferData
 		int32_t ProbeCount;
 		float ProbeMipCount;
 		float PadProbe[2];
-		Math::Vector4 ProbeBoxMin[16];
+		Math::Vector4 ProbeBoxMin[16];          // xyz: 箱(部屋より広げたもの)、w: 広げた量(m)
 		Math::Vector4 ProbeBoxMax[16];
 		Math::Vector4 ProbeCapturePosition[16]; // xyz: 撮った位置、w: 露出の比(今の露出 ÷ 撮ったときの露出)。0なら未撮影
 

@@ -98,7 +98,7 @@ cbuffer cbLight : register(b3)
     int    g_ProbeCount;
     float  g_ProbeMipCount;
     float2 g_PadProbe;
-    float4 g_ProbeBoxMin[16];
+    float4 g_ProbeBoxMin[16];          // xyz: 箱(部屋より広げたもの)、w: 広げた量(m)
     float4 g_ProbeBoxMax[16];
     float4 g_ProbeCapturePosition[16]; // xyz: 撮った位置、w: 露出の比。0なら未撮影
 

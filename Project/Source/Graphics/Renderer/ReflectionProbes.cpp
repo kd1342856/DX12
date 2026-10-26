@@ -237,7 +237,7 @@ void ReflectionProbes::FillShaderData(CBufferData::Light& lightData, float expos
             const Math::Vector3 position = GetCapturePosition(probe.volume);
             // まだ撮り終えていないプローブは、露出の比を0にして使わない
             const float exposureRatio = (probe.captureExposure > 0.0f) ? exposure / probe.captureExposure : 0.0f;
-            lightData.ProbeBoxMin[i] = { probe.volume.min.x, probe.volume.min.y, probe.volume.min.z, 0.0f };
+            lightData.ProbeBoxMin[i] = { probe.volume.min.x, probe.volume.min.y, probe.volume.min.z, probe.volume.margin };
             lightData.ProbeBoxMax[i] = { probe.volume.max.x, probe.volume.max.y, probe.volume.max.z, 0.0f };
             lightData.ProbeCapturePosition[i] = { position.x, position.y, position.z, exposureRatio };
             ++count;

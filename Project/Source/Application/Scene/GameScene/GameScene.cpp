@@ -838,6 +838,7 @@ void GameScene::UpdateLights(Entity cameraEntity)
                 ReflectionProbes::Volume volume;
                 volume.min = { room->m_min.x - margin, room->m_min.y - margin, room->m_min.z - margin };
                 volume.max = { room->m_max.x + margin, room->m_max.y + margin, room->m_max.z + margin };
+                volume.margin = margin;
                 volumes.push_back(volume);
             }
         }

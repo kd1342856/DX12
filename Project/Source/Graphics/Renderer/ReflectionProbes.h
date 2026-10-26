@@ -35,6 +35,8 @@ public:
     {
         Math::Vector3 min;
         Math::Vector3 max;
+        // 部屋の箱から広げた量(m)。シェーダーは広げる前の箱で、面がどの部屋を向いているかを調べる
+        float margin = 0.0f;
     };
 
     void Initialize();
