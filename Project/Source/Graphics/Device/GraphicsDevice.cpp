@@ -970,7 +970,9 @@ void GraphicsDevice::TransitionToSRV(RenderTarget* pRT)
 void GraphicsDevice::TransitionDepthToSRV(RenderTarget* pRT)
 {
 	if (!pRT || !pRT->GetDepthResource()) return;
-	m_upContextManager->GetGraphicsContext()->TransitionResource(pRT->GetDepthResource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	// 半透明のパスは、この深度をシェーダーで読みながら(屈折・デカールのフェード)深度テストにも使うので、
+	// 両方の読み取りの状態にする(深度は書かない。書くパスの前にTransitionDepthToWriteで戻す)
+	m_upContextManager->GetGraphicsContext()->TransitionResource(pRT->GetDepthResource(), D3D12_RESOURCE_STATE_DEPTH_READ | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 	m_upContextManager->GetGraphicsContext()->FlushResourceBarriers();
 }
 

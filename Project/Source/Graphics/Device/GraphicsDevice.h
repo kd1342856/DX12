@@ -40,7 +40,8 @@ public:
 	void SetRenderTarget(RenderTarget* pRT);
 	void TransitionToSRV(RenderTarget* pRT);
 	// RenderTarget専用の深度バッファ(pRT->GetDepthSRVIndex())の状態遷移。
-	// DEPTH_WRITE(描画時) <-> PIXEL_SHADER_RESOURCE(DOF/SSAO/SSR等で読む時) を切り替える。
+	// DEPTH_WRITE(描画時) <-> DEPTH_READ | PIXEL_SHADER_RESOURCE(深度テストをしながらシェーダーで読む時。
+	// 半透明のパスとDOF) を切り替える。
 	void TransitionDepthToSRV(RenderTarget* pRT);
 	void TransitionDepthToWrite(RenderTarget* pRT);
 	void SetBackBuffer();
