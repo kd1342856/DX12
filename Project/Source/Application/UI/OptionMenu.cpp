@@ -40,6 +40,10 @@ namespace
         }
     }
 
+    // HDR出力の白の明るさ(nit)の範囲
+    constexpr float kMinPaperWhiteNits = 80.0f;
+    constexpr float kMaxPaperWhiteNits = 400.0f;
+
     // OptionSettings.jsonでの画質の名前
     const char* kQualityNames[] = { "low", "medium", "high", "ultra" };
 
@@ -116,6 +120,14 @@ void OptionMenu::LoadSettings()
         {
             ShaderManager::Instance().GetRendererSettings().EnableRaytracedShadows = j["raytracedShadows"].get<bool>();
         }
+        if (j.contains("hdrOutput"))
+        {
+            device.RequestHDROutput(j["hdrOutput"].get<bool>());
+        }
+        if (j.contains("hdrPaperWhite"))
+        {
+            device.SetPaperWhiteNits(std::clamp(j["hdrPaperWhite"].get<float>(), kMinPaperWhiteNits, kMaxPaperWhiteNits));
+        }
     }
     catch (const std::exception& e) {
         Logger::Instance().AddLog(Logger::LogLevel::Warning, "OptionMenu: Failed to load %s (%s)", AppPaths::ToUtf8(settingsPath).c_str(), e.what());
@@ -132,6 +144,8 @@ void OptionMenu::SaveSettings()
     j["antiAliasing"] = ShaderManager::Instance().GetPostProcessSettings().EnableTAA;
     j["motionBlur"] = ShaderManager::Instance().GetPostProcessSettings().EnableMotionBlur;
     j["raytracedShadows"] = ShaderManager::Instance().GetRendererSettings().EnableRaytracedShadows;
+    j["hdrOutput"] = GraphicsDevice::Instance().IsHDROutputRequested();
+    j["hdrPaperWhite"] = GraphicsDevice::Instance().GetPaperWhiteNits();
     std::filesystem::path settingsPath = AppPaths::GetSavedFilePath(kSettingsFileName);
     std::ofstream o(settingsPath);
     if (o.is_open()) {
@@ -297,6 +311,29 @@ void OptionMenu::DrawDisplayTab()
     ImGui::BeginDisabled(!RaytracingScene::Instance().IsSupported() || QualitySettings::GetLevel() < QualityLevel::High);
     ImGui::Checkbox(u8"レイトレースの影(画質「高」以上)", &renderer.EnableRaytracedShadows);
     ImGui::EndDisabled();
+
+    // HDR出力(モニターがHDRで表示しているときだけ)。白の明るさはUIとSDRの1.0を何nitで出すか
+    bool isHDROutput = device.IsHDROutputRequested();
+    ImGui::BeginDisabled(!device.IsHDROutputSupported());
+    if (ImGui::Checkbox(u8"HDR出力", &isHDROutput))
+    {
+        device.RequestHDROutput(isHDROutput);
+    }
+    if (device.IsHDROutputRequested())
+    {
+        float paperWhite = device.GetPaperWhiteNits();
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.5f);
+        if (ImGui::SliderFloat(u8"白の明るさ", &paperWhite, kMinPaperWhiteNits, kMaxPaperWhiteNits, u8"%.0f nit"))
+        {
+            device.SetPaperWhiteNits(paperWhite);
+        }
+    }
+    ImGui::EndDisabled();
+    if (!device.IsHDROutputSupported())
+    {
+        ImGui::SameLine();
+        ImGui::TextDisabled(u8"(このモニターはHDRで表示していません)");
+    }
     ImGui::Spacing();
     ImGui::TextUnformatted(u8"フレームレートの上限");
 

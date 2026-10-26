@@ -1130,11 +1130,14 @@ void GameScene::DoPostProcess(Entity cameraEntity, float clearR, float clearG, f
     // 戻されているため)。Draw後はDEPTH_WRITEへ戻し、次フレームの描画に備える。
     GraphicsDevice::Instance().TransitionDepthToSRV(pSceneHDR);
     GraphicsDevice::Instance().TransitionToSRV(pBloomResult);
-    GraphicsDevice::Instance().SetBackBuffer();
+    // SDRならバックバッファ、HDR出力ならHDRのシーンのRTへ描く
+    GraphicsDevice::Instance().SetSceneOutput();
     Renderer::BindDefaultViewport();
-    GraphicsDevice::Instance().ClearBackBuffer(clearR, clearG, clearB, 1.0f);
+    GraphicsDevice::Instance().ClearSceneOutput(clearR, clearG, clearB, 1.0f);
     postProcessShader.Draw(pSceneHDR, pBloomResult, postProcessData, pDofResult, pGodRaysRT);
     GraphicsDevice::Instance().TransitionDepthToWrite(pSceneHDR);
+    // この後のUI(スプライト・ImGui)はバックバッファ(HDR出力のときはUIのRT)へ描く
+    GraphicsDevice::Instance().SetBackBuffer();
 }
 
 void GameScene::RenderEditor()

@@ -171,6 +171,26 @@ public:
 	UINT GetBackBufferWidth() const { return m_backBufferWidth; }
 	UINT GetBackBufferHeight() const { return m_backBufferHeight; }
 
+	//------------------------------------------
+	// HDR出力(HDR10: BT.2020の色域とPQのカーブ、10bitのスワップチェーン)
+	//   HDR出力のときは、ポストの結果(線形、1.0が白)をHDRのシーンのRTへ、UI(スプライト・ImGui)をUIのRT(SDR)へ描き、
+	//   フレームの最後に1枚に合成してPQに変換する(UIの色がHDRで変わらないように)。
+	//   SetBackBuffer()は、HDR出力のときはUIのRTを束縛する
+	//------------------------------------------
+	bool IsHDROutputSupported() const { return m_isHDRSupported; }
+	bool IsHDROutput() const { return m_isHDROutput; }
+	// HDR出力を切り替える。次のフレームの先頭でスワップチェーンを作り直す(対応していなければ何もしない)
+	void RequestHDROutput(bool isEnabled);
+	bool IsHDROutputRequested() const { return m_requestedHDROutput; }
+	// モニターの最大の輝度(nit)。HDRのトーンマップの上限に使う
+	float GetDisplayMaxLuminance() const { return m_displayMaxLuminance; }
+	// 白(UIやSDRの1.0)を何nitで表示するか
+	void SetPaperWhiteNits(float nits) { m_paperWhiteNits = (std::max)(nits, 1.0f); }
+	float GetPaperWhiteNits() const { return m_paperWhiteNits; }
+	// ポストの結果を描く先を束縛する(SDRならバックバッファ、HDR出力ならHDRのシーンのRT)
+	void SetSceneOutput();
+	void ClearSceneOutput(float r, float g, float b, float a);
+
 
 	
 	std::unique_ptr<QueueManager> m_upQueueManager = nullptr;
@@ -208,6 +228,20 @@ private:
 	UINT m_backBufferHeight = 0;
 	UINT m_pendingWidth = 0;
 	UINT m_pendingHeight = 0;
+
+	// HDR出力
+	void UpdateHDRSupport();
+	void ResizeHDRTargets(UINT width, UINT height);
+	// HDRのシーンとUIを合成して、PQでスワップチェーンへ書く
+	void CompositeHDROutput();
+	bool m_isHDRSupported = false;
+	bool m_isHDROutput = false;
+	bool m_requestedHDROutput = false;
+	bool m_isHDRChangePending = false;
+	float m_displayMaxLuminance = 1000.0f;
+	float m_paperWhiteNits = 200.0f;
+	std::unique_ptr<RenderTarget> m_upHDRSceneTarget;
+	std::unique_ptr<RenderTarget> m_upUITarget;
 
 	FrameRateMode m_frameRateMode = FrameRateMode::Unlimited;
 	int m_frameRateLimit = 144;

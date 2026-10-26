@@ -313,6 +313,12 @@ void ShaderManager::UpdatePostProcessCB()
 		? m_PostProcessSettings.FilmGrainIntensity * std::sqrt((std::max)(m_PostProcessSettings.ISO, 1.0f) / 800.0f)
 		: 0.0f;
 
+	// HDR出力のときは、モニターの最大の輝度までトーンマップする
+	{
+		const GraphicsDevice& device = GraphicsDevice::Instance();
+		m_PostProcessData.HDRPeakRatio = device.IsHDROutput() ? (std::max)(device.GetDisplayMaxLuminance() / device.GetPaperWhiteNits(), 1.0f) : 0.0f;
+	}
+
 	// フィルムグレインのアニメーション用に経過時間を毎フレーム進める(IsDirtyに関係なく)。
 	m_PostProcessData.Time += GameTimer::Instance().DeltaTime();
 }

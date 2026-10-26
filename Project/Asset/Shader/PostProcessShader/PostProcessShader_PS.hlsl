@@ -121,6 +121,18 @@ float4 main(PSInput In) : SV_Target0
     }
 
     //------------------------------------------
+    // HDR出力: 明るいところをモニターの最大の輝度へ滑らかに収め(輝度で割って色合いを保つ)、線形のまま出す。
+    // 1.0が白(UIと同じ明るさ)。BT.2020とPQへの変換は、UIと合成するときに行う(HDRComposite_PS.hlsl)
+    //------------------------------------------
+    if (g_HDRPeakRatio > 0.0)
+    {
+        const float luminance = dot(sceneColor, float3(0.2126, 0.7152, 0.0722));
+        const float mapped = luminance / (1.0 + luminance / g_HDRPeakRatio);
+        sceneColor *= mapped / max(luminance, 1e-6);
+        return float4(max(sceneColor, 0.0), 1.0);
+    }
+
+    //------------------------------------------
     // ToneMapping
     //------------------------------------------
     if (g_EnableHDR != 0)

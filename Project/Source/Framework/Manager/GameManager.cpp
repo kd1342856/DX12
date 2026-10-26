@@ -14,6 +14,7 @@
 #include "../../Graphics/Shader/FogShader/FogShader.h"
 #include "../../Graphics/Shader/MistShader/MistShader.h"
 #include "../../Graphics/Shader/ParticleShader/ParticleShader.h"
+#include "../../Graphics/Shader/HDRCompositeShader/HDRCompositeShader.h"
 #include "../../Graphics/Shader/VelocityShader/VelocityShader.h"
 #include "../../Graphics/Shader/ComputeShader/ComputeShader.h"
 #include "../../Graphics/Renderer/Renderer.h"
@@ -165,6 +166,7 @@ void GameManager::Init()
     ShaderLibrary::Instance().Register<MistShader>(pDevice);
     ShaderLibrary::Instance().Register<ParticleShader>(pDevice);
     ShaderLibrary::Instance().Register<VelocityShader>(pDevice);
+    ShaderLibrary::Instance().Register<HDRCompositeShader>(pDevice);
 
     // バインドレスのコンピュートを使う速度・TAAなど。描画解像度で作る
     MotionVectors::Instance().Initialize(Renderer::GetRenderWidth(), Renderer::GetRenderHeight());

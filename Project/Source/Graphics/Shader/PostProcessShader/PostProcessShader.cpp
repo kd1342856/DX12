@@ -16,6 +16,11 @@ void PostProcessShader::Create(GraphicsDevice* pGraphicsDevice)
 	
 	m_topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	m_pPipelineState = ShaderManager::Instance().GetPipelineState(m_pProgram, desc);
+
+	// HDR出力のとき: 線形のままHDRのシーンのRTへ書く(深度は使わない)
+	desc.Formats = { DXGI_FORMAT_R16G16B16A16_FLOAT };
+	desc.IsDepth = false;
+	m_pHDRPipelineState = ShaderManager::Instance().GetPipelineState(m_pProgram, desc);
 }
 
 void PostProcessShader::Draw(RenderTarget* pSceneRT, RenderTarget* pBloomRT, const CBufferData::PostProcess& postProcessData,
@@ -23,6 +28,10 @@ void PostProcessShader::Draw(RenderTarget* pSceneRT, RenderTarget* pBloomRT, con
 {
 	RenderContext context;
 	Begin(context);
+	if (m_pDevice->IsHDROutput())
+	{
+		m_pDevice->GetCmdList()->SetPipelineState(m_pHDRPipelineState);
+	}
 
 	int b0 = GetRootParameterIndex(ShaderBindingType::CBV, 0);
 	if (b0 != -1) GDF::Instance().BindCBuffer(b0, postProcessData);

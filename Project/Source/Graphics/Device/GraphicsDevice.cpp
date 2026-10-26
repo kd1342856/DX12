@@ -1,6 +1,7 @@
 ﻿#include "../../Pch.h"
 #include "../GPUResource/ResourceLifetimeManager.h"
 #include "../GPUResource/Texture/TextureCache.h"
+#include "../Shader/HDRCompositeShader/HDRCompositeShader.h"
 #include "ResourceStateTracker.h"
 #include "ResourceUploader.h"
 #include "../GPUResource/RenderTarget/RenderTarget.h"
@@ -134,6 +135,10 @@ void GraphicsDevice::EndFrame()
 {
 	auto cmdList = m_upContextManager->GetGraphicsContext()->GetCmdList();
 	RenderImGui();
+	if (m_isHDROutput)
+	{
+		CompositeHDROutput();
+	}
 	auto bbIdx = m_pSwapChain->GetCurrentBackBufferIndex();
 	m_upContextManager->GetGraphicsContext()->TransitionResource(m_pSwapchainBuffers[bbIdx].Get(), D3D12_RESOURCE_STATE_PRESENT);
 	m_upContextManager->GetGraphicsContext()->FlushResourceBarriers();
@@ -191,6 +196,16 @@ void GraphicsDevice::BeginFrame()
 	float clearColor[] = { 0.0f,0.0f,1.0f,1.0f };
 	cmdList->ClearRenderTargetView(rtvH, clearColor, 0, nullptr);
 	m_upDepthStencil->ClearBuffer();
+
+	// HDR出力: シーンは黒、UIは透明から描き始める(ポストを描かない画面(タイトルなど)はUIだけになる)
+	if (m_isHDROutput && m_upHDRSceneTarget && m_upUITarget)
+	{
+		SetRenderTarget(m_upHDRSceneTarget.get());
+		m_upHDRSceneTarget->ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		SetRenderTarget(m_upUITarget.get());
+		m_upUITarget->ClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+		SetBackBuffer();
+	}
 }
 bool GraphicsDevice::CreateFactory()
 {
@@ -333,7 +348,110 @@ bool GraphicsDevice::CreateSwapChain(HWND hWnd, int width, int height)
 
 	m_pSwapChain->SetMaximumFrameLatency(kMaxFrameLatency);
 	m_frameLatencyWaitable = m_pSwapChain->GetFrameLatencyWaitableObject();
+	UpdateHDRSupport();
 	return true;
+}
+
+void GraphicsDevice::UpdateHDRSupport()
+{
+	// ウィンドウが今あるモニターが、HDR(PQ・BT.2020)で表示しているか
+	m_isHDRSupported = false;
+	Microsoft::WRL::ComPtr<IDXGIOutput> cpOutput;
+	if (FAILED(m_pSwapChain->GetContainingOutput(&cpOutput)))
+	{
+		return;
+	}
+	Microsoft::WRL::ComPtr<IDXGIOutput6> cpOutput6;
+	if (FAILED(cpOutput.As(&cpOutput6)))
+	{
+		return;
+	}
+	DXGI_OUTPUT_DESC1 desc = {};
+	if (FAILED(cpOutput6->GetDesc1(&desc)))
+	{
+		return;
+	}
+	const bool isSupported = (desc.ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020);
+	m_displayMaxLuminance = (desc.MaxLuminance > 0.0f) ? desc.MaxLuminance : 1000.0f;
+	// 変わったときだけ知らせる
+	static int s_loggedSupport = -1;
+	if (s_loggedSupport != (isSupported ? 1 : 0))
+	{
+		s_loggedSupport = isSupported ? 1 : 0;
+		Logger::Instance().AddLog(Logger::LogLevel::Info, isSupported ? u8"モニターはHDRで表示しています(最大 %.0f nit)" : u8"モニターはSDRで表示しています(HDR出力は選べません)", m_displayMaxLuminance);
+	}
+	m_isHDRSupported = isSupported;
+}
+
+void GraphicsDevice::RequestHDROutput(bool isEnabled)
+{
+	if (isEnabled == m_requestedHDROutput)
+	{
+		return;
+	}
+	m_requestedHDROutput = isEnabled;
+	m_isHDRChangePending = true;
+}
+
+void GraphicsDevice::ResizeHDRTargets(UINT width, UINT height)
+{
+	if (!m_isHDROutput)
+	{
+		return;
+	}
+	if (!m_upHDRSceneTarget)
+	{
+		m_upHDRSceneTarget = std::make_unique<RenderTarget>();
+		m_upHDRSceneTarget->Create(static_cast<int>(width), static_cast<int>(height), DXGI_FORMAT_R16G16B16A16_FLOAT, false);
+		// スプライトとImGuiのPSOは、SDRのバックバッファと同じ形式で作ってあるので、UIのRTも同じにする
+		m_upUITarget = std::make_unique<RenderTarget>();
+		m_upUITarget->Create(static_cast<int>(width), static_cast<int>(height), DXGI_FORMAT_R8G8B8A8_UNORM, false);
+		return;
+	}
+	m_upHDRSceneTarget->Resize(static_cast<int>(width), static_cast<int>(height));
+	m_upUITarget->Resize(static_cast<int>(width), static_cast<int>(height));
+}
+
+void GraphicsDevice::SetSceneOutput()
+{
+	if (m_isHDROutput && m_upHDRSceneTarget)
+	{
+		SetRenderTarget(m_upHDRSceneTarget.get());
+		return;
+	}
+	SetBackBuffer();
+}
+
+void GraphicsDevice::ClearSceneOutput(float r, float g, float b, float a)
+{
+	if (m_isHDROutput && m_upHDRSceneTarget)
+	{
+		m_upHDRSceneTarget->ClearColor(r, g, b, a);
+		return;
+	}
+	ClearBackBuffer(r, g, b, a);
+}
+
+void GraphicsDevice::CompositeHDROutput()
+{
+	if (!m_upHDRSceneTarget || !m_upUITarget)
+	{
+		return;
+	}
+	auto* pContext = m_upContextManager->GetGraphicsContext();
+	auto* pCmdList = pContext->GetCmdList();
+	pContext->TransitionResource(m_upHDRSceneTarget->GetResource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	pContext->TransitionResource(m_upUITarget->GetResource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	const UINT backBufferIndex = m_pSwapChain->GetCurrentBackBufferIndex();
+	pContext->TransitionResource(m_pSwapchainBuffers[backBufferIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET);
+	pContext->FlushResourceBarriers();
+	auto rtvHandle = m_upDescriptorHeapManager->GetRTVAllocator()->GetCPUHandle(m_swapchainRtvIndices[backBufferIndex]);
+	pCmdList->OMSetRenderTargets(1, &rtvHandle, false, nullptr);
+	D3D12_VIEWPORT viewport = { 0.0f, 0.0f, static_cast<float>(m_backBufferWidth), static_cast<float>(m_backBufferHeight), 0.0f, 1.0f };
+	D3D12_RECT scissor = { 0, 0, static_cast<LONG>(m_backBufferWidth), static_cast<LONG>(m_backBufferHeight) };
+	pCmdList->RSSetViewports(1, &viewport);
+	pCmdList->RSSetScissorRects(1, &scissor);
+	ShaderLibrary::Instance().Get<HDRCompositeShader>().Draw(m_upHDRSceneTarget.get(), m_upUITarget.get(), m_paperWhiteNits);
 }
 
 void GraphicsDevice::RequestResize(UINT width, UINT height)
@@ -349,14 +467,17 @@ void GraphicsDevice::RequestResize(UINT width, UINT height)
 
 bool GraphicsDevice::ApplyPendingResize()
 {
-	if (m_pendingWidth == 0 || (m_pendingWidth == m_backBufferWidth && m_pendingHeight == m_backBufferHeight))
+	// HDR出力の切り替えも、スワップチェーンの作り直しなのでここで行う(大きさはそのまま)
+	const bool isHDRChange = m_isHDRChangePending;
+	m_isHDRChangePending = false;
+	if (!isHDRChange && (m_pendingWidth == 0 || (m_pendingWidth == m_backBufferWidth && m_pendingHeight == m_backBufferHeight)))
 	{
 		m_pendingWidth = 0;
 		m_pendingHeight = 0;
 		return false;
 	}
-	const UINT width = m_pendingWidth;
-	const UINT height = m_pendingHeight;
+	const UINT width = (m_pendingWidth != 0) ? m_pendingWidth : m_backBufferWidth;
+	const UINT height = (m_pendingHeight != 0) ? m_pendingHeight : m_backBufferHeight;
 	m_pendingWidth = 0;
 	m_pendingHeight = 0;
 
@@ -372,12 +493,29 @@ bool GraphicsDevice::ApplyPendingResize()
 	// フラグ(ティアリング・待機オブジェクト)は作成時と同じものを渡す必要がある
 	DXGI_SWAP_CHAIN_DESC1 desc = {};
 	m_pSwapChain->GetDesc1(&desc);
-	HRESULT hr = m_pSwapChain->ResizeBuffers(kSwapChainBufferCount, width, height, DXGI_FORMAT_UNKNOWN, desc.Flags);
+	// モニターを移ったときなどのために、HDRに対応しているかを調べ直す
+	UpdateHDRSupport();
+	const bool isHDROutput = m_requestedHDROutput && m_isHDRSupported;
+	const DXGI_FORMAT format = isHDROutput ? DXGI_FORMAT_R10G10B10A2_UNORM : DXGI_FORMAT_R8G8B8A8_UNORM;
+	HRESULT hr = m_pSwapChain->ResizeBuffers(kSwapChainBufferCount, width, height, format, desc.Flags);
 	if (FAILED(hr))
 	{
 		Logger::Instance().AddLog(Logger::LogLevel::Error, u8"スワップチェーンの大きさを変えられませんでした (hr=0x%08X)", static_cast<unsigned int>(hr));
 		return false;
 	}
+	// 色空間: HDRはPQ(ST.2084)とBT.2020、SDRはガンマ2.2とBT.709
+	const DXGI_COLOR_SPACE_TYPE colorSpace = isHDROutput ? DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020 : DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;
+	UINT colorSpaceSupport = 0;
+	if (SUCCEEDED(m_pSwapChain->CheckColorSpaceSupport(colorSpace, &colorSpaceSupport)) &&
+		(colorSpaceSupport & DXGI_SWAP_CHAIN_COLOR_SPACE_SUPPORT_FLAG_PRESENT) != 0)
+	{
+		m_pSwapChain->SetColorSpace1(colorSpace);
+	}
+	if (isHDROutput != m_isHDROutput)
+	{
+		Logger::Instance().AddLog(Logger::LogLevel::Info, isHDROutput ? u8"HDR出力にしました(最大 %.0f nit)" : u8"SDR出力にしました", m_displayMaxLuminance);
+	}
+	m_isHDROutput = isHDROutput;
 
 	// バックバッファのRTVは同じ番号に作り直す
 	for (UINT bufferIndex = 0; bufferIndex < kSwapChainBufferCount; ++bufferIndex)
@@ -391,6 +529,7 @@ bool GraphicsDevice::ApplyPendingResize()
 
 	m_backBufferWidth = width;
 	m_backBufferHeight = height;
+	ResizeHDRTargets(width, height);
 	return true;
 }
 
@@ -843,6 +982,15 @@ void GraphicsDevice::TransitionDepthToWrite(RenderTarget* pRT)
 }
 void GraphicsDevice::SetBackBuffer()
 {
+	// HDR出力のときは、UI(スプライト・ImGui)をUIのRTへ描く。フレームの最後にシーンと合成する
+	if (m_isHDROutput && m_upUITarget)
+	{
+		SetRenderTarget(m_upUITarget.get());
+		auto rtvHandle = m_upDescriptorHeapManager->GetRTVAllocator()->GetCPUHandle(m_upUITarget->GetRTVIndex());
+		auto dsvHandle = m_upDescriptorHeapManager->GetDSVAllocator()->GetCPUHandle(m_upDepthStencil->GetDSVNumber());
+		m_upContextManager->GetGraphicsContext()->GetCmdList()->OMSetRenderTargets(1, &rtvHandle, false, &dsvHandle);
+		return;
+	}
 	auto bbIdx = m_pSwapChain->GetCurrentBackBufferIndex();
 	auto rtvH = m_upDescriptorHeapManager->GetRTVAllocator()->GetCPUHandle(m_swapchainRtvIndices[bbIdx]);
 	auto dsvH = m_upDescriptorHeapManager->GetDSVAllocator()->GetCPUHandle(m_upDepthStencil->GetDSVNumber());
@@ -850,6 +998,17 @@ void GraphicsDevice::SetBackBuffer()
 }
 void GraphicsDevice::ClearBackBuffer(float r, float g, float b, float a)
 {
+	if (m_isHDROutput && m_upUITarget)
+	{
+		m_upContextManager->GetGraphicsContext()->TransitionResource(m_upUITarget->GetResource(), D3D12_RESOURCE_STATE_RENDER_TARGET);
+		m_upContextManager->GetGraphicsContext()->FlushResourceBarriers();
+		m_upUITarget->ClearColor(r, g, b, a);
+		if (m_upDepthStencil)
+		{
+			m_upDepthStencil->ClearBuffer();
+		}
+		return;
+	}
 	auto bbIdx = m_pSwapChain->GetCurrentBackBufferIndex();
 	auto rtvH = m_upDescriptorHeapManager->GetRTVAllocator()->GetCPUHandle(m_swapchainRtvIndices[bbIdx]);
 	float clearColor[] = { r, g, b, a };

@@ -345,6 +345,7 @@
     <ClInclude Include="Source\Graphics\Renderer\VolumetricFog.h" />
     <ClInclude Include="Source\Graphics\Renderer\PathTracer.h" />
     <ClInclude Include="Source\Graphics\GPUResource\Texture\TextureCache.h" />
+    <ClInclude Include="Source\Graphics\Shader\HDRCompositeShader\HDRCompositeShader.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Library\ImGui\imgui.cpp" />
@@ -498,6 +499,7 @@
     <ClCompile Include="Source\Graphics\Renderer\VolumetricFog.cpp" />
     <ClCompile Include="Source\Graphics\Renderer\PathTracer.cpp" />
     <ClCompile Include="Source\Graphics\GPUResource\Texture\TextureCache.cpp" />
+    <ClCompile Include="Source\Graphics\Shader\HDRCompositeShader\HDRCompositeShader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Asset\Shader\Common\ShaderCore.hlsli" />
@@ -650,6 +652,9 @@
       <FileType>Document</FileType>
     </None>
     <None Include="Asset\Shader\Lighting\SkinVertices_CS.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Asset\Shader\PostProcessShader\HDRComposite_PS.hlsl">
       <FileType>Document</FileType>
     </None>
   </ItemGroup>

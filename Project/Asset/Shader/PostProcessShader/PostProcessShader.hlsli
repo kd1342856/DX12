@@ -73,7 +73,9 @@ cbuffer cbPostProcess : register(b0)
     // 画角(ビネットのcos^4則に使う)
     float g_TanHalfFovX;
     float g_TanHalfFovY;
-    float2 g_PadLens;
+    // HDR出力: モニターの最大の輝度 ÷ 白の明るさ。0ならSDR
+    float g_HDRPeakRatio;
+    float g_PadLens;
 };
 
 struct PSInput

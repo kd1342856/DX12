@@ -334,6 +334,9 @@
     <Filter Include="Asset\Shader\Lighting">
       <UniqueIdentifier>{6536952A-F22B-4D14-ADF5-3348852295C3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Graphics\Shader\HDRCompositeShader">
+      <UniqueIdentifier>{16889510-2888-4C1F-ACCC-DDDDEF147E64}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Library\ImGui\imgui.cpp">
@@ -773,6 +776,9 @@
     </ClCompile>
     <ClCompile Include="Source\Graphics\GPUResource\Texture\TextureCache.cpp">
       <Filter>Source\Graphics\GPUResource\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Graphics\Shader\HDRCompositeShader\HDRCompositeShader.cpp">
+      <Filter>Source\Graphics\Shader\HDRCompositeShader</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1328,6 +1334,9 @@
     <ClInclude Include="Source\Graphics\GPUResource\Texture\TextureCache.h">
       <Filter>Source\Graphics\GPUResource\Texture</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Graphics\Shader\HDRCompositeShader\HDRCompositeShader.h">
+      <Filter>Source\Graphics\Shader\HDRCompositeShader</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Asset\Shader\Common\ShaderCore.hlsli">
@@ -1462,6 +1471,9 @@
     </None>
     <None Include="Asset\Shader\Lighting\SkinVertices_CS.hlsl">
       <Filter>Asset\Shader\Lighting</Filter>
+    </None>
+    <None Include="Asset\Shader\PostProcessShader\HDRComposite_PS.hlsl">
+      <Filter>Asset\Shader\PostProcessShader</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

@@ -185,6 +185,8 @@ namespace CBufferData
 		// 画角(ビネットのcos^4則に使う)。投影行列の1 / _11、1 / _22
 		float TanHalfFovX;
 		float TanHalfFovY;
-		float PadLens[2];
+		// HDR出力: モニターの最大の輝度 ÷ 白の明るさ。0ならSDR(ACESとsRGB)
+		float HDRPeakRatio;
+		float PadLens;
 	};
 }

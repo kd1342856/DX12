@@ -14,4 +14,8 @@ public:
 	// pGodRaysRT: God Rays(光条)の結果(nullptrなら無効時と同じ扱い)。
 	void Draw(RenderTarget* pSceneRT, RenderTarget* pBloomRT, const CBufferData::PostProcess& postProcessData,
 		RenderTarget* pDofRT = nullptr, RenderTarget* pGodRaysRT = nullptr);
+
+private:
+	// HDR出力のとき(HDRのシーンのRT、RGBA16Fへ描く)
+	ID3D12PipelineState* m_pHDRPipelineState = nullptr;
 };
