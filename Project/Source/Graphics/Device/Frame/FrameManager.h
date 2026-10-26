@@ -6,7 +6,7 @@ class FrameManager
 {
 public:
     // 3 frames in flight so the CPU does not stall on the previous frame.
-    // NOTE: each FrameResource allocates 10000 CBV descriptors, so raising
+    // NOTE: each FrameResource allocates FrameResource::kConstantBufferCapacityPerFrame CBV descriptors, so raising
     // this also requires a bigger CBV/SRV/UAV heap (see GraphicsDevice::Init).
     static constexpr int kFrameCount = 3;
 

@@ -7,6 +7,10 @@ class FrameConstantBufferAllocator;
 class FrameResource
 {
 public:
+    // 1フレームの定数バッファの容量(256バイトの枠の数)。CBVのディスクリプタも同じ数だけ使う
+    // (GraphicsDevice::Initでヒープの大きさに足す)。スキニングの骨は1回で64枠使う
+    static constexpr UINT kConstantBufferCapacityPerFrame = 16384;
+
     bool Init(GraphicsDevice* pDevice);
 
     void BeginFrame();

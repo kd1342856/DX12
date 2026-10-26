@@ -62,4 +62,30 @@ bool FrameConstantBufferAllocator::Create(GraphicsDevice* pGraphicsDevice, UINT 
 void FrameConstantBufferAllocator::Reset()
 {
 	m_currentUseNumber = 0;
+	++m_serial;
+}
+
+D3D12_GPU_DESCRIPTOR_HANDLE FrameConstantBufferAllocator::AllocateDescriptor(const void* pData, UINT size)
+{
+	const UINT sizeAligned = (size + 255) & ~255u;
+	const UINT useValue = sizeAligned / 256;
+	if (m_currentUseNumber + useValue > m_capacityPerFrame)
+	{
+		Logger::Instance().AddLog(Logger::LogLevel::Error, u8"[FrameConstantBufferAllocator] このフレームの定数バッファの容量(%u)を超えました", m_capacityPerFrame);
+		assert(false && "Constant buffer capacity exceeded.");
+		return D3D12_GPU_DESCRIPTOR_HANDLE{ 0 };
+	}
+
+	const UINT top = m_currentUseNumber;
+	memcpy(m_pMappedBuffer + static_cast<size_t>(top) * 256, pData, size);
+
+	auto* pAllocator = m_device->GetDescriptorHeapManager()->GetCBVSRVUAVAllocator();
+	const UINT cpuIndex = m_descriptorBaseIndex + top;
+	D3D12_CONSTANT_BUFFER_VIEW_DESC cbDesc = {};
+	cbDesc.BufferLocation = m_resource->GetGPUVirtualAddress() + static_cast<UINT64>(top) * 256;
+	cbDesc.SizeInBytes = sizeAligned;
+	m_device->GetDevice()->CreateConstantBufferView(&cbDesc, pAllocator->GetCPUHandle(cpuIndex));
+
+	m_currentUseNumber += useValue;
+	return pAllocator->GetGPUHandle(cpuIndex);
 }

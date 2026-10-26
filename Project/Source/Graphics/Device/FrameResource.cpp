@@ -17,7 +17,7 @@ bool FrameResource::Init(GraphicsDevice* pDevice)
 
     m_pConstantBufferAllocator = std::make_unique<FrameConstantBufferAllocator>();
 
-    if (!m_pConstantBufferAllocator->Create(pDevice, 10000, FrameManager::kFrameCount))
+    if (!m_pConstantBufferAllocator->Create(pDevice, kConstantBufferCapacityPerFrame, FrameManager::kFrameCount))
     {
         return false;
     }

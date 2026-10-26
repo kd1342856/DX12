@@ -55,7 +55,7 @@ bool GraphicsDevice::Init(HWND  hWnd, int w, int h)
 
 	m_upDescriptorHeapManager = std::make_unique<DescriptorHeapManager>();
 	if (!m_upDescriptorHeapManager->Init(m_pDevice.Get(), 100, 100,
-		FrameManager::kFrameCount * 10000 + 10000, 100)) return false;
+		FrameManager::kFrameCount * FrameResource::kConstantBufferCapacityPerFrame + 10000, 100)) return false;
 
 	m_upFrameManager = std::make_unique<FrameManager>();
 	if (!m_upFrameManager->Init(this)) return false;

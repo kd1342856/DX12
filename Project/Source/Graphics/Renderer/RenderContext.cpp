@@ -17,23 +17,25 @@ void RenderContext::BindCamera(int slot)
 	cbCamera.mVP = View * Projection;
 	cbCamera.mInvVP = cbCamera.mVP.Invert();
 	cbCamera.CamPos = Math::Vector3::Transform(Math::Vector3::Zero, cbCamera.mInvV);
-	GDF::Instance().BindCBuffer(slot, cbCamera);
+	cbCamera.dummy = 0.0f;
+	GraphicsDevice::Instance().GetFrameConstantBufferAllocator()->BindCachedData(slot, cbCamera, m_cameraCache);
 }
 
 void RenderContext::BindLight(int slot)
 {
+	auto* pAllocator = GraphicsDevice::Instance().GetFrameConstantBufferAllocator();
 	if (IsMainView)
 	{
-		GDF::Instance().BindCBuffer(slot, ShaderManager::Instance().GetLightData());
+		pAllocator->BindCachedData(slot, ShaderManager::Instance().GetLightData(), m_lightCache);
 		return;
 	}
 	// 画面の深度を使う効果を切る
 	CBufferData::Light lightData = ShaderManager::Instance().GetLightData();
 	lightData.ContactShadowLength = 0.0f;
-	GDF::Instance().BindCBuffer(slot, lightData);
+	pAllocator->BindCachedData(slot, lightData, m_lightCache);
 }
 
 void RenderContext::BindSystem(int slot)
 {
-	GDF::Instance().BindCBuffer(slot, ShaderManager::Instance().GetSystemData());
+	GraphicsDevice::Instance().GetFrameConstantBufferAllocator()->BindCachedData(slot, ShaderManager::Instance().GetSystemData(), m_systemCache);
 }
