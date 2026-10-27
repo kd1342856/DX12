@@ -1,4 +1,4 @@
-DirectX Shader Compiler のフォルダです。次の2つのDLLは実行に必須です。
+実行に必須なDLLのフォルダです。DirectX Shader Compiler の次の2つのDLLを置いています。
 
   dxcompiler.dll
   dxil.dll

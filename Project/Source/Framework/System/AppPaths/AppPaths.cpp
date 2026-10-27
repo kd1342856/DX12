@@ -56,8 +56,8 @@ void AppPaths::Initialize()
 	std::error_code errorCode;
 	std::filesystem::current_path(GetProjectDir(), errorCode);
 
-	// dxcompiler.dllは内部でdxil.dllを名前だけで読み込むので、検索先にLibrary/DXCを加えておく
-	SetDllDirectoryW(GetDxcDir().c_str());
+	// dxcompiler.dllは内部でdxil.dllを名前だけで読み込むので、検索先にLibrary/Binを加えておく
+	SetDllDirectoryW(GetBinDir().c_str());
 }
 
 const std::filesystem::path& AppPaths::GetRootDir()
@@ -70,9 +70,9 @@ const std::filesystem::path& AppPaths::GetProjectDir()
 	return Resolve().project;
 }
 
-std::filesystem::path AppPaths::GetDxcDir()
+std::filesystem::path AppPaths::GetBinDir()
 {
-	return GetLibraryDir() / L"DXC";
+	return GetLibraryDir() / L"Bin";
 }
 
 std::filesystem::path AppPaths::GetLibraryDir()

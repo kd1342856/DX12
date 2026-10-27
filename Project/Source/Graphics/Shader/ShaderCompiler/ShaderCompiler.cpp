@@ -258,13 +258,13 @@ void ShaderCompiler::Initialize()
 {
     if (s_pCompiler) return;
 
-    // dxcompiler.dllはリンク時に結び付けず(exeの隣に置く必要が無いように)、Library/DXCから実行時に読み込む。
-    // dxil.dllはdxcompiler.dllが名前で読み込むので、AppPaths::InitializeでLibrary/DXCをDLLの検索先に加えてある。
-    std::filesystem::path dxcompilerPath = AppPaths::GetDxcDir() / L"dxcompiler.dll";
+    // dxcompiler.dllはリンク時に結び付けず(exeの隣に置く必要が無いように)、Library/Binから実行時に読み込む。
+    // dxil.dllはdxcompiler.dllが名前で読み込むので、AppPaths::InitializeでLibrary/BinをDLLの検索先に加えてある。
+    std::filesystem::path dxcompilerPath = AppPaths::GetBinDir() / L"dxcompiler.dll";
     HMODULE hDxc = LoadLibraryW(dxcompilerPath.c_str());
     if (!hDxc)
     {
-        // Library/DXCに無い場合は通常のDLL検索順(exeの隣など)で探す
+        // Library/Binに無い場合は通常のDLL検索順(exeの隣など)で探す
         hDxc = LoadLibraryW(L"dxcompiler.dll");
     }
     if (!hDxc)
