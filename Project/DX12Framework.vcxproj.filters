@@ -810,6 +810,9 @@
     <ClCompile Include="Source\Framework\ImGuiEditor\Panels\SSAOPanel.cpp">
       <Filter>Source\Framework\ImGuiEditor\Panels</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Framework\ImGuiEditor\EditHistory.cpp">
+      <Filter>Source\Framework\ImGuiEditor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Application\Object\Script\Player\Player.h">
@@ -1393,6 +1396,9 @@
     </ClInclude>
     <ClInclude Include="Source\Framework\ImGuiEditor\Panels\SSAOPanel.h">
       <Filter>Source\Framework\ImGuiEditor\Panels</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\ImGuiEditor\EditHistory.h">
+      <Filter>Source\Framework\ImGuiEditor</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -3,6 +3,7 @@
 #include "ImGui/imgui.h"
 #include "../Widgets/SettingsFieldUI.h"
 #include "../EditorPreferences.h"
+#include "../EditHistory.h"
 #include "../../../Graphics/Shader/ShaderManager/ShaderManager.h"
 #include "../../../Graphics/Shader/PhotometricUnits.h"
 #include "../../../Graphics/Renderer/TemporalAA.h"
@@ -23,8 +24,31 @@ namespace
         {
             return;
         }
+        // Undo/Redoで書き戻せるよう、エディターの設定を対象として登録しておく
+        static const bool s_isRegistered = []()
+        {
+            EditHistory::Instance().RegisterTarget("Editor", [](const std::string& fieldKey, const nlohmann::json& value)
+            {
+                if (fieldKey != "EditorDisplayGamma" || !value.is_number())
+                {
+                    return false;
+                }
+                ShaderManager::Instance().SetEditorDisplayGamma(value.get<float>());
+                EditorPreferences::Save();
+                return true;
+            });
+            return true;
+        }();
+        (void)s_isRegistered;
+        static float s_beforeGamma = 2.0f;
+
         float displayGamma = ShaderManager::Instance().GetEditorDisplayGamma();
+        const float beforeDraw = displayGamma;
         const FieldWidgets::EditResult result = FieldWidgets::Number(s_meta, displayGamma, 2.0f);
+        if (result.activated && !result.committed)
+        {
+            s_beforeGamma = beforeDraw;
+        }
         if (result.changed)
         {
             ShaderManager::Instance().SetEditorDisplayGamma(displayGamma);
@@ -32,6 +56,8 @@ namespace
         if (result.committed)
         {
             EditorPreferences::Save();
+            const float before = result.activated ? beforeDraw : s_beforeGamma;
+            EditHistory::Instance().PushChange({ "Editor", s_meta.key, s_meta.label, before, displayGamma });
         }
         FieldWidgets::EndFieldTable();
     }

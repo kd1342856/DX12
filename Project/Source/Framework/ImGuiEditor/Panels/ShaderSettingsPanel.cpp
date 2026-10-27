@@ -3,6 +3,7 @@
 #include "ImGui/imgui.h"
 #include "../Widgets/FieldWidgets.h"
 #include "../Editor/Editor.h"
+#include "../EditHistory.h"
 #include "../../../Graphics/Shader/ShaderSettingsIO/ShaderSettingsIO.h"
 
 namespace
@@ -18,6 +19,22 @@ void ShaderSettingsPanel::Draw(EditorContext& ctx)
     {
         return;
     }
+    // Undo/Redo。ショートカットは EditHistory::Update が受ける
+    EditHistory& history = EditHistory::Instance();
+    ImGui::BeginDisabled(!history.CanUndo());
+    if (ImGui::Button(u8"元に戻す(Ctrl+Z)"))
+    {
+        history.Undo();
+    }
+    ImGui::EndDisabled();
+    ImGui::SameLine();
+    ImGui::BeginDisabled(!history.CanRedo());
+    if (ImGui::Button(u8"やり直す(Ctrl+Y)"))
+    {
+        history.Redo();
+    }
+    ImGui::EndDisabled();
+
     DrawSceneAndDefaults();
     ImGui::Separator();
     DrawPresets();
@@ -47,7 +64,9 @@ void ShaderSettingsPanel::DrawSceneAndDefaults()
         ImGui::TextDisabled(u8"今の値を残したいときは、先にプリセットかA/Bに記録してください。");
         if (ImGui::Button(u8"初期値に戻す"))
         {
+            const nlohmann::json before = ShaderSettingsIO::Capture();
             ShaderSettingsIO::Apply(ShaderSettingsIO::CaptureDefaults());
+            EditHistory::Instance().PushSettingsDiff(u8"すべて初期値に戻す", before, ShaderSettingsIO::Capture());
             SetMessage(u8"すべて初期値に戻しました", false);
             ImGui::CloseCurrentPopup();
         }
@@ -114,8 +133,10 @@ void ShaderSettingsPanel::DrawPresets()
     if (ImGui::Button(u8"読み込む"))
     {
         std::string error;
+        const nlohmann::json before = ShaderSettingsIO::Capture();
         if (ShaderSettingsIO::LoadPreset(m_selectedPreset, error))
         {
+            EditHistory::Instance().PushSettingsDiff(u8"プリセットの読み込み: " + m_selectedPreset, before, ShaderSettingsIO::Capture());
             SetMessage(u8"プリセットを読み込みました: " + m_selectedPreset, false);
         }
         else
@@ -177,7 +198,9 @@ void ShaderSettingsPanel::DrawABCompare()
         }
         if (ImGui::Button((std::string(kSlotNames[slotIndex]) + u8"を表示").c_str()))
         {
+            const nlohmann::json before = ShaderSettingsIO::Capture();
             ShaderSettingsIO::Apply(m_slots[slotIndex]);
+            EditHistory::Instance().PushSettingsDiff(std::string(kSlotNames[slotIndex]) + u8"を表示", before, ShaderSettingsIO::Capture());
             m_shownSlot = slotIndex;
         }
         if (isShown)

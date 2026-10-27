@@ -355,6 +355,7 @@
     <ClInclude Include="Source\Framework\ImGuiEditor\Widgets\FieldWidgets.h" />
     <ClInclude Include="Source\Framework\ImGuiEditor\Widgets\SettingsFieldUI.h" />
     <ClInclude Include="Source\Framework\ImGuiEditor\Panels\SSAOPanel.h" />
+    <ClInclude Include="Source\Framework\ImGuiEditor\EditHistory.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Library\ImGui\imgui.cpp" />
@@ -516,6 +517,7 @@
     <ClCompile Include="Source\Framework\ImGuiEditor\EditorPreferences.cpp" />
     <ClCompile Include="Source\Framework\ImGuiEditor\Widgets\FieldWidgets.cpp" />
     <ClCompile Include="Source\Framework\ImGuiEditor\Panels\SSAOPanel.cpp" />
+    <ClCompile Include="Source\Framework\ImGuiEditor\EditHistory.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Asset\Shader\Common\ShaderCore.hlsli" />

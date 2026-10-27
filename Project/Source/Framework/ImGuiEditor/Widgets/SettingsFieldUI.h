@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <vector>
 #include "FieldWidgets.h"
+#include "../EditHistory.h"
 
 //=============================
 //
@@ -78,10 +79,39 @@ namespace SettingsFieldUI
             return FieldWidgets::Color(meta, value, defaultValue);
         }
 
+        // Undo/Redoに記録する値の形(ShaderSettingsIOと同じ)
+        inline nlohmann::json ToJson(bool value)
+        {
+            return value;
+        }
+
+        inline nlohmann::json ToJson(int value)
+        {
+            return value;
+        }
+
+        inline nlohmann::json ToJson(float value)
+        {
+            return value;
+        }
+
+        inline nlohmann::json ToJson(const DirectX::XMFLOAT3& value)
+        {
+            return nlohmann::json::array({ value.x, value.y, value.z });
+        }
+
+        // 操作を始めたときの値。操作を終えたときに、変更前としてUndoに積む
+        inline std::unordered_map<std::string, nlohmann::json>& PendingBefore()
+        {
+            static std::unordered_map<std::string, nlohmann::json> s_pending;
+            return s_pending;
+        }
+
         struct Entry
         {
             FieldMeta meta;
             std::function<FieldWidgets::EditResult()> draw;
+            std::function<nlohmann::json()> capture;
         };
     }
 
@@ -104,6 +134,9 @@ namespace SettingsFieldUI
             entries.push_back({ meta, [meta, pField, pDefault]()
             {
                 return Detail::DrawField(meta, *pField, *pDefault);
+            }, [pField]()
+            {
+                return Detail::ToJson(*pField);
             } });
         });
 
@@ -126,8 +159,28 @@ namespace SettingsFieldUI
                 return;
             }
             ImGui::BeginDisabled(!active);
+            // オンオフや「初期値に戻す」は描く中で値が変わるので、変更前の値を描く前に控える
+            const nlohmann::json beforeDraw = entry.capture();
             const FieldWidgets::EditResult result = entry.draw();
             ImGui::EndDisabled();
+
+            // Undo/Redo: 操作の開始で変更前を控え、終わったら1回分として積む
+            const std::string pendingKey = std::string(targetKey) + "/" + entry.meta.key;
+            auto& pending = Detail::PendingBefore();
+            if (result.activated && !result.committed)
+            {
+                pending[pendingKey] = beforeDraw;
+            }
+            if (result.committed)
+            {
+                auto it = pending.find(pendingKey);
+                const nlohmann::json before = (it != pending.end()) ? it->second : beforeDraw;
+                if (it != pending.end())
+                {
+                    pending.erase(it);
+                }
+                EditHistory::Instance().PushChange({ targetKey, entry.meta.key, entry.meta.label, before, entry.capture() });
+            }
             if (result.changed)
             {
                 SetDirty(settings, nullptr);

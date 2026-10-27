@@ -197,6 +197,63 @@ void ShaderSettingsIO::Apply(const nlohmann::json& json)
     });
 }
 
+namespace
+{
+    // group‚Ìİ’è‚Ìkey‚Ì’l‚ğ’T‚µ‚Äfunction‚ğŒÄ‚ÔBŒ©‚Â‚©‚Á‚½‚çtrue
+    template<typename TFunction>
+    bool FindField(const std::string& group, const std::string& key, TFunction&& function)
+    {
+        ShaderManager& manager = ShaderManager::Instance();
+        bool isFound = false;
+        ForEachGroup(manager.GetRendererSettings(), manager.GetLightingSettings(), manager.GetShadowSettings(),
+            manager.GetPostProcessSettings(), manager.GetSSAOSettings(), manager.GetFogSettings(), [&](const char* pGroupName, auto& settings)
+        {
+            if (isFound || group != pGroupName)
+            {
+                return;
+            }
+            settings.VisitFields([&](const FieldMeta& meta, auto& field)
+            {
+                if (!isFound && key == meta.key)
+                {
+                    isFound = true;
+                    function(meta, field, settings);
+                }
+            });
+        });
+        return isFound;
+    }
+}
+
+nlohmann::json ShaderSettingsIO::CaptureField(const std::string& group, const std::string& key)
+{
+    nlohmann::json value;
+    FindField(group, key, [&](const FieldMeta&, auto& field, auto&)
+    {
+        value = ToJson(field);
+    });
+    return value;
+}
+
+bool ShaderSettingsIO::ApplyField(const std::string& group, const std::string& key, const nlohmann::json& value)
+{
+    return FindField(group, key, [&](const FieldMeta&, auto& field, auto& settings)
+    {
+        FromJson(value, field);
+        SetDirty(settings, nullptr);
+    });
+}
+
+std::string ShaderSettingsIO::GetFieldLabel(const std::string& group, const std::string& key)
+{
+    std::string label = key;
+    FindField(group, key, [&](const FieldMeta& meta, auto&, auto&)
+    {
+        label = meta.label;
+    });
+    return label;
+}
+
 int ShaderSettingsIO::CountDifferences(const nlohmann::json& lhs, const nlohmann::json& rhs)
 {
     int count = 0;

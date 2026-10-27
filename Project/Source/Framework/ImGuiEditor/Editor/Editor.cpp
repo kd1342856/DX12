@@ -11,6 +11,7 @@
 #include "../ShaderEditor/ShaderEditor.h"
 #include "../NavMeshEditor/NavMeshEditor.h"
 #include "../EditorContext.h"
+#include "../EditHistory.h"
 #include "../../../Graphics/Shader/ShaderManager/ShaderManager.h"
 
 // Resolve the GetCurrentScene issue
@@ -38,6 +39,8 @@ bool Editor::s_previewCameraHovered = false;
 void Editor::Init() {
     s_selectedObject = nullptr;
     s_scenePath.clear(); // 保存先は各シーンのInit()で設定する(前シーンのファイルを引き継がない)
+    // Undoの履歴はシーンをまたがない(戻す先の物が無くなるため)
+    EditHistory::Instance().Clear();
     LoadEditorData();    // パスが空なのでフォルダ構成も空に戻る(前シーンのフォルダを引き継がない)
     s_scene = std::make_shared<Scene>();
     s_scene->Init();

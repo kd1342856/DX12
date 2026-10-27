@@ -20,6 +20,12 @@ namespace ShaderSettingsIO
     // JSONにある値だけを設定に入れ、そのグループのIsDirtyを立てる。JSONに無いキーは今の値のまま
     void Apply(const nlohmann::json& json);
 
+    // 値1つの読み書き(Undo/Redo用)。保存しない値(画質設定などが決める値)も扱う。見つからなければnull・false
+    nlohmann::json CaptureField(const std::string& group, const std::string& key);
+    bool ApplyField(const std::string& group, const std::string& key, const nlohmann::json& value);
+    // 値の表示名(VisitFieldsの表示名)。見つからなければキーのまま
+    std::string GetFieldLabel(const std::string& group, const std::string& key);
+
     // 2つのJSONで値が違うキーの数
     int CountDifferences(const nlohmann::json& lhs, const nlohmann::json& rhs);
 

@@ -17,6 +17,7 @@
 #include "UI/OptionMenu.h"
 #include "../Framework/ImGuiEditor/Panels/ShaderReloadPanel.h"
 #include "../Framework/ImGuiEditor/EditorPreferences.h"
+#include "../Framework/ImGuiEditor/EditHistory.h"
 
 // ImGui の Win32 メッセージハンドラへ転送する
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -142,6 +143,8 @@ void Application::Execute()
 		SceneManager::Instance().DrawFade();
 		// シェーダーのコンパイルエラーは、エディターを閉じていてもプレイ中でも画面の隅に出す
 		ShaderReloadPanel::DrawErrorNotice();
+		// Undo/Redoのショートカット(Ctrl+Z・Ctrl+Y)と、戻したときの知らせ
+		EditHistory::Instance().Update();
 
 		GDF::Instance().EndFrame();
 	}
