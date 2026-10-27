@@ -41,12 +41,11 @@ namespace
 
 void RendererPanel::Draw(EditorContext& ctx)
 {
-    if (!ImGui::CollapsingHeader(u8"描画###Renderer Settings", ImGuiTreeNodeFlags_DefaultOpen))
+    if (!ctx.Renderer || !SettingsFieldUI::PanelHeader(u8"描画###Renderer Settings", *ctx.Renderer, "Renderer"))
     {
         return;
     }
 
-    if (ctx.Renderer)
     {
         SettingsFieldUI::Options options;
         options.onChanged = [](const char* key)
@@ -75,6 +74,10 @@ void RendererPanel::Draw(EditorContext& ctx)
             }
         };
         SettingsFieldUI::Draw(*ctx.Renderer, "Renderer", options);
+    }
+    if (SettingsFieldUI::IsSearching())
+    {
+        return;
     }
 
     ImGui::SeparatorText(u8"見え方の切り分け(デバッグ用)");

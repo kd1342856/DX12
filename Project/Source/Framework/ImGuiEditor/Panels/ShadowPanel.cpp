@@ -9,7 +9,7 @@ void ShadowPanel::Draw(EditorContext& ctx)
     {
         return;
     }
-    if (ImGui::CollapsingHeader(u8"ŒŽ‚Ì‰e###Shadow Settings", ImGuiTreeNodeFlags_DefaultOpen))
+    if (SettingsFieldUI::PanelHeader(u8"ŒŽ‚Ì‰e###Shadow Settings", *ctx.Shadow, "Shadow"))
     {
         SettingsFieldUI::Draw(*ctx.Shadow, "Shadow");
     }

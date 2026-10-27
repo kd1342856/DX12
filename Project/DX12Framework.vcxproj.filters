@@ -813,6 +813,12 @@
     <ClCompile Include="Source\Framework\ImGuiEditor\EditHistory.cpp">
       <Filter>Source\Framework\ImGuiEditor</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Framework\ImGuiEditor\EditorTools.cpp">
+      <Filter>Source\Framework\ImGuiEditor</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Framework\ImGuiEditor\Panels\PinnedPanel.cpp">
+      <Filter>Source\Framework\ImGuiEditor\Panels</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Application\Object\Script\Player\Player.h">
@@ -1399,6 +1405,12 @@
     </ClInclude>
     <ClInclude Include="Source\Framework\ImGuiEditor\EditHistory.h">
       <Filter>Source\Framework\ImGuiEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\ImGuiEditor\EditorTools.h">
+      <Filter>Source\Framework\ImGuiEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\ImGuiEditor\Panels\PinnedPanel.h">
+      <Filter>Source\Framework\ImGuiEditor\Panels</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

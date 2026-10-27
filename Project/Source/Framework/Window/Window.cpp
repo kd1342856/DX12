@@ -33,6 +33,14 @@ LRESULT WindowProcedure(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 	switch (message)
 	{
+	case WM_CLOSE:
+		// •Û‘¶‚µ‚Ä‚¢‚È‚¢•ÏX‚ª‚ ‚ê‚ÎA•Â‚¶‚é‘O‚É•·‚­(•·‚¢‚½Œã‚Å•Â‚¶‚é‚Æ‚«‚ÍDestroyWindow‚ğŒÄ‚Ô)
+		if (Window::GetCloseRequestHandler() && !Window::GetCloseRequestHandler()())
+		{
+			return 0;
+		}
+		DestroyWindow(hWnd);
+		break;
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		break;

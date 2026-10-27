@@ -254,6 +254,26 @@ std::string ShaderSettingsIO::GetFieldLabel(const std::string& group, const std:
     return label;
 }
 
+namespace
+{
+    // 最後にシーンを読み込んだ・保存したときの値。空なら比べない(シーンを開く前)
+    nlohmann::json s_savedSettings;
+}
+
+void ShaderSettingsIO::MarkSaved()
+{
+    s_savedSettings = Capture();
+}
+
+int ShaderSettingsIO::CountUnsavedChanges()
+{
+    if (s_savedSettings.is_null())
+    {
+        return 0;
+    }
+    return CountDifferences(Capture(), s_savedSettings);
+}
+
 int ShaderSettingsIO::CountDifferences(const nlohmann::json& lhs, const nlohmann::json& rhs)
 {
     int count = 0;

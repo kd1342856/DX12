@@ -1,6 +1,7 @@
 #include "MaterialPanel.h"
 #include "../EditorContext.h"
 #include "ImGui/imgui.h"
+#include "../Widgets/SettingsFieldUI.h"
 #include "../../../Framework/ECS/Components/Data/ModelRenderData.h"
 #include "../../../Graphics/Geometry/Model/Model.h"
 #include "../../../Graphics/Geometry/Mesh/Mesh.h"
@@ -11,6 +12,11 @@
 
 void MaterialPanel::Draw(EditorContext& ctx)
 {
+    // 検索中は、検索できる値の無いパネルを隠す
+    if (SettingsFieldUI::IsSearching())
+    {
+        return;
+    }
     if (ImGui::CollapsingHeader("Material", ImGuiTreeNodeFlags_DefaultOpen))
     {
         if (!ctx.SelectedObject)

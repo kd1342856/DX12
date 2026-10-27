@@ -210,6 +210,8 @@ void Scene::Deserialize(const nlohmann::json& in) {
 
     // シェーダーエディターの設定。シーンのJSONに無いグループ・キーは今の値のまま
     ShaderSettingsIO::Apply(in);
+    // 保存していない変更の数は、ここで読み込んだ値と比べる
+    ShaderSettingsIO::MarkSaved();
 }
 
 

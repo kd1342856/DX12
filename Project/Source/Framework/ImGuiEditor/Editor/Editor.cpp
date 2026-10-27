@@ -12,6 +12,7 @@
 #include "../NavMeshEditor/NavMeshEditor.h"
 #include "../EditorContext.h"
 #include "../EditHistory.h"
+#include "../../../Graphics/Shader/ShaderSettingsIO/ShaderSettingsIO.h"
 #include "../../../Graphics/Shader/ShaderManager/ShaderManager.h"
 
 // Resolve the GetCurrentScene issue
@@ -112,6 +113,7 @@ bool Editor::SaveCurrentScene()
     }
     o << std::setw(4) << j << std::endl;
     Logger::Instance().AddLog(Logger::LogLevel::Info, "Scene Saved: %s", path.c_str());
+    ShaderSettingsIO::MarkSaved();
     SaveEditorData();
     return true;
 }

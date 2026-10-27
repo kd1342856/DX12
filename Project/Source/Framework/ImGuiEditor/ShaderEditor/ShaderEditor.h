@@ -13,6 +13,7 @@
 #include "../Panels/FogPanel.h"
 #include "../Panels/ShaderReloadPanel.h"
 #include "../Panels/ShaderSettingsPanel.h"
+#include "../Panels/PinnedPanel.h"
 
 class ShaderEditor
 {

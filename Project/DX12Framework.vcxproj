@@ -356,6 +356,8 @@
     <ClInclude Include="Source\Framework\ImGuiEditor\Widgets\SettingsFieldUI.h" />
     <ClInclude Include="Source\Framework\ImGuiEditor\Panels\SSAOPanel.h" />
     <ClInclude Include="Source\Framework\ImGuiEditor\EditHistory.h" />
+    <ClInclude Include="Source\Framework\ImGuiEditor\EditorTools.h" />
+    <ClInclude Include="Source\Framework\ImGuiEditor\Panels\PinnedPanel.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Library\ImGui\imgui.cpp" />
@@ -518,6 +520,8 @@
     <ClCompile Include="Source\Framework\ImGuiEditor\Widgets\FieldWidgets.cpp" />
     <ClCompile Include="Source\Framework\ImGuiEditor\Panels\SSAOPanel.cpp" />
     <ClCompile Include="Source\Framework\ImGuiEditor\EditHistory.cpp" />
+    <ClCompile Include="Source\Framework\ImGuiEditor\EditorTools.cpp" />
+    <ClCompile Include="Source\Framework\ImGuiEditor\Panels\PinnedPanel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Asset\Shader\Common\ShaderCore.hlsli" />

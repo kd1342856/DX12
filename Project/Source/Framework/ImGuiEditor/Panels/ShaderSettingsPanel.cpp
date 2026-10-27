@@ -4,6 +4,8 @@
 #include "../Widgets/FieldWidgets.h"
 #include "../Editor/Editor.h"
 #include "../EditHistory.h"
+#include "../EditorTools.h"
+#include "../Widgets/SettingsFieldUI.h"
 #include "../../../Graphics/Shader/ShaderSettingsIO/ShaderSettingsIO.h"
 
 namespace
@@ -11,10 +13,45 @@ namespace
     const ImVec4 kErrorColor(1.0f, 0.45f, 0.4f, 1.0f);
     const ImVec4 kOkColor(0.55f, 0.85f, 0.55f, 1.0f);
     const char* const kSlotNames[2] = { "A", "B" };
+
+    // 変えた値の一覧に出すグループの名前(パネルの見出しと同じ)
+    const char* GetGroupDisplayName(const std::string& group)
+    {
+        if (group == "Renderer")
+        {
+            return u8"描画";
+        }
+        if (group == "Lighting")
+        {
+            return u8"月の光と空";
+        }
+        if (group == "Shadow")
+        {
+            return u8"月の影";
+        }
+        if (group == "PostProcess")
+        {
+            return u8"露出とポストプロセス";
+        }
+        if (group == "SSAO")
+        {
+            return u8"すき間の陰り";
+        }
+        if (group == "Fog")
+        {
+            return u8"霧とハントの演出";
+        }
+        return group.c_str();
+    }
 }
 
 void ShaderSettingsPanel::Draw(EditorContext& ctx)
 {
+    // 検索中は、値のパネルだけを出す
+    if (SettingsFieldUI::IsSearching())
+    {
+        return;
+    }
     if (!ImGui::CollapsingHeader(u8"設定の保存・プリセット・A/B比較", ImGuiTreeNodeFlags_DefaultOpen))
     {
         return;
@@ -34,8 +71,26 @@ void ShaderSettingsPanel::Draw(EditorContext& ctx)
         history.Redo();
     }
     ImGui::EndDisabled();
+    ImGui::SameLine();
+    // エディターでは見えたのにゲームでは真っ暗、を防ぐ。F4を押している間も同じ
+    bool isGameLook = GameLookPreview::IsToggled();
+    if (ImGui::Checkbox(u8"ゲームと同じ見え方", &isGameLook))
+    {
+        GameLookPreview::SetToggled(isGameLook);
+    }
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+    {
+        ImGui::SetTooltip(u8"エディターの表示ガンマを外し、ゲームと同じガンマとプレイヤーの明るさで表示する。\nF4を押している間だけ切り替えることもできる。");
+    }
+
+    const int unsavedCount = ShaderSettingsIO::CountUnsavedChanges();
+    if (unsavedCount > 0)
+    {
+        ImGui::TextColored(ImVec4(1.0f, 0.75f, 0.4f, 1.0f), u8"シーンに保存していない変更: %d 個", unsavedCount);
+    }
 
     DrawSceneAndDefaults();
+    DrawChangedList();
     ImGui::Separator();
     DrawPresets();
     ImGui::Separator();
@@ -107,6 +162,63 @@ void ShaderSettingsPanel::DrawSceneAndDefaults()
     }
 }
 
+void ShaderSettingsPanel::DrawChangedList()
+{
+    // 初期値から変えた値を、パネルをまたいで1つのリストにする。クリックでその値へ飛び、行ごとに初期値に戻せる
+    const nlohmann::json current = ShaderSettingsIO::Capture();
+    const nlohmann::json defaults = ShaderSettingsIO::CaptureDefaults();
+    if (ShaderSettingsIO::CountDifferences(current, defaults) == 0 || !ImGui::TreeNodeEx(u8"変えた値の一覧", ImGuiTreeNodeFlags_SpanAvailWidth))
+    {
+        return;
+    }
+    if (ImGui::BeginTable("##changedList", 3, ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_RowBg))
+    {
+        ImGui::TableSetupColumn("name", ImGuiTableColumnFlags_WidthStretch, 0.45f);
+        ImGui::TableSetupColumn("value", ImGuiTableColumnFlags_WidthStretch, 0.45f);
+        ImGui::TableSetupColumn("reset", ImGuiTableColumnFlags_WidthFixed);
+        for (auto groupIt = current.begin(); groupIt != current.end(); ++groupIt)
+        {
+            const std::string group = groupIt.key();
+            const nlohmann::json& defaultGroup = defaults[group];
+            for (auto fieldIt = groupIt->begin(); fieldIt != groupIt->end(); ++fieldIt)
+            {
+                const std::string key = fieldIt.key();
+                if (!defaultGroup.contains(key) || defaultGroup[key] == *fieldIt)
+                {
+                    continue;
+                }
+                const std::string label = ShaderSettingsIO::GetFieldLabel(group, key);
+                ImGui::PushID((group + "/" + key).c_str());
+                ImGui::TableNextRow();
+                ImGui::TableSetColumnIndex(0);
+                const std::string rowText = std::string(GetGroupDisplayName(group)) + u8" ・ " + label;
+                if (ImGui::Selectable(rowText.c_str(), false, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowOverlap))
+                {
+                    SettingsFieldUI::RequestFocus(group, key);
+                }
+                if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+                {
+                    ImGui::SetTooltip(u8"クリックでその値まで飛ぶ");
+                }
+                ImGui::TableSetColumnIndex(1);
+                ImGui::TextDisabled("%s", EditHistory::FormatJson(defaultGroup[key]).c_str());
+                ImGui::SameLine();
+                ImGui::Text(u8"→ %s", EditHistory::FormatJson(*fieldIt).c_str());
+                ImGui::TableSetColumnIndex(2);
+                if (ImGui::SmallButton(u8"初期値に戻す"))
+                {
+                    const nlohmann::json before = *fieldIt;
+                    ShaderSettingsIO::ApplyField(group, key, defaultGroup[key]);
+                    EditHistory::Instance().PushChange({ group, key, label, before, defaultGroup[key] });
+                }
+                ImGui::PopID();
+            }
+        }
+        ImGui::EndTable();
+    }
+    ImGui::TreePop();
+}
+
 void ShaderSettingsPanel::DrawPresets()
 {
     ImGui::TextUnformatted(u8"プリセット (Asset/Data/ShaderPreset)");
@@ -132,17 +244,22 @@ void ShaderSettingsPanel::DrawPresets()
     ImGui::BeginDisabled(m_selectedPreset.empty());
     if (ImGui::Button(u8"読み込む"))
     {
-        std::string error;
-        const nlohmann::json before = ShaderSettingsIO::Capture();
-        if (ShaderSettingsIO::LoadPreset(m_selectedPreset, error))
+        // 保存していない変更があれば、読み込む前に聞く(読み込み自体はUndoで戻せる)
+        const std::string presetName = m_selectedPreset;
+        UnsavedChanges::Confirm(u8"プリセットを読み込む", [this, presetName]()
         {
-            EditHistory::Instance().PushSettingsDiff(u8"プリセットの読み込み: " + m_selectedPreset, before, ShaderSettingsIO::Capture());
-            SetMessage(u8"プリセットを読み込みました: " + m_selectedPreset, false);
-        }
-        else
-        {
-            SetMessage(error, true);
-        }
+            std::string error;
+            const nlohmann::json before = ShaderSettingsIO::Capture();
+            if (ShaderSettingsIO::LoadPreset(presetName, error))
+            {
+                EditHistory::Instance().PushSettingsDiff(u8"プリセットの読み込み: " + presetName, before, ShaderSettingsIO::Capture());
+                SetMessage(u8"プリセットを読み込みました: " + presetName, false);
+            }
+            else
+            {
+                SetMessage(error, true);
+            }
+        });
     }
     ImGui::EndDisabled();
 

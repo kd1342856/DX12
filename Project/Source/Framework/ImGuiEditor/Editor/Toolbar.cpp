@@ -7,6 +7,7 @@
 #include "../../../Application/Scene/GameScene/GameScene.h"
 #include "../../../Application/Scene/TitleScene/TitleScene.h"
 #include "../../../Application/Scene/ResultScene/ResultScene.h"
+#include "../EditorTools.h"
 
 // Resolve the GetCurrentScene issue
 static std::shared_ptr<Scene> GetCurrentScenePtr() {
@@ -56,15 +57,19 @@ void Editor::DrawToolbar() {
     }
 
     if (ImGui::Combo("Scene", &current_scene, scenes, IM_ARRAYSIZE(scenes))) {
-        if (current_scene == 0) {
-            SceneManager::Instance().ChangeScene(std::make_unique<TitleScene>(), 0.5f);
-        } else if (current_scene == 1) {
-            SceneManager::Instance().ChangeScene(std::make_unique<GameScene>(), 0.5f);
-        } else if (current_scene == 2) {
-            SceneManager::Instance().ChangeScene(std::make_unique<ResultScene>(true, 245.4f, 1 /*Kageonna*/, 2), 0.5f);
-        } else if (current_scene == 3) {
-            SceneManager::Instance().ChangeScene(std::make_unique<ResultScene>(false), 0.5f);
-        }
+        // 保存していないシェーダーの設定があれば、切り替える前に聞く(Undoの履歴もシーンを切り替えると消える)
+        const int nextScene = current_scene;
+        UnsavedChanges::Confirm(u8"シーンを切り替える", [nextScene]() {
+            if (nextScene == 0) {
+                SceneManager::Instance().ChangeScene(std::make_unique<TitleScene>(), 0.5f);
+            } else if (nextScene == 1) {
+                SceneManager::Instance().ChangeScene(std::make_unique<GameScene>(), 0.5f);
+            } else if (nextScene == 2) {
+                SceneManager::Instance().ChangeScene(std::make_unique<ResultScene>(true, 245.4f, 1 /*Kageonna*/, 2), 0.5f);
+            } else if (nextScene == 3) {
+                SceneManager::Instance().ChangeScene(std::make_unique<ResultScene>(false), 0.5f);
+            }
+        });
     }
 
     ImGui::Separator();

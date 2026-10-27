@@ -9,9 +9,12 @@ void LightingPanel::Draw(EditorContext& ctx)
     {
         return;
     }
-    if (ImGui::CollapsingHeader(u8"月の光と空###Lighting Settings", ImGuiTreeNodeFlags_DefaultOpen))
+    if (SettingsFieldUI::PanelHeader(u8"月の光と空###Lighting Settings", *ctx.Lighting, "Lighting"))
     {
-        ImGui::TextDisabled(u8"拡散の環境光はDDGI、鏡面は反射プローブが求める。ここは月・空・家の外の光");
+        if (!SettingsFieldUI::IsSearching())
+        {
+            ImGui::TextDisabled(u8"拡散の環境光はDDGI、鏡面は反射プローブが求める。ここは月・空・家の外の光");
+        }
         SettingsFieldUI::Draw(*ctx.Lighting, "Lighting");
     }
 }

@@ -10,9 +10,12 @@ void FogPanel::Draw(EditorContext& ctx)
     {
         return;
     }
-    if (ImGui::CollapsingHeader(u8"霧とハントの演出###Fog Settings", ImGuiTreeNodeFlags_DefaultOpen))
+    if (SettingsFieldUI::PanelHeader(u8"霧とハントの演出###Fog Settings", *ctx.Fog, "Fog"))
     {
-        ImGui::TextDisabled(ShaderManager::Instance().IsHuntFogActive() ? u8"今の状態: ハント中" : u8"今の状態: ふだん");
+        if (!SettingsFieldUI::IsSearching())
+        {
+            ImGui::TextDisabled(ShaderManager::Instance().IsHuntFogActive() ? u8"今の状態: ハント中" : u8"今の状態: ふだん");
+        }
         SettingsFieldUI::Draw(*ctx.Fog, "Fog");
     }
 }

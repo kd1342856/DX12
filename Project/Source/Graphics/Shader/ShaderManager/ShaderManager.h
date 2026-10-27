@@ -57,6 +57,8 @@ public:
 	// エディターの表示ガンマ。暗い場面でもエディターで見えるように上げる(エディター側の設定に保存し、シーンには保存しない)
 	void SetEditorDisplayGamma(float gamma) { m_editorDisplayGamma = gamma; ApplyDisplayGamma(); }
 	float GetEditorDisplayGamma() const { return m_editorDisplayGamma; }
+	// エディターのカメラでも、ゲームと同じ見え方(表示ガンマを外し、プレイヤーの明るさを掛ける)にする
+	void SetGameLookPreview(bool isPreview) { m_isGameLookPreview = isPreview; ApplyDisplayGamma(); }
 
 	// 霧の濃さ(消散係数、1/m)。ハント中は濃くなる。ボリュメトリックフォグが使う
 	float GetFogExtinction() const { return m_fogExtinction; }
@@ -86,7 +88,7 @@ public:
 	}
 	bool IsHuntFogActive() const { return m_huntActiveCount > 0; }
 
-	// 平面反射(窓ガラス等)用: 指定スロット(0〜2、最大3枚=3窓まで同時)の反射カメラ
+	// 平面反射(窓ガラス等)用: 指定スロット(0～2、最大3枚=3窓まで同時)の反射カメラ
 	// View*Proj行列と有効フラグを設定する。ガラスのピクセルシェーダーは自分の
 	// reflectionSlotに対応するこの行列でワールド座標を再投影し、
 	// g_planarReflectionMapN(N=スロット番号)の正しいUVを求める。
@@ -199,6 +201,7 @@ private:
 	CBufferData::Light m_LightData;
 
 	bool m_isEditorView = false;
+	bool m_isGameLookPreview = false;
 	float m_editorDisplayGamma = 2.0f;
 
 	int m_huntActiveCount = 0;

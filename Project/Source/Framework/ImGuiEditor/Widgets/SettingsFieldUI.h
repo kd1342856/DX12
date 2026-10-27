@@ -1,10 +1,12 @@
 #pragma once
+#include <chrono>
 #include <functional>
 #include <string>
 #include <unordered_map>
 #include <vector>
 #include "FieldWidgets.h"
 #include "../EditHistory.h"
+#include "../EditorPreferences.h"
 
 //=============================
 //
@@ -13,6 +15,7 @@
 //   設定の構造体を渡すと、VisitFieldsに並べた順にセクションごとの表を作り、
 //   「基本」の値を出して、「詳細」の値は折りたたみの中に出す。値の描き方はFieldMeta::kindで決まり、
 //   パネルごとに描き方を書かない(仕様書「5. 部品の決まり」)。
+//   検索・変えた値の一覧からの移動・よく使う値のピン留め・Undo/Redoの記録もここで行う。
 //
 //=============================
 namespace SettingsFieldUI
@@ -24,6 +27,51 @@ namespace SettingsFieldUI
         // その値の行の後に、計算した値などを足す(表の中なので FieldWidgets::ComputedValue を使う)
         std::function<void(const char* key)> afterField;
     };
+
+    // 検索と「変えた値の一覧」からの移動の状態。シェーダーエディターに1つ
+    struct UIState
+    {
+        std::string search;      // 小文字にした検索語。空なら検索していない
+        std::string focusTarget; // 一覧から飛ぶ先
+        std::string focusKey;
+        bool isFocusScrolled = false;
+        std::chrono::steady_clock::time_point focusTime;
+    };
+
+    inline UIState& State()
+    {
+        static UIState s_state;
+        return s_state;
+    }
+
+    inline bool IsSearching()
+    {
+        return !State().search.empty();
+    }
+
+    // 検索語を設定する(大文字と小文字は区別しない)
+    inline void SetSearch(const std::string& text)
+    {
+        std::string lower = text;
+        for (char& ch : lower)
+        {
+            if (ch >= 'A' && ch <= 'Z')
+            {
+                ch = static_cast<char>(ch - 'A' + 'a');
+            }
+        }
+        State().search = lower;
+    }
+
+    // 「変えた値の一覧」から、その値まで飛ぶ(パネルと詳細を開き、スクロールして行を一瞬強調する)
+    inline void RequestFocus(const std::string& target, const std::string& key)
+    {
+        UIState& state = State();
+        state.focusTarget = target;
+        state.focusKey = key;
+        state.isFocusScrolled = false;
+        state.focusTime = std::chrono::steady_clock::now();
+    }
 
     template<typename TSettings>
     const TSettings& GetDefaults()
@@ -107,66 +155,137 @@ namespace SettingsFieldUI
             return s_pending;
         }
 
+        inline bool ContainsLower(const char* pText, const std::string& lowerQuery)
+        {
+            if (!pText)
+            {
+                return false;
+            }
+            std::string lower = pText;
+            for (char& ch : lower)
+            {
+                if (ch >= 'A' && ch <= 'Z')
+                {
+                    ch = static_cast<char>(ch - 'A' + 'a');
+                }
+            }
+            return lower.find(lowerQuery) != std::string::npos;
+        }
+
         struct Entry
         {
             FieldMeta meta;
             std::function<FieldWidgets::EditResult()> draw;
             std::function<nlohmann::json()> capture;
         };
-    }
 
-    // 値を変えたらtrue。targetKeyは表のIDと、Undo/Redoで値を探すときの名前(PostProcessなど)
-    template<typename TSettings>
-    bool Draw(TSettings& settings, const char* targetKey, const Options& options = {})
-    {
-        // 1回目: 値を集める(オンオフの値は、ほかの値の条件に使うので控える)
-        std::vector<Detail::Entry> entries;
-        std::unordered_map<std::string, const bool*> toggles;
-        settings.VisitFields([&](const FieldMeta& meta, auto& field)
+        struct Collected
         {
-            using FieldType = std::remove_reference_t<decltype(field)>;
-            if constexpr (std::is_same_v<FieldType, bool>)
-            {
-                toggles[meta.key] = &field;
-            }
-            auto* pField = &field;
-            const auto* pDefault = &GetDefaultField(settings, field);
-            entries.push_back({ meta, [meta, pField, pDefault]()
-            {
-                return Detail::DrawField(meta, *pField, *pDefault);
-            }, [pField]()
-            {
-                return Detail::ToJson(*pField);
-            } });
-        });
+            std::vector<Entry> entries;
+            std::unordered_map<std::string, const bool*> toggles;
 
-        auto isActive = [&](const FieldMeta& meta)
-        {
-            if (!meta.condition || meta.condition[0] == '\0')
+            bool IsActive(const FieldMeta& meta) const
             {
-                return true;
+                if (!meta.condition || meta.condition[0] == '\0')
+                {
+                    return true;
+                }
+                auto it = toggles.find(meta.condition);
+                return it == toggles.end() || *it->second == meta.conditionValue;
             }
-            auto it = toggles.find(meta.condition);
-            return it == toggles.end() || *it->second == meta.conditionValue;
+
+            bool IsShown(const FieldMeta& meta) const
+            {
+                return !(meta.hideWhenInactive && !IsActive(meta));
+            }
         };
 
-        bool isAnyChanged = false;
-        auto drawEntry = [&](const Detail::Entry& entry)
+        template<typename TSettings>
+        Collected Collect(TSettings& settings)
         {
-            const bool active = isActive(entry.meta);
-            if (!active && entry.meta.hideWhenInactive)
+            Collected collected;
+            settings.VisitFields([&](const FieldMeta& meta, auto& field)
             {
-                return;
+                using FieldType = std::remove_reference_t<decltype(field)>;
+                if constexpr (std::is_same_v<FieldType, bool>)
+                {
+                    collected.toggles[meta.key] = &field;
+                }
+                auto* pField = &field;
+                const auto* pDefault = &GetDefaultField(settings, field);
+                collected.entries.push_back({ meta, [meta, pField, pDefault]()
+                {
+                    return DrawField(meta, *pField, *pDefault);
+                }, [pField]()
+                {
+                    return ToJson(*pField);
+                } });
+            });
+            return collected;
+        }
+
+        // 検索に当たるか(表示名・英語のキー・見出し)
+        inline bool MatchesSearch(const FieldMeta& meta, const char* pSection)
+        {
+            const std::string& query = State().search;
+            return query.empty() || ContainsLower(meta.label, query) || ContainsLower(meta.key, query) || ContainsLower(pSection, query);
+        }
+
+        inline bool IsFocused(const char* targetKey, const FieldMeta& meta)
+        {
+            const UIState& state = State();
+            return state.focusTarget == targetKey && state.focusKey == meta.key;
+        }
+
+        // 1行を描く。Undoの記録・ピン留めのメニュー・一覧から飛んだときの強調もここ
+        template<typename TSettings>
+        bool DrawEntry(TSettings& settings, const char* targetKey, const Collected& collected, const Entry& entry, const Options& options,
+            const std::function<void()>& extraMenu)
+        {
+            const bool active = collected.IsActive(entry.meta);
+            if (!collected.IsShown(entry.meta))
+            {
+                return false;
             }
+
+            // 一覧から飛んできた行は、1.5秒だけ強調し、最初の1回だけスクロールする
+            UIState& state = State();
+            const bool isFocused = IsFocused(targetKey, entry.meta) && std::chrono::steady_clock::now() - state.focusTime < std::chrono::milliseconds(1500);
+            FieldWidgets::SetNextRowHighlight(isFocused);
+
+            // 右クリックのメニューに「よく使う値」を足す
+            const std::string target = targetKey;
+            const std::string key = entry.meta.key;
+            const std::function<void()> pinMenu = [&]()
+            {
+                const bool isPinned = EditorPreferences::IsPinned(target, key);
+                if (ImGui::MenuItem(isPinned ? u8"よく使う値から外す" : u8"よく使う値に追加"))
+                {
+                    EditorPreferences::TogglePin(target, key);
+                }
+                if (extraMenu)
+                {
+                    extraMenu();
+                }
+            };
+            FieldWidgets::SetContextMenuExtension(&pinMenu);
+
             ImGui::BeginDisabled(!active);
             // オンオフや「初期値に戻す」は描く中で値が変わるので、変更前の値を描く前に控える
             const nlohmann::json beforeDraw = entry.capture();
             const FieldWidgets::EditResult result = entry.draw();
             ImGui::EndDisabled();
+            FieldWidgets::SetContextMenuExtension(nullptr);
+
+            if (isFocused && !state.isFocusScrolled)
+            {
+                ImGui::SetScrollHereY(0.4f);
+                state.isFocusScrolled = true;
+            }
 
             // Undo/Redo: 操作の開始で変更前を控え、終わったら1回分として積む
-            const std::string pendingKey = std::string(targetKey) + "/" + entry.meta.key;
-            auto& pending = Detail::PendingBefore();
+            const std::string pendingKey = target + "/" + key;
+            auto& pending = PendingBefore();
             if (result.activated && !result.committed)
             {
                 pending[pendingKey] = beforeDraw;
@@ -179,12 +298,11 @@ namespace SettingsFieldUI
                 {
                     pending.erase(it);
                 }
-                EditHistory::Instance().PushChange({ targetKey, entry.meta.key, entry.meta.label, before, entry.capture() });
+                EditHistory::Instance().PushChange({ target, key, entry.meta.label, before, entry.capture() });
             }
             if (result.changed)
             {
                 SetDirty(settings, nullptr);
-                isAnyChanged = true;
                 if (options.onChanged)
                 {
                     options.onChanged(entry.meta.key);
@@ -194,9 +312,58 @@ namespace SettingsFieldUI
             {
                 options.afterField(entry.meta.key);
             }
-        };
+            return result.changed;
+        }
+    }
 
-        // 2回目: セクションごとに、基本の値を出し、詳細の値は折りたたみの中に出す
+    // 検索に当たる値があるか(検索していなければtrue)
+    template<typename TSettings>
+    bool HasSearchMatch(TSettings& settings)
+    {
+        if (!IsSearching())
+        {
+            return true;
+        }
+        const Detail::Collected collected = Detail::Collect(settings);
+        const char* pSection = "";
+        for (const Detail::Entry& entry : collected.entries)
+        {
+            if (entry.meta.section && entry.meta.section[0] != '\0')
+            {
+                pSection = entry.meta.section;
+            }
+            if (collected.IsShown(entry.meta) && Detail::MatchesSearch(entry.meta, pSection))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // パネルの見出し。検索中は当たる値が無いパネルを隠して当たるパネルを開き、一覧から飛ぶ先のパネルも開く
+    template<typename TSettings>
+    bool PanelHeader(const char* label, TSettings& settings, const char* targetKey)
+    {
+        if (!HasSearchMatch(settings))
+        {
+            return false;
+        }
+        if (IsSearching() || (State().focusTarget == targetKey && !State().isFocusScrolled))
+        {
+            ImGui::SetNextItemOpen(true, ImGuiCond_Always);
+        }
+        return ImGui::CollapsingHeader(label, ImGuiTreeNodeFlags_DefaultOpen);
+    }
+
+    // 値を変えたらtrue。targetKeyは表のIDと、Undo/Redoで値を探すときの名前(PostProcessなど)
+    template<typename TSettings>
+    bool Draw(TSettings& settings, const char* targetKey, const Options& options = {})
+    {
+        const Detail::Collected collected = Detail::Collect(settings);
+        const std::vector<Detail::Entry>& entries = collected.entries;
+        const UIState& state = State();
+
+        bool isAnyChanged = false;
         ImGui::PushID(targetKey);
         size_t sectionStart = 0;
         while (sectionStart < entries.size())
@@ -207,31 +374,56 @@ namespace SettingsFieldUI
                 ++sectionEnd;
             }
             const char* pSection = entries[sectionStart].meta.section;
+
+            // 検索中は当たる値だけを出す
+            auto isListed = [&](size_t entryIndex)
+            {
+                const FieldMeta& meta = entries[entryIndex].meta;
+                return collected.IsShown(meta) && Detail::MatchesSearch(meta, pSection);
+            };
+            bool hasBasic = false;
+            bool hasAdvanced = false;
+            bool isFocusInAdvanced = false;
+            for (size_t entryIndex = sectionStart; entryIndex < sectionEnd; ++entryIndex)
+            {
+                if (!isListed(entryIndex))
+                {
+                    continue;
+                }
+                const bool isAdvanced = (entries[entryIndex].meta.flags & FieldFlags::kAdvanced) != 0;
+                (isAdvanced ? hasAdvanced : hasBasic) = true;
+                if (isAdvanced && Detail::IsFocused(targetKey, entries[entryIndex].meta) && !state.isFocusScrolled)
+                {
+                    isFocusInAdvanced = true;
+                }
+            }
+            if (!hasBasic && !hasAdvanced)
+            {
+                sectionStart = sectionEnd;
+                continue;
+            }
+
             ImGui::PushID(static_cast<int>(sectionStart));
             if (pSection && pSection[0] != '\0')
             {
                 ImGui::SeparatorText(pSection);
             }
-            if (FieldWidgets::BeginFieldTable("##basic"))
+            if (hasBasic && FieldWidgets::BeginFieldTable("##basic"))
             {
                 for (size_t entryIndex = sectionStart; entryIndex < sectionEnd; ++entryIndex)
                 {
-                    if ((entries[entryIndex].meta.flags & FieldFlags::kAdvanced) == 0)
+                    if ((entries[entryIndex].meta.flags & FieldFlags::kAdvanced) == 0 && isListed(entryIndex))
                     {
-                        drawEntry(entries[entryIndex]);
+                        isAnyChanged |= Detail::DrawEntry(settings, targetKey, collected, entries[entryIndex], options, nullptr);
                     }
                 }
                 FieldWidgets::EndFieldTable();
             }
 
-            bool hasAdvanced = false;
-            for (size_t entryIndex = sectionStart; entryIndex < sectionEnd; ++entryIndex)
+            // 検索中と、一覧から詳細の値へ飛ぶときは、詳細を開く
+            if (hasAdvanced && (IsSearching() || isFocusInAdvanced))
             {
-                const FieldMeta& meta = entries[entryIndex].meta;
-                if ((meta.flags & FieldFlags::kAdvanced) != 0 && !(meta.hideWhenInactive && !isActive(meta)))
-                {
-                    hasAdvanced = true;
-                }
+                ImGui::SetNextItemOpen(true, ImGuiCond_Always);
             }
             if (hasAdvanced && ImGui::TreeNodeEx(u8"詳細", ImGuiTreeNodeFlags_SpanAvailWidth))
             {
@@ -239,9 +431,9 @@ namespace SettingsFieldUI
                 {
                     for (size_t entryIndex = sectionStart; entryIndex < sectionEnd; ++entryIndex)
                     {
-                        if ((entries[entryIndex].meta.flags & FieldFlags::kAdvanced) != 0)
+                        if ((entries[entryIndex].meta.flags & FieldFlags::kAdvanced) != 0 && isListed(entryIndex))
                         {
-                            drawEntry(entries[entryIndex]);
+                            isAnyChanged |= Detail::DrawEntry(settings, targetKey, collected, entries[entryIndex], options, nullptr);
                         }
                     }
                     FieldWidgets::EndFieldTable();
@@ -253,5 +445,23 @@ namespace SettingsFieldUI
         }
         ImGui::PopID();
         return isAnyChanged;
+    }
+
+    // 値1つだけを、呼び出し側で開いた表の中に描く(よく使う値のグループ用)。見つからなければfalse
+    template<typename TSettings>
+    bool DrawSingle(TSettings& settings, const char* targetKey, const std::string& key, const std::function<void()>& extraMenu)
+    {
+        const Detail::Collected collected = Detail::Collect(settings);
+        for (const Detail::Entry& entry : collected.entries)
+        {
+            if (key == entry.meta.key)
+            {
+                ImGui::PushID(targetKey);
+                Detail::DrawEntry(settings, targetKey, collected, entry, Options{}, extraMenu);
+                ImGui::PopID();
+                return true;
+            }
+        }
+        return false;
     }
 }

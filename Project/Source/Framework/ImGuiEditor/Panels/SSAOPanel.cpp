@@ -9,7 +9,7 @@ void SSAOPanel::Draw(EditorContext& ctx)
     {
         return;
     }
-    if (ImGui::CollapsingHeader(u8"‚·‚«ŠÔ‚Ì‰A‚è###SSAO Settings", ImGuiTreeNodeFlags_DefaultOpen))
+    if (SettingsFieldUI::PanelHeader(u8"‚·‚«ŠÔ‚Ì‰A‚è###SSAO Settings", *ctx.SSAO, "SSAO"))
     {
         SettingsFieldUI::Draw(*ctx.SSAO, "SSAO");
     }

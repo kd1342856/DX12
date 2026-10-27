@@ -10,6 +10,7 @@ public:
 
 private:
     void DrawSceneAndDefaults();
+    void DrawChangedList();
     void DrawPresets();
     void DrawABCompare();
     void SetMessage(const std::string& message, bool isError);

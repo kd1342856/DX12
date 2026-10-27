@@ -26,6 +26,10 @@ namespace ShaderSettingsIO
     // 値の表示名(VisitFieldsの表示名)。見つからなければキーのまま
     std::string GetFieldLabel(const std::string& group, const std::string& key);
 
+    // 保存していない変更。シーンを読み込んだとき・保存したときの値を控え、今の値と比べる
+    void MarkSaved();
+    int CountUnsavedChanges();
+
     // 2つのJSONで値が違うキーの数
     int CountDifferences(const nlohmann::json& lhs, const nlohmann::json& rhs);
 

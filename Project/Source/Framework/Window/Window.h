@@ -14,10 +14,16 @@ public:
 	void ToggleFullscreen() { SetFullscreen(!m_isFullscreen); }
 	bool IsFullscreen() const { return m_isFullscreen; }
 
+	// 閉じるボタン(WM_CLOSE)を押したときに呼ぶ。falseを返すと閉じない(保存していない変更を聞くため)
+	static void SetCloseRequestHandler(std::function<bool()> handler) { s_closeRequestHandler = std::move(handler); }
+	static const std::function<bool()>& GetCloseRequestHandler() { return s_closeRequestHandler; }
+
 private:
 	bool m_isFullscreen = false;
 	DWORD m_windowedStyle = 0;
 	WINDOWPLACEMENT m_windowedPlacement = { sizeof(WINDOWPLACEMENT) };
 
 	HWND m_hWnd;	//	ウィンドウハンドル
+
+	static inline std::function<bool()> s_closeRequestHandler;
 };

@@ -1,9 +1,15 @@
 ﻿#include "DebugPanel.h"
 #include "../EditorContext.h"
 #include "ImGui/imgui.h"
+#include "../Widgets/SettingsFieldUI.h"
 
 void DebugPanel::Draw(EditorContext& ctx)
 {
+    // 検索中は、検索できる値の無いパネルを隠す
+    if (SettingsFieldUI::IsSearching())
+    {
+        return;
+    }
     if (!ctx.Debug) return;
 
     if (ImGui::CollapsingHeader("Debug Views", ImGuiTreeNodeFlags_DefaultOpen))

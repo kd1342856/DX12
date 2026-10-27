@@ -17,7 +17,7 @@ namespace
     {
         static const FieldMeta s_meta = Field("EditorDisplayGamma", u8"エディターの表示ガンマ",
             u8"エディターのカメラで描くときだけ、暗いところを持ち上げる。ゲームの画面には効かない(ゲームはオプション画面の明るさだけ)。\n"
-            u8"シーンには保存せず、Saved/EditorSettings.json に保存する。目安：1.8〜2.2。")
+            u8"シーンには保存せず、Saved/EditorSettings.json に保存する。目安：1.8～2.2。")
             .Range(1.0f, 3.0f).Section(u8"エディターの見え方");
         ImGui::SeparatorText(s_meta.section);
         if (!FieldWidgets::BeginFieldTable("##editorView"))
@@ -73,16 +73,14 @@ namespace
 
 void PostProcessPanel::Draw(EditorContext& ctx)
 {
-    if (!ImGui::CollapsingHeader(u8"露出とポストプロセス###Post Process Settings", ImGuiTreeNodeFlags_DefaultOpen))
+    if (!ctx.PostProcess || !SettingsFieldUI::PanelHeader(u8"露出とポストプロセス###Post Process Settings", *ctx.PostProcess, "PostProcess"))
     {
         return;
     }
 
-    DrawEditorDisplayGamma();
-
-    if (!ctx.PostProcess)
+    if (!SettingsFieldUI::IsSearching())
     {
-        return;
+        DrawEditorDisplayGamma();
     }
     PostProcessSettings& settings = *ctx.PostProcess;
     SettingsFieldUI::Options options;

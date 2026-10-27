@@ -305,10 +305,11 @@ void ShaderManager::UpdatePostProcessCB()
 
 void ShaderManager::ApplyDisplayGamma()
 {
-	const float gamma = m_isEditorView ? m_editorDisplayGamma : 1.0f;
+	const bool isEditorLook = m_isEditorView && !m_isGameLookPreview;
+	const float gamma = isEditorLook ? m_editorDisplayGamma : 1.0f;
 	m_SystemData.Gamma = gamma;
 	m_PostProcessData.Gamma = gamma;
-	m_PostProcessData.BrightnessGamma = m_isEditorView ? 1.0f : m_PostProcessSettings.BrightnessGamma;
+	m_PostProcessData.BrightnessGamma = isEditorLook ? 1.0f : m_PostProcessSettings.BrightnessGamma;
 }
 
 void ShaderManager::UpdateDebugCB()

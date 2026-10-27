@@ -13,6 +13,10 @@ namespace
     constexpr float kLabelIndent = 8.0f;
 
     const ImU32 kWarningColor = IM_COL32(235, 110, 70, 255);
+    const ImU32 kHighlightColor = IM_COL32(240, 160, 75, 70);
+
+    bool s_isNextRowHighlighted = false;
+    const std::function<void()>* s_pContextMenuExtension = nullptr;
 
     // ÉJÉÅÉâÇ∆ìØÇ∂íi
     constexpr float kShutterStops[] = { 1.0f, 1.0f / 2.0f, 1.0f / 4.0f, 1.0f / 8.0f, 1.0f / 15.0f, 1.0f / 30.0f, 1.0f / 60.0f,
@@ -366,6 +370,11 @@ namespace
     {
         ImGui::PushID(meta.key);
         ImGui::TableNextRow();
+        if (s_isNextRowHighlighted)
+        {
+            ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, kHighlightColor);
+            s_isNextRowHighlighted = false;
+        }
 
         ImGui::TableSetColumnIndex(0);
         const ImVec2 rowStart = ImGui::GetCursorScreenPos();
@@ -421,6 +430,11 @@ namespace
                 result.committed = true;
                 result.reset = true;
             }
+            if (s_pContextMenuExtension && *s_pContextMenuExtension)
+            {
+                ImGui::Separator();
+                (*s_pContextMenuExtension)();
+            }
             ImGui::EndPopup();
         }
         ImGui::PopID();
@@ -436,6 +450,16 @@ namespace
 ImU32 FieldWidgets::GetModifiedColor()
 {
     return IM_COL32(240, 160, 75, 255);
+}
+
+void FieldWidgets::SetNextRowHighlight(bool isHighlighted)
+{
+    s_isNextRowHighlighted = isHighlighted;
+}
+
+void FieldWidgets::SetContextMenuExtension(const std::function<void()>* pExtension)
+{
+    s_pContextMenuExtension = pExtension;
 }
 
 bool FieldWidgets::BeginFieldTable(const char* id)

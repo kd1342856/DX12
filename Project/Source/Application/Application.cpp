@@ -18,6 +18,7 @@
 #include "../Framework/ImGuiEditor/Panels/ShaderReloadPanel.h"
 #include "../Framework/ImGuiEditor/EditorPreferences.h"
 #include "../Framework/ImGuiEditor/EditHistory.h"
+#include "../Framework/ImGuiEditor/EditorTools.h"
 
 // ImGui の Win32 メッセージハンドラへ転送する
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -82,6 +83,8 @@ void Application::Execute()
 	ShaderHotReload::Instance().Initialize(L"Asset/Shader");
 	// エディターの設定(表示ガンマなど)。シーンではなく人ごとの設定なのでSavedに置く
 	EditorPreferences::Load();
+	// 閉じるボタンで、保存していないシェーダーの設定があれば聞く
+	UnsavedChanges::Initialize(m_window.GetWndHandle());
 	// オプション画面で保存した明るさ(表示ガンマ)。音量はAudioManager::Init()で読み込まれる
 	OptionMenu::LoadSettings();
 
@@ -145,6 +148,9 @@ void Application::Execute()
 		ShaderReloadPanel::DrawErrorNotice();
 		// Undo/Redoのショートカット(Ctrl+Z・Ctrl+Y)と、戻したときの知らせ
 		EditHistory::Instance().Update();
+		// 保存していない変更の確認と、ゲームと同じ見え方への切り替え(F4)
+		UnsavedChanges::Update();
+		GameLookPreview::Update();
 
 		GDF::Instance().EndFrame();
 	}

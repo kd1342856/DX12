@@ -1,4 +1,5 @@
 #pragma once
+#include <functional>
 #include "ImGui/imgui.h"
 #include "../../../Graphics/Shader/SettingsField.h"
 
@@ -24,6 +25,11 @@ namespace FieldWidgets
 
     // 初期値から変えた値の印の色
     ImU32 GetModifiedColor();
+
+    // 次に描く1行を強調する(「変えた値の一覧」から飛んだとき)
+    void SetNextRowHighlight(bool isHighlighted);
+    // 右クリックのメニューに足す項目(よく使う値に追加、など)。描き終えたらnullptrに戻す
+    void SetContextMenuExtension(const std::function<void()>* pExtension);
 
     // 1行の表の列を開く。SettingsFieldUIがセクションごとに呼ぶ
     bool BeginFieldTable(const char* id);
