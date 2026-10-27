@@ -29,6 +29,8 @@
 #include "../../../Graphics/Renderer/MotionVectors.h"
 #include "../../../Graphics/Renderer/TemporalAA.h"
 #include "../../../Graphics/Renderer/AutoExposure.h"
+#include "../../../Graphics/Renderer/PixelProbe.h"
+#include "../../../Graphics/Renderer/ReferenceCompare.h"
 #include "../../../Graphics/Renderer/MotionBlur.h"
 #include "../../../Graphics/Renderer/ReflectionProbes.h"
 #include "../../../Graphics/Renderer/RaytracingScene.h"
@@ -1077,10 +1079,13 @@ void GameScene::DoPostProcess(Entity cameraEntity, float clearR, float clearG, f
     {
         auto& autoExposure = AutoExposure::Instance();
         auto& shaderManager = ShaderManager::Instance();
-        if (postProcessSettings.EnableAutoExposure)
+        // エディターがヒストグラムを見ているときも数える
+        if (postProcessSettings.EnableAutoExposure || autoExposure.IsHistogramRequested())
         {
             autoExposure.Dispatch(pSceneHDR, shaderManager.GetExposure());
         }
+        // ピクセルインスペクター: トーンマッピングの前の値を1画素読み戻す(エディターが求めたときだけ)
+        PixelProbe::Instance().Dispatch(pSceneHDR, shaderManager.GetExposure());
         autoExposure.Update(GameTimer::Instance().DeltaTime(), postProcessSettings, shaderManager.GetManualEV100());
     }
 
@@ -1173,7 +1178,25 @@ void GameScene::DoPostProcess(Entity cameraEntity, float clearR, float clearG, f
     GraphicsDevice::Instance().SetSceneOutput();
     Renderer::BindDefaultViewport();
     GraphicsDevice::Instance().ClearSceneOutput(clearR, clearG, clearB, 1.0f);
-    postProcessShader.Draw(pSceneHDR, pBloomResult, postProcessData, pDofResult, pGodRaysRT);
+    {
+        // リファレンス比較の比べ方は、毎フレームの定数バッファに書く
+        CBufferData::PostProcess finalData = postProcessData;
+        ReferenceCompare::Instance().FillConstants(finalData);
+        postProcessShader.Draw(pSceneHDR, pBloomResult, finalData, pDofResult, pGodRaysRT);
+
+        // スナップショットを頼まれていたら、比べるのを切った最終合成を、スナップショットのRTへもう一度描く
+        auto& device = GraphicsDevice::Instance();
+        if (RenderTarget* pSnapshot = ReferenceCompare::Instance().BeginSnapshot(static_cast<int>(device.GetBackBufferWidth()), static_cast<int>(device.GetBackBufferHeight())))
+        {
+            CBufferData::PostProcess snapshotData = postProcessData;
+            snapshotData.CompareMode = 0.0f;
+            device.SetRenderTarget(pSnapshot);
+            Renderer::BindDefaultViewport();
+            postProcessShader.Draw(pSceneHDR, pBloomResult, snapshotData, pDofResult, pGodRaysRT);
+            ReferenceCompare::Instance().FinishSnapshot();
+            device.SetSceneOutput();
+        }
+    }
     GraphicsDevice::Instance().TransitionDepthToWrite(pSceneHDR);
     // この後のUI(スプライト・ImGui)はバックバッファ(HDR出力のときはUIのRT)へ描く
     GraphicsDevice::Instance().SetBackBuffer();

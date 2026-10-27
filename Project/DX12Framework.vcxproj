@@ -358,6 +358,9 @@
     <ClInclude Include="Source\Framework\ImGuiEditor\EditHistory.h" />
     <ClInclude Include="Source\Framework\ImGuiEditor\EditorTools.h" />
     <ClInclude Include="Source\Framework\ImGuiEditor\Panels\PinnedPanel.h" />
+    <ClInclude Include="Source\Graphics\Renderer\PixelProbe.h" />
+    <ClInclude Include="Source\Graphics\Renderer\ReferenceCompare.h" />
+    <ClInclude Include="Source\Framework\ImGuiEditor\Panels\MeasurePanel.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Library\ImGui\imgui.cpp" />
@@ -522,6 +525,9 @@
     <ClCompile Include="Source\Framework\ImGuiEditor\EditHistory.cpp" />
     <ClCompile Include="Source\Framework\ImGuiEditor\EditorTools.cpp" />
     <ClCompile Include="Source\Framework\ImGuiEditor\Panels\PinnedPanel.cpp" />
+    <ClCompile Include="Source\Graphics\Renderer\PixelProbe.cpp" />
+    <ClCompile Include="Source\Graphics\Renderer\ReferenceCompare.cpp" />
+    <ClCompile Include="Source\Framework\ImGuiEditor\Panels\MeasurePanel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Asset\Shader\Common\ShaderCore.hlsli" />

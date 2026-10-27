@@ -43,6 +43,15 @@ float LinearizeDepth(float depthNdc, float nearZ, float farZ)
     return (nearZ * farZ) / (max(farZ - depthNdc * (farZ - nearZ), 0.0001));
 }
 
+// ワイプの線の太さに使う画面の横の画素の数
+float GetScreenWidthForCompare()
+{
+    uint width;
+    uint height;
+    g_tex.GetDimensions(width, height);
+    return (float)width;
+}
+
 float4 main(PSInput In) : SV_Target0
 {
     //------------------------------------------
@@ -157,6 +166,33 @@ float4 main(PSInput In) : SV_Target0
     sceneColor = pow(sceneColor, 1.0f / g_Gamma);
 
     sceneColor = pow(saturate(sceneColor), 1.0 / max(g_BrightnessGamma, 0.01));
+
+    //------------------------------------------
+    // リファレンス比較: 表示の色(sRGB)のまま、見本と比べる
+    //------------------------------------------
+    if (g_CompareMode > 0.5)
+    {
+        const float3 referenceColor = g_texReference.Sample(g_ss, In.UV).rgb;
+        if (g_CompareMode < 1.5)
+        {
+            // ワイプ: 境目より左に見本を出し、境目に細い線を引く
+            const float lineHalfWidth = 1.0 / max(GetScreenWidthForCompare(), 1.0);
+            if (abs(In.UV.x - g_CompareWipePosition) < lineHalfWidth)
+            {
+                return float4(1.0, 0.75, 0.3, 1.0);
+            }
+            if (In.UV.x < g_CompareWipePosition)
+            {
+                sceneColor = referenceColor;
+            }
+        }
+        else
+        {
+            // 差分: 差の絶対値を強調して出す(黒は同じ)
+            sceneColor = saturate(abs(saturate(sceneColor) - referenceColor) * g_CompareDifferenceGain);
+            return float4(sceneColor, 1.0);
+        }
+    }
 
     sceneColor += DitherNoise(In.Pos.xy);
 

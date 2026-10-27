@@ -19,6 +19,8 @@ public:
 	AssetHandle<Texture> LoadTexture(const std::string& filepath, TextureColorSpace colorSpace);
 	AssetHandle<Texture> LoadTextureFromMemory(const std::string& key, const void* pData, size_t size, TextureColorSpace colorSpace);
 	AssetHandle<Texture> CreateTexture(const AssetTextureData& data);
+	// ミップを作らず、BC7にも圧縮せず、値をそのまま(Linear)読む。リファレンス比較の見本など、画素の値をそのまま比べたいとき用
+	AssetHandle<Texture> LoadTextureExact(const std::string& cacheKey, const std::string& filepath);
 
 	// Handle -> Texture* (for public access with generation check)
 	Texture* Get(AssetHandle<Texture> handle);

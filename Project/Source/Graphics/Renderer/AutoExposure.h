@@ -41,6 +41,12 @@ public:
     float GetTargetEV100() const { return m_targetEV100; }
     bool IsAvailable() const { return m_isInitialized; }
 
+    // エディターのヒストグラムの表示用。呼んでいる間は、自動露出が切れていてもヒストグラムを作って読み戻す
+    void RequestHistogram() { m_histogramRequestFrames = 3; }
+    bool IsHistogramRequested() const { return m_histogramRequestFrames > 0; }
+    // 読み戻せた一番新しいヒストグラム(kHistogramBinCount個)。まだ無ければnullptr
+    const uint32_t* GetLatestHistogram() const { return m_hasHistogram ? m_latestBins : nullptr; }
+
 private:
     AutoExposure() = default;
 
@@ -50,6 +56,8 @@ private:
 
     // ヒストグラムから、暗い側と明るい側を除いた平均のlog2輝度を求める。数えたものが無ければfalse
     bool ComputeAverageLog2Luminance(const uint32_t* pBins, float lowPercent, float highPercent, float& outAverage) const;
+    // GPUが書き終わった一番古い読み戻しをm_latestBinsへ読む。読めたらtrue
+    bool ReadLatestHistogram();
 
     Microsoft::WRL::ComPtr<ID3D12Resource> m_cpHistogramBuffer;
     Microsoft::WRL::ComPtr<ID3D12Resource> m_cpReadbackBuffers[kReadbackSlotCount];
@@ -62,4 +70,8 @@ private:
     bool m_isActive = false;
     float m_ev100 = 0.0f;
     float m_targetEV100 = 0.0f;
+
+    int m_histogramRequestFrames = 0;
+    uint32_t m_latestBins[kHistogramBinCount] = {};
+    bool m_hasHistogram = false;
 };

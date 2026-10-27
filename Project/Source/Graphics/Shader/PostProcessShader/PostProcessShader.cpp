@@ -2,6 +2,7 @@
 #include "../../../Framework/DirectX/Utility/Profiler.h"
 #include "PostProcessShader.h"
 #include "../../GPUResource/RenderTarget/RenderTarget.h"
+#include "../../Renderer/ReferenceCompare.h"
 
 
 void PostProcessShader::Create(GraphicsDevice* pGraphicsDevice)
@@ -57,6 +58,21 @@ void PostProcessShader::Draw(RenderTarget* pSceneRT, RenderTarget* pBloomRT, con
 	// t4: God Rays結果
 	int t4 = GetRootParameterIndex(ShaderBindingType::SRV, 4);
 	if (t4 != -1 && pGodRaysRT) m_pDevice->GetCmdList()->SetGraphicsRootDescriptorTable(t4, srvHeap->GetGPUHandle(pGodRaysRT->GetSRVIndex()));
+
+	// t5: リファレンス比較の見本(比べないときも、何かを束縛しておく)
+	int t5 = GetRootParameterIndex(ShaderBindingType::SRV, 5);
+	if (t5 != -1)
+	{
+		const int referenceSrvIndex = ReferenceCompare::Instance().GetReferenceSRVIndex();
+		if (referenceSrvIndex != -1)
+		{
+			m_pDevice->GetCmdList()->SetGraphicsRootDescriptorTable(t5, srvHeap->GetGPUHandle(referenceSrvIndex));
+		}
+		else
+		{
+			m_pDevice->GetBlackTex()->Set(t5);
+		}
+	}
 
 	Profiler::Instance().AddDrawCall("PostProcess", 1);
 	m_pDevice->GetCmdList()->DrawInstanced(3, 1, 0, 0);

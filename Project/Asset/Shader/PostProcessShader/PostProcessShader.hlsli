@@ -3,6 +3,7 @@ Texture2D g_texBloom : register(t1); // Bloom合成結果 (最終合成パスの
 Texture2D g_texDOF : register(t2);   // 被写界深度用: あらかじめぼかしたシーンのコピー (最終合成パスのみ使用)
 Texture2D g_texDepth : register(t3); // シーン深度 (最終合成パスのみ使用。DOFのCoC計算用)
 Texture2D g_texGodRays : register(t4); // God Rays(光条)の結果 (最終合成パスのみ使用)
+Texture2D g_texReference : register(t5); // リファレンス比較の見本(表示の色のsRGBの値をそのまま持つ。最終合成パスのみ使用)
 // 画面空間のパスなので線形+Clamp(s3)を使う。以前はs0(Wrap)だったため、ブラー/低解像度Bloom・DOFの
 // 補間/色収差で画面の端が反対側の端の色を拾い、左右端に赤/水色の線が出ていた。
 SamplerState g_ss : register(s3);
@@ -76,6 +77,12 @@ cbuffer cbPostProcess : register(b0)
     // HDR出力: モニターの最大の輝度 ÷ 白の明るさ。0ならSDR
     float g_HDRPeakRatio;
     float g_PadLens;
+
+    // リファレンス比較(ReferenceCompare.h)。0: しない、1: ワイプ、2: 差分
+    float g_CompareMode;
+    float g_CompareWipePosition;
+    float g_CompareDifferenceGain;
+    float g_PadCompare;
 };
 
 struct PSInput

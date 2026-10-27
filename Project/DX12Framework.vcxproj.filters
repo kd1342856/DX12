@@ -819,6 +819,15 @@
     <ClCompile Include="Source\Framework\ImGuiEditor\Panels\PinnedPanel.cpp">
       <Filter>Source\Framework\ImGuiEditor\Panels</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Graphics\Renderer\PixelProbe.cpp">
+      <Filter>Source\Graphics\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Graphics\Renderer\ReferenceCompare.cpp">
+      <Filter>Source\Graphics\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Framework\ImGuiEditor\Panels\MeasurePanel.cpp">
+      <Filter>Source\Framework\ImGuiEditor\Panels</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Application\Object\Script\Player\Player.h">
@@ -1410,6 +1419,15 @@
       <Filter>Source\Framework\ImGuiEditor</Filter>
     </ClInclude>
     <ClInclude Include="Source\Framework\ImGuiEditor\Panels\PinnedPanel.h">
+      <Filter>Source\Framework\ImGuiEditor\Panels</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Graphics\Renderer\PixelProbe.h">
+      <Filter>Source\Graphics\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Graphics\Renderer\ReferenceCompare.h">
+      <Filter>Source\Graphics\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\ImGuiEditor\Panels\MeasurePanel.h">
       <Filter>Source\Framework\ImGuiEditor\Panels</Filter>
     </ClInclude>
   </ItemGroup>

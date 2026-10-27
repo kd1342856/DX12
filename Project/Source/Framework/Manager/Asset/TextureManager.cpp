@@ -24,6 +24,14 @@ AssetHandle<Texture> TextureManager::LoadTexture(const std::string& filepath, Te
     });
 }
 
+AssetHandle<Texture> TextureManager::LoadTextureExact(const std::string& cacheKey, const std::string& filepath)
+{
+    return LoadWithDecoder(cacheKey, [&](Texture& texture, TextureUploadData& outData)
+    {
+        return texture.LoadCPU(filepath, outData, TextureColorSpace::Linear, false);
+    });
+}
+
 AssetHandle<Texture> TextureManager::LoadTextureFromMemory(const std::string& key, const void* pData, size_t size, TextureColorSpace colorSpace)
 {
     return LoadWithDecoder(MakeCacheKey(key, colorSpace), [&](Texture& texture, TextureUploadData& outData)

@@ -188,5 +188,11 @@ namespace CBufferData
 		// HDR出力: モニターの最大の輝度 ÷ 白の明るさ。0ならSDR(ACESとsRGB)
 		float HDRPeakRatio;
 		float PadLens;
+
+		// リファレンス比較(ReferenceCompare)。0: しない、1: ワイプ、2: 差分
+		float CompareMode;
+		float CompareWipePosition;   // ワイプの境目(画面の横の割合)。左に見本を出す
+		float CompareDifferenceGain; // 差分を何倍に強調して出すか
+		float PadCompare;
 	};
 }

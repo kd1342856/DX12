@@ -14,6 +14,7 @@
 #include "../Panels/ShaderReloadPanel.h"
 #include "../Panels/ShaderSettingsPanel.h"
 #include "../Panels/PinnedPanel.h"
+#include "../Panels/MeasurePanel.h"
 
 class ShaderEditor
 {

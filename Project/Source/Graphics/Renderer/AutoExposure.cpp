@@ -182,38 +182,59 @@ bool AutoExposure::ComputeAverageLog2Luminance(const uint32_t* pBins, float lowP
     return true;
 }
 
-void AutoExposure::Update(float deltaTime, const PostProcessSettings& settings, float manualEV100)
+bool AutoExposure::ReadLatestHistogram()
 {
-    if (!m_isInitialized || !settings.EnableAutoExposure)
-    {
-        // 次にオンにしたとき、今の手動の露出から順応を始める
-        m_isActive = false;
-        m_dispatchCount = 0;
-        m_ev100 = manualEV100;
-        m_targetEV100 = manualEV100;
-        return;
-    }
-    m_isActive = true;
-
     // GPUが書き終わった一番古い読み戻しを使う
     if (m_dispatchCount < kReadbackSlotCount)
     {
-        return;
+        return false;
     }
     const int slot = static_cast<int>((m_dispatchCount - kReadbackSlotCount) % kReadbackSlotCount);
     void* pMapped = nullptr;
     const D3D12_RANGE readRange = { 0, static_cast<SIZE_T>(kHistogramSize) };
     if (FAILED(m_cpReadbackBuffers[slot]->Map(0, &readRange, &pMapped)))
     {
-        return;
+        return false;
     }
-    uint32_t bins[kHistogramBinCount] = {};
-    std::memcpy(bins, pMapped, sizeof(bins));
+    std::memcpy(m_latestBins, pMapped, sizeof(m_latestBins));
     const D3D12_RANGE writtenRange = { 0, 0 };
     m_cpReadbackBuffers[slot]->Unmap(0, &writtenRange);
+    m_hasHistogram = true;
+    return true;
+}
+
+void AutoExposure::Update(float deltaTime, const PostProcessSettings& settings, float manualEV100)
+{
+    const bool isHistogramRequested = m_histogramRequestFrames > 0;
+    if (m_histogramRequestFrames > 0)
+    {
+        --m_histogramRequestFrames;
+    }
+    if (!m_isInitialized || !settings.EnableAutoExposure)
+    {
+        // 次にオンにしたとき、今の手動の露出から順応を始める
+        m_isActive = false;
+        m_ev100 = manualEV100;
+        m_targetEV100 = manualEV100;
+        if (isHistogramRequested && m_isInitialized)
+        {
+            // エディターがヒストグラムを見ている間は、露出は決めずに読み戻しだけ続ける
+            ReadLatestHistogram();
+            return;
+        }
+        m_dispatchCount = 0;
+        m_hasHistogram = false;
+        return;
+    }
+    m_isActive = true;
+
+    if (!ReadLatestHistogram())
+    {
+        return;
+    }
 
     float averageLog2Luminance = 0.0f;
-    if (!ComputeAverageLog2Luminance(bins, settings.AutoExposureLowPercent, settings.AutoExposureHighPercent, averageLog2Luminance))
+    if (!ComputeAverageLog2Luminance(m_latestBins, settings.AutoExposureLowPercent, settings.AutoExposureHighPercent, averageLog2Luminance))
     {
         return;
     }
