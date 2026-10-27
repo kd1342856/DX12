@@ -33,7 +33,7 @@ cbuffer cbPostProcess : register(b0)
     // Vignette
     //---------------------------------
     float g_VignetteIntensity;
-    float g_PadVignette; // 未使用(以前のビネットの柔らかさ)
+    float g_DebugRawOutput; // 1ならデバッグビューの値をそのまま表示する(露出・トーンマッピング・ブルームなどを通さない)
     //---------------------------------
     // Film Grain
     //---------------------------------

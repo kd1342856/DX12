@@ -1017,6 +1017,8 @@ void GameScene::DoPostProcess(Entity cameraEntity, float clearR, float clearG, f
     auto& rendererSettings = ShaderManager::Instance().GetRendererSettings();
     // リファレンスのパストレーサー(開発用): シーンの色を置き換え、SSR・霧・TAA・モーションブラーは掛けない
     const bool isPathTracing = rendererSettings.EnableReferencePathTracer && PathTracer::Instance().IsAvailable() && cameraEntity != INVALID_ENTITY;
+    // デバッグビューで値をそのまま表示するとき(アルベド・法線など)は、色を変える後処理を掛けない
+    const bool isRawDebugView = ShaderManager::Instance().IsRawDebugView();
     if (isPathTracing)
     {
         auto& ecs = GameManager::Instance().GetECS();
@@ -1027,7 +1029,7 @@ void GameScene::DoPostProcess(Entity cameraEntity, float clearR, float clearG, f
                 shaderManager.GetLightData(), shaderManager.GetSystemData());
         }
     }
-    if (rendererSettings.EnableSSR && !isPathTracing)
+    if (rendererSettings.EnableSSR && !isPathTracing && !isRawDebugView)
     {
         auto* pNormalRT = Renderer::GetNormalPrepassRenderTarget();
         auto* pSceneOpaqueCopy = Renderer::GetSceneOpaqueCopyRenderTarget();
@@ -1041,7 +1043,7 @@ void GameScene::DoPostProcess(Entity cameraEntity, float clearR, float clearG, f
     // 0.4 ボリュメトリックフォグ - ライトと影で光る霧を、ピクセルの深さまで積み上げて掛ける。
     // SSRの反射にも掛かるよう、SSRの後に行う
     const auto& fogSettings = ShaderManager::Instance().GetFogSettings();
-    if (fogSettings.EnableVolumetricFog && cameraEntity != INVALID_ENTITY && !isPathTracing)
+    if (fogSettings.EnableVolumetricFog && cameraEntity != INVALID_ENTITY && !isPathTracing && !isRawDebugView)
     {
         auto& ecs = GameManager::Instance().GetECS();
         if (auto* pCamData = ecs.TryGetComponent<CameraData>(cameraEntity))
@@ -1060,7 +1062,7 @@ void GameScene::DoPostProcess(Entity cameraEntity, float clearR, float clearG, f
     }
 
     // 0.55 モーションブラー - シャッターが開いていた時間の分だけ、速度の方向にぼかす
-    if (postProcessSettings.EnableMotionBlur && !isPathTracing)
+    if (postProcessSettings.EnableMotionBlur && !isPathTracing && !isRawDebugView)
     {
         const float deltaTime = GameTimer::Instance().DeltaTime();
         float shutterFraction = postProcessSettings.MotionBlurShutterAngle / 360.0f;

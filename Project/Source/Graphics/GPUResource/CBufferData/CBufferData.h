@@ -153,7 +153,7 @@ namespace CBufferData
 		float BlurRadius;
 		// Vignette
 		float VignetteIntensity;
-		float PadVignette; // 未使用(以前のビネットの柔らかさ。今はcos^4則で画角から求める)
+		float DebugRawOutput; // 1ならデバッグビューの値を露出・トーンマッピングを通さずにそのまま表示する
 		// Film Grain
 		float FilmGrainIntensity;
 

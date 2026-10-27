@@ -43,6 +43,8 @@ public:
 	PostProcessSettings& GetPostProcessSettings() { return m_PostProcessSettings; }
 	SSAOSettings& GetSSAOSettings() { return m_SSAOSettings; }
 	DebugSettings& GetDebugSettings() { return m_DebugSettings; }
+	// 今のデバッグビューが、露出・トーンマッピング・霧などを通さずに値をそのまま表示するものか
+	bool IsRawDebugView() const;
 	FogSettings& GetFogSettings() { return m_FogSettings; }
 
 	// 露出(EV100から求める)。ライトの値はこれを掛けてからシェーダーへ送る(前露出)。

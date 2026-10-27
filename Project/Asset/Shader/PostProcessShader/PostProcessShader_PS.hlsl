@@ -46,6 +46,16 @@ float LinearizeDepth(float depthNdc, float nearZ, float farZ)
 float4 main(PSInput In) : SV_Target0
 {
     //------------------------------------------
+    // デバッグビュー(アルベド・法線・フォールスカラーなど)は、値をそのまま表示する
+    //------------------------------------------
+    if (g_DebugRawOutput > 0.5)
+    {
+        const float3 rawColor = saturate(g_tex.Sample(g_ss, In.UV).rgb);
+        // HDR出力のときはリニアのまま渡す(sRGBへの変換はHDRComposite_PS.hlslで行う)
+        return float4(g_HDRPeakRatio > 0.0 ? rawColor : LinearToSrgb(rawColor), 1.0);
+    }
+
+    //------------------------------------------
     // 色収差 (レンズの色ズレ)。中心から離れるほどRGBのサンプル位置をずらす。
     //------------------------------------------
     float3 sceneColor;

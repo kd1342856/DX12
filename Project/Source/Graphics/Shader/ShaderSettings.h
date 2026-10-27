@@ -1,28 +1,44 @@
 #pragma once
 #include "SettingsField.h"
 
+// デバッグビュー。番号はLitShader_PS.hlslのg_DebugViewのswitchと合わせる
 enum class DebugView : int
 {
-    Final = 0, Albedo, Normal, WorldNormal, Roughness, Metallic, AO, Depth, Position, Emissive
+    Final = 0, Albedo, Normal, WorldNormal, Roughness, Metallic, AO, Depth, Position, Emissive,
+    LuminanceFalseColor, AlbedoCheck, LightingOnly, DirectLightOnly, IndirectLightOnly, MipLevel,
 };
 
 struct DebugViewItem
 {
     DebugView Value;
-    const char* Name;
+    const char* Name;        // UTF-8
+    const char* Description; // UTF-8
+    // trueなら、露出・トーンマッピング・霧・SSR・モーションブラーを通さず、値をそのまま表示する
+    bool isRawOutput;
 };
 
 constexpr DebugViewItem DebugViewNames[] = {
-    { DebugView::Final, "Final" },
-    { DebugView::Albedo, "Albedo" },
-    { DebugView::Normal, "Normal" },
-    { DebugView::WorldNormal, "World Normal" },
-    { DebugView::Roughness, "Roughness" },
-    { DebugView::Metallic, "Metallic" },
-    { DebugView::AO, "AO" },
-    { DebugView::Depth, "Depth" },
-    { DebugView::Position, "Position" },
-    { DebugView::Emissive, "Emissive" }
+    { DebugView::Final, u8"ふつうの表示", u8"デバッグビューを使わない。", false },
+    { DebugView::LuminanceFalseColor, u8"明るさの段(フォールスカラー)",
+        u8"露出に対する明るさを、灰色(反射率18%)がちょうどよく写る明るさから何段離れているかで色分けする。\n"
+        u8"緑が適正、青い側ほど暗く、黄色から赤の側ほど明るい(赤は白く飛ぶ)。", true },
+    { DebugView::AlbedoCheck, u8"アルベドの検証",
+        u8"材質の色(アルベド)が現実の範囲にあるかを見る。非金属は輝度0.03～0.9(sRGBで約50～243)、金属は0.45以上が目安。\n"
+        u8"青は暗すぎ、赤は明るすぎ、紫は暗すぎる金属。範囲内は灰色で表示する。", true },
+    { DebugView::LightingOnly, u8"ライティングのみ", u8"材質の色をすべて同じ明るい灰色(0.8)にして、光の当たり方だけを見る。露出とトーンマッピングは通す。", false },
+    { DebugView::DirectLightOnly, u8"直接光のみ", u8"月・スポットライト・点光源から直接届く光だけ(影を含む)。環境光・反射・発光は出さない。", false },
+    { DebugView::IndirectLightOnly, u8"間接光のみ", u8"DDGIの環境光と反射プローブの映り込みだけ。直接光・発光は出さない。", false },
+    { DebugView::Albedo, u8"アルベド(材質の色)", u8"ベースカラーのテクスチャと係数を掛けた色。", true },
+    { DebugView::WorldNormal, u8"法線", u8"ワールド空間の法線(XYZ を RGB に)。", true },
+    { DebugView::Roughness, u8"粗さ", u8"白いほど粗い(ぼやけた反射)。", true },
+    { DebugView::Metallic, u8"金属度", u8"白いほど金属。", true },
+    { DebugView::AO, u8"AO(テクスチャ)", u8"材質のAOマップ。SSAOは含まない。", true },
+    { DebugView::Emissive, u8"発光", u8"発光の色と強さ(輝度の値をそのまま表示)。", true },
+    { DebugView::Depth, u8"カメラからの距離", u8"近いほど白く、50 mで黒くなる(対数)。1 mごとに細い線を引く。", true },
+    { DebugView::Position, u8"ワールド座標", u8"ワールド座標を10 mごとに繰り返す色で表示する。", true },
+    { DebugView::MipLevel, u8"ミップレベル",
+        u8"ベースカラーのテクスチャを何段目のミップで読んでいるか。赤が0段目(いちばん細かい)、橙・黄・緑・水色・青・紫の順に粗くなる。\n"
+        u8"近くの物が青や紫なら、テクスチャの解像度が足りない。", true },
 };
 
 //------------------------------------------------------------

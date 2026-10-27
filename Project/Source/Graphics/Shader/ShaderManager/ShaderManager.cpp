@@ -303,6 +303,18 @@ void ShaderManager::UpdatePostProcessCB()
 	m_PostProcessData.Time += GameTimer::Instance().DeltaTime();
 }
 
+bool ShaderManager::IsRawDebugView() const
+{
+	for (const DebugViewItem& item : DebugViewNames)
+	{
+		if (item.Value == m_DebugSettings.CurrentDebugView)
+		{
+			return item.isRawOutput;
+		}
+	}
+	return false;
+}
+
 void ShaderManager::ApplyDisplayGamma()
 {
 	const bool isEditorLook = m_isEditorView && !m_isGameLookPreview;
@@ -317,6 +329,7 @@ void ShaderManager::UpdateDebugCB()
 	if (m_DebugSettings.IsDirty)
 	{
 		m_SystemData.DebugView = static_cast<int>(m_DebugSettings.CurrentDebugView);
+		m_PostProcessData.DebugRawOutput = IsRawDebugView() ? 1.0f : 0.0f;
 		m_DebugSettings.IsDirty = false;
 	}
 }

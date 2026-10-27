@@ -159,6 +159,62 @@ bool TraceSSR(float3 viewPos, float3 viewNormal, out float3 hitColor)
 }
 
 // ピクセルシェーダ
+//------------------------------------------
+// デバッグビューの色(LitShaderの最後で使う)。表示はsRGBに直すので、色はsRGBで決めてリニアに戻す
+//------------------------------------------
+float3 DebugSrgbToLinear(float3 srgb)
+{
+    return pow(srgb, 2.2);
+}
+
+// 明るさの段: 露出を掛けた輝度が、灰色(反射率18%、0.18)から何段離れているか
+float3 LuminanceFalseColor(float3 exposedColor)
+{
+    const float luminance = dot(exposedColor, float3(0.2126, 0.7152, 0.0722));
+    const float stops = log2(max(luminance, 1e-6) / 0.18);
+    float3 srgb;
+    if (stops < -6.0)      srgb = float3(0.0, 0.0, 0.0);   // 真っ暗
+    else if (stops < -4.0) srgb = float3(0.25, 0.0, 0.5);  // とても暗い
+    else if (stops < -2.0) srgb = float3(0.0, 0.2, 0.9);   // 暗い
+    else if (stops < -1.0) srgb = float3(0.0, 0.7, 0.9);   // やや暗い
+    else if (stops < 1.0)  srgb = float3(0.2, 0.8, 0.2);   // 適正
+    else if (stops < 2.0)  srgb = float3(0.95, 0.9, 0.1); // やや明るい
+    else if (stops < 4.0)  srgb = float3(1.0, 0.5, 0.0);   // 明るい
+    else                   srgb = float3(1.0, 0.0, 0.0);   // 白く飛ぶ
+    return DebugSrgbToLinear(srgb);
+}
+
+// アルベドの検証: 非金属は輝度0.03〜0.9、金属は0.45以上を範囲とする
+float3 AlbedoCheckColor(float3 albedo, float metallicValue)
+{
+    const float luminance = dot(albedo, float3(0.2126, 0.7152, 0.0722));
+    if (metallicValue > 0.5)
+    {
+        return (luminance < 0.45) ? DebugSrgbToLinear(float3(0.8, 0.0, 0.8)) : luminance.xxx;
+    }
+    if (luminance < 0.03)
+    {
+        return DebugSrgbToLinear(float3(0.0, 0.3, 1.0));
+    }
+    if (luminance > 0.9)
+    {
+        return DebugSrgbToLinear(float3(1.0, 0.1, 0.1));
+    }
+    return luminance.xxx;
+}
+
+// ミップレベル: 0段目が赤、以降は橙・黄・緑・水色・青・紫
+float3 MipLevelColor(float mipLevel)
+{
+    const float3 kColors[7] =
+    {
+        float3(1.0, 0.0, 0.0), float3(1.0, 0.5, 0.0), float3(1.0, 1.0, 0.0), float3(0.0, 0.9, 0.0),
+        float3(0.0, 0.9, 0.9), float3(0.0, 0.3, 1.0), float3(0.6, 0.0, 1.0)
+    };
+    const int level = clamp((int)floor(mipLevel + 0.5), 0, 6);
+    return DebugSrgbToLinear(kColors[level]);
+}
+
 PSOutput main(VSOutput In) : SV_Target0
 {
     PSOutput Out = (PSOutput) 0; //
@@ -277,6 +333,16 @@ PSOutput main(VSOutput In) : SV_Target0
     if (g_alphaMode == 1)
     {
         clip(baseColor.a - 0.1f);
+    }
+
+    // デバッグビュー「ライティングのみ」: 材質の色をすべて明るい灰色にして、光の当たり方だけを見る
+    // (アルベドの検証のため、元の色は控えておく)
+    const float3 albedoForDebug = baseColor.rgb;
+    const float metallicForDebug = metallic;
+    if (g_DebugView == 12)
+    {
+        baseColor.rgb = 0.8;
+        metallic = 0.0;
     }
 
     // 材質の拡散色　非金属ほど材質の色になり、金属ほど拡散色は無くなる
@@ -431,6 +497,9 @@ PSOutput main(VSOutput In) : SV_Target0
         color += pointLight;
     }
 
+    // ここまでが直接光(デバッグビュー「直接光のみ」で使う)
+    const float3 directLight = color;
+
     // オクルージョン (R channel: マテリアルのベイク済みAOマップ)
     float occTex = g_occlusionMap_white.Sample(g_ss_aniso_wrap, In.UV).r;
     float occlusion = lerp(1.0, occTex, g_occlusionStrength);
@@ -445,7 +514,8 @@ PSOutput main(VSOutput In) : SV_Target0
     const float3 giIrradiance = SampleDDGIIrradiance(In.wPos, wN, vCam, g_ddgiIrradiance, g_ddgiDistance, g_ss_linear_clamp, giCoverage);
     const float3 skyRadiance = g_AmbientLight * moonVisibility;
     const float3 ambient = lerp(baseDiffuse * skyRadiance, baseDiffuse * giIrradiance * g_Exposure, giCoverage);
-    color += ambient * baseColor.a * occlusion * ssao;
+    const float3 ambientLight = ambient * baseColor.a * occlusion * ssao;
+    color += ambientLight;
     
     //------------------
     // エミッシブ
@@ -472,7 +542,8 @@ PSOutput main(VSOutput In) : SV_Target0
     float specAO = occlusion * ssao;
     float specOcclusion = saturate(pow(NdotV + specAO, exp2(-16.0 * roughness2 - 1.0)) - 1.0 + specAO);
 
-    color += EvaluateEnvironmentSpecular(surface, specOcclusion, skyRadiance, g_ss_linear_clamp, In.Pos.xy);
+    const float3 environmentSpecular = EvaluateEnvironmentSpecular(surface, specOcclusion, skyRadiance, g_ss_linear_clamp, In.Pos.xy);
+    color += environmentSpecular;
 
     //------------------------------------------
     // 距離フォグ
@@ -492,9 +563,27 @@ PSOutput main(VSOutput In) : SV_Target0
             case 4: color = roughness.xxx; break; // Roughness
             case 5: color = metallic.xxx; break; // Metallic
             case 6: color = occTex.xxx; break; // AO
-            case 7: color = frac(camDist / 10.0).xxx; break; // Depth (簡易可視化)
+            case 7: // カメラからの距離: 近いほど白く、50 mで黒(対数)。1 mごとに細い線
+            {
+                const float distanceShade = 1.0 - saturate(log2(1.0 + camDist) / log2(1.0 + 50.0));
+                const float meterLine = (frac(camDist) < 0.03) ? 0.5 : 1.0;
+                color = (distanceShade * meterLine).xxx;
+                break;
+            }
             case 8: color = frac(In.wPos / 10.0); break; // Position
             case 9: color = emissiveColor * g_emissiveStrength; break; // Emissive
+            case 10: color = LuminanceFalseColor(color); break; // 明るさの段(フォールスカラー)
+            case 11: color = AlbedoCheckColor(albedoForDebug, metallicForDebug); break; // アルベドの検証
+            case 12: break; // ライティングのみ(材質の色は上で灰色にしてある)
+            case 13: color = directLight; break; // 直接光のみ
+            case 14: color = ambientLight + environmentSpecular; break; // 間接光のみ
+            case 15: // ミップレベル: 段ごとに色を変え、形がわかるようアルベドの明るさを掛ける
+            {
+                const float mipLevel = g_baseMap_white.CalculateLevelOfDetail(g_ss_aniso_wrap, In.UV);
+                const float albedoLuminance = dot(albedoForDebug, float3(0.2126, 0.7152, 0.0722));
+                color = MipLevelColor(mipLevel) * (0.5 + 0.5 * saturate(albedoLuminance * 2.0));
+                break;
+            }
         }
     }
 
