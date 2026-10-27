@@ -1,0 +1,21 @@
+{
+    "_description": "ロウソク1本(12 lm、約1 cd)だけの部屋。1.5 m先の面は約0.4 lx、灰色の面は約0.02 nitで、灰色がちょうどよく写る露出はEV100 -2.4前後。ロウソクの周りだけが見え、部屋の隅が闇に沈むよう-1.5にしている。月・空・環境光はほぼ0。ロウソクは点光源として置く(この見本ではライトは足さない)。",
+    "Lighting": {
+        "DirectionalLightIntensity": 0.01,
+        "SkyLuminance": 0.005,
+        "AmbientLight": [
+            0.001,
+            0.001,
+            0.001
+        ]
+    },
+    "PostProcess": {
+        "UseCameraSettings": false,
+        "EV100": -1.5,
+        "EnableAutoExposure": false
+    },
+    "Fog": {
+        "EnableFog": true,
+        "FogDensity": 0.01
+    }
+}

@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "../../../../Graphics/Shader/SettingsField.h"
 
 // =============================================
 // SpotLightData
@@ -37,6 +38,49 @@ struct SpotLightData
     // m_enabled(点灯しているかどうか)自体は変えないので、ゴーストの判定(照明の中で減速・影女の
     // 退治条件など)は点滅中もぶれない。
     bool m_flickerOff = false;
+
+    // インスペクターの部品とUndo/Redoが使う値の定義(SettingsField.h)。保存はComponentSerializerRegistrationが行う。
+    // マテリアルの名前(文字列)はこの一覧に入れず、インスペクターが入力欄で描く
+    template<typename TVisitor>
+    void VisitFields(TVisitor&& visit)
+    {
+        visit(Field("Enabled", u8"点けておく", u8"切ると光らない(モデルの発光も消える)。")
+            .Kind(FieldKind::Toggle).Section(u8"スポットライト"), m_enabled);
+        visit(Field("Intensity", u8"中心の明るさ(光度)",
+            u8"照らす向きの中心の明るさ。距離 d m の所の明るさ(照度)は 光度 ÷ d² lx。コーンの角度を変えても中心の明るさは変わらない。")
+            .Unit("cd").Range(1.0f, 100000.0f).Logarithmic()
+            .Ref(u8"60W相当の電球を下向き", 130.0f).Ref(u8"小型のLEDライト", 1000.0f).Ref(u8"明るい懐中電灯", 5000.0f)
+            .Ref(u8"強力なサーチライト", 50000.0f), m_intensity);
+        visit(Field("Temperature", u8"色温度",
+            u8"光の色を色温度で決める。低いほど赤く、高いほど青い。0で使わない(色味だけ)。")
+            .Kind(FieldKind::Temperature).Unit("K").Range(1000.0f, 12000.0f)
+            .Ref(u8"白熱電球", 2700.0f).Ref(u8"電球色のLED", 3000.0f).Ref(u8"LEDの懐中電灯", 5000.0f).Ref(u8"昼光色の蛍光灯", 6500.0f), m_temperature);
+        visit(Field("Color", u8"色味", u8"色温度の色に掛ける色。明るさは光度で決まるので、ここでは色合いだけを変える。")
+            .Kind(FieldKind::Color), m_color);
+        visit(Field("Range", u8"光の届く範囲",
+            u8"この距離で光を0にする(減衰は逆二乗で、ここで滑らかに0にする)。広げるほど重くなる。")
+            .Unit("m").Range(0.1f, 50.0f), m_range);
+        visit(Field("InnerAngle", u8"いちばん明るい範囲の角度", u8"中心からこの角度までは最大の明るさ。")
+            .Unit(u8"度").Range(0.0f, 89.0f), m_innerAngle);
+        visit(Field("OuterAngle", u8"光が届く範囲の角度", u8"この角度で0まで減衰する。内側の角度との差が大きいほど、縁がぼける。")
+            .Unit(u8"度").Range(0.1f, 89.0f), m_outerAngle);
+        visit(Field("CastShadow", u8"影を落とす", u8"近い順に、空いている影の枠があれば割り当てる。")
+            .Kind(FieldKind::Toggle).Section(u8"影"), m_castShadow);
+        visit(Field("SourceRadius", u8"光源の大きさ(半径)",
+            u8"大きいほど影の輪郭がぼける。")
+            .Unit("m").Range(0.001f, 0.5f).Logarithmic().When("CastShadow")
+            .Ref(u8"LEDの粒", 0.005f).Ref(u8"電球", 0.03f).Ref(u8"照明のかさ", 0.15f), m_sourceRadius);
+        visit(Field("LocalOffset", u8"光源の位置", u8"このオブジェクトのローカル空間での光源の位置(スケールも掛かる)。")
+            .Kind(FieldKind::Vector).Section(u8"位置と向き").Advanced(), m_localOffset);
+        visit(Field("LocalDirection", u8"照らす向き", u8"このオブジェクトのローカル空間での照らす向き。長さは1にそろえる。")
+            .Kind(FieldKind::Direction).Range(-1.0f, 1.0f).Advanced(), m_localDirection);
+        visit(Field("ModelGlow", u8"モデルの発光の明るさ",
+            u8"点灯中にモデル自体を光らせる輝度。0で光らせない。")
+            .Unit("nit").Range(0.0f, 20000.0f).Section(u8"モデルの発光")
+            .Ref(u8"光らせない", 0.0f).Ref(u8"照明のかさ", 2000.0f).Ref(u8"蛍光灯の表面", 8000.0f).Ref(u8"むき出しの電球", 100000.0f), m_modelGlow);
+        visit(Field("GlowReflectScale", u8"反射で光る強さ", u8"反射で光る面(かさの内側など)の明るさ。モデルの発光に対する倍率。")
+            .Range(0.0f, 2.0f).Advanced(), m_glowReflectScale);
+    }
 };
 
 // =============================================

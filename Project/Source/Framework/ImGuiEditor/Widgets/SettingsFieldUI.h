@@ -26,6 +26,8 @@ namespace SettingsFieldUI
         std::function<void(const char* key)> onChanged;
         // その値の行の後に、計算した値などを足す(表の中なので FieldWidgets::ComputedValue を使う)
         std::function<void(const char* key)> afterField;
+        // シェーダーエディターの検索で絞り込むか(インスペクターのライトなどはfalse)
+        bool isSearchable = true;
     };
 
     // 検索と「変えた値の一覧」からの移動の状態。シェーダーエディターに1つ
@@ -120,7 +122,7 @@ namespace SettingsFieldUI
 
         inline FieldWidgets::EditResult DrawField(const FieldMeta& meta, DirectX::XMFLOAT3& value, const DirectX::XMFLOAT3& defaultValue)
         {
-            if (meta.kind == FieldKind::Direction)
+            if (meta.kind == FieldKind::Direction || meta.kind == FieldKind::Vector)
             {
                 return FieldWidgets::Direction(meta, value, defaultValue);
             }
@@ -146,6 +148,38 @@ namespace SettingsFieldUI
         inline nlohmann::json ToJson(const DirectX::XMFLOAT3& value)
         {
             return nlohmann::json::array({ value.x, value.y, value.z });
+        }
+
+        inline void FromJson(const nlohmann::json& json, bool& outValue)
+        {
+            if (json.is_boolean())
+            {
+                outValue = json.get<bool>();
+            }
+        }
+
+        inline void FromJson(const nlohmann::json& json, int& outValue)
+        {
+            if (json.is_number())
+            {
+                outValue = json.get<int>();
+            }
+        }
+
+        inline void FromJson(const nlohmann::json& json, float& outValue)
+        {
+            if (json.is_number())
+            {
+                outValue = json.get<float>();
+            }
+        }
+
+        inline void FromJson(const nlohmann::json& json, DirectX::XMFLOAT3& outValue)
+        {
+            if (json.is_array() && json.size() >= 3)
+            {
+                outValue = { json[0].get<float>(), json[1].get<float>(), json[2].get<float>() };
+            }
         }
 
         // 操作を始めたときの値。操作を終えたときに、変更前としてUndoに積む
@@ -256,10 +290,12 @@ namespace SettingsFieldUI
             // 右クリックのメニューに「よく使う値」を足す
             const std::string target = targetKey;
             const std::string key = entry.meta.key;
+            // よく使う値に入れられるのはシェーダーの設定だけ(シーンの物は「種類#番号」で、シーンごとに変わるため)
+            const bool isPinnable = target.find('#') == std::string::npos;
             const std::function<void()> pinMenu = [&]()
             {
                 const bool isPinned = EditorPreferences::IsPinned(target, key);
-                if (ImGui::MenuItem(isPinned ? u8"よく使う値から外す" : u8"よく使う値に追加"))
+                if (isPinnable && ImGui::MenuItem(isPinned ? u8"よく使う値から外す" : u8"よく使う値に追加"))
                 {
                     EditorPreferences::TogglePin(target, key);
                 }
@@ -314,6 +350,26 @@ namespace SettingsFieldUI
             }
             return result.changed;
         }
+    }
+
+    // 値1つをJSONから書き込む(シーンの物のUndo/Redo用)。見つからなければfalse
+    template<typename TSettings>
+    bool ApplyFieldJson(TSettings& settings, const std::string& key, const nlohmann::json& value)
+    {
+        bool isFound = false;
+        settings.VisitFields([&](const FieldMeta& meta, auto& field)
+        {
+            if (!isFound && key == meta.key)
+            {
+                isFound = true;
+                Detail::FromJson(value, field);
+            }
+        });
+        if (isFound)
+        {
+            SetDirty(settings, nullptr);
+        }
+        return isFound;
     }
 
     // 検索に当たる値があるか(検索していなければtrue)
@@ -379,7 +435,7 @@ namespace SettingsFieldUI
             auto isListed = [&](size_t entryIndex)
             {
                 const FieldMeta& meta = entries[entryIndex].meta;
-                return collected.IsShown(meta) && Detail::MatchesSearch(meta, pSection);
+                return collected.IsShown(meta) && (!options.isSearchable || Detail::MatchesSearch(meta, pSection));
             };
             bool hasBasic = false;
             bool hasAdvanced = false;
@@ -421,7 +477,7 @@ namespace SettingsFieldUI
             }
 
             // 検索中と、一覧から詳細の値へ飛ぶときは、詳細を開く
-            if (hasAdvanced && (IsSearching() || isFocusInAdvanced))
+            if (hasAdvanced && ((options.isSearchable && IsSearching()) || isFocusInAdvanced))
             {
                 ImGui::SetNextItemOpen(true, ImGuiCond_Always);
             }

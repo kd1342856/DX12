@@ -20,6 +20,8 @@ private:
     int m_shownSlot = -1; // 最後に表示したスロット。-1なら表示していない
 
     std::string m_selectedPreset;
+    std::string m_describedPreset;     // m_selectedDescriptionを読んだプリセット
+    std::string m_selectedDescription;
     char m_presetName[64] = {};
 
     std::string m_message;

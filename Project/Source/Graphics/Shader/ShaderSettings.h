@@ -109,10 +109,13 @@ struct LightingSettings
     {
         visit(Field("DirectionalLightIntensity", u8"月の明るさ(照度)",
             u8"月の光が真上から当たる面の明るさ。目安：新月の夜 0.001 lx、満月の夜 0.1～0.3 lx、薄曇りの昼 10000 lx。")
-            .Unit("lx").Range(0.001f, 100000.0f).Logarithmic().Section(u8"月の光"), DirectionalLightIntensity);
+            .Unit("lx").Range(0.001f, 100000.0f).Logarithmic().Section(u8"月の光")
+            .Ref(u8"新月の夜(星明かり)", 0.001f).Ref(u8"半月の夜", 0.03f).Ref(u8"満月の夜", 0.25f).Ref(u8"日没後の薄明", 10.0f)
+            .Ref(u8"曇りの昼", 10000.0f).Ref(u8"晴れの昼", 100000.0f), DirectionalLightIntensity);
         visit(Field("DirectionalLightTemperature", u8"月の光の色温度",
             u8"光の色を色温度で決める。低いほど赤く、高いほど青い。目安：ロウソク 1900 K、電球 2700 K、月 4100 K、昼光 6500 K。0で使わない(色味だけ)。")
-            .Kind(FieldKind::Temperature).Unit("K").Range(1000.0f, 12000.0f), DirectionalLightTemperature);
+            .Kind(FieldKind::Temperature).Unit("K").Range(1000.0f, 12000.0f)
+            .Ref(u8"ロウソク", 1850.0f).Ref(u8"白熱電球", 2700.0f).Ref(u8"月の光", 4100.0f).Ref(u8"昼白色の蛍光灯", 5000.0f).Ref(u8"昼光", 6500.0f), DirectionalLightTemperature);
         visit(Field("DirectionalLightColor", u8"月の光の色味",
             u8"色温度の色に掛ける色。白で色温度のまま。明るさは照度で決まるので、ここでは色合いだけを変える。")
             .Kind(FieldKind::Color), DirectionalLightColor);
@@ -122,7 +125,8 @@ struct LightingSettings
 
         visit(Field("SkyLuminance", u8"空の明るさ",
             u8"空(スカイスフィア)の明るさ。テクスチャの白(1.0)が何nitになるか。目安：月夜の空 0.01～0.1 nit。")
-            .Unit("nit").Range(0.001f, 10000.0f).Logarithmic().Section(u8"空と環境光"), SkyLuminance);
+            .Unit("nit").Range(0.001f, 10000.0f).Logarithmic().Section(u8"空と環境光")
+            .Ref(u8"月の無い夜空", 0.001f).Ref(u8"満月の夜空", 0.05f).Ref(u8"日没後の空", 10.0f).Ref(u8"曇りの昼の空", 2000.0f), SkyLuminance);
         visit(Field("AmbientLight", u8"家の外の環境光",
             u8"DDGIのボリューム(家)の外で使う、一様な空からの光の明るさ。拡散と鏡面の両方に使う。")
             .Kind(FieldKind::ColorHDR).Unit("nit").Range(0.0f, 1000.0f), AmbientLight);
@@ -239,16 +243,22 @@ struct PostProcessSettings
             .Kind(FieldKind::Toggle).Section(u8"露出"), UseCameraSettings);
         visit(Field("EV100", u8"露出",
             u8"小さいほど明るく写る(1段ごとに2倍)。目安：月夜の屋外 -2～0、暗い室内 2～4、明るい室内 6～8、晴れた昼 15。")
-            .Unit("EV100").Range(-6.0f, 16.0f).When("UseCameraSettings", false, true), EV100);
+            .Unit("EV100").Range(-6.0f, 16.0f).When("UseCameraSettings", false, true)
+            .Ref(u8"月夜の屋外", -2.5f).Ref(u8"ロウソクだけの部屋", -1.5f).Ref(u8"懐中電灯で照らした所", 6.0f).Ref(u8"明るい室内", 7.0f)
+            .Ref(u8"曇りの屋外", 12.0f).Ref(u8"晴れの屋外", 15.0f), EV100);
         visit(Field("Aperture", u8"絞り(F値)",
             u8"小さいほど明るく写る。1段(F1.4→F2)で光は半分。被写界深度(ぼけ)を使うときは、小さいほどぼける。")
-            .Kind(FieldKind::Aperture).Unit("F").Range(1.0f, 22.0f).When("UseCameraSettings", true, true), Aperture);
+            .Kind(FieldKind::Aperture).Unit("F").Range(1.0f, 22.0f).When("UseCameraSettings", true, true)
+            .Ref(u8"明るいレンズの開放", 1.4f).Ref(u8"スマートフォン", 1.8f).Ref(u8"ふつうのレンズの開放", 2.8f).Ref(u8"風景(全体にピント)", 8.0f), Aperture);
         visit(Field("ShutterSpeed", u8"シャッター速度",
             u8"長いほど明るく写る。モーションブラーのぼけの長さもこれで決まる。目安：1/30～1/60 秒。")
-            .Kind(FieldKind::Shutter).Unit(u8"秒").Range(1.0f / 4000.0f, 1.0f).Logarithmic().When("UseCameraSettings", true, true), ShutterSpeed);
+            .Kind(FieldKind::Shutter).Unit(u8"秒").Range(1.0f / 4000.0f, 1.0f).Logarithmic().When("UseCameraSettings", true, true)
+            .Ref(u8"映画(シャッター角180度・24fps)", 1.0f / 48.0f).Ref(u8"暗い場面の手持ち", 1.0f / 30.0f).Ref(u8"ふつうの動き", 1.0f / 60.0f)
+            .Ref(u8"速い動きを止める", 1.0f / 500.0f), ShutterSpeed);
         visit(Field("ISO", u8"ISO感度",
             u8"大きいほど明るく写る。フィルムグレインも感度に合わせて荒くなる。目安：暗い室内 1600～6400。")
-            .Range(50.0f, 102400.0f).Logarithmic().When("UseCameraSettings", true, true), ISO);
+            .Kind(FieldKind::ISO).Range(50.0f, 102400.0f).When("UseCameraSettings", true, true)
+            .Ref(u8"晴れの屋外", 100.0f).Ref(u8"室内", 800.0f).Ref(u8"暗い室内", 3200.0f).Ref(u8"夜の屋外(高感度)", 12800.0f), ISO);
         visit(Field("EnableHDR", u8"トーンマッピングする(ACES)",
             u8"明るすぎるところを白く飛ばさず、映画のフィルムのように丸めて表示する。")
             .Kind(FieldKind::Toggle).Advanced(), EnableHDR);
@@ -430,10 +440,12 @@ struct FogSettings
             .Kind(FieldKind::Toggle).Section(u8"霧"), EnableFog);
         visit(Field("FogDensity", u8"霧の濃さ(ふだん)",
             u8"1 mあたりに光が霧に遮られる割合(消散係数)。目安：薄いもや 0.01、濃い霧 0.1 以上。")
-            .Unit("1/m").Range(0.0005f, 1.0f).Logarithmic().When("EnableFog"), FogDensity);
+            .Unit("1/m").Range(0.0005f, 1.0f).Logarithmic().When("EnableFog")
+            .Ref(u8"薄いもや(見通し約300 m)", 0.01f).Ref(u8"霧(見通し約60 m)", 0.05f).Ref(u8"濃い霧(見通し約15 m)", 0.2f), FogDensity);
         visit(Field("HuntFogDensity", u8"霧の濃さ(ハント中)",
             u8"幽霊がハントしている間の霧の濃さ。")
-            .Unit("1/m").Range(0.0005f, 1.0f).Logarithmic().When("EnableFog"), HuntFogDensity);
+            .Unit("1/m").Range(0.0005f, 1.0f).Logarithmic().When("EnableFog")
+            .Ref(u8"薄いもや(見通し約300 m)", 0.01f).Ref(u8"霧(見通し約60 m)", 0.05f).Ref(u8"濃い霧(見通し約15 m)", 0.2f), HuntFogDensity);
         visit(Field("FogColor", u8"霧の色",
             u8"霧が光を散らす割合(色)。ボリュメトリックフォグでは、霧の明るさはライト・影・DDGIの環境光から求まる。")
             .Kind(FieldKind::Color).When("EnableFog"), FogColor);

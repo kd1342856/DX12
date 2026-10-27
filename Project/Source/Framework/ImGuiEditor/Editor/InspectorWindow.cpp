@@ -4,6 +4,25 @@
 #include "../../Manager/Collision/CollisionManager.h"
 #include "../../DirectX/Utility/Profiler.h"
 #include "../../System/JobSystem/JobSystem.h"
+#include "../Widgets/SettingsFieldUI.h"
+#include "../EditHistory.h"
+
+namespace
+{
+    // シーンのライトを、Undo/Redoで値を書き戻せる対象として登録する。対象の名前は「種類#エンティティの番号」
+    // (Undoの履歴はシーンを切り替えると消えるので、エンティティの番号で探してよい)
+    template<typename TComponent>
+    std::string RegisterLightTarget(const char* pKind, Entity entity)
+    {
+        const std::string target = std::string(pKind) + "#" + std::to_string(entity);
+        EditHistory::Instance().RegisterTarget(target, [entity](const std::string& fieldKey, const nlohmann::json& value)
+        {
+            auto* pComponent = GameManager::Instance().GetECS().TryGetComponent<TComponent>(entity);
+            return pComponent && SettingsFieldUI::ApplyFieldJson(*pComponent, fieldKey, value);
+        });
+        return target;
+    }
+}
 
 // Resolve the GetCurrentScene issue
 static std::shared_ptr<Scene> GetCurrentScenePtr() {
@@ -246,48 +265,22 @@ void Editor::DrawInspector() {
             }
             if (auto* pLight = ecs.TryGetComponent<PointLightData>(entity)) {
                 if (ImGui::CollapsingHeader(u8"点光源", ImGuiTreeNodeFlags_DefaultOpen)) {
-                    auto& l = *pLight;
-                    ImGui::Checkbox(u8"有効", &l.m_enabled);
-                    ImGui::ColorEdit3(u8"色味", &l.m_color.x);
-                    ImGui::DragFloat(u8"色温度 (K)", &l.m_temperature, 10.0f, 0.0f, 12000.0f, "%.0f");
-                    if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"0なら色温度を使わず色味だけで決める。ろうそく約1800K、白熱電球約2700K");
-                    ImGui::DragFloat(u8"光束 (lm)", &l.m_intensity, 1.0f, 0.0f, 100000.0f, "%.1f");
-                    if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"ろうそく約12 lm、60W相当の電球約800 lm");
-                    ImGui::DragFloat(u8"届く距離", &l.m_range, 0.1f, 0.1f, 100.0f);
-                    ImGui::Checkbox(u8"影を落とす", &l.m_castShadow);
-                    ImGui::DragFloat(u8"光源の半径 (m)", &l.m_sourceRadius, 0.001f, 0.001f, 0.5f, "%.3f");
-                    if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"大きいほど影の輪郭がぼける。ろうそくの炎約0.01m、電球約0.03m");
-                    ImGui::Separator();
-                    ImGui::Text(u8"明滅");
-                    ImGui::Checkbox(u8"明滅させる", &l.m_flickerEnabled);
-                    ImGui::DragFloat(u8"明滅の速さ", &l.m_flickerSpeed, 0.1f, 0.0f, 60.0f);
-                    ImGui::DragFloat(u8"明滅の強さ", &l.m_flickerIntensity, 0.01f, 0.0f, 1.0f);
-                    ImGui::DragFloat(u8"明滅のずらし値", &l.m_flickerSeed, 0.1f);
-                    if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"同じ部屋に複数のフリッカーライトを置く時、位相をずらしてバラバラに明滅させたい場合に変える。");
+                    // 値の表示名・説明・単位・目安はPointLightData::VisitFieldsにある。Undo/Redoもここで記録する
+                    const std::string target = RegisterLightTarget<PointLightData>("PointLight", entity);
+                    SettingsFieldUI::Options options;
+                    options.isSearchable = false;
+                    SettingsFieldUI::Draw(*pLight, target.c_str(), options);
                 }
             }
             if (auto* pSpot = ecs.TryGetComponent<SpotLightData>(entity)) {
                 if (ImGui::CollapsingHeader(u8"スポットライト", ImGuiTreeNodeFlags_DefaultOpen)) {
                     auto& l = *pSpot;
+                    const std::string target = RegisterLightTarget<SpotLightData>("SpotLight", entity);
+                    SettingsFieldUI::Options options;
+                    options.isSearchable = false;
+                    SettingsFieldUI::Draw(l, target.c_str(), options);
+                    // マテリアルの名前(文字列)は部品の一覧に無いので、入力欄で描く
                     ImGui::PushID("SpotLightData");
-                    ImGui::Checkbox(u8"有効", &l.m_enabled);
-                    ImGui::ColorEdit3(u8"色味", &l.m_color.x);
-                    ImGui::DragFloat(u8"色温度 (K)", &l.m_temperature, 10.0f, 0.0f, 12000.0f, "%.0f");
-                    if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"0なら色温度を使わず色味だけで決める。白熱電球約2700K、LEDライト約5000K");
-                    ImGui::DragFloat(u8"光度 (cd)", &l.m_intensity, 1.0f, 0.0f, 100000.0f, "%.1f");
-                    if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"中心方向の明るさ。小型のLEDライト約1000 cd、60W相当の電球を下向きに約130 cd");
-                    ImGui::DragFloat(u8"届く距離", &l.m_range, 0.1f, 0.1f, 100.0f);
-                    ImGui::Checkbox(u8"影を落とす", &l.m_castShadow);
-                    ImGui::DragFloat(u8"光源の半径 (m)", &l.m_sourceRadius, 0.001f, 0.001f, 0.5f, "%.3f");
-                    if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"大きいほど影の輪郭がぼける。ろうそくの炎約0.01m、電球約0.03m");
-                    ImGui::DragFloat(u8"内側の角度", &l.m_innerAngle, 0.5f, 0.0f, 89.0f);
-                    ImGui::DragFloat(u8"外側の角度", &l.m_outerAngle, 0.5f, 0.1f, 89.0f);
-                    ImGui::DragFloat3(u8"光源の位置", &l.m_localOffset.x, 0.01f);
-                    if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"光源位置(このオブジェクトのローカル空間。Scaleも掛かる)");
-                    ImGui::DragFloat3(u8"照らす向き", &l.m_localDirection.x, 0.01f, -1.0f, 1.0f);
-                    if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"照らす向き(このオブジェクトのローカル空間)");
-                    ImGui::DragFloat(u8"モデルの発光 (nit)", &l.m_modelGlow, 10.0f, 0.0f, 1000000.0f, "%.0f");
-                    if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"点灯中にモデル自体を光らせる輝度(cd/m2)。電球のかさや蛍光灯の表面は数千nit程度");
                     char glowMatBuf[64] = {};
                     strncpy_s(glowMatBuf, l.m_glowMaterial.c_str(), _TRUNCATE);
                     if (ImGui::InputText(u8"発光させるマテリアル", glowMatBuf, sizeof(glowMatBuf))) l.m_glowMaterial = glowMatBuf;
@@ -296,8 +289,6 @@ void Editor::DrawInspector() {
                     strncpy_s(reflMatBuf, l.m_glowReflectMaterial.c_str(), _TRUNCATE);
                     if (ImGui::InputText(u8"反射で光るマテリアル", reflMatBuf, sizeof(reflMatBuf))) l.m_glowReflectMaterial = reflMatBuf;
                     if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"光源の光を受けて明るく見える面(かさの内側など)。このマテリアルの裏面だけを光らせる");
-                    ImGui::DragFloat(u8"反射で光る強さ", &l.m_glowReflectScale, 0.01f, 0.0f, 2.0f);
-                    if (ImGui::IsItemHovered()) ImGui::SetTooltip(u8"反射で光る面の明るさ(Model Glowに対する倍率)");
                     ImGui::PopID();
                 }
             }

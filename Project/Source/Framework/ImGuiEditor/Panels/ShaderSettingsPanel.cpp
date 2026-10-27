@@ -237,6 +237,18 @@ void ShaderSettingsPanel::DrawPresets()
             {
                 m_selectedPreset = name;
             }
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+            {
+                const std::string description = ShaderSettingsIO::GetPresetDescription(name);
+                if (!description.empty())
+                {
+                    ImGui::BeginTooltip();
+                    ImGui::PushTextWrapPos(ImGui::GetFontSize() * 28.0f);
+                    ImGui::TextUnformatted(description.c_str());
+                    ImGui::PopTextWrapPos();
+                    ImGui::EndTooltip();
+                }
+            }
         }
         ImGui::EndCombo();
     }
@@ -262,6 +274,22 @@ void ShaderSettingsPanel::DrawPresets()
         });
     }
     ImGui::EndDisabled();
+
+    if (!m_selectedPreset.empty())
+    {
+        // 説明は選んだときだけ読む(毎フレームのファイルの読み込みを避ける)
+        if (m_describedPreset != m_selectedPreset)
+        {
+            m_describedPreset = m_selectedPreset;
+            m_selectedDescription = ShaderSettingsIO::GetPresetDescription(m_selectedPreset);
+        }
+        if (!m_selectedDescription.empty())
+        {
+            ImGui::PushTextWrapPos(0.0f);
+            ImGui::TextDisabled("%s", m_selectedDescription.c_str());
+            ImGui::PopTextWrapPos();
+        }
+    }
 
     ImGui::SetNextItemWidth(200.0f);
     ImGui::InputTextWithHint("##PresetName", u8"新しいプリセットの名前", m_presetName, sizeof(m_presetName));

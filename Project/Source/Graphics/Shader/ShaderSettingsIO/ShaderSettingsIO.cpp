@@ -319,6 +319,13 @@ bool ShaderSettingsIO::SavePreset(const std::string& name, std::string& outError
         outError = u8"名前が空か、ファイル名に使えない文字(\\ / : * ? \" < > |)が入っています";
         return false;
     }
+    // 上書きするときは、前の説明を残す(説明は手で書くもので、エディターでは書き換えない)
+    const std::string description = GetPresetDescription(name);
+    nlohmann::json json = Capture();
+    if (!description.empty())
+    {
+        json["_description"] = description;
+    }
     std::error_code errorCode;
     std::filesystem::create_directories(kPresetDir, errorCode);
     std::ofstream ofs(GetPresetPath(name));
@@ -327,9 +334,29 @@ bool ShaderSettingsIO::SavePreset(const std::string& name, std::string& outError
         outError = u8"ファイルを書き込めませんでした";
         return false;
     }
-    ofs << std::setw(4) << Capture() << std::endl;
+    ofs << std::setw(4) << json << std::endl;
     Logger::Instance().AddLog(Logger::LogLevel::Info, u8"[ShaderPreset] 保存しました: %s", name.c_str());
     return true;
+}
+
+std::string ShaderSettingsIO::GetPresetDescription(const std::string& name)
+{
+    if (!IsValidPresetName(name))
+    {
+        return "";
+    }
+    std::ifstream ifs(GetPresetPath(name));
+    if (!ifs.is_open())
+    {
+        return "";
+    }
+    const nlohmann::json json = nlohmann::json::parse(ifs, nullptr, false);
+    if (json.is_discarded() || !json.is_object())
+    {
+        return "";
+    }
+    auto it = json.find("_description");
+    return (it != json.end() && it->is_string()) ? it->get<std::string>() : "";
 }
 
 bool ShaderSettingsIO::LoadPreset(const std::string& name, std::string& outError)

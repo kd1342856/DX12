@@ -24,6 +24,15 @@ enum class FieldKind : uint8_t
     Temperature, // 色温度(K)。スライダーの線を色のグラデーションにする
     Shutter,     // シャッター速度(秒)。1/xで表示する
     Aperture,    // F値
+    ISO,         // ISO感度。100・200・400…の段に止まる
+    Vector,      // XYZ(位置など。向きと違って長さはそろえない)
+};
+
+// 目安の値(「月夜の屋外」-2 EV100 など)。部品の「目安」から選ぶと、その値が入る
+struct FieldReference
+{
+    const char* label = ""; // UTF-8
+    float value = 0.0f;
 };
 
 namespace FieldFlags
@@ -49,6 +58,9 @@ struct FieldMeta
     const char* condition = "";
     bool conditionValue = true; // conditionの値がこれのときに有効
     bool hideWhenInactive = false; // 有効でないとき、薄くせずに隠す(どちらか一方だけを出す値の組)
+    static constexpr int kMaxReferences = 8;
+    FieldReference references[kMaxReferences] = {};
+    int referenceCount = 0;
 
     // VisitFieldsで読みやすく書くための、1項目ずつ変えた写しを返す関数
     FieldMeta Unit(const char* text) const { FieldMeta meta = *this; meta.unit = text; return meta; }
@@ -58,6 +70,17 @@ struct FieldMeta
     FieldMeta Advanced() const { FieldMeta meta = *this; meta.flags |= FieldFlags::kAdvanced; return meta; }
     FieldMeta NotSaved() const { FieldMeta meta = *this; meta.flags |= FieldFlags::kNotSaved; return meta; }
     FieldMeta Logarithmic() const { FieldMeta meta = *this; meta.flags |= FieldFlags::kLogarithmic; return meta; }
+    // 目安の値を1つ足す(実際の場面に近い値。最大8つ)
+    FieldMeta Ref(const char* label, float value) const
+    {
+        FieldMeta meta = *this;
+        if (meta.referenceCount < kMaxReferences)
+        {
+            meta.references[meta.referenceCount] = { label, value };
+            ++meta.referenceCount;
+        }
+        return meta;
+    }
     // conditionKeyのオンオフがvalueのときだけ触れる(hide=trueなら、そうでないときは隠す)
     FieldMeta When(const char* conditionKey, bool value = true, bool hide = false) const
     {

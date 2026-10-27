@@ -1,0 +1,28 @@
+{
+    "_description": "満月(約0.25 lx)に照らされた屋外。反射率18%の灰色の面は約0.014 nitで、灰色がちょうどよく写る露出はEV100 -3前後。夜の暗さを残すため-2.5にしている。空・環境光も満月の夜の値。",
+    "Lighting": {
+        "DirectionalLightIntensity": 0.25,
+        "DirectionalLightTemperature": 4100.0,
+        "DirectionalLightColor": [
+            1.0,
+            1.0,
+            1.0
+        ],
+        "SkyLuminance": 0.05,
+        "AmbientLight": [
+            0.01,
+            0.01,
+            0.012
+        ]
+    },
+    "PostProcess": {
+        "UseCameraSettings": false,
+        "EV100": -2.5,
+        "EnableAutoExposure": false
+    },
+    "Fog": {
+        "EnableFog": true,
+        "FogDensity": 0.02,
+        "EnableVolumetricFog": true
+    }
+}

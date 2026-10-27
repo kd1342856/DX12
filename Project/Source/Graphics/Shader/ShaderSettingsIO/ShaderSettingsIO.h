@@ -38,4 +38,6 @@ namespace ShaderSettingsIO
     bool HasPreset(const std::string& name);
     bool SavePreset(const std::string& name, std::string& outError);
     bool LoadPreset(const std::string& name, std::string& outError);
+    // プリセットの説明(JSONの "_description")。プリセットは一部のグループ・値だけを持ってもよく、無い値は今のまま
+    std::string GetPresetDescription(const std::string& name);
 }

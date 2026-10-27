@@ -22,10 +22,12 @@ namespace
     constexpr float kShutterStops[] = { 1.0f, 1.0f / 2.0f, 1.0f / 4.0f, 1.0f / 8.0f, 1.0f / 15.0f, 1.0f / 30.0f, 1.0f / 60.0f,
         1.0f / 125.0f, 1.0f / 250.0f, 1.0f / 500.0f, 1.0f / 1000.0f, 1.0f / 2000.0f, 1.0f / 4000.0f };
     constexpr float kApertureStops[] = { 1.0f, 1.4f, 2.0f, 2.8f, 4.0f, 5.6f, 8.0f, 11.0f, 16.0f, 22.0f };
+    constexpr float kIsoStops[] = { 50.0f, 100.0f, 200.0f, 400.0f, 800.0f, 1600.0f, 3200.0f, 6400.0f, 12800.0f, 25600.0f, 51200.0f, 102400.0f };
+    constexpr float kReferenceButtonWidth = 44.0f;
 
     bool IsLogarithmic(const FieldMeta& meta)
     {
-        return (meta.flags & FieldFlags::kLogarithmic) != 0 || meta.kind == FieldKind::Shutter || meta.kind == FieldKind::Aperture;
+        return (meta.flags & FieldFlags::kLogarithmic) != 0 || meta.kind == FieldKind::Shutter || meta.kind == FieldKind::Aperture || meta.kind == FieldKind::ISO;
     }
 
     // 値 → スライダーの位置(0～1)
@@ -95,6 +97,8 @@ namespace
                 return SnapToStop(kShutterStops, value);
             case FieldKind::Aperture:
                 return SnapToStop(kApertureStops, value);
+            case FieldKind::ISO:
+                return SnapToStop(kIsoStops, value);
             case FieldKind::Integer:
                 return std::round(value);
             default:
@@ -111,6 +115,8 @@ namespace
                 return NextStop(kShutterStops, value, isUp);
             case FieldKind::Aperture:
                 return NextStop(kApertureStops, value, isUp);
+            case FieldKind::ISO:
+                return NextStop(kIsoStops, value, isUp);
             case FieldKind::Integer:
                 return value + (isUp ? 1.0f : -1.0f);
             default:
@@ -251,6 +257,10 @@ namespace
         else if (meta.kind == FieldKind::Aperture)
         {
             drawTicks(kApertureStops, std::size(kApertureStops));
+        }
+        else if (meta.kind == FieldKind::ISO)
+        {
+            drawTicks(kIsoStops, std::size(kIsoStops));
         }
 
         // つまみ。ドラッグ中は大きくして塗りつぶす。範囲の外の値は端で止めて注意の色にする
@@ -410,6 +420,11 @@ namespace
                     ImGui::TextDisabled(u8"スライダーの範囲: %s", DefaultText(meta, rangeText).c_str());
                 }
                 ImGui::TextDisabled(u8"初期値: %s", defaultText.c_str());
+                for (int referenceIndex = 0; referenceIndex < meta.referenceCount; ++referenceIndex)
+                {
+                    const FieldReference& reference = meta.references[referenceIndex];
+                    ImGui::TextDisabled(u8"目安: %s  %s", reference.label, DefaultText(meta, FieldWidgets::FormatValue(meta, reference.value)).c_str());
+                }
                 if (isOutOfRange)
                 {
                     ImGui::TextColored(ImGui::ColorConvertU32ToFloat4(kWarningColor), u8"今の値はスライダーの範囲の外(入力欄で入れた値)。絵が崩れることがある");
@@ -497,6 +512,7 @@ std::string FieldWidgets::FormatValue(const FieldMeta& meta, float value)
             snprintf(buffer, sizeof(buffer), "%.1f", value);
             return buffer;
         case FieldKind::Temperature:
+        case FieldKind::ISO:
             snprintf(buffer, sizeof(buffer), "%.0f", value);
             return buffer;
         default:
@@ -521,7 +537,9 @@ FieldWidgets::EditResult FieldWidgets::Number(const FieldMeta& meta, float& valu
     return DrawRow(meta, value != defaultValue, isOutOfRange, DefaultText(meta, FormatValue(meta, defaultValue)), [&]()
     {
         EditResult result;
-        const float sliderWidth = (std::max)(ImGui::GetContentRegionAvail().x - kInputWidth - ImGui::GetStyle().ItemSpacing.x, 40.0f);
+        const float spacing = ImGui::GetStyle().ItemSpacing.x;
+        const float referenceWidth = (meta.referenceCount > 0) ? kReferenceButtonWidth + spacing : 0.0f;
+        const float sliderWidth = (std::max)(ImGui::GetContentRegionAvail().x - kInputWidth - spacing - referenceWidth, 40.0f);
         if (KnobSlider(meta, value, sliderWidth))
         {
             result.changed = true;
@@ -535,6 +553,38 @@ FieldWidgets::EditResult FieldWidgets::Number(const FieldMeta& meta, float& valu
         result.changed |= inputResult.changed;
         result.activated |= inputResult.activated;
         result.committed |= inputResult.committed;
+        if (meta.referenceCount > 0)
+        {
+            // 目安の一覧(実際の場面に近い値)。選ぶとその値が入る(Undoの1回)
+            ImGui::SameLine();
+            if (ImGui::Button(u8"目安", ImVec2(kReferenceButtonWidth, 0.0f)))
+            {
+                ImGui::OpenPopup("##references");
+            }
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+            {
+                ImGui::SetTooltip(u8"実際の場面に近い値から選ぶ");
+            }
+            if (ImGui::BeginPopup("##references"))
+            {
+                ImGui::TextDisabled("%s", meta.label);
+                ImGui::Separator();
+                for (int referenceIndex = 0; referenceIndex < meta.referenceCount; ++referenceIndex)
+                {
+                    const FieldReference& reference = meta.references[referenceIndex];
+                    const std::string valueText = DefaultText(meta, FormatValue(meta, reference.value));
+                    const std::string itemText = std::string(reference.label) + "##" + std::to_string(referenceIndex);
+                    if (ImGui::MenuItem(itemText.c_str(), valueText.c_str(), value == reference.value))
+                    {
+                        value = reference.value;
+                        result.changed = true;
+                        result.activated = true;
+                        result.committed = true;
+                    }
+                }
+                ImGui::EndPopup();
+            }
+        }
         return result;
     }, [&]()
     {
@@ -604,11 +654,12 @@ FieldWidgets::EditResult FieldWidgets::Direction(const FieldMeta& meta, DirectX:
     {
         EditResult result;
         ImGui::SetNextItemWidth(-FLT_MIN);
-        if (ImGui::DragFloat3("##direction", &value.x, 0.01f, meta.minValue, meta.maxValue, "%.3f"))
+        const bool isClamped = meta.kind == FieldKind::Direction;
+        if (ImGui::DragFloat3("##direction", &value.x, 0.01f, isClamped ? meta.minValue : 0.0f, isClamped ? meta.maxValue : 0.0f, "%.3f"))
         {
-            // 向きなので長さを1にそろえる
+            // 向きなので長さを1にそろえる(XYZの位置はそのまま)
             const float length = std::sqrt(value.x * value.x + value.y * value.y + value.z * value.z);
-            if (length > 0.0001f)
+            if (meta.kind == FieldKind::Direction && length > 0.0001f)
             {
                 value = { value.x / length, value.y / length, value.z / length };
             }

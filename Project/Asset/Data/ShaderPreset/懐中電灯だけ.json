@@ -1,0 +1,21 @@
+{
+    "_description": "懐中電灯(小型のLED、約1000 cd)で照らす暗がり。2 m先の照らした所は約250 lx、灰色の面は約14 nitで、灰色がちょうどよく写る露出はEV100 7前後。照らした所が少し明るく、光の外は真っ暗になるよう6にしている。月は半月(0.03 lx)。懐中電灯はプレイヤーのスポットライト(明るさはインスペクターで)。",
+    "Lighting": {
+        "DirectionalLightIntensity": 0.03,
+        "SkyLuminance": 0.01,
+        "AmbientLight": [
+            0.002,
+            0.002,
+            0.002
+        ]
+    },
+    "PostProcess": {
+        "UseCameraSettings": false,
+        "EV100": 6.0,
+        "EnableAutoExposure": false
+    },
+    "Fog": {
+        "EnableFog": true,
+        "FogDensity": 0.02
+    }
+}
