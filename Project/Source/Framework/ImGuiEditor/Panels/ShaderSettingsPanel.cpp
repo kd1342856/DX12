@@ -1,7 +1,7 @@
 #include "ShaderSettingsPanel.h"
 #include "../EditorContext.h"
 #include "ImGui/imgui.h"
-#include "SettingsWidgets.h"
+#include "../Widgets/FieldWidgets.h"
 #include "../Editor/Editor.h"
 #include "../../../Graphics/Shader/ShaderSettingsIO/ShaderSettingsIO.h"
 
@@ -62,7 +62,7 @@ void ShaderSettingsPanel::DrawSceneAndDefaults()
     // 印の見本
     ImGui::TextDisabled(u8"左に");
     ImGui::SameLine(0.0f, 2.0f);
-    ImGui::TextColored(ImGui::ColorConvertU32ToFloat4(SettingsWidgets::GetModifiedColor()), "|");
+    ImGui::TextColored(ImGui::ColorConvertU32ToFloat4(FieldWidgets::GetModifiedColor()), "|");
     ImGui::SameLine(0.0f, 2.0f);
     ImGui::TextDisabled(u8"の印がある値は初期値から変えた値。右クリックで初期値に戻せる");
 

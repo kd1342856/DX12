@@ -6,7 +6,7 @@
 #include "../Panels/DebugPanel.h"
 #include "../Panels/LightingPanel.h"
 #include "../Panels/ShadowPanel.h"
-#include "../Panels/IBLPanel.h"
+#include "../Panels/SSAOPanel.h"
 #include "../Panels/MaterialPanel.h"
 #include "../Panels/RendererPanel.h"
 #include "../Panels/PostProcessPanel.h"

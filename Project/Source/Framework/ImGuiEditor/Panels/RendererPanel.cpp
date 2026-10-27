@@ -1,7 +1,7 @@
 ﻿#include "RendererPanel.h"
 #include "../EditorContext.h"
 #include "ImGui/imgui.h"
-#include "SettingsWidgets.h"
+#include "../Widgets/SettingsFieldUI.h"
 #include "../../../Graphics/Device/GraphicsDevice.h"
 #include "../../ECS/CompSystem/Systems/RenderSystem.h"
 #include "../../../Graphics/Renderer/PathTracer.h"
@@ -41,117 +41,82 @@ namespace
 
 void RendererPanel::Draw(EditorContext& ctx)
 {
-    if (ImGui::CollapsingHeader("Renderer Settings", ImGuiTreeNodeFlags_DefaultOpen))
+    if (!ImGui::CollapsingHeader(u8"描画###Renderer Settings", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        if (ctx.Renderer)
+        return;
+    }
+
+    if (ctx.Renderer)
+    {
+        SettingsFieldUI::Options options;
+        options.onChanged = [](const char* key)
         {
-            bool changed = false;
-
-            ImGui::Text("SSR (Screen Space Reflection)");
-            if (ImGui::Checkbox("Enable SSR", &ctx.Renderer->EnableSSR)) changed = true;
-            SettingsWidgets::DefaultMark(*ctx.Renderer, ctx.Renderer->EnableSSR);
-            if (ImGui::SliderFloat("SSR Step Size", &ctx.Renderer->SSRStepSize, 0.05f, 1.5f, "%.2f")) changed = true;
-            SettingsWidgets::DefaultMark(*ctx.Renderer, ctx.Renderer->SSRStepSize);
-            if (ImGui::IsItemHovered())
-            {
-                ImGui::SetTooltip(u8"平面反射(専用の反射カメラ)が設定されていないガラス面のフォールバック。");
-            }
-            if (ImGui::SliderFloat("SSR Opaque Intensity", &ctx.Renderer->SSROpaqueIntensity, 0.0f, 2.0f, "%.2f")) changed = true;
-            SettingsWidgets::DefaultMark(*ctx.Renderer, ctx.Renderer->SSROpaqueIntensity);
-            if (ImGui::IsItemHovered())
-            {
-                ImGui::SetTooltip(u8"床・タイル等のOpaque材質向けSSR(NormalPrepassの法線+深度を再利用)。\n粗さ/金属度は考慮しない鏡面反射の近似(非金属F0=0.04固定)。0で無効。");
-            }
-
-            ImGui::Separator();
-            ImGui::Text("Ray Tracing");
-            ImGui::Checkbox("Raytraced Shadows (High+)", &ctx.Renderer->EnableRaytracedShadows);
-            SettingsWidgets::DefaultMark(*ctx.Renderer, ctx.Renderer->EnableRaytracedShadows);
-            if (ImGui::IsItemHovered())
-            {
-                ImGui::SetTooltip(u8"スポット・点光源・月の影をレイで調べる(画質「高」以上)。反射は画質「最高」で自動的に有効。");
-            }
-
-            ImGui::Separator();
-            ImGui::Text("Reference Path Tracer (dev)");
-            // CPU側だけで使う設定なので、IsDirtyを待たずに毎フレーム反映される
-            ImGui::BeginDisabled(!PathTracer::Instance().IsAvailable());
-            ImGui::Checkbox("Enable Path Tracer", &ctx.Renderer->EnableReferencePathTracer);
-            SettingsWidgets::DefaultMark(*ctx.Renderer, ctx.Renderer->EnableReferencePathTracer);
-            ImGui::EndDisabled();
-            if (ImGui::IsItemHovered())
-            {
-                ImGui::SetTooltip(u8"拡散の反射を繰り返す正解の絵(カメラを止めると足し続けてノイズが消える)。\nラスタライズの描画(DDGI・反射プローブ・影)と見比べる。鏡面・スキニングのモデル・半透明は写らない。");
-            }
-            if (ImGui::SliderInt("Max Bounces", &ctx.Renderer->PathTracerMaxBounces, 0, 8))
+            // 反射の回数を変えたら、足し続けた絵を捨てて最初から足し直す
+            if (strcmp(key, "PathTracerMaxBounces") == 0)
             {
                 PathTracer::Instance().ResetAccumulation();
             }
-            if (SettingsWidgets::DefaultMark(*ctx.Renderer, ctx.Renderer->PathTracerMaxBounces))
-            {
-                PathTracer::Instance().ResetAccumulation();
-            }
-            if (ctx.Renderer->EnableReferencePathTracer)
-            {
-                ImGui::Text("Samples: %u", PathTracer::Instance().GetSampleCount());
-            }
-
-            if (changed) {
-                ctx.Renderer->IsDirty = true;
-            }
-        }
-
-        ImGui::Separator();
-        ImGui::Text("Culling (debug)");
-        ImGui::Checkbox("Frustum Culling", &RenderSystem::s_enableFrustumCulling);
-        ImGui::Checkbox("Room Culling", &RenderSystem::s_enableRoomCulling);
-        ImGui::SameLine();
-        ImGui::TextDisabled("(?)");
-        if (ImGui::IsItemHovered())
+        };
+        options.afterField = [&ctx](const char* key)
         {
-            ImGui::SetTooltip(
-                "Turn these off to check whether something disappearing/not rendering is\n"
-                "caused by culling or is unrelated to it. Takes effect immediately.");
-        }
+            if (strcmp(key, "EnableReferencePathTracer") != 0)
+            {
+                return;
+            }
+            if (!PathTracer::Instance().IsAvailable())
+            {
+                FieldWidgets::ComputedValue(u8"使えるか", u8"このGPUでは使えません", "");
+            }
+            else if (ctx.Renderer->EnableReferencePathTracer)
+            {
+                char samples[32] = {};
+                snprintf(samples, sizeof(samples), "%u", PathTracer::Instance().GetSampleCount());
+                FieldWidgets::ComputedValue(u8"足した枚数", samples, u8"(カメラを動かすと最初から)");
+            }
+        };
+        SettingsFieldUI::Draw(*ctx.Renderer, "Renderer", options);
+    }
+
+    ImGui::SeparatorText(u8"見え方の切り分け(デバッグ用)");
+    ImGui::Checkbox(u8"画面の外の物を描かない(視錐台カリング)", &RenderSystem::s_enableFrustumCulling);
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+    {
+        ImGui::SetTooltip(u8"切ると、物が消える・描かれない原因がカリングかどうかを確かめられる。すぐに効く。保存しない。");
+    }
+    ImGui::Checkbox(u8"見えない部屋の物を描かない(部屋のカリング)", &RenderSystem::s_enableRoomCulling);
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+    {
+        ImGui::SetTooltip(u8"切ると、物が消える・描かれない原因がカリングかどうかを確かめられる。すぐに効く。保存しない。");
+    }
 
 #ifdef _DEBUG
-        ImGui::Separator();
-        // このセッションで実際に動いているものの実測値。GraphicsDevice::Init()で
-        // 一度だけ決まる - 下のチェックボックスとは独立しているので、fpsから
-        // 推測する必要が無い。これがチェックボックスと食い違っている場合、
-        // チェックボックスは*次回*起動時に何が起こるかを表している(ツールチップ参照) -
-        // ライブには決して反映されない。
-        ImGui::Text("Debug Layer Active This Session: %s", GraphicsDevice::IsDebugLayerActive() ? "ON" : "OFF");
+    ImGui::SeparatorText(u8"D3D12のデバッグレイヤー");
+    // このセッションで実際に動いているものの実測値。GraphicsDevice::Init()で一度だけ決まり、
+    // 下のチェックボックスとは独立している。食い違っているときは、チェックボックスは次回の起動のときの値
+    ImGui::Text(u8"今の起動: %s", GraphicsDevice::IsDebugLayerActive() ? u8"使っている" : u8"使っていない");
 
-        static bool s_debugLayerRequested = GraphicsDevice::IsDebugLayerRequested();
-        bool debugLayerChanged = ImGui::Checkbox("D3D12 Debug Layer", &s_debugLayerRequested);
-        if (debugLayerChanged)
-        {
-            GraphicsDevice::SetDebugLayerRequested(s_debugLayerRequested);
-        }
-        ImGui::SameLine();
-        ImGui::TextDisabled("(?)");
-        if (ImGui::IsItemHovered())
-        {
-            ImGui::SetTooltip(
-                "The D3D12 debug layer can only be enabled/disabled before the device is\n"
-                "created, so it can't apply live - restart the app to pick up the change.\n"
-                "Turning it off gets Debug-build performance much closer to Release; turn it\n"
-                "back on when you actually need to catch a GPU-side bug.");
-        }
-
-        bool pendingChange = s_debugLayerRequested != GraphicsDevice::IsDebugLayerActive();
-        if (!pendingChange) ImGui::BeginDisabled();
-        if (ImGui::Button("Apply & Restart"))
-        {
-            RelaunchApplication();
-        }
-        if (!pendingChange) ImGui::EndDisabled();
-        if (pendingChange)
-        {
-            ImGui::SameLine();
-            ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.2f, 1.0f), "restart needed to apply");
-        }
-#endif
+    static bool s_debugLayerRequested = GraphicsDevice::IsDebugLayerRequested();
+    if (ImGui::Checkbox(u8"次の起動からデバッグレイヤーを使う", &s_debugLayerRequested))
+    {
+        GraphicsDevice::SetDebugLayerRequested(s_debugLayerRequested);
     }
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+    {
+        ImGui::SetTooltip(u8"デバッグレイヤーはデバイスを作る前にしか切り替えられないので、再起動で反映する。\n"
+            u8"切るとDebugビルドの速さがReleaseに近づく。GPU側の不具合を探すときだけ使う。");
+    }
+
+    const bool isPendingChange = s_debugLayerRequested != GraphicsDevice::IsDebugLayerActive();
+    ImGui::BeginDisabled(!isPendingChange);
+    if (ImGui::Button(u8"反映して再起動"))
+    {
+        RelaunchApplication();
+    }
+    ImGui::EndDisabled();
+    if (isPendingChange)
+    {
+        ImGui::SameLine();
+        ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.2f, 1.0f), u8"再起動すると反映される");
+    }
+#endif
 }

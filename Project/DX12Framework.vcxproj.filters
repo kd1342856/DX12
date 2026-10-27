@@ -343,6 +343,9 @@
     <Filter Include="Source\Graphics\Shader\ShaderSettingsIO">
       <UniqueIdentifier>{9A6AD988-36C7-4D43-8041-8AD2F5AF6FFE}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Framework\ImGuiEditor\Widgets">
+      <UniqueIdentifier>{1109AFA8-41C7-450D-89CA-842736FC379D}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Library\ImGui\imgui.cpp">
@@ -454,9 +457,6 @@
       <Filter>Source\Framework\ImGuiEditor\NavMeshEditor</Filter>
     </ClCompile>
     <ClCompile Include="Source\Framework\ImGuiEditor\Panels\DebugPanel.cpp">
-      <Filter>Source\Framework\ImGuiEditor\Panels</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Framework\ImGuiEditor\Panels\IBLPanel.cpp">
       <Filter>Source\Framework\ImGuiEditor\Panels</Filter>
     </ClCompile>
     <ClCompile Include="Source\Framework\ImGuiEditor\Panels\LightingPanel.cpp">
@@ -804,6 +804,12 @@
     <ClCompile Include="Source\Framework\ImGuiEditor\EditorPreferences.cpp">
       <Filter>Source\Framework\ImGuiEditor</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Framework\ImGuiEditor\Widgets\FieldWidgets.cpp">
+      <Filter>Source\Framework\ImGuiEditor\Widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Framework\ImGuiEditor\Panels\SSAOPanel.cpp">
+      <Filter>Source\Framework\ImGuiEditor\Panels</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Application\Object\Script\Player\Player.h">
@@ -957,9 +963,6 @@
       <Filter>Source\Framework\ImGuiEditor\NavMeshEditor</Filter>
     </ClInclude>
     <ClInclude Include="Source\Framework\ImGuiEditor\Panels\DebugPanel.h">
-      <Filter>Source\Framework\ImGuiEditor\Panels</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Framework\ImGuiEditor\Panels\IBLPanel.h">
       <Filter>Source\Framework\ImGuiEditor\Panels</Filter>
     </ClInclude>
     <ClInclude Include="Source\Framework\ImGuiEditor\Panels\LightingPanel.h">
@@ -1376,11 +1379,20 @@
     <ClInclude Include="Source\Framework\ImGuiEditor\Panels\ShaderSettingsPanel.h">
       <Filter>Source\Framework\ImGuiEditor\Panels</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Framework\ImGuiEditor\Panels\SettingsWidgets.h">
-      <Filter>Source\Framework\ImGuiEditor\Panels</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Framework\ImGuiEditor\EditorPreferences.h">
       <Filter>Source\Framework\ImGuiEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Graphics\Shader\SettingsField.h">
+      <Filter>Source\Graphics\Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\ImGuiEditor\Widgets\FieldWidgets.h">
+      <Filter>Source\Framework\ImGuiEditor\Widgets</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\ImGuiEditor\Widgets\SettingsFieldUI.h">
+      <Filter>Source\Framework\ImGuiEditor\Widgets</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\ImGuiEditor\Panels\SSAOPanel.h">
+      <Filter>Source\Framework\ImGuiEditor\Panels</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

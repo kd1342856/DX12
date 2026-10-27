@@ -1,41 +1,18 @@
 #include "FogPanel.h"
 #include "../EditorContext.h"
 #include "ImGui/imgui.h"
-#include "SettingsWidgets.h"
+#include "../Widgets/SettingsFieldUI.h"
 #include "../../../Graphics/Shader/ShaderManager/ShaderManager.h"
 
 void FogPanel::Draw(EditorContext& ctx)
 {
-    if (!ctx.Fog) return;
-
-    if (ImGui::CollapsingHeader("Fog Settings", ImGuiTreeNodeFlags_DefaultOpen))
+    if (!ctx.Fog)
     {
-        bool changed = false;
-
-        ImGui::Text("Distance Fog");
-        changed |= ImGui::Checkbox("Enable Fog", &ctx.Fog->EnableFog);
-        SettingsWidgets::DefaultMark(*ctx.Fog, ctx.Fog->EnableFog);
-        changed |= ImGui::ColorEdit3("Fog Color", &ctx.Fog->FogColor.x);
-        SettingsWidgets::DefaultMark(*ctx.Fog, ctx.Fog->FogColor);
-        changed |= ImGui::DragFloat("Density (Normal)", &ctx.Fog->FogDensity, 0.001f, 0.0f, 1.0f, "%.3f");
-        SettingsWidgets::DefaultMark(*ctx.Fog, ctx.Fog->FogDensity);
-        changed |= ImGui::DragFloat("Density (Hunt)", &ctx.Fog->HuntFogDensity, 0.001f, 0.0f, 1.0f, "%.3f");
-        SettingsWidgets::DefaultMark(*ctx.Fog, ctx.Fog->HuntFogDensity);
-
-        ImGui::Separator();
-        ImGui::Text("Hunt Screen Darkening");
-        changed |= ImGui::Checkbox("Enable Darkening", &ctx.Fog->EnableHuntDarken);
-        SettingsWidgets::DefaultMark(*ctx.Fog, ctx.Fog->EnableHuntDarken);
-        changed |= ImGui::SliderFloat("Darken Amount", &ctx.Fog->HuntDarkenAmount, 0.0f, 1.0f, "%.2f");
-        SettingsWidgets::DefaultMark(*ctx.Fog, ctx.Fog->HuntDarkenAmount);
-
-        ImGui::Separator();
-        changed |= ImGui::DragFloat("Hunt Transition Speed", &ctx.Fog->HuntTransitionSpeed, 0.01f, 0.01f, 10.0f, "%.2f");
-        SettingsWidgets::DefaultMark(*ctx.Fog, ctx.Fog->HuntTransitionSpeed);
-        ImGui::TextDisabled("(fraction/sec; 1.0 = full ramp in ~1s)");
-
-        ImGui::TextDisabled(ShaderManager::Instance().IsHuntFogActive() ? "State: Hunting" : "State: Normal");
-
-        if (changed) ctx.Fog->IsDirty = true;
+        return;
+    }
+    if (ImGui::CollapsingHeader(u8"霧とハントの演出###Fog Settings", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        ImGui::TextDisabled(ShaderManager::Instance().IsHuntFogActive() ? u8"今の状態: ハント中" : u8"今の状態: ふだん");
+        SettingsFieldUI::Draw(*ctx.Fog, "Fog");
     }
 }

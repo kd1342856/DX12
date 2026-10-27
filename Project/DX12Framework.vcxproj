@@ -212,7 +212,6 @@
     <ClInclude Include="Source\Framework\ImGuiEditor\IEditorPanel.h" />
     <ClInclude Include="Source\Framework\ImGuiEditor\NavMeshEditor\NavMeshEditor.h" />
     <ClInclude Include="Source\Framework\ImGuiEditor\Panels\DebugPanel.h" />
-    <ClInclude Include="Source\Framework\ImGuiEditor\Panels\IBLPanel.h" />
     <ClInclude Include="Source\Framework\ImGuiEditor\Panels\LightingPanel.h" />
     <ClInclude Include="Source\Framework\ImGuiEditor\Panels\MaterialPanel.h" />
     <ClInclude Include="Source\Framework\ImGuiEditor\Panels\PostProcessPanel.h" />
@@ -351,8 +350,11 @@
     <ClInclude Include="Source\Framework\ImGuiEditor\Panels\ShaderReloadPanel.h" />
     <ClInclude Include="Source\Graphics\Shader\ShaderSettingsIO\ShaderSettingsIO.h" />
     <ClInclude Include="Source\Framework\ImGuiEditor\Panels\ShaderSettingsPanel.h" />
-    <ClInclude Include="Source\Framework\ImGuiEditor\Panels\SettingsWidgets.h" />
     <ClInclude Include="Source\Framework\ImGuiEditor\EditorPreferences.h" />
+    <ClInclude Include="Source\Graphics\Shader\SettingsField.h" />
+    <ClInclude Include="Source\Framework\ImGuiEditor\Widgets\FieldWidgets.h" />
+    <ClInclude Include="Source\Framework\ImGuiEditor\Widgets\SettingsFieldUI.h" />
+    <ClInclude Include="Source\Framework\ImGuiEditor\Panels\SSAOPanel.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Library\ImGui\imgui.cpp" />
@@ -392,7 +394,6 @@
     <ClCompile Include="Source\Framework\ImGuiEditor\GameEditor\GameEditor.cpp" />
     <ClCompile Include="Source\Framework\ImGuiEditor\NavMeshEditor\NavMeshEditor.cpp" />
     <ClCompile Include="Source\Framework\ImGuiEditor\Panels\DebugPanel.cpp" />
-    <ClCompile Include="Source\Framework\ImGuiEditor\Panels\IBLPanel.cpp" />
     <ClCompile Include="Source\Framework\ImGuiEditor\Panels\LightingPanel.cpp" />
     <ClCompile Include="Source\Framework\ImGuiEditor\Panels\MaterialPanel.cpp" />
     <ClCompile Include="Source\Framework\ImGuiEditor\Panels\PostProcessPanel.cpp" />
@@ -513,6 +514,8 @@
     <ClCompile Include="Source\Graphics\Shader\ShaderSettingsIO\ShaderSettingsIO.cpp" />
     <ClCompile Include="Source\Framework\ImGuiEditor\Panels\ShaderSettingsPanel.cpp" />
     <ClCompile Include="Source\Framework\ImGuiEditor\EditorPreferences.cpp" />
+    <ClCompile Include="Source\Framework\ImGuiEditor\Widgets\FieldWidgets.cpp" />
+    <ClCompile Include="Source\Framework\ImGuiEditor\Panels\SSAOPanel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Asset\Shader\Common\ShaderCore.hlsli" />

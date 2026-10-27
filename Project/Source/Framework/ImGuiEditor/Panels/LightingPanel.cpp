@@ -1,47 +1,17 @@
 #include "LightingPanel.h"
 #include "../EditorContext.h"
 #include "ImGui/imgui.h"
-#include "SettingsWidgets.h"
-#include <cmath>
+#include "../Widgets/SettingsFieldUI.h"
 
 void LightingPanel::Draw(EditorContext& ctx)
 {
-    if (!ctx.Lighting) return;
-
-    if (ImGui::CollapsingHeader("Lighting Settings", ImGuiTreeNodeFlags_DefaultOpen))
+    if (!ctx.Lighting)
     {
-        bool changed = false;
-
-        ImGui::Text("Directional Light");
-        
-        changed |= ImGui::DragFloat3("Direction", &ctx.Lighting->DirectionalLightDir.x, 0.01f, -1.0f, 1.0f);
-        SettingsWidgets::DefaultMark(*ctx.Lighting, ctx.Lighting->DirectionalLightDir);
-        if (changed)
-        {
-            float length = std::sqrt(
-                ctx.Lighting->DirectionalLightDir.x * ctx.Lighting->DirectionalLightDir.x +
-                ctx.Lighting->DirectionalLightDir.y * ctx.Lighting->DirectionalLightDir.y +
-                ctx.Lighting->DirectionalLightDir.z * ctx.Lighting->DirectionalLightDir.z
-            );
-            if (length > 0.0001f) {
-                ctx.Lighting->DirectionalLightDir.x /= length;
-                ctx.Lighting->DirectionalLightDir.y /= length;
-                ctx.Lighting->DirectionalLightDir.z /= length;
-            }
-        }
-
-        changed |= ImGui::ColorEdit3("Tint", &ctx.Lighting->DirectionalLightColor.x);
-        SettingsWidgets::DefaultMark(*ctx.Lighting, ctx.Lighting->DirectionalLightColor);
-        changed |= ImGui::DragFloat("Temperature (K)", &ctx.Lighting->DirectionalLightTemperature, 10.0f, 0.0f, 12000.0f, "%.0f");
-        SettingsWidgets::DefaultMark(*ctx.Lighting, ctx.Lighting->DirectionalLightTemperature);
-        changed |= ImGui::DragFloat("Illuminance (lx)", &ctx.Lighting->DirectionalLightIntensity, 0.001f, 0.0f, 120000.0f, "%.3f");
-        SettingsWidgets::DefaultMark(*ctx.Lighting, ctx.Lighting->DirectionalLightIntensity);
-        changed |= ImGui::DragFloat("Sky Luminance (nit)", &ctx.Lighting->SkyLuminance, 0.001f, 0.0f, 10000.0f, "%.3f");
-        SettingsWidgets::DefaultMark(*ctx.Lighting, ctx.Lighting->SkyLuminance);
-
-        if (changed)
-        {
-            ctx.Lighting->IsDirty = true;
-        }
+        return;
+    }
+    if (ImGui::CollapsingHeader(u8"月の光と空###Lighting Settings", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        ImGui::TextDisabled(u8"拡散の環境光はDDGI、鏡面は反射プローブが求める。ここは月・空・家の外の光");
+        SettingsFieldUI::Draw(*ctx.Lighting, "Lighting");
     }
 }

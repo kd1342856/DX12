@@ -89,9 +89,13 @@ namespace
     nlohmann::json WriteGroup(TSettings& settings)
     {
         nlohmann::json group = nlohmann::json::object();
-        settings.VisitFields([&](const char* pName, auto& field)
+        settings.VisitFields([&](const FieldMeta& meta, auto& field)
         {
-            group[pName] = ToJson(field);
+            // 画質設定・オプション画面・開発用が決める値は保存しない(シーンを開いたときにプレイヤーの設定を上書きしないため)
+            if ((meta.flags & FieldFlags::kNotSaved) == 0)
+            {
+                group[meta.key] = ToJson(field);
+            }
         });
         return group;
     }
@@ -103,9 +107,13 @@ namespace
         {
             return;
         }
-        settings.VisitFields([&](const char* pName, auto& field)
+        settings.VisitFields([&](const FieldMeta& meta, auto& field)
         {
-            auto it = group.find(pName);
+            if ((meta.flags & FieldFlags::kNotSaved) != 0)
+            {
+                return;
+            }
+            auto it = group.find(meta.key);
             if (it != group.end())
             {
                 FromJson(*it, field);

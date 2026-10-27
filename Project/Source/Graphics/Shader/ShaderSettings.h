@@ -1,4 +1,5 @@
 #pragma once
+#include "SettingsField.h"
 
 enum class DebugView : int
 {
@@ -24,6 +25,12 @@ constexpr DebugViewItem DebugViewNames[] = {
     { DebugView::Emissive, "Emissive" }
 };
 
+//------------------------------------------------------------
+// 各設定のVisitFieldsは、値の定義の一覧(SettingsField.h)。
+// エディターの部品・保存・初期値に戻す・A/B比較・Undo/Redoはすべてこの一覧から作る。
+// visit(Field(キー, 表示名, 説明)..., メンバー) の順に並べたとおりにエディターに出る。
+//------------------------------------------------------------
+
 struct RendererSettings
 {
     bool IsDirty = true;
@@ -46,16 +53,36 @@ struct RendererSettings
     bool  EnableReferencePathTracer = false;
     int   PathTracerMaxBounces = 4; // 拡散の反射を繰り返す回数
 
-    // シーンのJSONとプリセットに保存する値。名前はJSONのキーになるので変えないこと。
-    // 画質設定(EnableSSR)・オプション画面(EnableRaytracedShadows)・開発用(EnableReferencePathTracer)が決める値は入れない
     template<typename TVisitor>
     void VisitFields(TVisitor&& visit)
     {
-        visit("SSRStepSize", SSRStepSize);
-        visit("SSROpaqueIntensity", SSROpaqueIntensity);
-        visit("EnableContactShadows", EnableContactShadows);
-        visit("ContactShadowLength", ContactShadowLength);
-        visit("PathTracerMaxBounces", PathTracerMaxBounces);
+        visit(Field("EnableSSR", u8"画面の反射(SSR)を使う",
+            u8"床やガラスに、画面に映っている物を映り込ませる。画質設定が決める値なので、シーンには保存しない。")
+            .Kind(FieldKind::Toggle).Section(u8"画面の反射(SSR)").NotSaved(), EnableSSR);
+        visit(Field("SSROpaqueIntensity", u8"床・タイルの映り込みの強さ",
+            u8"床やタイルなど不透明な面の映り込みの強さ。0で映り込まない。粗さ・金属度は見ない近似(非金属のF0=0.04)。")
+            .Range(0.0f, 2.0f).When("EnableSSR"), SSROpaqueIntensity);
+        visit(Field("SSRStepSize", u8"映り込みを探す刻み",
+            u8"映り込む物を画面の深度でたどるときの1歩の長さ。小さいほど細かく正確だが、遠くまで届かない。")
+            .Unit("m").Range(0.05f, 1.5f).When("EnableSSR").Advanced(), SSRStepSize);
+
+        visit(Field("EnableContactShadows", u8"接地の細かい影を足す",
+            u8"物が床に触れているところなど、シャドウマップでは拾えない小さな影を画面の深度から足す。")
+            .Kind(FieldKind::Toggle).Section(u8"接地の影"), EnableContactShadows);
+        visit(Field("ContactShadowLength", u8"接地の影をたどる長さ",
+            u8"光の方向へ深度をたどる長さ。長いほど大きな影まで拾うが、見当違いの影も出やすい。目安は0.1～0.3 m。")
+            .Unit("m").Range(0.02f, 1.0f).When("EnableContactShadows"), ContactShadowLength);
+
+        visit(Field("EnableRaytracedShadows", u8"影をレイトレースで調べる",
+            u8"スポット・点光源・月の影を、シャドウマップの代わりにレイで調べる(画質「高」以上)。反射は画質「最高」で自動で使う。\nオプション画面が決める値なので、シーンには保存しない。")
+            .Kind(FieldKind::Toggle).Section(u8"レイトレース").NotSaved(), EnableRaytracedShadows);
+
+        visit(Field("EnableReferencePathTracer", u8"パストレーサーの正解の絵を出す",
+            u8"拡散の反射を繰り返す正解の絵に置き換える(カメラを止めると足し続けてノイズが消える)。\nラスタライズの描画(DDGI・反射プローブ・影)と見比べる。鏡面・スキニングのモデル・半透明は写らない。開発用なので保存しない。")
+            .Kind(FieldKind::Toggle).Section(u8"パストレーサー(開発用)").NotSaved(), EnableReferencePathTracer);
+        visit(Field("PathTracerMaxBounces", u8"反射を繰り返す回数",
+            u8"光が拡散で跳ね返る回数。多いほど部屋の奥まで明るくなるが、1枚にかかる時間が延びる。")
+            .Kind(FieldKind::Integer).Unit(u8"回").Range(0.0f, 8.0f), PathTracerMaxBounces);
     }
 };
 
@@ -80,14 +107,32 @@ struct LightingSettings
     template<typename TVisitor>
     void VisitFields(TVisitor&& visit)
     {
-        visit("DirectionalLightDir", DirectionalLightDir);
-        visit("DirectionalLightColor", DirectionalLightColor);
-        visit("DirectionalLightTemperature", DirectionalLightTemperature);
-        visit("DirectionalLightIntensity", DirectionalLightIntensity);
-        visit("AmbientLight", AmbientLight);
-        visit("SkyLuminance", SkyLuminance);
-        visit("EnableIndoorMask", EnableIndoorMask);
-        visit("IndoorMargin", IndoorMargin);
+        visit(Field("DirectionalLightIntensity", u8"月の明るさ(照度)",
+            u8"月の光が真上から当たる面の明るさ。目安：新月の夜 0.001 lx、満月の夜 0.1～0.3 lx、薄曇りの昼 10000 lx。")
+            .Unit("lx").Range(0.001f, 100000.0f).Logarithmic().Section(u8"月の光"), DirectionalLightIntensity);
+        visit(Field("DirectionalLightTemperature", u8"月の光の色温度",
+            u8"光の色を色温度で決める。低いほど赤く、高いほど青い。目安：ロウソク 1900 K、電球 2700 K、月 4100 K、昼光 6500 K。0で使わない(色味だけ)。")
+            .Kind(FieldKind::Temperature).Unit("K").Range(1000.0f, 12000.0f), DirectionalLightTemperature);
+        visit(Field("DirectionalLightColor", u8"月の光の色味",
+            u8"色温度の色に掛ける色。白で色温度のまま。明るさは照度で決まるので、ここでは色合いだけを変える。")
+            .Kind(FieldKind::Color), DirectionalLightColor);
+        visit(Field("DirectionalLightDir", u8"月の光の向き",
+            u8"光が進む向き(XYZ)。Yが負で上から下へ照らす。長さは1にそろえる。")
+            .Kind(FieldKind::Direction).Range(-1.0f, 1.0f).Advanced(), DirectionalLightDir);
+
+        visit(Field("SkyLuminance", u8"空の明るさ",
+            u8"空(スカイスフィア)の明るさ。テクスチャの白(1.0)が何nitになるか。目安：月夜の空 0.01～0.1 nit。")
+            .Unit("nit").Range(0.001f, 10000.0f).Logarithmic().Section(u8"空と環境光"), SkyLuminance);
+        visit(Field("AmbientLight", u8"家の外の環境光",
+            u8"DDGIのボリューム(家)の外で使う、一様な空からの光の明るさ。拡散と鏡面の両方に使う。")
+            .Kind(FieldKind::ColorHDR).Unit("nit").Range(0.0f, 1000.0f), AmbientLight);
+
+        visit(Field("EnableIndoorMask", u8"部屋の中に月の光を入れない",
+            u8"RoomAreaの範囲の中には直射の月光が届かないものとして扱う(屋根のシャドウマップが届かないときの漏れを防ぐ)。間接光はDDGIが求める。")
+            .Kind(FieldKind::Toggle).Section(u8"部屋の中の判定"), EnableIndoorMask);
+        visit(Field("IndoorMargin", u8"部屋の範囲を広げる幅",
+            u8"RoomAreaの範囲をこの分だけ広げて判定する(境界の上の壁・床も部屋の中として扱うため)。")
+            .Unit("m").Range(0.0f, 2.0f).When("EnableIndoorMask").Advanced(), IndoorMargin);
     }
 };
 
@@ -101,9 +146,15 @@ struct ShadowSettings
     template<typename TVisitor>
     void VisitFields(TVisitor&& visit)
     {
-        visit("EnableShadows", EnableShadows);
-        visit("ShadowPower", ShadowPower);
-        visit("ShadowBias", ShadowBias);
+        visit(Field("EnableShadows", u8"月の影を落とす",
+            u8"月の光のシャドウマップを使う。切ると月の光は物を通り抜ける。")
+            .Kind(FieldKind::Toggle).Section(u8"月の影"), EnableShadows);
+        visit(Field("ShadowPower", u8"月の影の濃さ",
+            u8"影の効き方。1で影の中は月の光が届かない。1より大きいと影の縁が硬く暗くなり、0で影が消える。")
+            .Range(0.0f, 3.0f).When("EnableShadows"), ShadowPower);
+        visit(Field("ShadowBias", u8"影のずらし量",
+            u8"面が自分の影で縞になる(シャドウアクネ)のを防ぐずらし量。大きすぎると影が物から浮く。")
+            .Range(0.0f, 0.01f).When("EnableShadows").Advanced(), ShadowBias);
     }
 };
 
@@ -179,46 +230,134 @@ struct PostProcessSettings
     float GodRaysIntensity = 1.0f;
     int   GodRaysNumSamples = 48;
 
-    // オプション画面(BrightnessGamma・EnableTAA・EnableMotionBlur)と画質設定(BloomIterations)が決める値は入れない
+    // BrightnessGammaはオプション画面だけで変えるので、ここには並べない
     template<typename TVisitor>
     void VisitFields(TVisitor&& visit)
     {
-        visit("EnableHDR", EnableHDR);
-        visit("EV100", EV100);
-        visit("UseCameraSettings", UseCameraSettings);
-        visit("Aperture", Aperture);
-        visit("ShutterSpeed", ShutterSpeed);
-        visit("ISO", ISO);
-        visit("TAACurrentWeight", TAACurrentWeight);
-        visit("EnableAutoExposure", EnableAutoExposure);
-        visit("AutoExposureMinEV100", AutoExposureMinEV100);
-        visit("AutoExposureMaxEV100", AutoExposureMaxEV100);
-        visit("ExposureCompensation", ExposureCompensation);
-        visit("AutoExposureLowPercent", AutoExposureLowPercent);
-        visit("AutoExposureHighPercent", AutoExposureHighPercent);
-        visit("AutoExposureSpeedUp", AutoExposureSpeedUp);
-        visit("AutoExposureSpeedDown", AutoExposureSpeedDown);
-        visit("MotionBlurShutterAngle", MotionBlurShutterAngle);
-        visit("MotionBlurMaxPixels", MotionBlurMaxPixels);
-        visit("BloomThreshold", BloomThreshold);
-        visit("BloomIntensity", BloomIntensity);
-        visit("BloomRadius", BloomRadius);
-        visit("EnableVignette", EnableVignette);
-        visit("VignetteIntensity", VignetteIntensity);
-        visit("EnableFilmGrain", EnableFilmGrain);
-        visit("FilmGrainIntensity", FilmGrainIntensity);
-        visit("EnableChromaticAberration", EnableChromaticAberration);
-        visit("ChromaticAberrationIntensity", ChromaticAberrationIntensity);
-        visit("EnableDOF", EnableDOF);
-        visit("DOFFocusDistance", DOFFocusDistance);
-        visit("DOFFocusRange", DOFFocusRange);
-        visit("EnableGodRays", EnableGodRays);
-        visit("GodRaysDensity", GodRaysDensity);
-        visit("GodRaysDecay", GodRaysDecay);
-        visit("GodRaysWeight", GodRaysWeight);
-        visit("GodRaysExposure", GodRaysExposure);
-        visit("GodRaysIntensity", GodRaysIntensity);
-        visit("GodRaysNumSamples", GodRaysNumSamples);
+        visit(Field("UseCameraSettings", u8"カメラの設定から露出を決める",
+            u8"オンで、絞り・シャッター速度・ISO感度から露出(EV100)を求める。オフで、露出(EV100)を直接決める。")
+            .Kind(FieldKind::Toggle).Section(u8"露出"), UseCameraSettings);
+        visit(Field("EV100", u8"露出",
+            u8"小さいほど明るく写る(1段ごとに2倍)。目安：月夜の屋外 -2～0、暗い室内 2～4、明るい室内 6～8、晴れた昼 15。")
+            .Unit("EV100").Range(-6.0f, 16.0f).When("UseCameraSettings", false, true), EV100);
+        visit(Field("Aperture", u8"絞り(F値)",
+            u8"小さいほど明るく写る。1段(F1.4→F2)で光は半分。被写界深度(ぼけ)を使うときは、小さいほどぼける。")
+            .Kind(FieldKind::Aperture).Unit("F").Range(1.0f, 22.0f).When("UseCameraSettings", true, true), Aperture);
+        visit(Field("ShutterSpeed", u8"シャッター速度",
+            u8"長いほど明るく写る。モーションブラーのぼけの長さもこれで決まる。目安：1/30～1/60 秒。")
+            .Kind(FieldKind::Shutter).Unit(u8"秒").Range(1.0f / 4000.0f, 1.0f).Logarithmic().When("UseCameraSettings", true, true), ShutterSpeed);
+        visit(Field("ISO", u8"ISO感度",
+            u8"大きいほど明るく写る。フィルムグレインも感度に合わせて荒くなる。目安：暗い室内 1600～6400。")
+            .Range(50.0f, 102400.0f).Logarithmic().When("UseCameraSettings", true, true), ISO);
+        visit(Field("EnableHDR", u8"トーンマッピングする(ACES)",
+            u8"明るすぎるところを白く飛ばさず、映画のフィルムのように丸めて表示する。")
+            .Kind(FieldKind::Toggle).Advanced(), EnableHDR);
+
+        visit(Field("EnableAutoExposure", u8"自動露出を使う",
+            u8"オンで、画面の明るさから露出を決める(目が暗さに慣れるように、ゆっくり合わせる)。")
+            .Kind(FieldKind::Toggle).Section(u8"自動露出"), EnableAutoExposure);
+        visit(Field("ExposureCompensation", u8"露出の補正",
+            u8"自動露出が決めた明るさをずらす。+で明るく、1段で2倍。")
+            .Unit("EV").Range(-4.0f, 4.0f).When("EnableAutoExposure", true, true), ExposureCompensation);
+        visit(Field("AutoExposureMinEV100", u8"これより明るくしない",
+            u8"暗い場面でも、露出をこれより明るくはしない(EV100は小さいほど明るい)。夜の暗さを残すための下限。")
+            .Unit("EV100").Range(-10.0f, 16.0f).When("EnableAutoExposure", true, true), AutoExposureMinEV100);
+        visit(Field("AutoExposureMaxEV100", u8"これより暗くしない",
+            u8"明るい場面でも、露出をこれより暗くはしない。")
+            .Unit("EV100").Range(-10.0f, 16.0f).When("EnableAutoExposure", true, true), AutoExposureMaxEV100);
+        visit(Field("AutoExposureLowPercent", u8"平均に使う範囲(暗い側)",
+            u8"画面の画素を暗い方から並べ、この割合より暗い画素を明るさの平均から除く。真っ暗な影に露出が引っ張られないようにする。")
+            .Unit("%").Range(0.0f, 100.0f).When("EnableAutoExposure", true, true).Advanced(), AutoExposureLowPercent);
+        visit(Field("AutoExposureHighPercent", u8"平均に使う範囲(明るい側)",
+            u8"この割合より明るい画素を平均から除く。光源そのものに露出が引っ張られないようにする。")
+            .Unit("%").Range(0.0f, 100.0f).When("EnableAutoExposure", true, true).Advanced(), AutoExposureHighPercent);
+        visit(Field("AutoExposureSpeedUp", u8"明るさに慣れる速さ",
+            u8"明るい場面へ合わせる速さ。大きいほど早く合う。")
+            .Unit(u8"/秒").Range(0.1f, 10.0f).When("EnableAutoExposure", true, true).Advanced(), AutoExposureSpeedUp);
+        visit(Field("AutoExposureSpeedDown", u8"暗さに慣れる速さ",
+            u8"暗い場面へ合わせる速さ。目と同じく、暗さへの順応は遅めにする。")
+            .Unit(u8"/秒").Range(0.1f, 10.0f).When("EnableAutoExposure", true, true).Advanced(), AutoExposureSpeedDown);
+
+        visit(Field("EnableTAA", u8"TAAでギザギザを消す",
+            u8"前のフレームと混ぜて、輪郭のギザギザとちらつきを消す。オプション画面が決める値なので、シーンには保存しない。")
+            .Kind(FieldKind::Toggle).Section(u8"アンチエイリアス").NotSaved(), EnableTAA);
+        visit(Field("TAACurrentWeight", u8"今のフレームを混ぜる割合",
+            u8"小さいほど滑らかでちらつかないが、動いたときに残像が出やすい。")
+            .Range(0.03f, 0.5f).When("EnableTAA").Advanced(), TAACurrentWeight);
+
+        visit(Field("EnableMotionBlur", u8"モーションブラーを使う",
+            u8"動いた物やカメラの動きをぼかす。オプション画面が決める値なので、シーンには保存しない。")
+            .Kind(FieldKind::Toggle).Section(u8"モーションブラー").NotSaved(), EnableMotionBlur);
+        visit(Field("MotionBlurShutterAngle", u8"シャッター角",
+            u8"1フレームのうちシャッターが開いている割合(度)。360で1フレームの間ずっと開いている。カメラの設定を使うときはシャッター速度で決まる。")
+            .Unit(u8"度").Range(0.0f, 360.0f).When("UseCameraSettings", false, true), MotionBlurShutterAngle);
+        visit(Field("MotionBlurMaxPixels", u8"ぼけの長さの上限",
+            u8"ぼけを伸ばす長さの上限。速い動きで絵が崩れないようにする。")
+            .Unit("px").Range(4.0f, 128.0f).When("EnableMotionBlur").Advanced(), MotionBlurMaxPixels);
+
+        visit(Field("BloomIntensity", u8"光のにじみの強さ",
+            u8"明るいところからにじむ光(ブルーム)の強さ。0でにじまない。")
+            .Range(0.0f, 3.0f).Section(u8"光のにじみ(ブルーム)"), BloomIntensity);
+        visit(Field("BloomThreshold", u8"にじみ始める明るさ",
+            u8"これより明るいところだけがにじむ。下げるほど暗いところまでにじむ。")
+            .Range(0.0f, 5.0f), BloomThreshold);
+        visit(Field("BloomRadius", u8"にじみの広さ",
+            u8"1回のぼかしの半径。広げてはじめて「ふわっと広がる」見た目になる。強さだけ上げても変化が薄いときはここを上げる。")
+            .Unit("px").Range(1.0f, 24.0f).Advanced(), BloomRadius);
+        visit(Field("BloomIterations", u8"ぼかしを繰り返す回数",
+            u8"ぼかしを繰り返す回数。多いほど広く柔らかくにじむ。画質設定が決める値なので、シーンには保存しない。")
+            .Kind(FieldKind::Integer).Unit(u8"回").Range(1.0f, 8.0f).NotSaved().Advanced(), BloomIterations);
+
+        visit(Field("EnableVignette", u8"周辺を暗くする",
+            u8"レンズの自然な周辺減光(cos^4則)。画角から求める。")
+            .Kind(FieldKind::Toggle).Section(u8"レンズ"), EnableVignette);
+        visit(Field("VignetteIntensity", u8"周辺の暗さ",
+            u8"周辺減光の効き。1で物理どおり、0で無し。")
+            .Range(0.0f, 3.0f).When("EnableVignette"), VignetteIntensity);
+        visit(Field("EnableChromaticAberration", u8"色のにじみ(色収差)を出す",
+            u8"画面の端ほど、赤と青が少しずれてにじむ。")
+            .Kind(FieldKind::Toggle), EnableChromaticAberration);
+        visit(Field("ChromaticAberrationIntensity", u8"色のにじみの強さ",
+            u8"色収差のずれの大きさ。")
+            .Range(0.0f, 3.0f).When("EnableChromaticAberration"), ChromaticAberrationIntensity);
+        visit(Field("EnableFilmGrain", u8"フィルムの粒を出す",
+            u8"画面に細かい粒(ノイズ)を足す。ISO感度が高いほど荒くなる。")
+            .Kind(FieldKind::Toggle), EnableFilmGrain);
+        visit(Field("FilmGrainIntensity", u8"粒の強さ(ISO 800のとき)",
+            u8"ISO 800での粒の強さ。ISO感度の平方根に比例して強くなり、暗いところほど粒の量は小さい。")
+            .Range(0.0f, 0.3f).When("EnableFilmGrain"), FilmGrainIntensity);
+
+        visit(Field("EnableDOF", u8"ピントの外をぼかす(被写界深度)",
+            u8"ピントの合う距離から外れたところをぼかす。")
+            .Kind(FieldKind::Toggle).Section(u8"被写界深度"), EnableDOF);
+        visit(Field("DOFFocusDistance", u8"ピントの合う距離",
+            u8"カメラからこの距離にピントが合う。")
+            .Unit("m").Range(0.1f, 50.0f).When("EnableDOF"), DOFFocusDistance);
+        visit(Field("DOFFocusRange", u8"ピントの合う幅",
+            u8"ピントの合う距離の前後で、くっきり見える幅。")
+            .Unit("m").Range(0.1f, 30.0f).When("EnableDOF"), DOFFocusRange);
+
+        visit(Field("EnableGodRays", u8"光の筋(ゴッドレイ)を出す",
+            u8"月の方向からブルームの光を放射状に伸ばす近似。月がカメラの後ろにあるときは自動で消える。")
+            .Kind(FieldKind::Toggle).Section(u8"光の筋(ゴッドレイ)"), EnableGodRays);
+        visit(Field("GodRaysIntensity", u8"光の筋の強さ",
+            u8"光の筋の明るさ。")
+            .Range(0.0f, 3.0f).When("EnableGodRays"), GodRaysIntensity);
+        visit(Field("GodRaysDensity", u8"光の筋の長さ",
+            u8"光源から伸ばす長さの割合。")
+            .Range(0.1f, 1.5f).When("EnableGodRays").Advanced(), GodRaysDensity);
+        visit(Field("GodRaysDecay", u8"光の筋の減り方",
+            u8"光源から離れるほど弱くする割合。1に近いほど遠くまで届く。")
+            .Range(0.8f, 0.999f).When("EnableGodRays").Advanced(), GodRaysDecay);
+        visit(Field("GodRaysWeight", u8"光の筋の重み",
+            u8"1回のサンプルの重み。")
+            .Range(0.0f, 2.0f).When("EnableGodRays").Advanced(), GodRaysWeight);
+        visit(Field("GodRaysExposure", u8"光の筋の露出",
+            u8"最後に掛ける明るさの倍率。")
+            .Range(0.0f, 3.0f).When("EnableGodRays").Advanced(), GodRaysExposure);
+        visit(Field("GodRaysNumSamples", u8"光の筋のサンプル数",
+            u8"多いほど筋がなめらかになるが重くなる。")
+            .Kind(FieldKind::Integer).Range(8.0f, 96.0f).When("EnableGodRays").Advanced(), GodRaysNumSamples);
     }
 };
 
@@ -236,14 +375,24 @@ struct SSAOSettings
     float Power = 1.5f;
     float Intensity = 1.0f;
 
-    // EnableSSAOは画質設定が決めるので入れない
     template<typename TVisitor>
     void VisitFields(TVisitor&& visit)
     {
-        visit("Radius", Radius);
-        visit("Bias", Bias);
-        visit("Power", Power);
-        visit("Intensity", Intensity);
+        visit(Field("EnableSSAO", u8"すき間を暗くする(SSAO)",
+            u8"画面の深度から、物と物のすき間や角を暗くする(環境光にだけ効く)。スキニングのモデルと空は含まない。\n画質設定が決める値なので、シーンには保存しない。")
+            .Kind(FieldKind::Toggle).Section(u8"すき間の陰り(SSAO)").NotSaved(), EnableSSAO);
+        visit(Field("Intensity", u8"陰りの強さ",
+            u8"すき間を暗くする強さ。0で効かない。")
+            .Range(0.0f, 2.0f).When("EnableSSAO"), Intensity);
+        visit(Field("Radius", u8"陰りを探す半径",
+            u8"周りの物を探す半径。大きいほど広い範囲が暗くなる。")
+            .Unit("m").Range(0.05f, 3.0f).When("EnableSSAO"), Radius);
+        visit(Field("Power", u8"陰りのコントラスト",
+            u8"大きいほど暗いところがより暗く、くっきりする。")
+            .Range(0.2f, 4.0f).When("EnableSSAO").Advanced(), Power);
+        visit(Field("Bias", u8"陰りのずらし量",
+            u8"平らな面が自分で暗くなる(まだら)のを防ぐずらし量。")
+            .Range(0.0f, 0.3f).When("EnableSSAO").Advanced(), Bias);
     }
 };
 
@@ -276,16 +425,40 @@ struct FogSettings
     template<typename TVisitor>
     void VisitFields(TVisitor&& visit)
     {
-        visit("EnableFog", EnableFog);
-        visit("FogColor", FogColor);
-        visit("FogDensity", FogDensity);
-        visit("HuntFogDensity", HuntFogDensity);
-        visit("EnableHuntDarken", EnableHuntDarken);
-        visit("HuntDarkenAmount", HuntDarkenAmount);
-        visit("HuntTransitionSpeed", HuntTransitionSpeed);
-        visit("EnableVolumetricFog", EnableVolumetricFog);
-        visit("VolumetricFogAnisotropy", VolumetricFogAnisotropy);
-        visit("VolumetricFogFar", VolumetricFogFar);
-        visit("VolumetricFogHistoryWeight", VolumetricFogHistoryWeight);
+        visit(Field("EnableFog", u8"霧を出す",
+            u8"試合の始めから薄い霧を出し、幽霊がハントしている間は濃くする。")
+            .Kind(FieldKind::Toggle).Section(u8"霧"), EnableFog);
+        visit(Field("FogDensity", u8"霧の濃さ(ふだん)",
+            u8"1 mあたりに光が霧に遮られる割合(消散係数)。目安：薄いもや 0.01、濃い霧 0.1 以上。")
+            .Unit("1/m").Range(0.0005f, 1.0f).Logarithmic().When("EnableFog"), FogDensity);
+        visit(Field("HuntFogDensity", u8"霧の濃さ(ハント中)",
+            u8"幽霊がハントしている間の霧の濃さ。")
+            .Unit("1/m").Range(0.0005f, 1.0f).Logarithmic().When("EnableFog"), HuntFogDensity);
+        visit(Field("FogColor", u8"霧の色",
+            u8"霧が光を散らす割合(色)。ボリュメトリックフォグでは、霧の明るさはライト・影・DDGIの環境光から求まる。")
+            .Kind(FieldKind::Color).When("EnableFog"), FogColor);
+
+        visit(Field("EnableHuntDarken", u8"ハント中に画面を暗くする",
+            u8"幽霊がハントしている間、環境光と月の光を弱くする。")
+            .Kind(FieldKind::Toggle).Section(u8"ハントの演出"), EnableHuntDarken);
+        visit(Field("HuntDarkenAmount", u8"暗くする量",
+            u8"0で暗くしない、1でハントが最大のとき光が消える。")
+            .Range(0.0f, 1.0f).When("EnableHuntDarken"), HuntDarkenAmount);
+        visit(Field("HuntTransitionSpeed", u8"ハントへの切り替えの速さ",
+            u8"ふだんとハント中の間を移る速さ(1秒あたりの割合)。1でおよそ1秒。霧の濃さと暗さの両方に効く。")
+            .Unit(u8"/秒").Range(0.01f, 10.0f).Advanced(), HuntTransitionSpeed);
+
+        visit(Field("EnableVolumetricFog", u8"光の当たる霧(ボリュメトリック)",
+            u8"霧の中を光が通る様子を立体的に求める(ライトの光の筋や影が霧に見える)。")
+            .Kind(FieldKind::Toggle).Section(u8"ボリュメトリックフォグ").When("EnableFog"), EnableVolumetricFog);
+        visit(Field("VolumetricFogAnisotropy", u8"光の方向への散らばり",
+            u8"正で前方散乱(光の方を向くと霧が明るく光る)。0で全方向に同じ。")
+            .Range(-0.9f, 0.9f).When("EnableVolumetricFog").Advanced(), VolumetricFogAnisotropy);
+        visit(Field("VolumetricFogFar", u8"霧を求める奥行き",
+            u8"立体の霧を求める奥の端。家の大きさに合わせる。")
+            .Unit("m").Range(5.0f, 100.0f).When("EnableVolumetricFog").Advanced(), VolumetricFogFar);
+        visit(Field("VolumetricFogHistoryWeight", u8"前のフレームを残す割合",
+            u8"大きいほどちらつかないが、明るさの変化への追従が遅れる。")
+            .Range(0.0f, 0.98f).When("EnableVolumetricFog").Advanced(), VolumetricFogHistoryWeight);
     }
 };
