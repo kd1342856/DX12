@@ -49,7 +49,7 @@ public:
     void BeginFrame();
     // 動かないメッシュを1つ置く。BLASがまだ無ければ作る(1フレームに作る数には上限がある)
     void AddInstance(const Mesh& mesh, const Material& material, const Math::Matrix& world);
-    // スキニングのメッシュを1つ置く。ownerIdは持ち主(エンティティ)の番号。bonesはこのフレームの骨の行列で、Build()まで残っていること
+    // スキニングのメッシュを1つ置く。ownerIdは持ち主(エンティティ)の番号。bonesはこのフレームの骨の行列(中で写しを取る)
     void AddSkinnedInstance(uint32_t ownerId, const Mesh& mesh, const Material& material, const Math::Matrix& world, const std::vector<Math::Matrix>& bones);
     // BLASとTLASを作るコマンドを積む。描画(レイトレース)より前に呼ぶ
     void Build();
@@ -102,7 +102,7 @@ private:
     struct SkinJob
     {
         SkinnedGeometry* pGeometry = nullptr;
-        const std::vector<Math::Matrix>* pBones = nullptr;
+        std::vector<Math::Matrix> bones; // 呼び出し元の行列は一時オブジェクトのことがあるので写しを持つ
     };
 
     struct FrameResources

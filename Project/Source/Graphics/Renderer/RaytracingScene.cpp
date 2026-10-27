@@ -301,8 +301,8 @@ void RaytracingScene::AddSkinnedInstance(uint32_t ownerId, const Mesh& mesh, con
 
     SkinJob job;
     job.pGeometry = pGeometry;
-    job.pBones = &bones;
-    m_skinJobs.push_back(job);
+    job.bones = bones;
+    m_skinJobs.push_back(std::move(job));
 
     PendingBuild pending;
     pending.pBottomLevel = &pGeometry->bottomLevel;
@@ -355,10 +355,10 @@ void RaytracingScene::SkinVertices()
     for (const SkinJob& job : m_skinJobs)
     {
         CBufferData::Bones bones = {};
-        const size_t boneCount = (std::min)(job.pBones->size(), static_cast<size_t>(256));
+        const size_t boneCount = (std::min)(job.bones.size(), static_cast<size_t>(256));
         for (size_t i = 0; i < boneCount; ++i)
         {
-            bones.mBones[i] = (*job.pBones)[i];
+            bones.mBones[i] = job.bones[i];
         }
         SkinConstants constants = {};
         constants.sourceIndex = static_cast<uint32_t>(job.pGeometry->sourceSrvIndex);
