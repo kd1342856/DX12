@@ -50,6 +50,14 @@ public:
 	float GetExposure() const;
 	// 手動の露出のEV100(設定のEV100、またはカメラの絞り・シャッター速度・ISO感度から求めたもの)
 	float GetManualEV100() const;
+	// 表示ガンマ。エディターのカメラで描くときだけエディターの表示ガンマを掛け、プレイヤーの明るさ(BrightnessGamma)は掛けない。
+	// ゲームのカメラではその逆。GameScene::RenderFrameが描く前にどちらのカメラかを伝え、描き終えたらゲームに戻す
+	void SetEditorView(bool isEditorView) { m_isEditorView = isEditorView; ApplyDisplayGamma(); }
+	bool IsEditorView() const { return m_isEditorView; }
+	// エディターの表示ガンマ。暗い場面でもエディターで見えるように上げる(エディター側の設定に保存し、シーンには保存しない)
+	void SetEditorDisplayGamma(float gamma) { m_editorDisplayGamma = gamma; ApplyDisplayGamma(); }
+	float GetEditorDisplayGamma() const { return m_editorDisplayGamma; }
+
 	// 霧の濃さ(消散係数、1/m)。ハント中は濃くなる。ボリュメトリックフォグが使う
 	float GetFogExtinction() const { return m_fogExtinction; }
 
@@ -176,6 +184,7 @@ private:
 	void UpdatePostProcessCB();
 	void UpdateDebugCB();
 	void UpdateFogCB();
+	void ApplyDisplayGamma();
 
 	RendererSettings m_RendererSettings;
 	LightingSettings m_LightingSettings;
@@ -188,6 +197,9 @@ private:
 	CBufferData::System m_SystemData;
 	CBufferData::PostProcess m_PostProcessData;
 	CBufferData::Light m_LightData;
+
+	bool m_isEditorView = false;
+	float m_editorDisplayGamma = 2.0f;
 
 	int m_huntActiveCount = 0;
 	float m_fogExtinction = 0.0f;

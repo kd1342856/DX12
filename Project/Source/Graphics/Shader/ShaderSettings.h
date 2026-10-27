@@ -111,7 +111,8 @@ struct PostProcessSettings
 {
     bool IsDirty = true;
     bool EnableHDR = true;
-    float Gamma = 1.00f;
+    // プレイヤーの明るさ(オプション画面)。ゲームのカメラで描くときだけ掛ける。
+    // エディターのカメラには、代わりにエディターの表示ガンマ(ShaderManager::SetEditorDisplayGamma)を掛ける
     float BrightnessGamma = 1.00f;
 
     // 露出。EV100で持ち、ライトの値に前もって掛けてからシェーダーへ送る(前露出)。
@@ -183,7 +184,6 @@ struct PostProcessSettings
     void VisitFields(TVisitor&& visit)
     {
         visit("EnableHDR", EnableHDR);
-        visit("Gamma", Gamma);
         visit("EV100", EV100);
         visit("UseCameraSettings", UseCameraSettings);
         visit("Aperture", Aperture);

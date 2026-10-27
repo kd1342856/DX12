@@ -801,6 +801,9 @@
     <ClCompile Include="Source\Framework\ImGuiEditor\Panels\ShaderSettingsPanel.cpp">
       <Filter>Source\Framework\ImGuiEditor\Panels</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Framework\ImGuiEditor\EditorPreferences.cpp">
+      <Filter>Source\Framework\ImGuiEditor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Application\Object\Script\Player\Player.h">
@@ -1375,6 +1378,9 @@
     </ClInclude>
     <ClInclude Include="Source\Framework\ImGuiEditor\Panels\SettingsWidgets.h">
       <Filter>Source\Framework\ImGuiEditor\Panels</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\ImGuiEditor\EditorPreferences.h">
+      <Filter>Source\Framework\ImGuiEditor</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

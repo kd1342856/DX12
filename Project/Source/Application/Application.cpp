@@ -16,6 +16,7 @@
 #include "../Framework/System/AppPaths/AppPaths.h"
 #include "UI/OptionMenu.h"
 #include "../Framework/ImGuiEditor/Panels/ShaderReloadPanel.h"
+#include "../Framework/ImGuiEditor/EditorPreferences.h"
 
 // ImGui の Win32 メッセージハンドラへ転送する
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -78,6 +79,8 @@ void Application::Execute()
 	ShaderManager::Instance().Initialize(&GDF::Instance().GetGraphicsDevice());
 	// Asset/Shader の更新を監視し、保存したシェーダーをその場でコンパイルし直す
 	ShaderHotReload::Instance().Initialize(L"Asset/Shader");
+	// エディターの設定(表示ガンマなど)。シーンではなく人ごとの設定なのでSavedに置く
+	EditorPreferences::Load();
 	// オプション画面で保存した明るさ(表示ガンマ)。音量はAudioManager::Init()で読み込まれる
 	OptionMenu::LoadSettings();
 

@@ -254,13 +254,10 @@ void ShaderManager::UpdatePostProcessCB()
 	if (m_PostProcessSettings.IsDirty)
 	{
 		m_SystemData.EnableHDR = m_PostProcessSettings.EnableHDR ? 1 : 0;
-		m_SystemData.Gamma = m_PostProcessSettings.Gamma;
 
 		m_PostProcessData.EnableHDR = m_PostProcessSettings.EnableHDR ? 1 : 0;
 		// 露出はライトの値に前もって掛けてある(前露出)ので、ポストでは掛けない
 		m_PostProcessData.Exposure = 1.0f;
-		m_PostProcessData.Gamma = m_PostProcessSettings.Gamma;
-		m_PostProcessData.BrightnessGamma = m_PostProcessSettings.BrightnessGamma;
 		m_PostProcessData.BloomThreshold = m_PostProcessSettings.BloomThreshold;
 		m_PostProcessData.BloomIntensity = m_PostProcessSettings.BloomIntensity;
 		m_PostProcessData.BlurRadius = m_PostProcessSettings.BloomRadius;
@@ -287,6 +284,9 @@ void ShaderManager::UpdatePostProcessCB()
 		m_PostProcessSettings.IsDirty = false;
 	}
 
+	// オプション画面の明るさはIsDirtyを立てずに変わるので、毎フレーム掛け直す
+	ApplyDisplayGamma();
+
 	// フィルムグレインはISO感度に連動する(感度を上げるほど粒が荒れる。ISO 800で設定の強さ)。
 	// カメラの設定はIsDirtyを立てずに変わるので、毎フレーム求める
 	m_PostProcessData.FilmGrainIntensity = m_PostProcessSettings.EnableFilmGrain
@@ -301,6 +301,14 @@ void ShaderManager::UpdatePostProcessCB()
 
 	// フィルムグレインのアニメーション用に経過時間を毎フレーム進める(IsDirtyに関係なく)。
 	m_PostProcessData.Time += GameTimer::Instance().DeltaTime();
+}
+
+void ShaderManager::ApplyDisplayGamma()
+{
+	const float gamma = m_isEditorView ? m_editorDisplayGamma : 1.0f;
+	m_SystemData.Gamma = gamma;
+	m_PostProcessData.Gamma = gamma;
+	m_PostProcessData.BrightnessGamma = m_isEditorView ? 1.0f : m_PostProcessSettings.BrightnessGamma;
 }
 
 void ShaderManager::UpdateDebugCB()

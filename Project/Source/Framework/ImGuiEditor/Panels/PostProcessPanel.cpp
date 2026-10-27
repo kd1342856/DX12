@@ -2,6 +2,8 @@
 #include "../EditorContext.h"
 #include "ImGui/imgui.h"
 #include "SettingsWidgets.h"
+#include "../EditorPreferences.h"
+#include "../../../Graphics/Shader/ShaderManager/ShaderManager.h"
 #include "../../../Graphics/Shader/PhotometricUnits.h"
 #include "../../../Graphics/Renderer/TemporalAA.h"
 #include "../../../Graphics/Renderer/AutoExposure.h"
@@ -39,8 +41,23 @@ void PostProcessPanel::Draw(EditorContext& ctx)
                 ImGui::SliderFloat("EV100", &ctx.PostProcess->EV100, -6.0f, 16.0f, "%.2f");
                 SettingsWidgets::DefaultMark(*ctx.PostProcess, ctx.PostProcess->EV100);
             }
-            if (ImGui::SliderFloat("Gamma", &ctx.PostProcess->Gamma, 1.0f, 3.0f, "%.2f")) changed = true;
-            SettingsWidgets::DefaultMark(*ctx.PostProcess, ctx.PostProcess->Gamma);
+            {
+                // エディターのカメラだけに掛ける表示ガンマ。シーンには保存せず、エディターの設定に保存する
+                float displayGamma = ShaderManager::Instance().GetEditorDisplayGamma();
+                if (ImGui::SliderFloat(u8"エディターの表示ガンマ", &displayGamma, 1.0f, 3.0f, "%.2f"))
+                {
+                    ShaderManager::Instance().SetEditorDisplayGamma(displayGamma);
+                }
+                if (ImGui::IsItemDeactivatedAfterEdit())
+                {
+                    EditorPreferences::Save();
+                }
+                if (ImGui::IsItemHovered())
+                {
+                    ImGui::SetTooltip(u8"エディターのカメラで描くときだけ暗いところを持ち上げる。ゲームの画面には効かない\n"
+                        u8"(ゲームはオプション画面の明るさだけ)。シーンには保存せず、Saved/EditorSettings.json に保存する。");
+                }
+            }
 
             ImGui::Separator();
             ImGui::Text("Auto Exposure");

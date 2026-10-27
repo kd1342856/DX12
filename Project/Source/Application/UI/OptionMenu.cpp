@@ -364,7 +364,7 @@ void OptionMenu::DrawDisplayTab()
 void OptionMenu::DrawBrightnessPreview(float width)
 {
     const auto& pp = ShaderManager::Instance().GetPostProcessSettings();
-    // ゲーム画面の最終合成(PostProcessShader_PS)と同じ変換(リニア → sRGB → 見た目用のGamma → 明るさ)をCPUで再現し、
+    // ゲーム画面の最終合成(PostProcessShader_PS)と同じ変換(リニア → sRGB → 明るさ)をCPUで再現し、
     // 「この設定でゲーム内の暗がりがどう見えるか」をその場で確認できるようにする
     auto linearToSrgb = [](float v)
     {
@@ -377,7 +377,6 @@ void OptionMenu::DrawBrightnessPreview(float width)
     };
     auto toDisplay = [&](float linearValue) {
         float v = linearToSrgb(linearValue);
-        v = powf(v, 1.0f / pp.Gamma);
         return powf(std::clamp(v, 0.0f, 1.0f), 1.0f / (std::max)(pp.BrightnessGamma, 0.01f));
     };
     // 見本の明るさ(下のkLevels・kMaxLevel)は、明るさが初期値のときの画面上の値(sRGB)で決めている。

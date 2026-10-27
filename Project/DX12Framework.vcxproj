@@ -352,6 +352,7 @@
     <ClInclude Include="Source\Graphics\Shader\ShaderSettingsIO\ShaderSettingsIO.h" />
     <ClInclude Include="Source\Framework\ImGuiEditor\Panels\ShaderSettingsPanel.h" />
     <ClInclude Include="Source\Framework\ImGuiEditor\Panels\SettingsWidgets.h" />
+    <ClInclude Include="Source\Framework\ImGuiEditor\EditorPreferences.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Library\ImGui\imgui.cpp" />
@@ -511,6 +512,7 @@
     <ClCompile Include="Source\Framework\ImGuiEditor\Panels\ShaderReloadPanel.cpp" />
     <ClCompile Include="Source\Graphics\Shader\ShaderSettingsIO\ShaderSettingsIO.cpp" />
     <ClCompile Include="Source\Framework\ImGuiEditor\Panels\ShaderSettingsPanel.cpp" />
+    <ClCompile Include="Source\Framework\ImGuiEditor\EditorPreferences.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Asset\Shader\Common\ShaderCore.hlsli" />

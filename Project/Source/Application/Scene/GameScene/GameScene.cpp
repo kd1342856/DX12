@@ -643,6 +643,9 @@ void GameScene::RenderFrame(Entity cameraEntity, bool isEditor)
     const bool hasCamera = (cameraEntity != INVALID_ENTITY);
     using Profiling = RenderGraph::Profiling;
 
+    // エディターのカメラはエディターの表示ガンマ、ゲームのカメラはプレイヤーの明るさで仕上げる(描き終えたらゲームに戻す)
+    ShaderManager::Instance().SetEditorView(isEditor);
+
     // ゲームでカメラがまだ無いとき(読み込み中など)は、画面を黒にするだけ
     if (!hasCamera && !isEditor)
     {
@@ -731,6 +734,7 @@ void GameScene::RenderFrame(Entity cameraEntity, bool isEditor)
     graph.AddPass("Sprite", [spriteRenderSystem]() { spriteRenderSystem->Render(); });
 
     graph.Execute();
+    ShaderManager::Instance().SetEditorView(false);
 }
 
 void GameScene::BeginTemporalFrame(Entity cameraEntity)
