@@ -16,6 +16,7 @@
 #include "../Panels/PinnedPanel.h"
 #include "../Panels/MeasurePanel.h"
 #include "../Panels/BufferViewPanel.h"
+#include "../Panels/DisplayPanel.h"
 
 class ShaderEditor
 {

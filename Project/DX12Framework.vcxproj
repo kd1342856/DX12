@@ -367,6 +367,7 @@
     <ClInclude Include="Source\Graphics\Renderer\BufferViewer.h" />
     <ClInclude Include="Source\Graphics\Renderer\MaterialPreview.h" />
     <ClInclude Include="Source\Framework\ImGuiEditor\Panels\BufferViewPanel.h" />
+    <ClInclude Include="Source\Framework\ImGuiEditor\Panels\DisplayPanel.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Library\ImGui\imgui.cpp" />
@@ -540,6 +541,7 @@
     <ClCompile Include="Source\Graphics\Renderer\BufferViewer.cpp" />
     <ClCompile Include="Source\Graphics\Renderer\MaterialPreview.cpp" />
     <ClCompile Include="Source\Framework\ImGuiEditor\Panels\BufferViewPanel.cpp" />
+    <ClCompile Include="Source\Framework\ImGuiEditor\Panels\DisplayPanel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Asset\Shader\Common\ShaderCore.hlsli" />

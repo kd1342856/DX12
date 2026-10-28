@@ -10,6 +10,8 @@ void ShaderEditor::Initialize()
     m_Panels.push_back(std::make_unique<ShaderSettingsPanel>());
     // よく使う値は、設定のパネルの前に置く
     m_Panels.push_back(std::make_unique<PinnedPanel>());
+    // 解像度・画質・fpsの上限(重さを確かめるときに使う)
+    m_Panels.push_back(std::make_unique<DisplayPanel>());
     m_Panels.push_back(std::make_unique<RendererPanel>());
     m_Panels.push_back(std::make_unique<LightingPanel>());
     m_Panels.push_back(std::make_unique<ShadowPanel>());

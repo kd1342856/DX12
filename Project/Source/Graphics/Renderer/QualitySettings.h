@@ -49,8 +49,17 @@ public:
     // ウィンドウ解像度から描画解像度を求める
     static int ToRenderSize(UINT windowSize);
 
+    // 描画解像度の倍率。エディターで上書きしていればその値、していなければ画質のプリセットの値
+    static float GetRenderScale() { return (s_renderScaleOverride > 0.0f) ? s_renderScaleOverride : GetCurrent().renderScale; }
+    // 描画解像度の倍率をエディターから上書きする(0でプリセットの値に戻す)。保存はしない(開発用)。次のフレームの先頭で反映される
+    static void RequestRenderScaleOverride(float scale);
+    static float GetRenderScaleOverride() { return s_renderScaleOverride; }
+
 private:
     static inline QualityLevel s_level = QualityLevel::High;
     static inline QualityLevel s_requestedLevel = QualityLevel::High;
     static inline bool s_isRequested = false;
+    static inline float s_renderScaleOverride = 0.0f;
+    static inline float s_requestedRenderScaleOverride = 0.0f;
+    static inline bool s_isRenderScaleRequested = false;
 };

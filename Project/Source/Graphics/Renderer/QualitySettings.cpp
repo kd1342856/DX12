@@ -26,14 +26,33 @@ void QualitySettings::Request(QualityLevel level)
 
 int QualitySettings::ToRenderSize(UINT windowSize)
 {
-    return (std::max)(1, static_cast<int>(static_cast<float>(windowSize) * GetCurrent().renderScale + 0.5f));
+    return (std::max)(1, static_cast<int>(static_cast<float>(windowSize) * GetRenderScale() + 0.5f));
+}
+
+void QualitySettings::RequestRenderScaleOverride(float scale)
+{
+    s_requestedRenderScaleOverride = (std::max)(scale, 0.0f);
+    s_isRenderScaleRequested = true;
 }
 
 bool QualitySettings::ApplyPending()
 {
+    // 描画解像度の倍率だけが変わったときは、画面の大きさのRTを作り直すだけ(呼び出し側で行う)
+    bool isRenderScaleChanged = false;
+    if (s_isRenderScaleRequested)
+    {
+        s_isRenderScaleRequested = false;
+        isRenderScaleChanged = (s_renderScaleOverride != s_requestedRenderScaleOverride);
+        s_renderScaleOverride = s_requestedRenderScaleOverride;
+        if (isRenderScaleChanged)
+        {
+            // GPUが古いRTを使い終わるまで待つ
+            GraphicsDevice::Instance().GetQueueManager()->GetGraphicsQueue()->Flush();
+        }
+    }
     if (!s_isRequested)
     {
-        return false;
+        return isRenderScaleChanged;
     }
     s_isRequested = false;
     s_level = s_requestedLevel;

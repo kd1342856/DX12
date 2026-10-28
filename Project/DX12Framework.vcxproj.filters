@@ -849,6 +849,9 @@
     <ClCompile Include="Source\Framework\ImGuiEditor\Panels\BufferViewPanel.cpp">
       <Filter>Source\Framework\ImGuiEditor\Panels</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Framework\ImGuiEditor\Panels\DisplayPanel.cpp">
+      <Filter>Source\Framework\ImGuiEditor\Panels</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Application\Object\Script\Player\Player.h">
@@ -1467,6 +1470,9 @@
       <Filter>Source\Graphics\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="Source\Framework\ImGuiEditor\Panels\BufferViewPanel.h">
+      <Filter>Source\Framework\ImGuiEditor\Panels</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\ImGuiEditor\Panels\DisplayPanel.h">
       <Filter>Source\Framework\ImGuiEditor\Panels</Filter>
     </ClInclude>
   </ItemGroup>
