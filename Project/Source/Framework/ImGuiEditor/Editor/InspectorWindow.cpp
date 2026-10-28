@@ -22,6 +22,105 @@ namespace
         });
         return target;
     }
+
+    nlohmann::json ToJson(const Math::Vector3& value)
+    {
+        return nlohmann::json::array({ value.x, value.y, value.z });
+    }
+
+    bool FromJson(const nlohmann::json& json, Math::Vector3& outValue)
+    {
+        if (!json.is_array() || json.size() != 3 || !json[0].is_number() || !json[1].is_number() || !json[2].is_number())
+        {
+            return false;
+        }
+        outValue = { json[0].get<float>(), json[1].get<float>(), json[2].get<float>() };
+        return true;
+    }
+
+    // 回転はラジアンで持つが、Undoの知らせで読めるよう度で記録する
+    Math::Vector3 ToDegrees(const Math::Vector3& radians)
+    {
+        return { DirectX::XMConvertToDegrees(radians.x), DirectX::XMConvertToDegrees(radians.y), DirectX::XMConvertToDegrees(radians.z) };
+    }
+
+    Math::Vector3 ToRadians(const Math::Vector3& degrees)
+    {
+        return { DirectX::XMConvertToRadians(degrees.x), DirectX::XMConvertToRadians(degrees.y), DirectX::XMConvertToRadians(degrees.z) };
+    }
+
+    // トランスフォームを、Undo/Redoで値を書き戻せる対象として登録する(「Transform#エンティティの番号」)
+    std::string RegisterTransformTarget(Entity entity)
+    {
+        const std::string target = "Transform#" + std::to_string(entity);
+        EditHistory::Instance().RegisterTarget(target, [entity](const std::string& fieldKey, const nlohmann::json& value)
+        {
+            auto* pTransform = GameManager::Instance().GetECS().TryGetComponent<TransformData>(entity);
+            Math::Vector3 vector;
+            if (!pTransform || !FromJson(value, vector))
+            {
+                return false;
+            }
+            if (fieldKey == "position")
+            {
+                pTransform->m_position = vector;
+            }
+            else if (fieldKey == "rotation")
+            {
+                pTransform->m_rotation = ToRadians(vector);
+            }
+            else if (fieldKey == "scale")
+            {
+                pTransform->m_scale = vector;
+            }
+            else
+            {
+                return false;
+            }
+            return true;
+        });
+        return target;
+    }
+
+    // 名前を、Undo/Redoで値を書き戻せる対象として登録する(「Name#エンティティの番号」)。物が消えていたら戻さない
+    std::string RegisterNameTarget(const std::shared_ptr<GameObject>& spObject)
+    {
+        const std::string target = "Name#" + std::to_string(spObject->GetEntityID());
+        std::weak_ptr<GameObject> wpObject = spObject;
+        EditHistory::Instance().RegisterTarget(target, [wpObject](const std::string& fieldKey, const nlohmann::json& value)
+        {
+            const std::shared_ptr<GameObject> spTarget = wpObject.lock();
+            if (!spTarget || fieldKey != "name" || !value.is_string())
+            {
+                return false;
+            }
+            spTarget->SetName(value.get<std::string>());
+            return true;
+        });
+        return target;
+    }
+
+    // 直前に描いた部品の操作を、Undoの1回として記録する。操作の開始で変更前(before: 部品を描く前の値)を控え、
+    // 操作を終えて値が変わっていたら積む(ドラッグの途中はフレームごとに積まない)
+    void RecordItemEdit(const std::string& target, const char* pKey, const char* pLabel, const nlohmann::json& before, const nlohmann::json& after)
+    {
+        static std::unordered_map<std::string, nlohmann::json> s_pendingBefore;
+        const std::string pendingKey = target + "/" + pKey;
+        if (ImGui::IsItemActivated())
+        {
+            s_pendingBefore[pendingKey] = before;
+        }
+        if (ImGui::IsItemDeactivatedAfterEdit())
+        {
+            const auto it = s_pendingBefore.find(pendingKey);
+            const nlohmann::json committedBefore = (it != s_pendingBefore.end()) ? it->second : before;
+            if (it != s_pendingBefore.end())
+            {
+                s_pendingBefore.erase(it);
+            }
+            EditHistory::Instance().PushChange({ target, pKey, pLabel, committedBefore, after });
+        }
+    }
 }
 
 // Resolve the GetCurrentScene issue
@@ -65,12 +164,14 @@ void Editor::DrawInspector() {
     ImGui::Begin("Inspector");
     if (s_selectedObject) 
     {
-        // Name Edit
+        // Name Edit(入力を終えたときにUndoの1回として記録する)
         char nameBuffer[256];
         strcpy_s(nameBuffer, s_selectedObject->GetName().c_str());
+        const std::string nameBefore = s_selectedObject->GetName();
         if (ImGui::InputText(u8"名前", nameBuffer, 256)) {
             s_selectedObject->SetName(nameBuffer);
         }
+        RecordItemEdit(RegisterNameTarget(s_selectedObject), "name", u8"名前", nameBefore, s_selectedObject->GetName());
 
         ImGui::SameLine();
         if (ImGui::Button(u8"削除")) {
@@ -118,18 +219,22 @@ void Editor::DrawInspector() {
             if (auto* pTrans = ecs.TryGetComponent<TransformData>(entity)) {
                 if (ImGui::CollapsingHeader(u8"トランスフォーム", ImGuiTreeNodeFlags_DefaultOpen)) {
                     auto& t = *pTrans;
+                    // どの値も、操作を終えたときにUndoの1回として記録する(シェーダーエディターと同じ履歴)
+                    const std::string transformTarget = RegisterTransformTarget(entity);
+                    const nlohmann::json positionBefore = ToJson(t.m_position);
                     ImGui::DragFloat3(u8"位置", &t.m_position.x, 0.1f);
-                    
-                    Math::Vector3 rotDeg = t.m_rotation;
-                    rotDeg.x = DirectX::XMConvertToDegrees(rotDeg.x);
-                    rotDeg.y = DirectX::XMConvertToDegrees(rotDeg.y);
-                    rotDeg.z = DirectX::XMConvertToDegrees(rotDeg.z);
+                    RecordItemEdit(transformTarget, "position", u8"位置", positionBefore, ToJson(t.m_position));
+
+                    Math::Vector3 rotDeg = ToDegrees(t.m_rotation);
+                    const nlohmann::json rotationBefore = ToJson(rotDeg);
                     if (ImGui::DragFloat3(u8"回転 (度)", &rotDeg.x, 0.5f)) {
-                        t.m_rotation.x = DirectX::XMConvertToRadians(rotDeg.x);
-                        t.m_rotation.y = DirectX::XMConvertToRadians(rotDeg.y);
-                        t.m_rotation.z = DirectX::XMConvertToRadians(rotDeg.z);
+                        t.m_rotation = ToRadians(rotDeg);
                     }
+                    RecordItemEdit(transformTarget, "rotation", u8"回転", rotationBefore, ToJson(rotDeg));
+
+                    const nlohmann::json scaleBefore = ToJson(t.m_scale);
                     ImGui::DragFloat3(u8"拡大率", &t.m_scale.x, 0.1f);
+                    RecordItemEdit(transformTarget, "scale", u8"拡大率", scaleBefore, ToJson(t.m_scale));
                 }
             }
 
