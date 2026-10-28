@@ -328,6 +328,9 @@
     <ClInclude Include="Source\Graphics\Shadow\LocalShadowManager.h" />
     <ClInclude Include="Source\Graphics\GPUResource\FrameConstantBufferAllocator\FrameConstantBufferAllocator.h" />
     <ClInclude Include="Source\Graphics\GPUResource\Material\Material.h" />
+    <ClInclude Include="Source\Graphics\GPUResource\Material\MaterialOverride.h" />
+    <ClInclude Include="Source\Framework\Manager\Asset\AssetMeta.h" />
+    <ClInclude Include="Source\Framework\Manager\Asset\ModelMeta.h" />
     <ClInclude Include="Source\Graphics\GPUResource\RenderTarget\RenderTarget.h" />
     <ClInclude Include="Source\Graphics\GPUResource\Texture\Texture.h" />
     <ClInclude Include="Source\Graphics\GPUResource\GPUResource.h" />
@@ -501,6 +504,9 @@
     <ClCompile Include="Source\Graphics\Shadow\LocalShadowManager.cpp" />
     <ClCompile Include="Source\Graphics\GPUResource\FrameConstantBufferAllocator\FrameConstantBufferAllocator.cpp" />
     <ClCompile Include="Source\Graphics\GPUResource\Material\Material.cpp" />
+    <ClCompile Include="Source\Graphics\GPUResource\Material\MaterialOverride.cpp" />
+    <ClCompile Include="Source\Framework\Manager\Asset\AssetMeta.cpp" />
+    <ClCompile Include="Source\Framework\Manager\Asset\ModelMeta.cpp" />
     <ClCompile Include="Source\Graphics\GPUResource\RenderTarget\RenderTarget.cpp" />
     <ClCompile Include="Source\Graphics\GPUResource\Texture\Texture.cpp" />
     <ClCompile Include="Source\Graphics\GPUUploadQueue\GPUUploadQueue.cpp" />

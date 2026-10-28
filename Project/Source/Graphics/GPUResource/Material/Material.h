@@ -60,6 +60,11 @@ public:
 
 	MaterialConstants Constants;
 
+	// 元のglTFのマテリアルの番号。メッシュごとに写したマテリアルから、同じglTFのマテリアルを探すのに使う(-1は不明)
+	int SourceIndex = -1;
+	// glTFから読んだままの値。モデルの.metaの上書き(MaterialOverride)を外したときはこの値に戻る
+	MaterialConstants ImportedConstants;
+
 	// (Optional) Shader Handle for future pipeline state caching
 	// AssetHandle<Shader> ShaderHandle;
 

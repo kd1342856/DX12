@@ -744,6 +744,15 @@
     <ClCompile Include="Source\Graphics\GPUResource\Material\Material.cpp">
       <Filter>Source\Graphics\GPUResource\Material</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Graphics\GPUResource\Material\MaterialOverride.cpp">
+      <Filter>Source\Graphics\GPUResource\Material</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Framework\Manager\Asset\AssetMeta.cpp">
+      <Filter>Source\Framework\Manager\Asset</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Framework\Manager\Asset\ModelMeta.cpp">
+      <Filter>Source\Framework\Manager\Asset</Filter>
+    </ClCompile>
     <ClCompile Include="Source\Graphics\GPUResource\RenderTarget\RenderTarget.cpp">
       <Filter>Source\Graphics\GPUResource\RenderTarget</Filter>
     </ClCompile>
@@ -1339,6 +1348,15 @@
     </ClInclude>
     <ClInclude Include="Source\Graphics\GPUResource\Material\Material.h">
       <Filter>Source\Graphics\GPUResource\Material</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Graphics\GPUResource\Material\MaterialOverride.h">
+      <Filter>Source\Graphics\GPUResource\Material</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\Manager\Asset\AssetMeta.h">
+      <Filter>Source\Framework\Manager\Asset</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\Manager\Asset\ModelMeta.h">
+      <Filter>Source\Framework\Manager\Asset</Filter>
     </ClInclude>
     <ClInclude Include="Source\Graphics\GPUResource\RenderTarget\RenderTarget.h">
       <Filter>Source\Graphics\GPUResource\RenderTarget</Filter>

@@ -37,6 +37,11 @@ void EditHistory::RegisterTarget(const std::string& targetKey, ApplyFunction app
 std::string EditHistory::FormatJson(const nlohmann::json& value)
 {
     char buffer[64] = {};
+    // 上書きを外した値(モデルの.metaのマテリアル)
+    if (value.is_null())
+    {
+        return u8"初期値";
+    }
     if (value.is_boolean())
     {
         return value.get<bool>() ? u8"オン" : u8"オフ";

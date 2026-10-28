@@ -16,6 +16,8 @@ namespace
     const ImU32 kHighlightColor = IM_COL32(240, 160, 75, 70);
 
     bool s_isNextRowHighlighted = false;
+    // 次の1行の「変えた印」を呼び出し側が決めるとき(-1は値と初期値の比較で決める)
+    int s_nextModifiedState = -1;
     const std::function<void()>* s_pContextMenuExtension = nullptr;
 
     // カメラと同じ段
@@ -375,9 +377,11 @@ namespace
 
     // 1行を描く。左の列に表示名と印、右の列に部品。説明の吹き出しと「初期値に戻す」は共通
     template<typename TDrawControl, typename TReset>
-    FieldWidgets::EditResult DrawRow(const FieldMeta& meta, bool isModified, bool isOutOfRange, const std::string& defaultText,
+    FieldWidgets::EditResult DrawRow(const FieldMeta& meta, bool isValueModified, bool isOutOfRange, const std::string& defaultText,
         TDrawControl&& drawControl, TReset&& resetToDefault)
     {
+        const bool isModified = (s_nextModifiedState >= 0) ? (s_nextModifiedState != 0) : isValueModified;
+        s_nextModifiedState = -1;
         ImGui::PushID(meta.key);
         ImGui::TableNextRow();
         if (s_isNextRowHighlighted)
@@ -470,6 +474,11 @@ ImU32 FieldWidgets::GetModifiedColor()
 void FieldWidgets::SetNextRowHighlight(bool isHighlighted)
 {
     s_isNextRowHighlighted = isHighlighted;
+}
+
+void FieldWidgets::SetNextModified(bool isModified)
+{
+    s_nextModifiedState = isModified ? 1 : 0;
 }
 
 void FieldWidgets::SetContextMenuExtension(const std::function<void()>* pExtension)

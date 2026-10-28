@@ -12,6 +12,7 @@
 #include "../../../Graphics/Geometry/Model/Model.h"
 #include "AssetManager.h"
 #include "MaterialManager.h"
+#include "ModelMeta.h"
 
 inline Math::Matrix ConvertMatrix(const aiMatrix4x4& m)
 {
@@ -50,6 +51,18 @@ bool GltfImporter::ImportModel(const std::string& filepath, const LoadModelOptio
 	context.modelPath = filepath;
 	context.rootDirectory = std::filesystem::path(filepath).parent_path();
 	context.pScene = pScene;
+
+	// モデルの.meta(エディターで変えたマテリアルの値)を読み、glTFのマテリアルの名前と番号に結び付けておく
+	std::vector<std::string> materialNames(pScene->mNumMaterials);
+	for (unsigned int materialIndex = 0; materialIndex < pScene->mNumMaterials; ++materialIndex)
+	{
+		aiString materialName;
+		if (pScene->mMaterials[materialIndex]->Get(AI_MATKEY_NAME, materialName) == AI_SUCCESS)
+		{
+			materialNames[materialIndex] = materialName.C_Str();
+		}
+	}
+	ModelMetaManager::Instance().LoadForModel(context.modelPath.string(), materialNames);
 
 	ProcessNode(pScene->mRootNode, pScene, -1, pOutModelData, context, option);
 
@@ -316,6 +329,13 @@ static AssetHandle<Mesh> ParseMesh(const aiScene* pScene, const aiMesh* pMesh, c
 	// Material
 	AssetHandle<Material> matHandle = ParseMaterial(pMaterial, context);
 	meshData.materialHandle = matHandle;
+	// glTFの値を控えてから、モデルの.metaの上書きを掛ける(メッシュはこの後のCreateMeshでマテリアルを写す)
+	if (Material* pCreatedMaterial = MaterialManager::Instance().Get(matHandle))
+	{
+		pCreatedMaterial->SourceIndex = static_cast<int>(pMesh->mMaterialIndex);
+		pCreatedMaterial->ImportedConstants = pCreatedMaterial->Constants;
+		ModelMetaManager::Instance().GetOverride(context.modelPath.string(), pCreatedMaterial->SourceIndex).ApplyTo(*pCreatedMaterial);
+	}
 
 	return MeshManager::Instance().CreateMesh(meshData);
 }

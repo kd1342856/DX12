@@ -4,6 +4,7 @@
 #include "../Window/Window.h"
 #include "../../Graphics/Shader/ShaderManager/ShaderManager.h"
 #include "../../Graphics/Shader/ShaderSettingsIO/ShaderSettingsIO.h"
+#include "../Manager/Asset/ModelMeta.h"
 
 namespace
 {
@@ -41,7 +42,7 @@ void UnsavedChanges::Initialize(HWND hWnd)
 
 void UnsavedChanges::Confirm(const std::string& what, std::function<void()> action)
 {
-    if (ShaderSettingsIO::CountUnsavedChanges() == 0)
+    if (ShaderSettingsIO::CountUnsavedChanges() == 0 && ModelMetaManager::Instance().CountDirtyModels() == 0)
     {
         action();
         return;
@@ -64,9 +65,18 @@ void UnsavedChanges::Update()
     {
         return;
     }
-    ImGui::Text(u8"シェーダーの設定に、保存していない変更が %d 個あります。", ShaderSettingsIO::CountUnsavedChanges());
-    ImGui::Text(u8"「%s」前に、シーンに保存しますか？", s_pendingWhat.c_str());
-    ImGui::TextDisabled(u8"保存しないと、変えた値は次にシーンを開いたときに元に戻ります。");
+    const int shaderChangeCount = ShaderSettingsIO::CountUnsavedChanges();
+    const int dirtyModelCount = ModelMetaManager::Instance().CountDirtyModels();
+    if (shaderChangeCount > 0)
+    {
+        ImGui::Text(u8"シェーダーの設定に、保存していない変更が %d 個あります(シーンに保存)。", shaderChangeCount);
+    }
+    if (dirtyModelCount > 0)
+    {
+        ImGui::Text(u8"マテリアルを変えて保存していないモデルが %d 個あります(モデルの.metaに保存)。", dirtyModelCount);
+    }
+    ImGui::Text(u8"「%s」前に、保存しますか？", s_pendingWhat.c_str());
+    ImGui::TextDisabled(u8"保存しないと、変えた値は次に開いたときに元に戻ります。");
     ImGui::Spacing();
 
     auto finish = [](bool isRun)
@@ -81,7 +91,17 @@ void UnsavedChanges::Update()
     };
     if (ImGui::Button(u8"保存する"))
     {
-        if (Editor::SaveCurrentScene())
+        // シェーダーの設定はシーンに、マテリアルはモデルの.metaに保存する
+        bool isSaved = true;
+        if (shaderChangeCount > 0)
+        {
+            isSaved &= Editor::SaveCurrentScene();
+        }
+        if (dirtyModelCount > 0)
+        {
+            isSaved &= ModelMetaManager::Instance().SaveAll();
+        }
+        if (isSaved)
         {
             finish(true);
         }
@@ -97,7 +117,7 @@ void UnsavedChanges::Update()
     {
         finish(false);
     }
-    if (Editor::GetScenePath().empty())
+    if (shaderChangeCount > 0 && Editor::GetScenePath().empty())
     {
         ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.4f, 1.0f), u8"このシーンには保存先がないので、保存できません");
     }
