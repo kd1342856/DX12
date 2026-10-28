@@ -1,4 +1,5 @@
 #pragma once
+#include <atomic>
 #include <condition_variable>
 #include <deque>
 #include <mutex>
@@ -30,10 +31,10 @@ public:
 
     // キャッシュにあれば読み込む(ワーカースレッドから呼んでよい)
     bool TryLoad(uint64_t key, DirectX::ScratchImage& outImage) const;
-    // ミップまで作り終えた画像を、裏のスレッドでBC7に圧縮して保存する。圧縮できない大きさのものは何もしない
+    // ミップまで作り終えた画像を、裏のスレッドでBC7に圧縮して保存する。圧縮できない大きさのものと、Debugビルドでは何もしない
     void RequestStore(uint64_t key, DirectX::ScratchImage&& image);
 
-    // 裏のスレッドを止める(終了するときに呼ぶ。まだ圧縮していないものは捨てる)
+    // 裏のスレッドを止める(終了するときに呼ぶ。まだ圧縮していないものは捨て、圧縮中のものも途中でやめる)
     void Shutdown();
 
 private:
@@ -49,12 +50,13 @@ private:
     static std::filesystem::path GetCacheDirectory();
     static std::filesystem::path GetCachePath(uint64_t key);
     void WorkerLoop();
-    static void Compress(Job& job);
+    void Compress(Job& job);
 
     std::mutex m_mutex;
     std::condition_variable m_condition;
     std::deque<Job> m_jobs;
     std::thread m_worker;
-    bool m_isStopping = false;
+    // 圧縮の途中でも見るので、ロックの外からも読めるようにする
+    std::atomic<bool> m_isStopping = false;
     bool m_isStarted = false;
 };

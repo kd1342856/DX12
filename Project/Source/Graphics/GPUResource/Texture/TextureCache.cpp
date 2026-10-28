@@ -6,6 +6,14 @@ namespace
 {
     // これより小さいテクスチャは、圧縮しても得が少ないのでキャッシュしない
     constexpr size_t kMinCacheSize = 64;
+
+#ifdef _DEBUG
+    // Debugビルドでは圧縮しない。最適化していないDirectXTexではBC7の圧縮に1枚で数分かかり、途中でやめられるのも
+    // ブロックの1行ごとなので、ウィンドウを閉じた後もプロセスが残る。Releaseで作ったキャッシュは読む
+    constexpr bool kCanCompress = false;
+#else
+    constexpr bool kCanCompress = true;
+#endif
 }
 
 TextureCache& TextureCache::Instance()
@@ -72,6 +80,10 @@ bool TextureCache::TryLoad(uint64_t key, DirectX::ScratchImage& outImage) const
 
 void TextureCache::RequestStore(uint64_t key, DirectX::ScratchImage&& image)
 {
+    if constexpr (!kCanCompress)
+    {
+        return;
+    }
     const DirectX::TexMetadata& metadata = image.GetMetadata();
     // BC7は4x4のブロックで圧縮するので、ミップ0が4の倍数の大きさのものだけ
     if (metadata.width < kMinCacheSize || metadata.height < kMinCacheSize ||
@@ -137,8 +149,13 @@ void TextureCache::Compress(Job& job)
     const DXGI_FORMAT compressedFormat = DirectX::IsSRGB(metadata.format) ? DXGI_FORMAT_BC7_UNORM_SRGB : DXGI_FORMAT_BC7_UNORM;
     DirectX::ScratchImage compressed;
     // 速さを優先したBC7の圧縮(品質はほとんど変わらない)。ゲームの処理を邪魔しないよう、このスレッド1本だけで行う
-    if (FAILED(DirectX::Compress(job.image.GetImages(), job.image.GetImageCount(), metadata, compressedFormat,
-        DirectX::TEX_COMPRESS_BC7_QUICK, DirectX::TEX_THRESHOLD_DEFAULT, compressed)))
+    DirectX::CompressOptions options = {};
+    options.flags = DirectX::TEX_COMPRESS_BC7_QUICK;
+    options.threshold = DirectX::TEX_THRESHOLD_DEFAULT;
+    options.alphaWeight = DirectX::TEX_ALPHA_WEIGHT_DEFAULT;
+    // 終了するときは圧縮の途中でもやめる(1枚に数秒かかり、その間ウィンドウを閉じた後もプロセスが残るため)
+    if (FAILED(DirectX::CompressEx(job.image.GetImages(), job.image.GetImageCount(), metadata, compressedFormat,
+        options, compressed, [this](size_t, size_t) { return !m_isStopping; })))
     {
         return;
     }
