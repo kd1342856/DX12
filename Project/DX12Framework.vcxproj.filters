@@ -843,6 +843,9 @@
     <ClCompile Include="Source\Graphics\Renderer\BufferViewer.cpp">
       <Filter>Source\Graphics\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Graphics\Renderer\MaterialPreview.cpp">
+      <Filter>Source\Graphics\Renderer</Filter>
+    </ClCompile>
     <ClCompile Include="Source\Framework\ImGuiEditor\Panels\BufferViewPanel.cpp">
       <Filter>Source\Framework\ImGuiEditor\Panels</Filter>
     </ClCompile>
@@ -1460,6 +1463,9 @@
     <ClInclude Include="Source\Graphics\Renderer\BufferViewer.h">
       <Filter>Source\Graphics\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Graphics\Renderer\MaterialPreview.h">
+      <Filter>Source\Graphics\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="Source\Framework\ImGuiEditor\Panels\BufferViewPanel.h">
       <Filter>Source\Framework\ImGuiEditor\Panels</Filter>
     </ClInclude>
@@ -1533,6 +1539,9 @@
       <Filter>Asset\Shader\Temporal</Filter>
     </None>
     <None Include="Asset\Shader\Debug\BufferView_CS.hlsl">
+      <Filter>Asset\Shader\Debug</Filter>
+    </None>
+    <None Include="Asset\Shader\Debug\MaterialPreview_CS.hlsl">
       <Filter>Asset\Shader\Debug</Filter>
     </None>
     <None Include="Asset\Shader\Temporal\TemporalAA_CS.hlsl">

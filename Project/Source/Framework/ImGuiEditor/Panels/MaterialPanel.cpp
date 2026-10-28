@@ -8,6 +8,7 @@
 #include "../../../Graphics/Geometry/Model/Model.h"
 #include "../../../Graphics/Geometry/Mesh/Mesh.h"
 #include "../../../Graphics/GPUResource/Material/MaterialOverride.h"
+#include "../../../Graphics/Renderer/MaterialPreview.h"
 #include "../../../Framework/Manager/Asset/MeshManager.h"
 #include "../../../Framework/Manager/Asset/ModelMeta.h"
 #include "../../../Framework/Manager/Resource/ResourceManager.h"
@@ -247,6 +248,48 @@ namespace
         ImGui::PopID();
     }
 
+    std::string DescribeTextures(const Material& material);
+
+    // マテリアルの描き方(PSOで決まるので、ここでは変えられない)
+    const char* DescribeAlphaMode(int alphaMode)
+    {
+        switch (alphaMode)
+        {
+            case 1:  return u8"アルファテスト(切り抜き)";
+            case 2:  return u8"半透明";
+            default: return u8"不透明";
+        }
+    }
+
+    // 球のプレビューと、テクスチャ・描き方の説明を横に並べる
+    void DrawPreview(const std::string& previewKey, const Material& material)
+    {
+        constexpr float kPreviewSize = 128.0f;
+        auto& preview = MaterialPreview::Instance();
+        if (preview.IsAvailable())
+        {
+            const int imGuiSrvIndex = preview.Request(previewKey, material);
+            if (imGuiSrvIndex >= 0)
+            {
+                // ImTextureIDの型はImGuiの版で違うので、PreviewCameraWindowと同じく変換する
+                ImGui::Image((ImTextureID)GraphicsDevice::Instance().GetImGuiSRVGPUHandle(imGuiSrvIndex).ptr, ImVec2(kPreviewSize, kPreviewSize));
+                if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+                {
+                    ImGui::SetTooltip(u8"このマテリアルを貼った球。光は固定(左上からの光と空)で、シーンのライトや露出には左右されない。\nテクスチャは経緯度で2回り巻いている。");
+                }
+            }
+            else
+            {
+                ImGui::Dummy(ImVec2(kPreviewSize, kPreviewSize));
+            }
+            ImGui::SameLine();
+        }
+        ImGui::BeginGroup();
+        ImGui::TextDisabled(u8"テクスチャ: %s", DescribeTextures(material).c_str());
+        ImGui::TextDisabled(u8"描き方: %s", DescribeAlphaMode(material.Constants.alphaMode));
+        ImGui::EndGroup();
+    }
+
     std::string DescribeTextures(const Material& material)
     {
         std::string text;
@@ -357,7 +400,7 @@ void MaterialPanel::Draw(EditorContext& ctx)
             + (isOverridden ? u8"  上書きあり" : "") + "###material" + std::to_string(sourceIndex);
         if (ImGui::TreeNodeEx(label.c_str(), groups.size() == 1 ? ImGuiTreeNodeFlags_DefaultOpen : ImGuiTreeNodeFlags_None))
         {
-            ImGui::TextDisabled(u8"テクスチャ: %s", DescribeTextures(representative).c_str());
+            DrawPreview(MakeTargetKey(modelPath, sourceIndex), representative);
             DrawMaterialFields(modelPath, sourceIndex, group);
             ImGui::TreePop();
         }

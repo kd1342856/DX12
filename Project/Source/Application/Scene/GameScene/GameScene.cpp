@@ -32,6 +32,7 @@
 #include "../../../Graphics/Renderer/PixelProbe.h"
 #include "../../../Graphics/Renderer/ReferenceCompare.h"
 #include "../../../Graphics/Renderer/BufferViewer.h"
+#include "../../../Graphics/Renderer/MaterialPreview.h"
 #include "../../../Graphics/Renderer/MotionBlur.h"
 #include "../../../Graphics/Renderer/ReflectionProbes.h"
 #include "../../../Graphics/Renderer/RaytracingScene.h"
@@ -743,6 +744,8 @@ void GameScene::RenderFrame(Entity cameraEntity, bool isEditor)
             }
         }, {}, Profiling::None);
     }
+    // シェーダーエディターのマテリアルの球(パネルが頼んだ分だけ描く)。中で時間を計っている
+    graph.AddPass("MaterialPreview", []() { MaterialPreview::Instance().Dispatch(); }, {}, Profiling::None);
 
     // UI(スプライト)はウィンドウ解像度のバックバッファに、ポストの後で合成する。
     // HDRのシーンに描くと、トーンマップやsRGBのエンコードがUIの色にも掛かってしまうため
