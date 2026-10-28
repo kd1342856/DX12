@@ -147,17 +147,45 @@ void TextureCache::Compress(Job& job)
 {
     const DirectX::TexMetadata& metadata = job.image.GetMetadata();
     const DXGI_FORMAT compressedFormat = DirectX::IsSRGB(metadata.format) ? DXGI_FORMAT_BC7_UNORM_SRGB : DXGI_FORMAT_BC7_UNORM;
+    DirectX::TexMetadata compressedMetadata = metadata;
+    compressedMetadata.format = compressedFormat;
     DirectX::ScratchImage compressed;
-    // 速さを優先したBC7の圧縮(品質はほとんど変わらない)。ゲームの処理を邪魔しないよう、このスレッド1本だけで行う
-    DirectX::CompressOptions options = {};
-    options.flags = DirectX::TEX_COMPRESS_BC7_QUICK;
-    options.threshold = DirectX::TEX_THRESHOLD_DEFAULT;
-    options.alphaWeight = DirectX::TEX_ALPHA_WEIGHT_DEFAULT;
-    // 終了するときは圧縮の途中でもやめる(1枚に数秒かかり、その間ウィンドウを閉じた後もプロセスが残るため)
-    if (FAILED(DirectX::CompressEx(job.image.GetImages(), job.image.GetImageCount(), metadata, compressedFormat,
-        options, compressed, [this](size_t, size_t) { return !m_isStopping; })))
+    if (FAILED(compressed.Initialize(compressedMetadata)))
     {
         return;
+    }
+    // 速さを優先したBC7の圧縮(品質はほとんど変わらない)。ゲームの処理を邪魔しないよう、このスレッド1本だけで行う。
+    // DirectXTexが途中でやめられるのは画像1枚ごとで、大きいテクスチャの1枚にはReleaseでも数秒かかる。
+    // 終了するときにすぐやめられるよう、1枚を横長の帯に分けて圧縮し、帯ごとに終了かを見る
+    constexpr size_t kStripRows = 64; // 4の倍数(BC7のブロックの高さ)
+    for (size_t imageIndex = 0; imageIndex < job.image.GetImageCount(); ++imageIndex)
+    {
+        const DirectX::Image& source = job.image.GetImages()[imageIndex];
+        const DirectX::Image& destination = compressed.GetImages()[imageIndex];
+        for (size_t row = 0; row < source.height; row += kStripRows)
+        {
+            if (m_isStopping)
+            {
+                return;
+            }
+            DirectX::Image strip = source;
+            strip.height = (std::min)(kStripRows, source.height - row);
+            strip.pixels = source.pixels + row * source.rowPitch;
+            strip.slicePitch = strip.rowPitch * strip.height;
+            DirectX::ScratchImage compressedStrip;
+            if (FAILED(DirectX::Compress(strip, compressedFormat, DirectX::TEX_COMPRESS_BC7_QUICK, DirectX::TEX_THRESHOLD_DEFAULT, compressedStrip)))
+            {
+                return;
+            }
+            // 帯のブロックの行を、全体の画像の同じ位置へ写す
+            const DirectX::Image& stripBlocks = *compressedStrip.GetImage(0, 0, 0);
+            const size_t blockRowCount = (strip.height + 3) / 4;
+            const size_t copyBytes = (std::min)(stripBlocks.rowPitch, destination.rowPitch);
+            for (size_t blockRow = 0; blockRow < blockRowCount; ++blockRow)
+            {
+                std::memcpy(destination.pixels + (row / 4 + blockRow) * destination.rowPitch, stripBlocks.pixels + blockRow * stripBlocks.rowPitch, copyBytes);
+            }
+        }
     }
 
     // 書きかけのファイルを読まないよう、別の名前で書いてから置き換える
