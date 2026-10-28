@@ -8,6 +8,7 @@ namespace
     constexpr float kMaxDisplayGamma = 3.0f;
 
     std::vector<EditorPreferences::Pin> s_pins;
+    std::vector<std::string> s_detachedPanels;
 
     std::filesystem::path GetPath()
     {
@@ -53,6 +54,18 @@ void EditorPreferences::Load()
             }
         }
     }
+    s_detachedPanels.clear();
+    auto detachedIt = json.find("detachedPanels");
+    if (detachedIt != json.end() && detachedIt->is_array())
+    {
+        for (const auto& panelId : *detachedIt)
+        {
+            if (panelId.is_string())
+            {
+                s_detachedPanels.push_back(panelId.get<std::string>());
+            }
+        }
+    }
 }
 
 void EditorPreferences::Save()
@@ -65,6 +78,7 @@ void EditorPreferences::Save()
         pins.push_back({ { "target", pin.target }, { "key", pin.key } });
     }
     json["pins"] = pins;
+    json["detachedPanels"] = s_detachedPanels;
     std::ofstream ofs(GetPath());
     if (!ofs.is_open())
     {
@@ -94,6 +108,29 @@ void EditorPreferences::TogglePin(const std::string& target, const std::string& 
     else
     {
         s_pins.push_back({ target, key });
+    }
+    Save();
+}
+
+bool EditorPreferences::IsPanelDetached(const std::string& panelId)
+{
+    return std::find(s_detachedPanels.begin(), s_detachedPanels.end(), panelId) != s_detachedPanels.end();
+}
+
+void EditorPreferences::SetPanelDetached(const std::string& panelId, bool isDetached)
+{
+    auto it = std::find(s_detachedPanels.begin(), s_detachedPanels.end(), panelId);
+    if (isDetached == (it != s_detachedPanels.end()))
+    {
+        return;
+    }
+    if (isDetached)
+    {
+        s_detachedPanels.push_back(panelId);
+    }
+    else
+    {
+        s_detachedPanels.erase(it);
     }
     Save();
 }
