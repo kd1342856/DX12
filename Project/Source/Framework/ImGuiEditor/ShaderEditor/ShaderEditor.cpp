@@ -18,6 +18,7 @@ void ShaderEditor::Initialize()
     m_Panels.push_back(std::make_unique<FogPanel>());
     m_Panels.push_back(std::make_unique<DebugPanel>());
     m_Panels.push_back(std::make_unique<MeasurePanel>());
+    m_Panels.push_back(std::make_unique<BufferViewPanel>());
     m_Panels.push_back(std::make_unique<MaterialPanel>());
 }
 

@@ -31,6 +31,7 @@
 #include "../../../Graphics/Renderer/AutoExposure.h"
 #include "../../../Graphics/Renderer/PixelProbe.h"
 #include "../../../Graphics/Renderer/ReferenceCompare.h"
+#include "../../../Graphics/Renderer/BufferViewer.h"
 #include "../../../Graphics/Renderer/MotionBlur.h"
 #include "../../../Graphics/Renderer/ReflectionProbes.h"
 #include "../../../Graphics/Renderer/RaytracingScene.h"
@@ -730,6 +731,18 @@ void GameScene::RenderFrame(Entity cameraEntity, bool isEditor)
     const float clearValue = isEditor ? 0.1f : 0.0f;
     const float clearBlue = isEditor ? 0.2f : 0.0f;
     graph.AddPass("PostProcess", [this, cameraEntity, clearValue, clearBlue]() { DoPostProcess(cameraEntity, clearValue, clearValue, clearBlue); }, {}, Profiling::None);
+
+    // シェーダーエディターの「バッファの一覧」を開いている間だけ、途中のバッファを見える色にする。中で時間を計っている
+    if (hasCamera)
+    {
+        graph.AddPass("BufferView", [cameraEntity]()
+        {
+            if (auto* pCamera = GameManager::Instance().GetECS().TryGetComponent<CameraData>(cameraEntity))
+            {
+                BufferViewer::Instance().Dispatch(pCamera->m_projMatrix);
+            }
+        }, {}, Profiling::None);
+    }
 
     // UI(スプライト)はウィンドウ解像度のバックバッファに、ポストの後で合成する。
     // HDRのシーンに描くと、トーンマップやsRGBのエンコードがUIの色にも掛かってしまうため

@@ -361,6 +361,8 @@
     <ClInclude Include="Source\Graphics\Renderer\PixelProbe.h" />
     <ClInclude Include="Source\Graphics\Renderer\ReferenceCompare.h" />
     <ClInclude Include="Source\Framework\ImGuiEditor\Panels\MeasurePanel.h" />
+    <ClInclude Include="Source\Graphics\Renderer\BufferViewer.h" />
+    <ClInclude Include="Source\Framework\ImGuiEditor\Panels\BufferViewPanel.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Library\ImGui\imgui.cpp" />
@@ -528,6 +530,8 @@
     <ClCompile Include="Source\Graphics\Renderer\PixelProbe.cpp" />
     <ClCompile Include="Source\Graphics\Renderer\ReferenceCompare.cpp" />
     <ClCompile Include="Source\Framework\ImGuiEditor\Panels\MeasurePanel.cpp" />
+    <ClCompile Include="Source\Graphics\Renderer\BufferViewer.cpp" />
+    <ClCompile Include="Source\Framework\ImGuiEditor\Panels\BufferViewPanel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Asset\Shader\Common\ShaderCore.hlsli" />
@@ -589,6 +593,9 @@
       <FileType>Document</FileType>
     </None>
     <None Include="Asset\Shader\Temporal\CameraVelocity_CS.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Asset\Shader\Debug\BufferView_CS.hlsl">
       <FileType>Document</FileType>
     </None>
     <None Include="Asset\Shader\Temporal\TemporalAA_CS.hlsl">

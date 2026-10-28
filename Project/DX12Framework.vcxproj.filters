@@ -298,6 +298,9 @@
     <Filter Include="Asset\Shader\Temporal">
       <UniqueIdentifier>{BB18860A-3312-4AFA-A919-351936325EE8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Asset\Shader\Debug">
+      <UniqueIdentifier>{06B80E6F-5C20-416E-B180-5F131B6ECBB4}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source\Graphics\Shader\Pipeline">
       <UniqueIdentifier>{7E543CDC-D4CE-4152-96A6-92C3A46EE243}</UniqueIdentifier>
     </Filter>
@@ -826,6 +829,12 @@
       <Filter>Source\Graphics\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="Source\Framework\ImGuiEditor\Panels\MeasurePanel.cpp">
+      <Filter>Source\Framework\ImGuiEditor\Panels</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Graphics\Renderer\BufferViewer.cpp">
+      <Filter>Source\Graphics\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Framework\ImGuiEditor\Panels\BufferViewPanel.cpp">
       <Filter>Source\Framework\ImGuiEditor\Panels</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1430,6 +1439,12 @@
     <ClInclude Include="Source\Framework\ImGuiEditor\Panels\MeasurePanel.h">
       <Filter>Source\Framework\ImGuiEditor\Panels</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Graphics\Renderer\BufferViewer.h">
+      <Filter>Source\Graphics\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\ImGuiEditor\Panels\BufferViewPanel.h">
+      <Filter>Source\Framework\ImGuiEditor\Panels</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Asset\Shader\Common\ShaderCore.hlsli">
@@ -1498,6 +1513,9 @@
     </None>
     <None Include="Asset\Shader\Temporal\CameraVelocity_CS.hlsl">
       <Filter>Asset\Shader\Temporal</Filter>
+    </None>
+    <None Include="Asset\Shader\Debug\BufferView_CS.hlsl">
+      <Filter>Asset\Shader\Debug</Filter>
     </None>
     <None Include="Asset\Shader\Temporal\TemporalAA_CS.hlsl">
       <Filter>Asset\Shader\Temporal</Filter>
