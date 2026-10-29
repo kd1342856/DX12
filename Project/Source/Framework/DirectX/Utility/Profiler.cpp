@@ -1,6 +1,7 @@
 ﻿#include "../../../Pch.h"
 #include "Profiler.h"
 #include "Logger.h"
+#include "Thread.h"
 #include <windows.h>
 #include <psapi.h>
 #include <d3d12.h>
@@ -22,6 +23,73 @@ float Profiler::GetSystemRAMUsageMB() const
         return static_cast<float>(pmc.WorkingSetSize) / (1024.0f * 1024.0f);
     }
     return 0.0f;
+}
+
+// ---------------------------------------------------------------
+// 区間名の登録
+// ---------------------------------------------------------------
+Profiler::ScopeName& Profiler::RegisterLiteralName(ScopeSite& site, const char* pName)
+{
+    ScopeName& scopeName = FindOrAddName(site, pName, false);
+    std::lock_guard<std::mutex> lock(m_scopeNameMutex);
+    // 2つのスレッドが同時に初めて通った場合も、同じ結果を書くだけなので問題ない
+    if (!site.pLiteralName.load(std::memory_order_relaxed))
+    {
+#ifdef TRACY_ENABLE
+        site.srcloc = { pName, site.pFunction, site.pFile, site.line, 0 };
+#endif
+        // srclocを書き終えてから公開する
+        site.pLiteralName.store(&scopeName, std::memory_order_release);
+    }
+    return scopeName;
+}
+
+Profiler::ScopeName& Profiler::FindOrAddName(const ScopeSite& site, std::string_view name, bool copyName)
+{
+    std::lock_guard<std::mutex> lock(m_scopeNameMutex);
+    auto it = m_scopeNameLookup.find(name);
+    if (it != m_scopeNameLookup.end())
+    {
+        return *it->second;
+    }
+
+    // 新しい名前のときだけここに来る(名前の種類ぶんしか確保しない)
+    ScopeName& scopeName = m_scopeNames.emplace_back();
+    if (copyName)
+    {
+        scopeName.ownedName.assign(name.data(), name.size());
+        scopeName.pName = scopeName.ownedName.c_str();
+    }
+    else
+    {
+        scopeName.pName = name.data();
+    }
+#ifdef TRACY_ENABLE
+    scopeName.srcloc = { scopeName.pName, site.pFunction, site.pFile, site.line, 0 };
+#endif
+    m_scopeNameLookup.emplace(std::string_view(scopeName.pName, name.size()), &scopeName);
+    return scopeName;
+}
+
+// ---------------------------------------------------------------
+// CPU区間計測
+// ---------------------------------------------------------------
+void Profiler::AddCPUTiming(ScopeName& name, float ms)
+{
+    // 集計用の配列はメインスレッドでしか触らない。ジョブの中などの区間はTracyでだけ見る
+    if (!Thread::IsMainThread())
+    {
+        return;
+    }
+
+    // 同じ名前が1フレームで複数回使われた場合(カメラごとに呼ばれる等)は加算していく。
+    if (name.cpuFrameStamp != m_cpuFrameStamp)
+    {
+        name.cpuFrameStamp = m_cpuFrameStamp;
+        name.cpuTimingIndex = static_cast<uint32_t>(m_cpuTimings.size());
+        m_cpuTimings.push_back({ name.pName, 0.0f });
+    }
+    m_cpuTimings[name.cpuTimingIndex].ms += ms;
 }
 
 // ---------------------------------------------------------------
@@ -65,7 +133,9 @@ void Profiler::InitGPU(ID3D12Device* pDevice, ID3D12CommandQueue* pQueue, uint32
     }
 
     m_gpuReadbackBuffers.resize(frameCount);
-    m_gpuScopeNamesPerSlot.assign(frameCount, std::vector<std::string>(kMaxGPUScopesPerFrame));
+    m_gpuScopeNamesPerSlot.assign(frameCount, std::vector<ScopeName*>(kMaxGPUScopesPerFrame, nullptr));
+    m_gpuTimings.reserve(kMaxGPUScopesPerFrame);
+    m_cpuTimings.reserve(256);
     m_gpuScopeCountPerSlot.assign(frameCount, 0);
 
     D3D12_HEAP_PROPERTIES heapProps = {};
@@ -93,10 +163,24 @@ void Profiler::InitGPU(ID3D12Device* pDevice, ID3D12CommandQueue* pQueue, uint32
 
     Logger::Instance().AddLog(Logger::LogLevel::Info,
         "[Profiler] GPU timing initialized. frequency=%llu Hz, frameCount=%u", m_gpuFrequency, frameCount);
+
+#ifdef TRACY_ENABLE
+    m_pTracyGPUContext = tracy::CreateD3D12Context(pDevice, pQueue);
+    const char kContextName[] = "Graphics";
+    m_pTracyGPUContext->Name(kContextName, static_cast<uint16_t>(sizeof(kContextName) - 1));
+#endif
 }
 
 void Profiler::ShutdownGPU()
 {
+#ifdef TRACY_ENABLE
+    // 記録済みのクエリの結果を回収してから解放する
+    if (m_pTracyGPUContext)
+    {
+        tracy::DestroyD3D12Context(m_pTracyGPUContext);
+        m_pTracyGPUContext = nullptr;
+    }
+#endif
     m_spQueryHeap.Reset();
     m_gpuReadbackBuffers.clear();
     m_gpuScopeNamesPerSlot.clear();
@@ -120,15 +204,25 @@ void Profiler::ReadGPUResultsForSlot(uint32_t slot)
     HRESULT hr = m_gpuReadbackBuffers[slot]->Map(0, &readRange, reinterpret_cast<void**>(&pData));
     if (SUCCEEDED(hr))
     {
-        for (uint32_t i = 0; i < count; ++i)
+        // このスロットのフレームの結果で置き換える(そのフレームに無かったパスは表示から消える)
+        m_gpuTimings.clear();
+        m_gpuFrameStamp++;
+        for (uint32_t scopeIndex = 0; scopeIndex < count; ++scopeIndex)
         {
-            uint64_t begin = pData[i * 2 + 0];
-            uint64_t end = pData[i * 2 + 1];
-            const std::string& name = m_gpuScopeNamesPerSlot[slot][i];
-            if (!name.empty() && end >= begin && m_gpuFrequency != 0)
+            uint64_t begin = pData[scopeIndex * 2 + 0];
+            uint64_t end = pData[scopeIndex * 2 + 1];
+            ScopeName* pName = m_gpuScopeNamesPerSlot[slot][scopeIndex];
+            if (pName && end >= begin && m_gpuFrequency != 0)
             {
                 float ms = static_cast<float>(end - begin) / static_cast<float>(m_gpuFrequency) * 1000.0f;
-                m_gpuTimings[name] = ms;
+                // 同じ名前が1フレームで複数回使われた場合はCPU計測と同じく加算する
+                if (pName->gpuFrameStamp != m_gpuFrameStamp)
+                {
+                    pName->gpuFrameStamp = m_gpuFrameStamp;
+                    pName->gpuTimingIndex = static_cast<uint32_t>(m_gpuTimings.size());
+                    m_gpuTimings.push_back({ pName->pName, 0.0f });
+                }
+                m_gpuTimings[pName->gpuTimingIndex].ms += ms;
             }
         }
         D3D12_RANGE writeRange = { 0, 0 };
@@ -151,6 +245,14 @@ void Profiler::BeginGPUFrame(ID3D12GraphicsCommandList* pCmdList)
     ReadGPUResultsForSlot(m_gpuCurrentSlot);
 
     m_gpuScopeCounter = 0;
+
+#ifdef TRACY_ENABLE
+    // 終わったクエリの結果をTracyに送る(待たない。接続していないときは何もしない)
+    if (m_pTracyGPUContext)
+    {
+        m_pTracyGPUContext->Collect();
+    }
+#endif
 }
 
 void Profiler::EndGPUFrame(ID3D12GraphicsCommandList* pCmdList)
@@ -169,14 +271,14 @@ void Profiler::EndGPUFrame(ID3D12GraphicsCommandList* pCmdList)
     m_gpuCurrentSlot = (m_gpuCurrentSlot + 1) % m_gpuFrameCount;
 }
 
-uint32_t Profiler::BeginGPUScope(ID3D12GraphicsCommandList* pCmdList, const std::string& name)
+uint32_t Profiler::BeginGPUScope(ID3D12GraphicsCommandList* pCmdList, ScopeName& name)
 {
     if (!m_spQueryHeap || !pCmdList || m_gpuScopeCounter >= kMaxGPUScopesPerFrame) return UINT32_MAX;
 
     uint32_t index = m_gpuScopeCounter++;
     uint32_t heapIndex = m_gpuCurrentSlot * kMaxGPUScopesPerFrame * 2 + index * 2;
     pCmdList->EndQuery(m_spQueryHeap.Get(), D3D12_QUERY_TYPE_TIMESTAMP, heapIndex);
-    m_gpuScopeNamesPerSlot[m_gpuCurrentSlot][index] = name;
+    m_gpuScopeNamesPerSlot[m_gpuCurrentSlot][index] = &name;
     return index;
 }
 
@@ -209,6 +311,11 @@ void Profiler::BeginCPUFrame()
     float frameMs = std::chrono::duration<float, std::milli>(now - s_last).count();
     s_last = now;
 
+#ifdef TRACY_ENABLE
+    // Tracyのフレームの区切り。自前の計測と同じ位置で区切る
+    FrameMark;
+#endif
+
     AddFrameTime(frameMs);
 
     if (m_spikeWarmupFrames > 0)
@@ -232,8 +339,12 @@ void Profiler::BeginCPUFrame()
 
 void Profiler::ReportFrameSpike(float frameMs) const
 {
-    std::vector<std::pair<std::string, float>> sorted(m_cpuTimings.begin(), m_cpuTimings.end());
-    std::sort(sorted.begin(), sorted.end(), [](const auto& a, const auto& b) { return a.second > b.second; });
+    // スパイクのときだけ通るので、ここでの確保は気にしない
+    std::vector<ScopeTiming> sorted(m_cpuTimings.begin(), m_cpuTimings.end());
+    std::sort(sorted.begin(), sorted.end(), [](const ScopeTiming& lhs, const ScopeTiming& rhs)
+    {
+        return lhs.ms > rhs.ms;
+    });
 
     // 区間は入れ子になっている(SceneManager::Updateの中にShadow等がある)ので合計は一致しない
     std::string detail;
@@ -241,7 +352,7 @@ void Profiler::ReportFrameSpike(float frameMs) const
     for (size_t i = 0; i < count; ++i)
     {
         char buf[128];
-        snprintf(buf, sizeof(buf), "%s%s=%.2fms", i ? ", " : "", sorted[i].first.c_str(), sorted[i].second);
+        snprintf(buf, sizeof(buf), "%s%s=%.2fms", i ? ", " : "", sorted[i].pName, sorted[i].ms);
         detail += buf;
     }
 

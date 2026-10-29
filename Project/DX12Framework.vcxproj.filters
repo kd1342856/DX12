@@ -61,6 +61,9 @@
     <Filter Include="Library\ImGui">
       <UniqueIdentifier>{52ECF5C6-0F0E-4B75-81A8-F5312477AE69}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Library\Tracy">
+      <UniqueIdentifier>{3D7A9E42-6B1C-4F85-9A2E-C0D4B8F17E63}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source">
       <UniqueIdentifier>{E0B13953-7204-4385-87B0-AF2F77456A88}</UniqueIdentifier>
     </Filter>
@@ -377,6 +380,9 @@
     </ClCompile>
     <ClCompile Include="..\Library\ImGui\imgui_widgets.cpp">
       <Filter>Library\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Library\Tracy\TracyClient.cpp">
+      <Filter>Library\Tracy</Filter>
     </ClCompile>
     <ClCompile Include="Source\Application\Object\Script\Player\Player.cpp">
       <Filter>Source\Application\Object\Script\Player</Filter>

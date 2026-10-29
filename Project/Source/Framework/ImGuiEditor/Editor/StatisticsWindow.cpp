@@ -57,30 +57,62 @@ void Editor::DrawStatistics()
             const auto& cpuTimings = Profiler::Instance().GetCPUTimings();
             const auto& gpuTimings = Profiler::Instance().GetGPUTimings();
 
-            // 両方に出てきた名前の和集合。片方にしか無いパスも表示に出るようにする。
-            std::vector<std::string> names;
-            names.reserve(cpuTimings.size() + gpuTimings.size());
-            for (const auto& pair : cpuTimings) names.push_back(pair.first);
-            for (const auto& pair : gpuTimings)
+            // 区間名はProfilerに1つずつ登録されているので、同じ名前ならポインタも同じ
+            auto findTiming = [](const std::vector<Profiler::ScopeTiming>& timings, const char* pName) -> const Profiler::ScopeTiming*
             {
-                if (std::find(names.begin(), names.end(), pair.first) == names.end())
-                    names.push_back(pair.first);
-            }
-            std::sort(names.begin(), names.end());
+                for (const Profiler::ScopeTiming& timing : timings)
+                {
+                    if (timing.pName == pName)
+                    {
+                        return &timing;
+                    }
+                }
+                return nullptr;
+            };
 
-            for (const auto& name : names)
+            // 両方に出てきた名前の和集合。片方にしか無いパスも表示に出るようにする。
+            // 毎フレーム確保しないよう、配列は使い回す
+            static std::vector<const char*> s_names;
+            s_names.clear();
+            for (const Profiler::ScopeTiming& timing : cpuTimings)
+            {
+                s_names.push_back(timing.pName);
+            }
+            for (const Profiler::ScopeTiming& timing : gpuTimings)
+            {
+                if (!findTiming(cpuTimings, timing.pName))
+                {
+                    s_names.push_back(timing.pName);
+                }
+            }
+            std::sort(s_names.begin(), s_names.end(), [](const char* pLhs, const char* pRhs)
+            {
+                return std::strcmp(pLhs, pRhs) < 0;
+            });
+
+            for (const char* pName : s_names)
             {
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
-                ImGui::Text("%s", name.c_str());
+                ImGui::TextUnformatted(pName);
                 ImGui::TableNextColumn();
-                auto cpuIt = cpuTimings.find(name);
-                if (cpuIt != cpuTimings.end()) ImGui::Text("%.3f", cpuIt->second);
-                else ImGui::TextUnformatted("-");
+                if (const Profiler::ScopeTiming* pCpu = findTiming(cpuTimings, pName))
+                {
+                    ImGui::Text("%.3f", pCpu->ms);
+                }
+                else
+                {
+                    ImGui::TextUnformatted("-");
+                }
                 ImGui::TableNextColumn();
-                auto gpuIt = gpuTimings.find(name);
-                if (gpuIt != gpuTimings.end()) ImGui::Text("%.3f", gpuIt->second);
-                else ImGui::TextUnformatted("-");
+                if (const Profiler::ScopeTiming* pGpu = findTiming(gpuTimings, pName))
+                {
+                    ImGui::Text("%.3f", pGpu->ms);
+                }
+                else
+                {
+                    ImGui::TextUnformatted("-");
+                }
             }
             ImGui::EndTable();
         }
