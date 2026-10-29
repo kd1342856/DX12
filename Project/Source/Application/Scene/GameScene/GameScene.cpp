@@ -165,7 +165,11 @@ void GameScene::Update(float deltaTime)
     }
 
     UpdateCamera();
+    // エディターの自由カメラ中(F5)は、ゲームのスクリプトに入力を渡さない(プレイヤーが一緒に動かないように)。
+    // 自由カメラの操作はこの前のUpdateCameraで読んでいる
+    Input::Instance().SetGameInputBlocked(Editor::GetEditorMode() && !m_fullscreenGame);
     GameManager::Instance().Update(deltaTime, Editor::GetScene().get());
+    Input::Instance().SetGameInputBlocked(false);
     ParticleManager::Instance().Update(deltaTime);
     // NavMeshはGameManager::Updateの後で作る。部屋同士のつながり(開口部)を家のモデルへのレイキャストで
     // 決めるが、CollisionManagerの対象シーン(SetScene)とTransformのワールド行列はGameManager::Updateの

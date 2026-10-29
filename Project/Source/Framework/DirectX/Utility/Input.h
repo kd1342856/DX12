@@ -8,9 +8,10 @@ public:
     void ProcessMessage(UINT msg, WPARAM wParam, LPARAM lParam);
 	void Update();
 
-	bool IsKeyHold(int key) const { return (m_keyState[key] & 0x80) != 0; }
-	bool IsKeyTrigger(int key) const { return (m_keyState[key] & 0x80) != 0 && (m_prevKeyState[key] & 0x80) == 0; }
-	bool IsKeyRelease(int key) const { return (m_keyState[key] & 0x80) == 0 && (m_prevKeyState[key] & 0x80) != 0; }
+	// ゲームへの入力を止めている間(SetGameInputBlocked)は、何も押されていない扱いになる
+	bool IsKeyHold(int key) const { return !m_isGameInputBlocked && (m_keyState[key] & 0x80) != 0; }
+	bool IsKeyTrigger(int key) const { return !m_isGameInputBlocked && (m_keyState[key] & 0x80) != 0 && (m_prevKeyState[key] & 0x80) == 0; }
+	bool IsKeyRelease(int key) const { return !m_isGameInputBlocked && (m_keyState[key] & 0x80) == 0 && (m_prevKeyState[key] & 0x80) != 0; }
 
 	bool IsMouseLeftHold() const { return IsKeyHold(VK_LBUTTON); }
 	bool IsMouseLeftTrigger() const { return IsKeyTrigger(VK_LBUTTON); }
@@ -23,8 +24,14 @@ public:
 	int GetMouseX() const { return m_mouseX; }
 	int GetMouseY() const { return m_mouseY; }
 	HWND GetHWnd() const { return m_hWnd; }
-	int GetMouseDeltaX() const { return m_mouseDeltaX; }
-	int GetMouseDeltaY() const { return m_mouseDeltaY; }
+	int GetMouseDeltaX() const { return m_isGameInputBlocked ? 0 : m_mouseDeltaX; }
+	int GetMouseDeltaY() const { return m_isGameInputBlocked ? 0 : m_mouseDeltaY; }
+
+	// ゲームのスクリプトへ入力を渡さない(エディターの自由カメラ中に、プレイヤーが一緒に動かないように)。
+	// GameScene が GameManager::Update を回す間だけ立てる
+	void SetGameInputBlocked(bool isBlocked) { m_isGameInputBlocked = isBlocked; }
+	// ウィンドウが選択されているか(選択されていない間は、キーもマウスも受け取らない)
+	bool IsWindowActive() const { return m_isWindowActive; }
 
 	void SetMouseModeRelative() { 
         if (!m_isRelative) {
@@ -57,5 +64,7 @@ private:
 
 	bool m_isRelative = false;
     bool m_wasRelative = false;
+	bool m_isGameInputBlocked = false;
+	bool m_isWindowActive = false;
 	HWND m_hWnd = nullptr;
 };

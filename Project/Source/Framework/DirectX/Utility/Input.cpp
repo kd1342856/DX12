@@ -13,10 +13,38 @@ void Input::Init(HWND hWnd)
 
 void Input::Update()
 {
+	// ウィンドウが選択されていない(ほかのアプリを操作している)間は、キーもマウスも受け取らず、
+	// カーソルも中央へ戻さない(GetAsyncKeyStateはほかのアプリへの入力も拾ってしまうため)
+	const bool isActive = (m_hWnd != nullptr) && (GetForegroundWindow() == m_hWnd);
+	if (!isActive)
+	{
+		for (int i = 0; i < 256; ++i)
+		{
+			m_prevKeyState[i] = 0;
+			m_keyState[i] = 0;
+		}
+		m_mouseDeltaX = 0;
+		m_mouseDeltaY = 0;
+		// 選択し直したときに、離れていた間のマウスの動きを1フレームの動きとして扱わない
+		m_wasRelative = false;
+		m_isWindowActive = false;
+		return;
+	}
+
 	for (int i = 0; i < 256; ++i) {
 		m_prevKeyState[i] = m_keyState[i];
 		m_keyState[i] = (GetAsyncKeyState(i) & 0x8000) ? 0x80 : 0x00;
 	}
+	// 選択し直した最初のフレームは、そのとき押されているキーを「押した瞬間」として扱わない
+	// (ウィンドウをクリックして戻ったときに、ゲームが左クリックとして受け取らないように)
+	if (!m_isWindowActive)
+	{
+		for (int i = 0; i < 256; ++i)
+		{
+			m_prevKeyState[i] = m_keyState[i];
+		}
+	}
+	m_isWindowActive = true;
 
 	POINT pt;
 	GetCursorPos(&pt);
