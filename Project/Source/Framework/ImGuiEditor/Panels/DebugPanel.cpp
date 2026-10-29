@@ -2,6 +2,8 @@
 #include "../EditorContext.h"
 #include "ImGui/imgui.h"
 #include "../Widgets/SettingsFieldUI.h"
+#include "../../../Graphics/Renderer/ProbeViewer.h"
+#include "../../../Graphics/Renderer/DDGIVolume.h"
 
 namespace
 {
@@ -128,6 +130,39 @@ void DebugPanel::Draw(EditorContext& ctx)
             };
             DrawLegend(kItems, std::size(kItems));
         }
+
+        // GIのプローブの表示(エディターのカメラだけ。保存しない)
+        ImGui::SeparatorText(u8"GIのプローブ");
+        auto& probeViewer = ProbeViewer::Instance();
+        auto& ddgi = DDGIVolume::Instance();
+        ImGui::BeginDisabled(!probeViewer.IsAvailable() || !ddgi.IsAvailable());
+        bool isProbeShown = probeViewer.IsEnabled();
+        if (ImGui::Checkbox(u8"GIのプローブを球で出す", &isProbeShown))
+        {
+            probeViewer.SetEnabled(isProbeShown);
+        }
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip | ImGuiHoveredFlags_AllowWhenDisabled))
+        {
+            ImGui::SetTooltip(u8"DDGIのプローブを、そのプローブの放射照度で照らした球として出す(エディターのカメラだけ)。\n赤い球は、壁や物に埋まって使っていないプローブ。部屋の中に光が回っているか、漏れていないかを確かめる。");
+        }
+        float probeRadius = probeViewer.GetRadius();
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.5f);
+        if (ImGui::SliderFloat(u8"球の半径", &probeRadius, 0.02f, 0.4f, "%.2f m"))
+        {
+            probeViewer.SetRadius(probeRadius);
+        }
+        float probeBrightness = probeViewer.GetBrightnessEV();
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.5f);
+        if (ImGui::SliderFloat(u8"明るさの持ち上げ", &probeBrightness, 0.0f, 10.0f, "+%.1f EV"))
+        {
+            probeViewer.SetBrightnessEV(probeBrightness);
+        }
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip | ImGuiHoveredFlags_AllowWhenDisabled))
+        {
+            ImGui::SetTooltip(u8"暗い部屋でも球が見えるよう、明るさを何段持ち上げるか(見え方だけで、GIの値は変えない)。\n0で、白い壁がその場所で受ける明るさと同じ。");
+        }
+        ImGui::EndDisabled();
+        ImGui::TextDisabled(u8"プローブ %u 個", ddgi.GetProbeCount());
     }
 
     // 反射RTの生確認は「Window > Preview Camera」に移した(PreviewCameraWindow.cpp)。

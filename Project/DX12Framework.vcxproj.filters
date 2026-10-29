@@ -849,6 +849,9 @@
     <ClCompile Include="Source\Graphics\Renderer\ShadowViewer.cpp">
       <Filter>Source\Graphics\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Graphics\Renderer\ProbeViewer.cpp">
+      <Filter>Source\Graphics\Renderer</Filter>
+    </ClCompile>
     <ClCompile Include="Source\Framework\ImGuiEditor\Panels\ShadowViewPanel.cpp">
       <Filter>Source\Framework\ImGuiEditor\Panels</Filter>
     </ClCompile>
@@ -1478,6 +1481,9 @@
     <ClInclude Include="Source\Graphics\Renderer\ShadowViewer.h">
       <Filter>Source\Graphics\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Graphics\Renderer\ProbeViewer.h">
+      <Filter>Source\Graphics\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="Source\Framework\ImGuiEditor\Panels\ShadowViewPanel.h">
       <Filter>Source\Framework\ImGuiEditor\Panels</Filter>
     </ClInclude>
@@ -1563,6 +1569,9 @@
       <Filter>Asset\Shader\Debug</Filter>
     </None>
     <None Include="Asset\Shader\Debug\ShadowView_CS.hlsl">
+      <Filter>Asset\Shader\Debug</Filter>
+    </None>
+    <None Include="Asset\Shader\Debug\ProbeView_CS.hlsl">
       <Filter>Asset\Shader\Debug</Filter>
     </None>
     <None Include="Asset\Shader\Temporal\TemporalAA_CS.hlsl">

@@ -34,6 +34,7 @@
 #include "../../../Graphics/Renderer/BufferViewer.h"
 #include "../../../Graphics/Renderer/MaterialPreview.h"
 #include "../../../Graphics/Renderer/ShadowViewer.h"
+#include "../../../Graphics/Renderer/ProbeViewer.h"
 #include "../../../Graphics/Renderer/MotionBlur.h"
 #include "../../../Graphics/Renderer/ReflectionProbes.h"
 #include "../../../Graphics/Renderer/RaytracingScene.h"
@@ -727,6 +728,17 @@ void GameScene::RenderFrame(Entity cameraEntity, bool isEditor)
             renderSystem->RenderVelocity(cameraEntity, pSceneHDR);
             EndTemporalFrame();
         }, {}, Profiling::None);
+        // GIのプローブを球で描く(デバッグビューで表示をオンにしたとき、エディターのカメラだけ)。中で時間を計っている
+        if (isEditor)
+        {
+            graph.AddPass("ProbeView", [cameraEntity, pSceneHDR]()
+            {
+                if (auto* pCamera = GameManager::Instance().GetECS().TryGetComponent<CameraData>(cameraEntity))
+                {
+                    ProbeViewer::Instance().Render(pSceneHDR, pCamera->m_viewMatrix, pCamera->m_projMatrix);
+                }
+            }, {}, Profiling::None);
+        }
     }
 
     // ポスト(SSR・霧・TAA・モーションブラー・自動露出・ブルーム・DOF・ゴッドレイ・トーンマップ)。中で時間を計っている
