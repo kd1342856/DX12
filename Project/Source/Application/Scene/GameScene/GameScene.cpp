@@ -1,6 +1,7 @@
 ﻿#include "../../../Pch.h"
 #include "GameScene.h"
 #include "PropLayout.h"
+#include "../../Benchmark/BenchmarkRunner.h"
 #include "../../../Framework/Manager/GameManager.h"
 #include "../../../Framework/ECS/CompSystem/SpriteRenderSystem/SpriteRenderSystem.h"
 #include "../../../Framework/ECS/CompSystem/Systems/TransformSystem.h"
@@ -149,6 +150,13 @@ void GameScene::HandleModeSwitch()
 
 void GameScene::Update(float deltaTime)
 {
+    // ベンチマーク中は、ゲームを止めて決まった経路でカメラだけを動かす
+    if (BenchmarkRunner::Instance().IsActive())
+    {
+        UpdateBenchmark(deltaTime);
+        return;
+    }
+
     // オプション画面を開いている間はゲームを止め、描画だけ続ける(背景のゲーム画面で明るさを確認できるように)
     if (UpdateOptionMenu())
     {
@@ -232,6 +240,51 @@ void GameScene::UpdateInput()
 
 void GameScene::UpdateCamera()
 {
+    std::shared_ptr<GameObject> pEditorCameraObj = FindCameras();
+
+    // Relative Mouse Mode Toggle for Editor Free Cam
+    if (!m_fullscreenGame) {
+        if (Input::Instance().IsMouseRightTrigger() && !ImGui::GetIO().WantCaptureMouse) {
+            Input::Instance().SetMouseModeRelative();
+            m_isCameraDragging = true;
+        } else if (Input::Instance().IsMouseRightRelease() && m_isCameraDragging) {
+            Input::Instance().SetMouseModeAbsolute();
+            m_isCameraDragging = false;
+        }
+    } else {
+        m_isCameraDragging = true; // In game mode, camera is always controlled
+    }
+
+    UpdateCameraControl(pEditorCameraObj);
+}
+
+TransformData* GameScene::GetEditorCameraTransform()
+{
+    if (m_editorCameraEntity == INVALID_ENTITY)
+    {
+        return nullptr;
+    }
+    return GameManager::Instance().GetECS().TryGetComponent<TransformData>(m_editorCameraEntity);
+}
+
+void GameScene::UpdateBenchmark(float deltaTime)
+{
+    // エディターの自由カメラ(MainCamera)を経路で動かし、ゲームと同じ描画(RenderFrame(..., false))で測る
+    FindCameras();
+    BenchmarkRunner::Instance().Update(deltaTime, GetEditorCameraTransform());
+
+    // ゲームの進行は止める(経過時間0で更新し、入力も渡さない)。Transformとカメラの行列は更新する
+    Input::Instance().SetGameInputBlocked(true);
+    GameManager::Instance().Update(0.0f, Editor::GetScene().get());
+    Input::Instance().SetGameInputBlocked(false);
+    ParticleManager::Instance().Update(0.0f);
+    TryBuildNavMesh();
+
+    Render();
+}
+
+std::shared_ptr<GameObject> GameScene::FindCameras()
+{
     auto& ecs = GameManager::Instance().GetECS();
     m_editorCameraEntity = INVALID_ENTITY;
     m_gameCameraEntity = INVALID_ENTITY;
@@ -275,19 +328,12 @@ void GameScene::UpdateCamera()
     if (m_gameCameraEntity == INVALID_ENTITY) {
         m_gameCameraEntity = m_editorCameraEntity;
     }
+    return pEditorCameraObj;
+}
 
-    // Relative Mouse Mode Toggle for Editor Free Cam
-    if (!m_fullscreenGame) {
-        if (Input::Instance().IsMouseRightTrigger() && !ImGui::GetIO().WantCaptureMouse) {
-            Input::Instance().SetMouseModeRelative();
-            m_isCameraDragging = true;
-        } else if (Input::Instance().IsMouseRightRelease() && m_isCameraDragging) {
-            Input::Instance().SetMouseModeAbsolute();
-            m_isCameraDragging = false;
-        }
-    } else {
-        m_isCameraDragging = true; // In game mode, camera is always controlled
-    }
+void GameScene::UpdateCameraControl(const std::shared_ptr<GameObject>& pEditorCameraObj)
+{
+    auto& ecs = GameManager::Instance().GetECS();
 
     // Control Logic
     if (Editor::GetEditorMode() && !m_fullscreenGame)
@@ -565,7 +611,13 @@ void GameScene::Render()
         renderSystem->RenderShadow();
     }
 
-    if (m_fullscreenGame) {
+    if (BenchmarkRunner::Instance().IsActive())
+    {
+        // エディターのUIは描かず、ゲームと同じ見え方で描く
+        RenderFrame(m_editorCameraEntity, false);
+        BenchmarkRunner::Instance().DrawOverlay();
+    }
+    else if (m_fullscreenGame) {
         RenderGame();
         Editor::DrawProfilerOverlay(); // F3で切り替え - エディタモードではRenderEditor()のフルUIで既に表示される
     }
@@ -1241,4 +1293,5 @@ void GameScene::RenderEditor()
 {
     RenderFrame(m_editorCameraEntity, true);
     Editor::Draw();
+    BenchmarkRunner::Instance().DrawEditorWindow(GetEditorCameraTransform());
 }

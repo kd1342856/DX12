@@ -1,0 +1,12 @@
+{
+  "speed": 1.5,
+  "warmupSeconds": 3.0,
+  "points": [
+    { "label": "Entrance (仮)", "position": [2.2, 1.6, -6.5], "pitch": 0.0, "yaw": 0.0, "waitSeconds": 1.0, "hunt": false },
+    { "label": "Hallway1F (仮)", "position": [2.2, 1.6, 0.5], "pitch": 0.0, "yaw": 0.0, "waitSeconds": 0.0, "hunt": false },
+    { "label": "Kitchen (仮)", "position": [-2.3, 1.6, -1.0], "pitch": 0.1, "yaw": -1.5708, "waitSeconds": 2.0, "hunt": false },
+    { "label": "JPRoomF1 ハント (仮)", "position": [0.0, 1.6, 4.5], "pitch": 0.0, "yaw": 0.0, "waitSeconds": 2.0, "hunt": true },
+    { "label": "JPRoomF1 奥 ハント (仮)", "position": [-3.0, 1.6, 4.5], "pitch": 0.0, "yaw": -1.5708, "waitSeconds": 2.0, "hunt": true },
+    { "label": "Hallway1F 戻り (仮)", "position": [2.2, 1.6, -3.0], "pitch": 0.0, "yaw": 3.1416, "waitSeconds": 1.0, "hunt": false }
+  ]
+}

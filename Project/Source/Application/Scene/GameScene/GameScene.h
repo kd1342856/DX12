@@ -19,6 +19,13 @@ private:
     void SetPaused(bool paused);
     void UpdateInput();
     void UpdateCamera();
+    // エディターのカメラ(MainCamera)とゲームのカメラを探して m_editorCameraEntity・m_gameCameraEntity を決める
+    std::shared_ptr<GameObject> FindCameras();
+    // 自由カメラかプレイヤーの視点を、入力で動かす
+    void UpdateCameraControl(const std::shared_ptr<GameObject>& pEditorCameraObj);
+    TransformData* GetEditorCameraTransform();
+    // ベンチマーク中の1フレーム(ゲームを止め、カメラを経路で動かして描く)
+    void UpdateBenchmark(float deltaTime);
     void TryBuildNavMesh();
     void Render();
     void RenderGame();

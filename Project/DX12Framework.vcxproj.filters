@@ -91,6 +91,9 @@
     <Filter Include="Source\Application\Scene">
       <UniqueIdentifier>{D28496E6-2839-4C9E-9912-9E0F63DF9A09}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Application\Benchmark">
+      <UniqueIdentifier>{6B2F4C1E-8D3A-4E7B-A5C9-1F0E2D7B9A34}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source\Application\Scene\GameScene">
       <UniqueIdentifier>{952CCE24-A089-4082-BA80-C520C94C509C}</UniqueIdentifier>
     </Filter>
@@ -404,6 +407,12 @@
     </ClCompile>
     <ClCompile Include="Source\Application\Scene\GameScene\PropLayout.cpp">
       <Filter>Source\Application\Scene\GameScene</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Application\Benchmark\BenchmarkPath.cpp">
+      <Filter>Source\Application\Benchmark</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Application\Benchmark\BenchmarkRunner.cpp">
+      <Filter>Source\Application\Benchmark</Filter>
     </ClCompile>
     <ClCompile Include="Source\Application\Scene\ResultScene\ResultScene.cpp">
       <Filter>Source\Application\Scene\ResultScene</Filter>
@@ -898,6 +907,12 @@
     </ClInclude>
     <ClInclude Include="Source\Application\Scene\GameScene\PropLayout.h">
       <Filter>Source\Application\Scene\GameScene</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Application\Benchmark\BenchmarkPath.h">
+      <Filter>Source\Application\Benchmark</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Application\Benchmark\BenchmarkRunner.h">
+      <Filter>Source\Application\Benchmark</Filter>
     </ClInclude>
     <ClInclude Include="Source\Application\Scene\ResultScene\ResultScene.h">
       <Filter>Source\Application\Scene\ResultScene</Filter>

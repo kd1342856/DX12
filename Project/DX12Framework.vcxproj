@@ -171,6 +171,8 @@
     <ClInclude Include="Source\Application\Application.h" />
     <ClInclude Include="Source\Application\Scene\GameScene\GameScene.h" />
     <ClInclude Include="Source\Application\Scene\GameScene\PropLayout.h" />
+    <ClInclude Include="Source\Application\Benchmark\BenchmarkPath.h" />
+    <ClInclude Include="Source\Application\Benchmark\BenchmarkRunner.h" />
     <ClInclude Include="Source\Application\Scene\ResultScene\ResultScene.h" />
     <ClInclude Include="Source\Application\Scene\TitleScene\TitleScene.h" />
     <ClInclude Include="Source\Application\UI\OptionMenu.h" />
@@ -396,6 +398,8 @@
     <ClCompile Include="Source\Application\Application.cpp" />
     <ClCompile Include="Source\Application\Scene\GameScene\GameScene.cpp" />
     <ClCompile Include="Source\Application\Scene\GameScene\PropLayout.cpp" />
+    <ClCompile Include="Source\Application\Benchmark\BenchmarkPath.cpp" />
+    <ClCompile Include="Source\Application\Benchmark\BenchmarkRunner.cpp" />
     <ClCompile Include="Source\Application\Scene\ResultScene\ResultScene.cpp" />
     <ClCompile Include="Source\Application\Scene\TitleScene\TitleScene.cpp" />
     <ClCompile Include="Source\Application\UI\OptionMenu.cpp" />

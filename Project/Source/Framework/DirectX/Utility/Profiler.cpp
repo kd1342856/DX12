@@ -368,6 +368,7 @@ void Profiler::BeginCPUFrame()
 #endif
 
     AddFrameTime(frameMs);
+    m_lastFrameMs = frameMs;
 
     m_statsFrameMs[m_statsFrameIndex] = frameMs;
     m_statsFrameIndex = (m_statsFrameIndex + 1) % kFrameStatsWindowSize;

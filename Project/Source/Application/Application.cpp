@@ -5,6 +5,7 @@
 #include "Application.h"
 #include "Scene/GameScene/GameScene.h"
 #include "Scene/TitleScene/TitleScene.h"
+#include "Benchmark/BenchmarkRunner.h"
 #include "../Graphics/Shader/ShaderManager/ShaderManager.h"
 #include "../Graphics/Shader/ShaderHotReload/ShaderHotReload.h"
 #include "../Framework/Manager/Audio/AudioManager.h"
@@ -100,11 +101,24 @@ void Application::Execute()
 
 	// SceneManager
 	SceneManager::Instance().Init();
-	// ゲームはタイトル画面から始める(スタートでGameSceneへ)
-	SceneManager::Instance().SetCurrentSceneWithoutFade(std::make_unique<TitleScene>());
+	// ゲームはタイトル画面から始める(スタートでGameSceneへ)。
+	// 起動引数 -benchmark のときは、家のシーンから始めてベンチマークを回し、終わったら終了する
+	const bool isBenchmark = BenchmarkRunner::IsRequestedByCommandLine();
+	if (isBenchmark)
+	{
+		SceneManager::Instance().SetCurrentSceneWithoutFade(std::make_unique<GameScene>());
+	}
+	else
+	{
+		SceneManager::Instance().SetCurrentSceneWithoutFade(std::make_unique<TitleScene>());
+	}
 	if (SceneManager::Instance().GetCurrentScene())
 	{
 		SceneManager::Instance().GetCurrentScene()->Init();
+	}
+	if (isBenchmark)
+	{
+		BenchmarkRunner::Instance().Start(true);
 	}
 
 	// ゲームループ

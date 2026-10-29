@@ -255,6 +255,8 @@ public:
     void AddFrameTime(float ms);
     const std::array<float, kFrameHistorySize>& GetFrameTimeHistory() const { return m_frameTimeHistory; }
     int GetFrameTimeHistoryIndex() const { return m_frameTimeHistoryIdx; }
+    // 直前の1フレーム全体の時間(BeginCPUFrameで測ったもの)
+    float GetLastFrameMs() const { return m_lastFrameMs; }
 
     // フレームの先頭で1回呼ぶ。前フレームの所要時間を記録し、平均より極端に遅かったら
     // そのフレームのCPU区間計測をログに出してから、毎フレームのカウンタをリセットする。
@@ -340,6 +342,7 @@ private:
     // フレーム時間の履歴
     std::array<float, kFrameHistorySize> m_frameTimeHistory = {};
     int m_frameTimeHistoryIdx = 0;
+    float m_lastFrameMs = 0.0f;
 
     // スパイク検出用の平均フレーム時間(ms)と、平均が安定するまでの待ちフレーム数
     float m_avgFrameMs = 0.0f;
