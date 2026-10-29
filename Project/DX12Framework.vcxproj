@@ -366,6 +366,8 @@
     <ClInclude Include="Source\Framework\ImGuiEditor\Panels\MeasurePanel.h" />
     <ClInclude Include="Source\Graphics\Renderer\BufferViewer.h" />
     <ClInclude Include="Source\Graphics\Renderer\MaterialPreview.h" />
+    <ClInclude Include="Source\Graphics\Renderer\ShadowViewer.h" />
+    <ClInclude Include="Source\Framework\ImGuiEditor\Panels\ShadowViewPanel.h" />
     <ClInclude Include="Source\Framework\ImGuiEditor\Panels\BufferViewPanel.h" />
     <ClInclude Include="Source\Framework\ImGuiEditor\Panels\DisplayPanel.h" />
   </ItemGroup>
@@ -540,6 +542,8 @@
     <ClCompile Include="Source\Framework\ImGuiEditor\Panels\MeasurePanel.cpp" />
     <ClCompile Include="Source\Graphics\Renderer\BufferViewer.cpp" />
     <ClCompile Include="Source\Graphics\Renderer\MaterialPreview.cpp" />
+    <ClCompile Include="Source\Graphics\Renderer\ShadowViewer.cpp" />
+    <ClCompile Include="Source\Framework\ImGuiEditor\Panels\ShadowViewPanel.cpp" />
     <ClCompile Include="Source\Framework\ImGuiEditor\Panels\BufferViewPanel.cpp" />
     <ClCompile Include="Source\Framework\ImGuiEditor\Panels\DisplayPanel.cpp" />
   </ItemGroup>
@@ -609,6 +613,9 @@
       <FileType>Document</FileType>
     </None>
     <None Include="Asset\Shader\Debug\MaterialPreview_CS.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Asset\Shader\Debug\ShadowView_CS.hlsl">
       <FileType>Document</FileType>
     </None>
     <None Include="Asset\Shader\Temporal\TemporalAA_CS.hlsl">

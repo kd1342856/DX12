@@ -33,6 +33,7 @@
 #include "../../../Graphics/Renderer/ReferenceCompare.h"
 #include "../../../Graphics/Renderer/BufferViewer.h"
 #include "../../../Graphics/Renderer/MaterialPreview.h"
+#include "../../../Graphics/Renderer/ShadowViewer.h"
 #include "../../../Graphics/Renderer/MotionBlur.h"
 #include "../../../Graphics/Renderer/ReflectionProbes.h"
 #include "../../../Graphics/Renderer/RaytracingScene.h"
@@ -746,6 +747,8 @@ void GameScene::RenderFrame(Entity cameraEntity, bool isEditor)
     }
     // シェーダーエディターのマテリアルの球(パネルが頼んだ分だけ描く)。中で時間を計っている
     graph.AddPass("MaterialPreview", []() { MaterialPreview::Instance().Dispatch(); }, {}, Profiling::None);
+    // シェーダーエディターの「影の中身」を開いている間だけ、影の深度を見える色にする。中で時間を計っている
+    graph.AddPass("ShadowView", []() { ShadowViewer::Instance().Dispatch(); }, {}, Profiling::None);
 
     // UI(スプライト)はウィンドウ解像度のバックバッファに、ポストの後で合成する。
     // HDRのシーンに描くと、トーンマップやsRGBのエンコードがUIの色にも掛かってしまうため

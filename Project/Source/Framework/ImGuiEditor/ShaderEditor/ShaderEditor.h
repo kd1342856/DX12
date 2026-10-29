@@ -18,6 +18,7 @@
 #include "../Panels/MeasurePanel.h"
 #include "../Panels/BufferViewPanel.h"
 #include "../Panels/DisplayPanel.h"
+#include "../Panels/ShadowViewPanel.h"
 
 // シェーダーエディター。パネルを1つのウィンドウに並べ、「ウィンドウ」メニューから選んだパネルは
 // 別のウィンドウに出す(ドッキングできる)。出したパネルはエディターの設定(EditorSettings.json)に覚える

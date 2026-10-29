@@ -22,6 +22,7 @@ void ShaderEditor::Initialize()
     AddPanel<DebugPanel>("Debug", u8"デバッグビュー");
     AddPanel<MeasurePanel>("Measure", u8"計測と比較");
     AddPanel<BufferViewPanel>("BufferView", u8"バッファの一覧");
+    AddPanel<ShadowViewPanel>("ShadowView", u8"影の中身");
     AddPanel<MaterialPanel>("Material", u8"マテリアル");
 }
 
