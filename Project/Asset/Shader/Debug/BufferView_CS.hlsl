@@ -16,7 +16,7 @@ struct Constants
     uint Mode;              // BufferViewer::Bufferと同じ番号
     uint SourceWidth;
     uint SourceHeight;
-    uint Padding;
+    uint SecondSourceIndex; // 2つのバッファを比べるときの、もう1つ(SRV)
 };
 ConstantBuffer<Constants> g_constants : register(b0);
 
@@ -35,11 +35,15 @@ static const uint kModeRoughness = 3;
 static const uint kModeSSAO = 4;
 static const uint kModeVelocity = 5;
 static const uint kModeBloom = 6;
+static const uint kModeTAAResult = 7;
+static const uint kModeTAAChange = 8;
 
 // この距離(m)で黒になる
 static const float kFarDistance = 50.0;
 // この速さ(ピクセル/フレーム)で一番濃くなる
 static const float kFullVelocityPixels = 16.0;
+// 前のフレームとの差を何倍に強調するか
+static const float kChangeScale = 4.0;
 
 float3 LinearToSrgb(float3 linearColor)
 {
@@ -92,7 +96,7 @@ void main(uint3 dispatchId : SV_DispatchThreadID)
     else
     {
         Texture2D<float4> source = ResourceDescriptorHeap[g_constants.SourceIndex];
-        if (g_constants.Mode == kModeSceneColor || g_constants.Mode == kModeBloom)
+        if (g_constants.Mode == kModeSceneColor || g_constants.Mode == kModeBloom || g_constants.Mode == kModeTAAResult)
         {
             color = HDRToDisplay(source.SampleLevel(g_linearClamp, uv, 0).rgb);
         }
@@ -116,6 +120,16 @@ void main(uint3 dispatchId : SV_DispatchThreadID)
             const float speed = length(velocityPixels);
             const float hue = atan2(velocityPixels.y, velocityPixels.x) / (2.0 * 3.14159265) + 0.5;
             color = HueToRgb(hue) * saturate(speed / kFullVelocityPixels);
+        }
+        else if (g_constants.Mode == kModeTAAChange)
+        {
+            // 画面の色(丸めてsRGBにした後)で比べるので、暗い所の小さな揺れも見える
+            Texture2D<float4> previous = ResourceDescriptorHeap[g_constants.SecondSourceIndex];
+            const float3 latestColor = HDRToDisplay(source.SampleLevel(g_pointClamp, uv, 0).rgb);
+            const float3 previousColor = HDRToDisplay(previous.SampleLevel(g_pointClamp, uv, 0).rgb);
+            const float change = saturate(length(latestColor - previousColor) * kChangeScale);
+            // 黒 → 赤 → 黄 → 白
+            color = saturate(float3(change * 3.0, change * 3.0 - 1.0, change * 3.0 - 2.0));
         }
     }
     destination[dispatchId.xy] = float4(color, 1.0);

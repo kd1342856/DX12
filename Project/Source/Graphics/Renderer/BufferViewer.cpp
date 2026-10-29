@@ -2,6 +2,7 @@
 #include "BufferViewer.h"
 #include "Renderer.h"
 #include "MotionVectors.h"
+#include "TemporalAA.h"
 #include "../GPUResource/RenderTarget/RenderTarget.h"
 #include "../../Framework/DirectX/Utility/Profiler.h"
 
@@ -17,7 +18,7 @@ namespace
         uint32_t mode;
         uint32_t sourceWidth;
         uint32_t sourceHeight;
-        uint32_t padding;
+        uint32_t secondSourceIndex; // 2つのバッファを比べるときの、もう1つ(SRV)
     };
 
     // BufferView_CS.hlslのcbFrame(b1)と同じ並び
@@ -36,6 +37,9 @@ namespace
         int width = 0;
         int height = 0;
         bool isDepth = false;
+        // 2つのバッファを比べるときの、もう1つ
+        ID3D12Resource* pSecondResource = nullptr;
+        int secondSrvIndex = -1;
     };
 
     Source FindSource(BufferViewer::Buffer buffer)
@@ -82,6 +86,28 @@ namespace
                 // ブルームのぼかしは、横と縦を1回ずつ通した結果が1番に入る
                 pRT = Renderer::GetBloomBlurRenderTarget(1);
                 break;
+            case BufferViewer::Buffer::TAAResult:
+            case BufferViewer::Buffer::TAAChange:
+            {
+                // TAAの履歴は、今のフレームの結果と1つ前のフレームの結果の2枚を交互に使う
+                auto& temporalAA = TemporalAA::Instance();
+                GPUTexture* pLatest = temporalAA.GetHistoryTexture(0);
+                GPUTexture* pPrevious = temporalAA.GetHistoryTexture(1);
+                if (!pLatest || (buffer == BufferViewer::Buffer::TAAChange && !pPrevious))
+                {
+                    return source;
+                }
+                source.pResource = pLatest->GetResource();
+                source.srvIndex = pLatest->GetSRVIndex();
+                source.width = static_cast<int>(pLatest->GetWidth());
+                source.height = static_cast<int>(pLatest->GetHeight());
+                if (buffer == BufferViewer::Buffer::TAAChange)
+                {
+                    source.pSecondResource = pPrevious->GetResource();
+                    source.secondSrvIndex = pPrevious->GetSRVIndex();
+                }
+                return source;
+            }
             default:
                 break;
         }
@@ -107,6 +133,8 @@ const BufferViewer::BufferInfo& BufferViewer::GetInfo(Buffer buffer)
         { u8"SSAO", u8"画面の深度から求めた環境光の遮蔽(半分の解像度)。\n黒いほど、隅や隙間で光が届きにくい。SSAOを切っていると前の中身のまま。" },
         { u8"速度", u8"前のフレームから画面の上をどれだけ動いたか(TAAとモーションブラーが使う)。\n色が動いた向き、濃さが速さ(16ピクセルで一番濃い)。止まっている所は黒。" },
         { u8"ブルーム", u8"明るい所からにじむ光(4分の1の解像度)。明るい所は丸めて表示する。\nブルームを切っていると前の中身のまま。" },
+        { u8"TAAの結果", u8"TAAで前のフレームまでの結果と混ぜた、今のフレームの色(次のフレームの履歴になる)。\n明るい所は丸めて表示する。TAAを切っていると前の中身のまま。" },
+        { u8"前のフレームとの差", u8"TAAの結果を、1つ前のフレームの結果と比べた差(画面の色で、4倍に強調)。\n止まっているのに光る所は、TAAでもちらついている所。黒は変わらない所。TAAを切っていると前の中身のまま。" },
     };
     return kInfos[static_cast<int>(buffer)];
 }
@@ -186,6 +214,10 @@ void BufferViewer::Dispatch(const Math::Matrix& projection)
         {
             pContext->TransitionResource(sources[bufferIndex].pResource, GPUTexture::kInitialState);
         }
+        if (sources[bufferIndex].pSecondResource)
+        {
+            pContext->TransitionResource(sources[bufferIndex].pSecondResource, GPUTexture::kInitialState);
+        }
         pContext->TransitionResource(m_thumbnails[bufferIndex].GetResource(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
     }
     pContext->TransitionResource(m_large.GetResource(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
@@ -230,6 +262,7 @@ void BufferViewer::Convert(Buffer buffer, GPUTexture& destination)
     constants.mode = static_cast<uint32_t>(buffer);
     constants.sourceWidth = static_cast<uint32_t>(source.width);
     constants.sourceHeight = static_cast<uint32_t>(source.height);
+    constants.secondSourceIndex = static_cast<uint32_t>((source.secondSrvIndex >= 0) ? source.secondSrvIndex : source.srvIndex);
     m_shader.SetConstants(constants);
     m_shader.Dispatch(ComputeShader::DivideRoundUp(constants.destinationWidth, kThreadGroupSize), ComputeShader::DivideRoundUp(constants.destinationHeight, kThreadGroupSize));
 }

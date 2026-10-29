@@ -38,6 +38,17 @@ public:
     void InvalidateHistory() { m_isHistoryValid = false; }
 
     bool IsEnabled() const { return m_isEnabledThisFrame; }
+    // 履歴(TAAの結果)。framesAgoが0なら今のフレーム(Resolveの後)、1なら1つ前のフレーム。
+    // TAAが無効か、履歴がまだ無ければnullptr(バッファの一覧で見るため)
+    GPUTexture* GetHistoryTexture(int framesAgo)
+    {
+        if (!m_isEnabledThisFrame || !m_isHistoryValid || framesAgo < 0 || framesAgo > 1)
+        {
+            return nullptr;
+        }
+        // Resolveの後でm_writeIndexは入れ替わっているので、今のフレームの結果は1 - m_writeIndexにある
+        return &m_historyTextures[(framesAgo == 0) ? 1 - m_writeIndex : m_writeIndex];
+    }
     bool IsAvailable() const { return m_isInitialized; }
 
 private:

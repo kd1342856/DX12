@@ -29,6 +29,8 @@ public:
         SSAO,
         Velocity,
         Bloom,
+        TAAResult,
+        TAAChange,
         Count,
     };
     static constexpr int kBufferCount = static_cast<int>(Buffer::Count);
