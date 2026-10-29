@@ -40,9 +40,7 @@ public:
         m_instanceCount = 0;
         m_instanceBreakdown.clear();
         m_dispatchCount = 0;
-        // clearは確保済みの領域を残すので、毎フレームのメモリ確保は起きない
-        m_cpuTimings.clear();
-        m_cpuFrameStamp++;
+        FinishCPUTimings();
         m_entitiesVisible = 0;
         m_entitiesCulled = 0;
         m_meshesVisible = 0;
@@ -93,6 +91,8 @@ public:
         uint32_t cpuTimingIndex = 0;  // そのフレームの m_cpuTimings の中での位置
         uint32_t gpuFrameStamp = 0;   // 最後にGPU計測を足したフレーム(m_gpuFrameStamp)
         uint32_t gpuTimingIndex = 0;  // そのフレームの m_gpuTimings の中での位置
+        float cpuAvgMs = 0.0f;        // CPU時間の指数移動平均(出てきたフレームだけで更新)
+        float gpuAvgMs = 0.0f;        // GPU時間の指数移動平均(出てきたフレームだけで更新)
 #ifdef TRACY_ENABLE
         tracy::SourceLocationData srcloc = {};  // 実行時に決まる名前のとき、Tracyに渡す場所の情報
 #endif
@@ -154,15 +154,18 @@ public:
     struct ScopeTiming
     {
         const char* pName;
-        float ms;
+        float ms;               // そのフレームの値
+        float avgMs;            // 指数移動平均(およそ直近50回ぶん)。表示のちらつきを抑える
+        ScopeName* pScopeName;  // 平均の更新用
     };
 
     // ---------------------------------------------------------------
-    // CPU区間計測（ResetPerFrameCountersで毎フレームクリアされる）
+    // CPU区間計測（ResetPerFrameCountersで毎フレーム締める）
     // メインスレッドの区間だけを集計する。ほかのスレッドの区間はTracyにだけ送る。
     // ---------------------------------------------------------------
     void AddCPUTiming(ScopeName& name, float ms);
-    const std::vector<ScopeTiming>& GetCPUTimings() const { return m_cpuTimings; }
+    // 最後に締めたフレーム(1つ前のフレーム)の結果。今のフレームの途中の値は出さない
+    const std::vector<ScopeTiming>& GetCPUTimings() const { return m_lastCPUTimings; }
 
     class ScopedCPUTimer
     {
@@ -213,8 +216,10 @@ public:
     uint32_t BeginGPUScope(ID3D12GraphicsCommandList* pCmdList, ScopeName& name);
     void EndGPUScope(ID3D12GraphicsCommandList* pCmdList, uint32_t scopeHandle);
 
-    // 最後に読み戻せたフレームの結果(同じ名前は合計)
+    // 最後に読み戻せたフレームの結果(同じ名前は合計)。フレーム全体の時間(GetGPUFrameTiming)は含まない
     const std::vector<ScopeTiming>& GetGPUTimings() const { return m_gpuTimings; }
+    // 最後に読み戻せたフレームの、グラフィックスのコマンドリスト全体のGPU時間
+    const ScopeTiming& GetGPUFrameTiming() const { return m_gpuFrameTiming; }
 
     class ScopedGPUTimer
     {
@@ -255,7 +260,29 @@ public:
     // そのフレームのCPU区間計測をログに出してから、毎フレームのカウンタをリセットする。
     void BeginCPUFrame();
 
+    // ---------------------------------------------------------------
+    // フレーム時間の統計(目標: 平均100fps以上、1% low 60fps以上)
+    // ---------------------------------------------------------------
+    struct FrameStats
+    {
+        int frameCount = 0;
+        float avgMs = 0.0f;
+        float maxMs = 0.0f;
+        float onePercentLowMs = 0.0f;  // 遅い方から1%のフレームの平均。1000.0f / これ が 1% low のfps
+        float p99Ms = 0.0f;            // 99パーセンタイル(これより遅いフレームが1%)
+        float stdDevMs = 0.0f;         // 標準偏差(ばらつき)
+    };
+    static constexpr int kFrameStatsWindowSize = 1000;
+
+    // pFrameMs の count 個のフレーム時間から統計を出す。pScratch は count 個ぶんの作業用の領域
+    static FrameStats ComputeFrameStats(const float* pFrameMs, int count, float* pScratch);
+    // 直近 kFrameStatsWindowSize フレームの統計(毎フレーム更新)
+    const FrameStats& GetRecentFrameStats() const { return m_recentFrameStats; }
+
 private:
+    // 今のフレームのCPU計測を締めて、平均を更新し、表示用に残す
+    void FinishCPUTimings();
+    static void UpdateTimingAverage(ScopeTiming& timing, float& avgMs);
     void ReportFrameSpike(float frameMs) const;
 
     Profiler() = default;
@@ -284,8 +311,9 @@ private:
     std::deque<ScopeName> m_scopeNames;
     std::unordered_map<std::string_view, ScopeName*> m_scopeNameLookup;  // キーは各要素の pName を指す
 
-    // CPU計測
+    // CPU計測。今のフレームと、表示用の1つ前のフレーム(締めるときに入れ替える)
     std::vector<ScopeTiming> m_cpuTimings;
+    std::vector<ScopeTiming> m_lastCPUTimings;
     uint32_t m_cpuFrameStamp = 1;
 
     // GPU計測
@@ -299,6 +327,10 @@ private:
     std::vector<uint32_t> m_gpuScopeCountPerSlot;                            // 各スロットに記録されたスコープ数
     std::vector<ScopeTiming> m_gpuTimings;
     uint32_t m_gpuFrameStamp = 1;
+    ScopeName* m_pGPUFrameScopeName = nullptr;  // フレーム全体のGPU時間に使う区間名
+    uint32_t m_gpuFrameScopeHandle = UINT32_MAX;
+    ScopeTiming m_gpuFrameTiming = {};
+    bool m_hasWarnedGPUScopeOverflow = false;
 
 #ifdef TRACY_ENABLE
     // TracyのGPU計測(グラフィックスキュー)。自前のタイムスタンプとは別のクエリヒープを使う
@@ -312,6 +344,13 @@ private:
     // スパイク検出用の平均フレーム時間(ms)と、平均が安定するまでの待ちフレーム数
     float m_avgFrameMs = 0.0f;
     int m_spikeWarmupFrames = 120;
+
+    // フレーム時間の統計用(直近 kFrameStatsWindowSize フレームのリングバッファ)
+    std::array<float, kFrameStatsWindowSize> m_statsFrameMs = {};
+    std::array<float, kFrameStatsWindowSize> m_statsScratch = {};
+    int m_statsFrameIndex = 0;
+    int m_statsFrameCount = 0;
+    FrameStats m_recentFrameStats;
 };
 
 // 使い方: 計測したいブロックの先頭で PROFILE_CPU_SCOPE("Shadow"); のように呼ぶ。

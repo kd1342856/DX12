@@ -36,6 +36,35 @@ void Editor::DrawStatistics()
                 Profiler::Instance().GetFrameTimeHistoryIndex(), nullptr, 0.0f,
                 std::max(maxMs, 1.0f) * 1.1f, ImVec2(-FLT_MIN, 60));
         }
+
+        // 直近のフレーム時間の統計と、目標(平均100fps以上、1% low 60fps以上)との比較
+        {
+            constexpr float kTargetAvgFps = 100.0f;
+            constexpr float kTargetOnePercentLowFps = 60.0f;
+            const ImVec4 kPassColor(0.4f, 0.9f, 0.4f, 1.0f);
+            const ImVec4 kFailColor(1.0f, 0.4f, 0.4f, 1.0f);
+
+            const Profiler::FrameStats& stats = Profiler::Instance().GetRecentFrameStats();
+            auto toFps = [](float ms)
+            {
+                return (ms > 0.0f) ? 1000.0f / ms : 0.0f;
+            };
+            const float avgFps = toFps(stats.avgMs);
+            const float onePercentLowFps = toFps(stats.onePercentLowMs);
+
+            ImGui::Text("--- Frame Stats (last %d frames) ---", stats.frameCount);
+            ImGui::TextColored(avgFps >= kTargetAvgFps ? kPassColor : kFailColor,
+                "Avg:     %6.1f fps (%6.2f ms)  target %.0f", avgFps, stats.avgMs, kTargetAvgFps);
+            ImGui::TextColored(onePercentLowFps >= kTargetOnePercentLowFps ? kPassColor : kFailColor,
+                "1%% low: %6.1f fps (%6.2f ms)  target %.0f", onePercentLowFps, stats.onePercentLowMs, kTargetOnePercentLowFps);
+            ImGui::Text("P99: %.2f ms  Max: %.2f ms  StdDev: %.2f ms", stats.p99Ms, stats.maxMs, stats.stdDevMs);
+            if (ImGui::IsItemHovered())
+            {
+                ImGui::SetTooltip("1%% low = slowest 1%% of frames (average), P99 = 99th percentile frame time");
+            }
+            const Profiler::ScopeTiming& gpuFrame = Profiler::Instance().GetGPUFrameTiming();
+            ImGui::Text("GPU Frame: %.2f ms (avg %.2f ms)", gpuFrame.ms, gpuFrame.avgMs);
+        }
         ImGui::Separator();
 
         ImGui::Text("--- Memory ---");
@@ -47,11 +76,14 @@ void Editor::DrawStatistics()
         // GPU計測はCPU計測より数フレーム遅れる(記録先のフレームインフライトスロットが
         // 再利用しても安全になった時点で結果を読み戻すため)が、パス名で対応が取れるので、
         // 単純に横並びのテーブルにするだけで重いパスを見つけるには十分。
-        if (ImGui::BeginTable("PassTiming", 3, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
+        // avg は指数移動平均(およそ直近50回ぶん)。GPUの平均が重い順に並べる
+        if (ImGui::BeginTable("PassTiming", 5, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
         {
             ImGui::TableSetupColumn("Pass");
             ImGui::TableSetupColumn("CPU");
+            ImGui::TableSetupColumn("CPU avg");
             ImGui::TableSetupColumn("GPU");
+            ImGui::TableSetupColumn("GPU avg");
             ImGui::TableHeadersRow();
 
             const auto& cpuTimings = Profiler::Instance().GetCPUTimings();
@@ -85,34 +117,55 @@ void Editor::DrawStatistics()
                     s_names.push_back(timing.pName);
                 }
             }
-            std::sort(s_names.begin(), s_names.end(), [](const char* pLhs, const char* pRhs)
+            // GPUの平均が重い順。GPUで測っていない区間はその後ろに、CPUの平均が重い順
+            std::sort(s_names.begin(), s_names.end(), [&](const char* pLhs, const char* pRhs)
             {
-                return std::strcmp(pLhs, pRhs) < 0;
+                const Profiler::ScopeTiming* pLhsGpu = findTiming(gpuTimings, pLhs);
+                const Profiler::ScopeTiming* pRhsGpu = findTiming(gpuTimings, pRhs);
+                if (pLhsGpu && pRhsGpu)
+                {
+                    return pLhsGpu->avgMs > pRhsGpu->avgMs;
+                }
+                if (pLhsGpu || pRhsGpu)
+                {
+                    return pLhsGpu != nullptr;
+                }
+                const Profiler::ScopeTiming* pLhsCpu = findTiming(cpuTimings, pLhs);
+                const Profiler::ScopeTiming* pRhsCpu = findTiming(cpuTimings, pRhs);
+                const float lhsCpuMs = pLhsCpu ? pLhsCpu->avgMs : 0.0f;
+                const float rhsCpuMs = pRhsCpu ? pRhsCpu->avgMs : 0.0f;
+                return lhsCpuMs > rhsCpuMs;
             });
+
+            auto drawTiming = [](const Profiler::ScopeTiming* pTiming)
+            {
+                ImGui::TableNextColumn();
+                if (pTiming)
+                {
+                    ImGui::Text("%.3f", pTiming->ms);
+                }
+                else
+                {
+                    ImGui::TextUnformatted("-");
+                }
+                ImGui::TableNextColumn();
+                if (pTiming)
+                {
+                    ImGui::Text("%.3f", pTiming->avgMs);
+                }
+                else
+                {
+                    ImGui::TextUnformatted("-");
+                }
+            };
 
             for (const char* pName : s_names)
             {
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
                 ImGui::TextUnformatted(pName);
-                ImGui::TableNextColumn();
-                if (const Profiler::ScopeTiming* pCpu = findTiming(cpuTimings, pName))
-                {
-                    ImGui::Text("%.3f", pCpu->ms);
-                }
-                else
-                {
-                    ImGui::TextUnformatted("-");
-                }
-                ImGui::TableNextColumn();
-                if (const Profiler::ScopeTiming* pGpu = findTiming(gpuTimings, pName))
-                {
-                    ImGui::Text("%.3f", pGpu->ms);
-                }
-                else
-                {
-                    ImGui::TextUnformatted("-");
-                }
+                drawTiming(findTiming(cpuTimings, pName));
+                drawTiming(findTiming(gpuTimings, pName));
             }
             ImGui::EndTable();
         }

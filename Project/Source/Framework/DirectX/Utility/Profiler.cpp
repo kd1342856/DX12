@@ -87,9 +87,29 @@ void Profiler::AddCPUTiming(ScopeName& name, float ms)
     {
         name.cpuFrameStamp = m_cpuFrameStamp;
         name.cpuTimingIndex = static_cast<uint32_t>(m_cpuTimings.size());
-        m_cpuTimings.push_back({ name.pName, 0.0f });
+        m_cpuTimings.push_back({ name.pName, 0.0f, 0.0f, &name });
     }
     m_cpuTimings[name.cpuTimingIndex].ms += ms;
+}
+
+void Profiler::UpdateTimingAverage(ScopeTiming& timing, float& avgMs)
+{
+    // 初めて出てきたときは平均を今の値から始める
+    constexpr float kAverageWeight = 0.02f;
+    avgMs = (avgMs == 0.0f) ? timing.ms : avgMs + (timing.ms - avgMs) * kAverageWeight;
+    timing.avgMs = avgMs;
+}
+
+void Profiler::FinishCPUTimings()
+{
+    for (ScopeTiming& timing : m_cpuTimings)
+    {
+        UpdateTimingAverage(timing, timing.pScopeName->cpuAvgMs);
+    }
+    // 入れ替えとclearは確保済みの領域を残すので、毎フレームのメモリ確保は起きない
+    m_lastCPUTimings.swap(m_cpuTimings);
+    m_cpuTimings.clear();
+    m_cpuFrameStamp++;
 }
 
 // ---------------------------------------------------------------
@@ -136,6 +156,12 @@ void Profiler::InitGPU(ID3D12Device* pDevice, ID3D12CommandQueue* pQueue, uint32
     m_gpuScopeNamesPerSlot.assign(frameCount, std::vector<ScopeName*>(kMaxGPUScopesPerFrame, nullptr));
     m_gpuTimings.reserve(kMaxGPUScopesPerFrame);
     m_cpuTimings.reserve(256);
+    m_lastCPUTimings.reserve(256);
+
+    // フレーム全体のGPU時間は、ほかの区間と同じ仕組みで1つ目の区間として測る
+    static ScopeSite s_gpuFrameSite{ __FILE__, __FUNCTION__, static_cast<uint32_t>(__LINE__) };
+    m_pGPUFrameScopeName = &FindOrAddName(s_gpuFrameSite, "GPU Frame", false);
+    m_gpuFrameTiming = { m_pGPUFrameScopeName->pName, 0.0f, 0.0f, m_pGPUFrameScopeName };
     m_gpuScopeCountPerSlot.assign(frameCount, 0);
 
     D3D12_HEAP_PROPERTIES heapProps = {};
@@ -215,15 +241,25 @@ void Profiler::ReadGPUResultsForSlot(uint32_t slot)
             if (pName && end >= begin && m_gpuFrequency != 0)
             {
                 float ms = static_cast<float>(end - begin) / static_cast<float>(m_gpuFrequency) * 1000.0f;
+                if (pName == m_pGPUFrameScopeName)
+                {
+                    m_gpuFrameTiming.ms = ms;
+                    UpdateTimingAverage(m_gpuFrameTiming, pName->gpuAvgMs);
+                    continue;
+                }
                 // 同じ名前が1フレームで複数回使われた場合はCPU計測と同じく加算する
                 if (pName->gpuFrameStamp != m_gpuFrameStamp)
                 {
                     pName->gpuFrameStamp = m_gpuFrameStamp;
                     pName->gpuTimingIndex = static_cast<uint32_t>(m_gpuTimings.size());
-                    m_gpuTimings.push_back({ pName->pName, 0.0f });
+                    m_gpuTimings.push_back({ pName->pName, 0.0f, 0.0f, pName });
                 }
                 m_gpuTimings[pName->gpuTimingIndex].ms += ms;
             }
+        }
+        for (ScopeTiming& timing : m_gpuTimings)
+        {
+            UpdateTimingAverage(timing, timing.pScopeName->gpuAvgMs);
         }
         D3D12_RANGE writeRange = { 0, 0 };
         m_gpuReadbackBuffers[slot]->Unmap(0, &writeRange);
@@ -245,6 +281,7 @@ void Profiler::BeginGPUFrame(ID3D12GraphicsCommandList* pCmdList)
     ReadGPUResultsForSlot(m_gpuCurrentSlot);
 
     m_gpuScopeCounter = 0;
+    m_gpuFrameScopeHandle = m_pGPUFrameScopeName ? BeginGPUScope(pCmdList, *m_pGPUFrameScopeName) : UINT32_MAX;
 
 #ifdef TRACY_ENABLE
     // 終わったクエリの結果をTracyに送る(待たない。接続していないときは何もしない)
@@ -258,6 +295,9 @@ void Profiler::BeginGPUFrame(ID3D12GraphicsCommandList* pCmdList)
 void Profiler::EndGPUFrame(ID3D12GraphicsCommandList* pCmdList)
 {
     if (!m_spQueryHeap || !pCmdList) return;
+
+    EndGPUScope(pCmdList, m_gpuFrameScopeHandle);
+    m_gpuFrameScopeHandle = UINT32_MAX;
 
     uint32_t heapOffset = m_gpuCurrentSlot * kMaxGPUScopesPerFrame * 2;
     uint32_t queryCount = m_gpuScopeCounter * 2;
@@ -273,7 +313,18 @@ void Profiler::EndGPUFrame(ID3D12GraphicsCommandList* pCmdList)
 
 uint32_t Profiler::BeginGPUScope(ID3D12GraphicsCommandList* pCmdList, ScopeName& name)
 {
-    if (!m_spQueryHeap || !pCmdList || m_gpuScopeCounter >= kMaxGPUScopesPerFrame) return UINT32_MAX;
+    if (!m_spQueryHeap || !pCmdList) return UINT32_MAX;
+    if (m_gpuScopeCounter >= kMaxGPUScopesPerFrame)
+    {
+        // 上限を超えた区間は測らない。気付けるように1回だけログに出す
+        if (!m_hasWarnedGPUScopeOverflow)
+        {
+            m_hasWarnedGPUScopeOverflow = true;
+            Logger::Instance().AddLog(Logger::LogLevel::Warning,
+                u8"[Profiler] GPU区間が1フレームの上限(%u)を超えたため、「%s」以降は測っていない", kMaxGPUScopesPerFrame, name.pName);
+        }
+        return UINT32_MAX;
+    }
 
     uint32_t index = m_gpuScopeCounter++;
     uint32_t heapIndex = m_gpuCurrentSlot * kMaxGPUScopesPerFrame * 2 + index * 2;
@@ -318,6 +369,11 @@ void Profiler::BeginCPUFrame()
 
     AddFrameTime(frameMs);
 
+    m_statsFrameMs[m_statsFrameIndex] = frameMs;
+    m_statsFrameIndex = (m_statsFrameIndex + 1) % kFrameStatsWindowSize;
+    m_statsFrameCount = (std::min)(m_statsFrameCount + 1, kFrameStatsWindowSize);
+    m_recentFrameStats = ComputeFrameStats(m_statsFrameMs.data(), m_statsFrameCount, m_statsScratch.data());
+
     if (m_spikeWarmupFrames > 0)
     {
         // 起動直後はロード等で荒れるので、平均を作るだけで判定はしない
@@ -335,6 +391,47 @@ void Profiler::BeginCPUFrame()
     }
 
     ResetPerFrameCounters();
+}
+
+Profiler::FrameStats Profiler::ComputeFrameStats(const float* pFrameMs, int count, float* pScratch)
+{
+    FrameStats stats;
+    if (!pFrameMs || !pScratch || count <= 0)
+    {
+        return stats;
+    }
+
+    double sumMs = 0.0;
+    double sumSquaredMs = 0.0;
+    float maxMs = 0.0f;
+    for (int frameIndex = 0; frameIndex < count; ++frameIndex)
+    {
+        const float ms = pFrameMs[frameIndex];
+        sumMs += ms;
+        sumSquaredMs += static_cast<double>(ms) * ms;
+        maxMs = (std::max)(maxMs, ms);
+        pScratch[frameIndex] = ms;
+    }
+    const double avgMs = sumMs / count;
+    const double variance = (std::max)(0.0, sumSquaredMs / count - avgMs * avgMs);
+
+    // 遅い方から1%(最低1フレーム)を前に集める。並べ替え全体はしない
+    const int slowCount = (std::max)(1, count / 100);
+    std::nth_element(pScratch, pScratch + (slowCount - 1), pScratch + count, std::greater<float>());
+    double slowSumMs = 0.0;
+    for (int slowIndex = 0; slowIndex < slowCount; ++slowIndex)
+    {
+        slowSumMs += pScratch[slowIndex];
+    }
+
+    stats.frameCount = count;
+    stats.avgMs = static_cast<float>(avgMs);
+    stats.maxMs = maxMs;
+    stats.onePercentLowMs = static_cast<float>(slowSumMs / slowCount);
+    // nth_element の後は、slowCount-1 番目より前がすべてそれ以上の値になっている
+    stats.p99Ms = pScratch[slowCount - 1];
+    stats.stdDevMs = static_cast<float>(std::sqrt(variance));
+    return stats;
 }
 
 void Profiler::ReportFrameSpike(float frameMs) const
